@@ -298,7 +298,7 @@ class Datautils:
 
                 label = vals[4]
                 if len(labels_set) > 0 and label not in labels_set:
-                    continue
+                    label = 'NA'
 
                 if type is 'test' and label not in train_labels:
                     oov_label.append(line_id)

@@ -398,10 +398,7 @@ def dump_result(batch_id, args, output, target, dataset, perm_idx, output_softma
         lines = []
         for line_id, line in enumerate(f):
             if line_id not in oov_label_lineid:
-                vals = line.split('\t')
-                true_label = vals[4].strip()
-                if len(args.labels_set) == 0 or true_label in args.labels_set:
-                    lines.append(line)
+                lines.append(line)
 
         with open(pr_log, "a") as fpr:
             for data_idx, scores in enumerate(output_softmax):
@@ -431,13 +428,14 @@ def dump_result(batch_id, args, output, target, dataset, perm_idx, output_softma
                 true_label = vals[4].strip()
                 match = pred_label == target_label
 
-                assert true_label == target_label
+                if len(args.labels_set) == 0 or true_label in args.labels_set:
+                    assert true_label == target_label
 
-                if match and true_label != 'NA':
+                if match and target_label != 'NA':
                     test_teacher_pred_match_noNA += 1.0
                 if pred_label != 'NA':
                     test_teacher_pred_noNA += 1.0
-                if true_label != 'NA':
+                if target_label != 'NA':
                     test_teacher_true_noNA += 1.0
 
                 line = line + '\t' + target_label + '\t' + pred_label + '\t' + str(match) + '\t' + str(float(score[p])) + '\n'
@@ -450,10 +448,7 @@ def dump_result(batch_id, args, output, target, dataset, perm_idx, output_softma
         lines = []
         for line_id, line in enumerate(f):
             if line_id not in oov_label_lineid:
-                vals = line.split('\t')
-                true_label = vals[4].strip()
-                if len(args.labels_set) == 0 or true_label in args.labels_set:
-                    lines.append(line)
+                lines.append(line)
 
         with open(pr_log, "a") as fpr:
             for data_idx, scores in enumerate(output_softmax):
@@ -483,13 +478,14 @@ def dump_result(batch_id, args, output, target, dataset, perm_idx, output_softma
                 true_label = vals[4].strip()
                 match = pred_label == target_label
 
-                assert true_label == target_label
+                if len(args.labels_set) == 0 or true_label in args.labels_set:
+                    assert true_label == target_label
 
-                if match and true_label != 'NA':
+                if match and target_label != 'NA':
                     test_student_pred_match_noNA += 1.0
                 if pred_label != 'NA':
                     test_student_pred_noNA += 1.0
-                if true_label != 'NA':
+                if target_label != 'NA':
                     test_student_true_noNA += 1.0
 
                 line = line + '\t' + target_label + '\t' + pred_label + '\t' + str(match) + '\t' + str(float(score[p])) + '\n'

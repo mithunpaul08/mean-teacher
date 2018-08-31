@@ -689,9 +689,9 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
             else:
                 accum_ema_f1 = 2 * accum_ema_prec * accum_ema_rec / (accum_ema_prec + accum_ema_rec)
 
-            if epoch == args.epochs - 1:
-                dump_result(i, args, class_logit.data, target_var.data, dataset, perm_idx, 'train_student', topk=(1,))
-                dump_result(i, args, ema_logit.data, target_var.data, dataset, perm_idx, 'train_teacher', topk=(1,))
+            # if epoch == args.epochs - 1:
+            #     dump_result(i, args, class_logit.data, target_var.data, dataset, perm_idx, 'train_student', topk=(1,))
+            #     dump_result(i, args, ema_logit.data, target_var.data, dataset, perm_idx, 'train_teacher', topk=(1,))
 
         else:
             prec1, prec5 = accuracy(class_logit.data, target_var.data, topk=(1, 2)) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
@@ -747,40 +747,40 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
                 **meters.sums()
             })
 
-    if args.dataset in ['riedel', 'gids']:
-        if epoch == args.epochs - 1:
-
-            if train_student_pred_noNA == 0.0:
-                student_precision = 0.0
-            else:
-                student_precision = train_student_pred_match_noNA / train_student_pred_noNA
-            if train_student_true_noNA == 0.0:
-                student_recall = 0.0
-            else:
-                student_recall = train_student_pred_match_noNA / train_student_true_noNA
-            if student_precision + student_recall == 0.0:
-                student_f1 = 0.0
-            else:
-                student_f1 = 2 * student_precision * student_recall / (student_precision + student_recall)
-
-            LOG.info('******* [Train] Student : Overall Precision {0}  Recall {1}  F1 {2}  ********'.format(
-                    student_precision, student_recall, student_f1))
-
-            if train_teacher_pred_noNA == 0.0:
-                teacher_precision = 0.0
-            else:
-                teacher_precision = train_teacher_pred_match_noNA / train_teacher_pred_noNA
-            if train_teacher_true_noNA == 0.0:
-                teacher_recall = 0.0
-            else:
-                teacher_recall = train_teacher_pred_match_noNA / train_teacher_true_noNA
-            if teacher_precision + teacher_recall == 0.0:
-                teacher_f1 = 0.0
-            else:
-                teacher_f1 = 2 * teacher_precision * teacher_recall / (teacher_precision + teacher_recall)
-
-            LOG.info('******* [Train] Teacher : Overall Precision {0}  Recall {1}  F1 {2}  ********'.format(
-                teacher_precision, teacher_recall, teacher_f1))
+    # if args.dataset in ['riedel', 'gids']:
+    #     if epoch == args.epochs - 1:
+    #
+    #         if train_student_pred_noNA == 0.0:
+    #             student_precision = 0.0
+    #         else:
+    #             student_precision = train_student_pred_match_noNA / train_student_pred_noNA
+    #         if train_student_true_noNA == 0.0:
+    #             student_recall = 0.0
+    #         else:
+    #             student_recall = train_student_pred_match_noNA / train_student_true_noNA
+    #         if student_precision + student_recall == 0.0:
+    #             student_f1 = 0.0
+    #         else:
+    #             student_f1 = 2 * student_precision * student_recall / (student_precision + student_recall)
+    #
+    #         LOG.info('******* [Train] Student : Overall Precision {0}  Recall {1}  F1 {2}  ********'.format(
+    #                 student_precision, student_recall, student_f1))
+    #
+    #         if train_teacher_pred_noNA == 0.0:
+    #             teacher_precision = 0.0
+    #         else:
+    #             teacher_precision = train_teacher_pred_match_noNA / train_teacher_pred_noNA
+    #         if train_teacher_true_noNA == 0.0:
+    #             teacher_recall = 0.0
+    #         else:
+    #             teacher_recall = train_teacher_pred_match_noNA / train_teacher_true_noNA
+    #         if teacher_precision + teacher_recall == 0.0:
+    #             teacher_f1 = 0.0
+    #         else:
+    #             teacher_f1 = 2 * teacher_precision * teacher_recall / (teacher_precision + teacher_recall)
+    #
+    #         LOG.info('******* [Train] Teacher : Overall Precision {0}  Recall {1}  F1 {2}  ********'.format(
+    #             teacher_precision, teacher_recall, teacher_f1))
 
 def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, model_type):
     global NA_label
@@ -932,8 +932,8 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
 
             meters.update('class_loss', class_loss.data[0], labeled_minibatch_size)
 
-            if epoch == args.epochs:
-                dump_result(i, args, output1.data, target_var.data, dataset, perm_idx_test, 'test_'+model_type, topk=(1,))
+            # if epoch == args.epochs:
+            #     dump_result(i, args, output1.data, target_var.data, dataset, perm_idx_test, 'test_'+model_type, topk=(1,))
 
         else:
             # measure accuracy and record loss
@@ -965,43 +965,43 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
                     'Prec@1 {meters[top1]:.3f}'.format(
                         i, len(eval_loader), meters=meters))
 
-    # FINAL PERFORMANCE
-    if args.dataset in ['riedel', 'gids']:
-        if epoch == args.epochs:
-
-            if model_type == 'student':
-                if test_student_pred_noNA == 0.0:
-                    student_precision = 0.0
-                else:
-                    student_precision = test_student_pred_match_noNA / test_student_pred_noNA
-                if test_student_true_noNA == 0.0:
-                    student_recall = 0.0
-                else:
-                    student_recall = test_student_pred_match_noNA / test_student_true_noNA
-                if student_precision + student_recall == 0.0:
-                    student_f1 = 0.0
-                else:
-                    student_f1 = 2 * student_precision * student_recall / (student_precision + student_recall)
-
-                LOG.info('******* [Test] Student : Overall Precision {0}  Recall {1}  F1 {2}  ********'.format(
-                        student_precision, student_recall, student_f1))
-
-            else:
-                if test_teacher_pred_noNA == 0.0:
-                    teacher_precision = 0.0
-                else:
-                    teacher_precision = test_teacher_pred_match_noNA / test_teacher_pred_noNA
-                if test_teacher_true_noNA == 0.0:
-                    teacher_recall = 0.0
-                else:
-                    teacher_recall = test_teacher_pred_match_noNA / test_teacher_true_noNA
-                if teacher_precision + teacher_recall == 0.0:
-                    teacher_f1 = 0.0
-                else:
-                    teacher_f1 = 2 * teacher_precision * teacher_recall / (teacher_precision + teacher_recall)
-
-                LOG.info('******* [Test] Teacher : Overall Precision {0}  Recall {1}  F1 {2}  ********'.format(
-                    teacher_precision, teacher_recall, teacher_f1))
+    # # FINAL PERFORMANCE
+    # if args.dataset in ['riedel', 'gids']:
+    #     if epoch == args.epochs:
+    #
+    #         if model_type == 'student':
+    #             if test_student_pred_noNA == 0.0:
+    #                 student_precision = 0.0
+    #             else:
+    #                 student_precision = test_student_pred_match_noNA / test_student_pred_noNA
+    #             if test_student_true_noNA == 0.0:
+    #                 student_recall = 0.0
+    #             else:
+    #                 student_recall = test_student_pred_match_noNA / test_student_true_noNA
+    #             if student_precision + student_recall == 0.0:
+    #                 student_f1 = 0.0
+    #             else:
+    #                 student_f1 = 2 * student_precision * student_recall / (student_precision + student_recall)
+    #
+    #             LOG.info('******* [Test] Student : Overall Precision {0}  Recall {1}  F1 {2}  ********'.format(
+    #                     student_precision, student_recall, student_f1))
+    #
+    #         else:
+    #             if test_teacher_pred_noNA == 0.0:
+    #                 teacher_precision = 0.0
+    #             else:
+    #                 teacher_precision = test_teacher_pred_match_noNA / test_teacher_pred_noNA
+    #             if test_teacher_true_noNA == 0.0:
+    #                 teacher_recall = 0.0
+    #             else:
+    #                 teacher_recall = test_teacher_pred_match_noNA / test_teacher_true_noNA
+    #             if teacher_precision + teacher_recall == 0.0:
+    #                 teacher_f1 = 0.0
+    #             else:
+    #                 teacher_f1 = 2 * teacher_precision * teacher_recall / (teacher_precision + teacher_recall)
+    #
+    #             LOG.info('******* [Test] Teacher : Overall Precision {0}  Recall {1}  F1 {2}  ********'.format(
+    #                 teacher_precision, teacher_recall, teacher_f1))
     else:
         LOG.info(' * Prec@1 {top1.avg:.3f}\tClassLoss {class_loss.avg:.3f}'
               .format(top1=meters['top1'], class_loss=meters['class_loss']))

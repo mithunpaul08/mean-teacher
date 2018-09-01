@@ -1002,9 +1002,9 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
     #
     #             LOG.info('******* [Test] Teacher : Overall Precision {0}  Recall {1}  F1 {2}  ********'.format(
     #                 teacher_precision, teacher_recall, teacher_f1))
-    else:
-        LOG.info(' * Prec@1 {top1.avg:.3f}\tClassLoss {class_loss.avg:.3f}'
-              .format(top1=meters['top1'], class_loss=meters['class_loss']))
+    # else:
+    #     LOG.info(' * Prec@1 {top1.avg:.3f}\tClassLoss {class_loss.avg:.3f}'
+    #           .format(top1=meters['top1'], class_loss=meters['class_loss']))
 
 
     log.record(epoch, {

@@ -76,7 +76,7 @@ def main(context):
 
     if args.dataset != 'riedel':
         args.subset_labels = 'None'
-        args.labels_set = []
+        args.labels_set = []   
     else:
         if args.subset_labels == '5':
             args.labels_set = ['NA', '/people/person/place_lived', '/people/deceased_person/place_of_death', '/people/person/ethnicity', '/people/person/religion']

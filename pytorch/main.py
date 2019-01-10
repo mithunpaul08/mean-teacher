@@ -528,7 +528,7 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
                 ema_input_var = torch.autograd.Variable(ema_input, volatile=True).cpu()
 
         if torch.cuda.is_available():
-            target_var = torch.autograd.Variable(target.cuda(async=True))
+            target_var = torch.autograd.Variable(target.cuda())
         else:
             target_var = torch.autograd.Variable(target.cpu())  # todo: not passing the async=True (as above) .. going along with it now .. to check if this is a problem
 
@@ -851,7 +851,7 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
                 input_var = torch.autograd.Variable(input, volatile=True).cpu() ## NOTE: AJAY - volatile: Boolean indicating that the Variable should be used in inference mode,
 
         if torch.cuda.is_available():
-            target_var = torch.autograd.Variable(target.cuda(async=True), volatile=True)
+            target_var = torch.autograd.Variable(target.cuda(), volatile=True)
         else:
             target_var = torch.autograd.Variable(target.cpu(), volatile=True) ## NOTE: AJAY - volatile: Boolean indicating that the Variable should be used in inference mode,
 

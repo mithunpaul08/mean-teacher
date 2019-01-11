@@ -92,11 +92,12 @@ def main(context):
         elif args.subset_labels == 'None':
             args.labels_set = []
 
-    if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids']:
+    if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids', 'fever']:
         train_loader, eval_loader, dataset, dataset_test = create_data_loaders(**dataset_config, args=args)
         word_vocab_embed = dataset.word_vocab_embed
         word_vocab_size = dataset.word_vocab.size()
     else:
+        #mithun: i think this is the actual code from valpola that ran on cifar10 dataset
         train_loader, eval_loader = create_data_loaders(**dataset_config, args=args)
 
     if args.dataset in ['riedel', 'gids']:
@@ -267,6 +268,8 @@ def create_data_loaders(train_transformation,
 
         LOG.info("traindir : " + traindir)
         LOG.info("evaldir : " + evaldir)
+
+        #askfan: why isn't this code returning anything explicitly? is __getitem__ whcih returns
         dataset = datasets.NECDataset(traindir, args, train_transformation)
         LOG.info("Type of Noise : "+ dataset.WORD_NOISE_TYPE)
         LOG.info("Size of Noise : "+ str(dataset.NUM_WORDS_TO_REPLACE))
@@ -292,17 +295,8 @@ def create_data_loaders(train_transformation,
                                                   # batch_size=args.batch_size,
                                                   # shuffle=False)
 
-        ################## Using torchtext .. not using this currently ####################################
-        # train_loader, _ = BucketIterator.splits(
-        #    (dataset, dataset), # we pass in the datasets we want the iterator to draw data from
-        #     batch_sizes=(64, 64),
-        #     device=-1, # if you want to use the GPU, specify the GPU number here
-        #     sort_key=lambda x: len(x.patterns), # the BucketIterator needs to be told what function it should use to group the data.
-        #     sort_within_batch=False,
-        #     repeat=False # we pass repeat=False because we want to wrap this Iterator layer.
-        #     )
-        ############################################################################################################
-
+        #mithun:this is the place where they are reading the data, packaging it into a format that the data loader in torch understands?
+        #askfan: why isn't the constructor not returning anything? who is returning the data?
         dataset_test = datasets.NECDataset(evaldir, args, eval_transformation) ## NOTE: test data is the same as train data
 
         eval_loader = torch.utils.data.DataLoader(dataset_test,
@@ -420,6 +414,8 @@ def create_data_loaders(train_transformation,
             num_workers=2 * args.workers,  # Needs images twice as fast
             drop_last=False)
 
+
+    #mithun: once you have both the train and test data in the DataLoader format that torch understands, return it to the calling function
     if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids']:
         return train_loader, eval_loader, dataset, dataset_test
     else:

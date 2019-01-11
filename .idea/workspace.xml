@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="3da2ff6a-5a14-43f5-890c-25c0ab212963" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/pytorch/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pytorch/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pytorch/mean_teacher/architectures.py" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/mean_teacher/architectures.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pytorch/mean_teacher/datasets.py" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/mean_teacher/datasets.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -21,52 +23,92 @@
       <usages-collector id="statistics.file.extensions.open">
         <counts>
           <entry key="md" value="1" />
-          <entry key="py" value="3" />
+          <entry key="py" value="9" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
           <entry key="Markdown" value="1" />
-          <entry key="Python" value="3" />
+          <entry key="Python" value="9" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="md" value="17" />
-          <entry key="py" value="8" />
+          <entry key="py" value="1307" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="Markdown" value="17" />
-          <entry key="Python" value="8" />
+          <entry key="Python" value="1307" />
         </counts>
       </usages-collector>
     </session>
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/tensorflow/train_svhn.py">
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="330">
-              <caret line="22" column="52" selection-start-line="22" selection-start-column="52" selection-end-line="22" selection-end-column="52" />
+            <state relative-caret-position="407">
+              <caret line="297" column="9" lean-forward="true" selection-start-line="297" selection-start-column="9" selection-end-line="297" selection-end-column="9" />
               <folding>
-                <element signature="e#0#14#0" expanded="true" />
+                <element signature="e#0#43#0" expanded="true" />
+                <element signature="e#271#1141#0" />
+                <element signature="e#1171#1865#0" />
+                <element signature="e#1897#2364#0" />
+                <element signature="e#2393#2855#0" />
+                <element signature="e#5257#5563#0" />
+                <element signature="e#5613#6053#0" />
+                <element signature="e#6100#7362#0" />
+                <element signature="e#7395#7420#0" />
+                <element signature="e#7480#8255#0" />
+                <element signature="e#8371#8386#0" />
+                <element signature="e#13014#13449#0" />
+                <element signature="e#13476#13905#0" />
+                <element signature="e#13938#27054#0" />
+                <element signature="e#19242#24221#0" />
+                <element signature="e#24291#24907#0" />
+                <element signature="e#24963#25411#0" />
+                <element signature="e#25444#25476#0" />
+                <element signature="e#25517#25556#0" />
+                <element signature="e#25601#25783#0" />
+                <element signature="e#25819#25834#0" />
+                <element signature="e#26948#27054#0" />
+                <element signature="e#27085#27282#0" />
+                <element signature="e#27554#28538#0" />
+                <element signature="e#28335#41451#0" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py">
+        <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/processNLPdata/vocabulary.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-98">
-              <caret line="311" column="8" selection-start-line="311" selection-start-column="8" selection-end-line="311" selection-end-column="8" />
+            <state relative-caret-position="495">
+              <caret line="34" column="8" selection-start-line="34" selection-start-column="8" selection-end-line="34" selection-end-column="8" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/processNLPdata/datautils.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="32">
+              <caret line="16" column="13" selection-start-line="16" selection-start-column="8" selection-end-line="16" selection-end-column="13" />
               <folding>
-                <element signature="e#0#43#0" expanded="true" />
+                <element signature="e#23#41#0" expanded="true" />
               </folding>
             </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/utils.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-180" />
           </provider>
         </entry>
       </file>
@@ -74,7 +116,7 @@
         <entry file="file://$PROJECT_DIR$/pytorch/README.md">
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
             <state split_layout="SPLIT">
-              <first_editor relative-caret-position="75">
+              <first_editor relative-caret-position="30">
                 <caret line="5" column="43" selection-start-line="5" selection-start-column="43" selection-end-line="5" selection-end-column="43" />
               </first_editor>
               <second_editor />
@@ -82,14 +124,47 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/architectures.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="147">
+              <caret line="176" column="10" selection-start-line="176" selection-start-column="10" selection-end-line="176" selection-end-column="10" />
+              <folding>
+                <element signature="e#0#10#0" expanded="true" />
+                <element signature="e#1296#1487#0" />
+                <element signature="e#1574#7066#0" />
+                <element signature="e#7792#10569#0" />
+                <element signature="e#14941#17627#0" />
+                <element signature="e#17904#18612#0" />
+                <element signature="e#18954#19219#0" />
+                <element signature="e#19259#22154#0" />
+                <element signature="e#22191#24706#0" />
+                <element signature="e#24948#26195#0" />
+                <element signature="e#26236#27511#0" />
+                <element signature="e#27541#28492#0" />
+                <element signature="e#28623#29199#0" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/pytorch/main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="11881">
-              <caret line="852" column="37" selection-start-line="852" selection-start-column="37" selection-end-line="852" selection-end-column="37" />
+            <state relative-caret-position="167">
+              <caret line="338" column="41" lean-forward="true" selection-start-line="338" selection-start-column="41" selection-end-line="338" selection-end-column="41" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$USER_HOME$/anaconda3/envs/meanteacher/lib/python3.7/codecs.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="186">
+              <caret line="311" selection-start-line="311" selection-end-line="311" />
             </state>
           </provider>
         </entry>
@@ -100,6 +175,19 @@
     <findStrings>
       <find>REDataset</find>
       <find>REDAT</find>
+      <find>simple_MLP_embed</find>
+      <find>Datautils.READ_</find>
+      <find>simple_MLP_embed_RE</find>
+      <find>__getitem</find>
+      <find>datautils.</find>
+      <find>Datautils</find>
+      <find>read_data</find>
+      <find>read_</find>
+      <find>getitem</find>
+      <find>RTEDataset</find>
+      <find>dataset</find>
+      <find>NECDataset</find>
+      <find>dataset_test</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -108,8 +196,10 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/pytorch/main.py" />
         <option value="$PROJECT_DIR$/pytorch/README.md" />
+        <option value="$PROJECT_DIR$/pytorch/mean_teacher/architectures.py" />
+        <option value="$PROJECT_DIR$/pytorch/main.py" />
+        <option value="$PROJECT_DIR$/pytorch/mean_teacher/datasets.py" />
       </list>
     </option>
   </component>
@@ -258,16 +348,16 @@
     <editor active="true" />
     <layout>
       <window_info id="Favorites" side_tool="true" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.24984913" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.24984913" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Version Control" show_stripe_button="false" />
       <window_info anchor="bottom" id="Python Console" />
       <window_info anchor="bottom" id="Terminal" />
       <window_info anchor="bottom" id="Event Log" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
-      <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" visible="true" weight="0.32951945" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info active="true" anchor="bottom" id="Find" order="1" visible="true" weight="0.32951945" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.32951945" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.3993135" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -292,10 +382,101 @@
           <line>81</line>
           <option name="timeStamp" value="2" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>87</line>
+          <option name="timeStamp" value="3" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>72</line>
+          <option name="timeStamp" value="4" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>74</line>
+          <option name="timeStamp" value="5" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>94</line>
+          <option name="timeStamp" value="6" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>98</line>
+          <option name="timeStamp" value="7" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py</url>
+          <line>41</line>
+          <option name="timeStamp" value="8" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py</url>
+          <line>344</line>
+          <option name="timeStamp" value="10" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py</url>
+          <line>99</line>
+          <option name="timeStamp" value="11" />
+        </line-breakpoint>
       </breakpoints>
+      <default-breakpoints>
+        <breakpoint type="python-exception">
+          <properties notifyOnTerminate="true" exception="BaseException">
+            <option name="notifyOnTerminate" value="true" />
+          </properties>
+        </breakpoint>
+      </default-breakpoints>
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$USER_HOME$/anaconda3/envs/meanteacher/lib/python3.7/codecs.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="186">
+          <caret line="311" selection-start-line="311" selection-end-line="311" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pytorch/README.md">
+      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+        <state split_layout="SPLIT">
+          <first_editor relative-caret-position="30">
+            <caret line="5" column="43" selection-start-line="5" selection-start-column="43" selection-end-line="5" selection-end-column="43" />
+          </first_editor>
+          <second_editor />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/architectures.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="147">
+          <caret line="176" column="10" selection-start-line="176" selection-start-column="10" selection-end-line="176" selection-end-column="10" />
+          <folding>
+            <element signature="e#0#10#0" expanded="true" />
+            <element signature="e#1296#1487#0" />
+            <element signature="e#1574#7066#0" />
+            <element signature="e#7792#10569#0" />
+            <element signature="e#14941#17627#0" />
+            <element signature="e#17904#18612#0" />
+            <element signature="e#18954#19219#0" />
+            <element signature="e#19259#22154#0" />
+            <element signature="e#22191#24706#0" />
+            <element signature="e#24948#26195#0" />
+            <element signature="e#26236#27511#0" />
+            <element signature="e#27541#28492#0" />
+            <element signature="e#28623#29199#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/utils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-180" />
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/tensorflow/train_svhn.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="330">
@@ -306,32 +487,70 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/pytorch/README.md">
-      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
-        <state split_layout="SPLIT">
-          <first_editor relative-caret-position="75">
-            <caret line="5" column="43" selection-start-line="5" selection-start-column="43" selection-end-line="5" selection-end-column="43" />
-          </first_editor>
-          <second_editor />
+    <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/processNLPdata/datautils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="32">
+          <caret line="16" column="13" selection-start-line="16" selection-start-column="8" selection-end-line="16" selection-end-column="13" />
+          <folding>
+            <element signature="e#23#41#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py">
+    <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/processNLPdata/vocabulary.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-98">
-          <caret line="311" column="8" selection-start-line="311" selection-start-column="8" selection-end-line="311" selection-end-column="8" />
-          <folding>
-            <element signature="e#0#43#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="495">
+          <caret line="34" column="8" selection-start-line="34" selection-start-column="8" selection-end-line="34" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/anaconda3/envs/meanteacher/lib/python3.7/site-packages/torch/utils/data/dataloader.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="167">
+          <caret line="96" column="24" selection-start-line="96" selection-start-column="17" selection-end-line="96" selection-end-column="24" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/pytorch/main.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="11881">
-          <caret line="852" column="37" selection-start-line="852" selection-start-column="37" selection-end-line="852" selection-end-column="37" />
+        <state relative-caret-position="167">
+          <caret line="338" column="41" lean-forward="true" selection-start-line="338" selection-start-column="41" selection-end-line="338" selection-end-column="41" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="407">
+          <caret line="297" column="9" lean-forward="true" selection-start-line="297" selection-start-column="9" selection-end-line="297" selection-end-column="9" />
+          <folding>
+            <element signature="e#0#43#0" expanded="true" />
+            <element signature="e#271#1141#0" />
+            <element signature="e#1171#1865#0" />
+            <element signature="e#1897#2364#0" />
+            <element signature="e#2393#2855#0" />
+            <element signature="e#5257#5563#0" />
+            <element signature="e#5613#6053#0" />
+            <element signature="e#6100#7362#0" />
+            <element signature="e#7395#7420#0" />
+            <element signature="e#7480#8255#0" />
+            <element signature="e#8371#8386#0" />
+            <element signature="e#13014#13449#0" />
+            <element signature="e#13476#13905#0" />
+            <element signature="e#13938#27054#0" />
+            <element signature="e#19242#24221#0" />
+            <element signature="e#24291#24907#0" />
+            <element signature="e#24963#25411#0" />
+            <element signature="e#25444#25476#0" />
+            <element signature="e#25517#25556#0" />
+            <element signature="e#25601#25783#0" />
+            <element signature="e#25819#25834#0" />
+            <element signature="e#26948#27054#0" />
+            <element signature="e#27085#27282#0" />
+            <element signature="e#27554#28538#0" />
+            <element signature="e#28335#41451#0" />
           </folding>
         </state>
       </provider>

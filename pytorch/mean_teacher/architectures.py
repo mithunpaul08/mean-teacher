@@ -9,21 +9,6 @@ from torch.autograd import Variable, Function
 from torch.nn.utils.rnn import pack_padded_sequence
 
 from .utils import export, parameter_count
-###############
-# https://stackoverflow.com/questions/34240703/whats-the-difference-between-softmax-and-softmax-cross-entropy-with-logits
-
-###############
-#### TODO: Add the emboot objective functions as another parameter -- NO longer necessary at least for the COLING submission
-###############
-# @export
-# def pushpull_embed(pretrained=True, **kwargs):
-#
-#
-# Look at pytorch implementations like https://github.com/fanglanting/skip-gram-pytorch/blob/master/model.py
-# class PushPullSkipGram(nn.Module):
-#
-#     def __init__(self, word_vocab_size, embedding_size, hidden_sz, output_sz):
-#         super().__init__()
 
 
 ##############################################
@@ -187,8 +172,85 @@ def simple_MLP_embed_RE(word_vocab_size, num_classes, wordemb_size, pretrained=T
     model = FeedForwardMLPEmbed_RE(word_vocab_size, wordemb_size, hidden_size, num_classes, word_vocab_embed, update_pretrained_wordemb)
     return model
 
-
+#askfan: where is the construction cost and consistency cost and back prop only on student etc?
 class FeedForwardMLPEmbed_RE(nn.Module):
+    def __init__(self, word_vocab_size, embedding_size, hidden_sz, output_sz, word_vocab_embed,
+                 update_pretrained_wordemb):
+        super().__init__()
+        self.embedding_size = embedding_size
+        self.embeddings = nn.Embedding(word_vocab_size, embedding_size)
+        print("word_vocab_size=", word_vocab_size)
+
+        if word_vocab_embed is not None:  # Pre-initalize the embedding layer from a vector loaded from word2vec/glove/or such
+            print("Using a pre-initialized word-embedding vector .. loaded from disk")
+            self.embeddings.weight = nn.Parameter(torch.from_numpy(word_vocab_embed))
+
+            if update_pretrained_wordemb is False:
+                # NOTE: do not update the emebddings
+                # https://discuss.pytorch.org/t/how-to-exclude-embedding-layer-from-model-parameters/1283
+                print("NOT UPDATING the word embeddings ....")
+                self.embeddings.weight.detach_()
+            else:
+                print("UPDATING the word embeddings ....")
+
+        ## Intialize the embeddings if pre-init enabled ? -- or in the fwd pass ?
+        ## create : layer1 + ReLU
+        self.layer1 = nn.Linear(embedding_size, hidden_sz, bias=True)  ## concatenate entity and pattern embeddings
+        self.activation = nn.ReLU()
+        ## create : layer2 + Softmax: Create softmax here
+        self.layer2 = nn.Linear(hidden_sz, output_sz, bias=True)
+        # self.softmax = nn.Softmax(dim=1) ## IMPT NOTE: Removing the softmax from here as it is done in the loss function
+
+    def forward(self, input_tuple):
+        input = input_tuple[0]
+        seq_lengths = input_tuple[1]  # LongTensor
+        pad_id = input_tuple[2]
+
+        # Embed the input
+        embedded = self.embeddings(input)  # embedded.shape: torch.Size([256, 66, 100])
+
+        # Make the mask for removing the padded items
+        mask = input.ne(pad_id)
+
+        if torch.cuda.is_available():
+            mask = mask.type(torch.cuda.FloatTensor)
+        else:
+            mask = mask.type(torch.FloatTensor)
+
+        # add an extra dimension, initially of size 1
+        # then "expand_as" copies the last dimension into the new dimension
+        # This essentially propogates the mask through the final dimension
+        # input.shape[0] should be batch size and input.shape[1] should be the num_words
+        expanded_mask = mask.view(input.shape[0], input.shape[1], 1).expand_as(embedded)
+
+        # Apply mask (clear out the embeddings of padded items)
+        masked_embedded = embedded * expanded_mask
+
+        summation = masked_embedded.sum(1)  # Variable containing torch.FloatTensor of size 256x100
+
+        if torch.cuda.is_available():
+            seq_lengths = torch.autograd.Variable(seq_lengths.type(torch.cuda.FloatTensor))
+        else:
+            seq_lengths = torch.autograd.Variable(
+                seq_lengths.type(torch.FloatTensor))  # Variable containing torch.FloatTensor of size 256x100
+
+        seq_lengths = seq_lengths.view(-1, 1).expand_as(summation)
+
+        avg = summation / seq_lengths
+
+        res = self.layer1(avg)
+        res = self.activation(res)
+        res = self.layer2(res)
+
+        return res
+
+@export
+def simple_MLP_embed_RTE(word_vocab_size, num_classes, wordemb_size, pretrained=True, word_vocab_embed=None, hidden_size=200, update_pretrained_wordemb=False):
+
+    model = FeedForwardMLPEmbed_RTE(word_vocab_size, wordemb_size, hidden_size, num_classes, word_vocab_embed, update_pretrained_wordemb)
+    return model
+
+class FeedForwardMLPEmbed_RTE(nn.Module):
     def __init__(self, word_vocab_size, embedding_size, hidden_sz, output_sz, word_vocab_embed, update_pretrained_wordemb):
         super().__init__()
         self.embedding_size = embedding_size

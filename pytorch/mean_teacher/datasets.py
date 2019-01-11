@@ -97,6 +97,7 @@ def conll():
 #     return fields
 ######################################################################
 
+#mithun: ohh the Dataset is a pytorch class, not a python class..and this class NECDataset just inherits from that class. Apparently in python you inherit by passing the parent into the constructor. WHo knew
 class NECDataset(Dataset):
 
     PAD = "@PADDING"
@@ -233,6 +234,11 @@ class NECDataset(Dataset):
     def get_labels(self):
         return self.lbl
 
+    #mithun:apparently __getitem__ is a function of pytorch's Dataset class. Which this class inherits. Here he is just overriding it
+    # go to https://pytorch.org/tutorials/beginner/data_loading_tutorial.html and search for __getitem__
+    # this is some internal memory saving thing to not load the entire dataset into memory at once.
+    #ask fan: so if i want to do some data processing on the raw data that i read from disk, is this the point where i do it? for each data point kind of thing?
+    #askfan : but then what exactly does Datautils.read_data do? i thought it was returning entity,context,label too?
     def __getitem__(self, idx):
         entity_words = [self.word_vocab.get_id(w) for w in self.entity_vocab.get_word(self.mentions[idx]).split(" ")]
         entity_words_padded = self.pad_item(entity_words, isPattern=False)

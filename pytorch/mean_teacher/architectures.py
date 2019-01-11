@@ -172,7 +172,7 @@ def simple_MLP_embed_RE(word_vocab_size, num_classes, wordemb_size, pretrained=T
     model = FeedForwardMLPEmbed_RE(word_vocab_size, wordemb_size, hidden_size, num_classes, word_vocab_embed, update_pretrained_wordemb)
     return model
 
-#askfan: where is the construction cost and consistency cost and back prop only on student etc?
+
 class FeedForwardMLPEmbed_RE(nn.Module):
     def __init__(self, word_vocab_size, embedding_size, hidden_sz, output_sz, word_vocab_embed,
                  update_pretrained_wordemb):

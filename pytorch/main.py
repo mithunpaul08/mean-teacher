@@ -106,6 +106,7 @@ def main(context):
     else:
         num_classes = dataset_config.pop('num_classes')
 
+    #askfan: is ema false only when you don't pass anything or always? ans;yes
     def create_model(ema=False):
         LOG.info("=> creating {pretrained}{ema}model '{arch}'".format(
             pretrained='pre-trained ' if args.pretrained else '',
@@ -135,6 +136,7 @@ def main(context):
 
         return model
 
+    #askfan: so the ema is teacher? and teacher is just a copy of student itself-but how/where do they do the moving average thing?
     model = create_model()
     ema_model = create_model(ema=True)
 
@@ -286,6 +288,7 @@ def create_data_loaders(train_transformation,
         else:
             assert False, "labeled batch size {}".format(args.labeled_batch_size)
 
+        #mithun: pytorch thing. train_loader uses getitem internally
         train_loader = torch.utils.data.DataLoader(dataset,
                                                    pin_memory,
                                                    batch_sampler=batch_sampler,
@@ -297,6 +300,7 @@ def create_data_loaders(train_transformation,
 
         #mithun:this is the place where they are reading the data, packaging it into a format that the data loader in torch understands?
         #askfan: why isn't the constructor not returning anything? who is returning the data?
+        #ans: askajay -this looks like a python or pytorch thing where getitem is internally called
         dataset_test = datasets.NECDataset(evaldir, args, eval_transformation) ## NOTE: test data is the same as train data
 
         eval_loader = torch.utils.data.DataLoader(dataset_test,
@@ -421,7 +425,7 @@ def create_data_loaders(train_transformation,
     else:
         return train_loader, eval_loader
 
-
+#mithun: this is whe4re they are doing the average thing
 def update_ema_variables(model, ema_model, alpha, global_step):
     # Use the true average until the exponential average is more correct
     alpha = min(1 - 1 / (global_step + 1), alpha)
@@ -597,6 +601,8 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
         ema_class_loss = class_criterion(ema_logit, target_var) / minibatch_size ## DONE: AJAY - WHAT IF target_var NOT PRESENT (UNLABELED DATAPOINT) ? Ans: See  ignore index in  `class_criterion = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cpu()`
         meters.update('ema_class_loss', ema_class_loss.data[0])    # Do we need this?
 
+        #mithun askajay: is this where they are doing consistency comparison-but where is the subtRACTION?
+        # #askajay: where is the construction cost and consistency cost and back prop only on student etc?
         if args.consistency:     # if pass --consistency in running script
             consistency_weight = get_current_consistency_weight(epoch)
             meters.update('cons_weight', consistency_weight)

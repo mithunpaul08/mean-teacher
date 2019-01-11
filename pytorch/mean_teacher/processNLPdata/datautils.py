@@ -14,6 +14,7 @@ class Datautils:
     ## NOTE: The label to be removed later from the dataset and the routine suitably adjusted. Inserted here for debugging
 
     @classmethod
+    # askajay : but then what exactly does Datautils.read_data do? i thought it was returning entity,context,label too?-so we shouldn't do any data processing here
     def read_data(cls, filename, entity_vocab, context_vocab):
         labels = []
         entities = []

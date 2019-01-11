@@ -237,8 +237,8 @@ class NECDataset(Dataset):
     #mithun:apparently __getitem__ is a function of pytorch's Dataset class. Which this class inherits. Here he is just overriding it
     # go to https://pytorch.org/tutorials/beginner/data_loading_tutorial.html and search for __getitem__
     # this is some internal memory saving thing to not load the entire dataset into memory at once.
-    #ask fan: so if i want to do some data processing on the raw data that i read from disk, is this the point where i do it? for each data point kind of thing?
-    #askfan : but then what exactly does Datautils.read_data do? i thought it was returning entity,context,label too?
+    #askajay: so if i want to do some data processing on the raw data that i read from disk, is this the point where i do it? for each data point kind of thing?
+
     def __getitem__(self, idx):
         entity_words = [self.word_vocab.get_id(w) for w in self.entity_vocab.get_word(self.mentions[idx]).split(" ")]
         entity_words_padded = self.pad_item(entity_words, isPattern=False)
@@ -292,7 +292,7 @@ class NECDataset(Dataset):
         # print ("label id : " + str(self.label_ids_all[idx]))
         label = self.lbl[idx]  # Note: .. no need to create a tensor variable
 
-        #mithun: askfan i think this is the place where the data that is read from the disk is sent back to main.py
+        #mithun: askajay i think this is the place where the data that is read from the disk is sent back to main.py
         if self.transform is not None:
             return (entity_datum, context_datums[0]), (entity_datum, context_datums[1]), label
         else:

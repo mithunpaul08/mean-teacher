@@ -5,8 +5,8 @@ This is the PyTorch source code for the Mean Teacher paper. The code runs on Pyt
 ```
 pip install numpy scipy pandas sklearn
 pip install git+ssh://git@github.com/pytorch/vision@c31c3d7e0e68e871d2128c8b731698ed3b11b119
-pip3 install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp37-cp37m-linux_x86_64.whl
-pip3 install torchvision
+conda install pytorch-cpu torchvision-cpu -c pytorch
+
 ```
 
 The code expects to find the data in specific directories inside the data-local directory. You can prepare the CIFAR-10 with this command:

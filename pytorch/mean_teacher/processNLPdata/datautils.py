@@ -4,6 +4,7 @@ import numpy as np
 from collections import defaultdict
 import re
 import io
+import json, sys
 
 class Datautils:
 
@@ -41,7 +42,46 @@ class Datautils:
             print('num count words:',num_count_words)
 
         # return np.array(entities), np.array([np.array(c) for c in contexts]), np.array(labels)
+        #askajay why return as lists. why not a list of objects.
+        # am assuming you will iterate through zipped lists of all these 3, but isn't that risky?
         return entities, contexts, labels
+
+    @classmethod
+    def read_rte_data(cls, filename, entity_vocab, context_vocab):
+        all_labels = []
+        all_claims = []
+        all_evidences = []
+
+
+
+        fn = "train_full_with_evi_sents.jsonl"
+        with open(fn) as f:
+            for index, line in enumerate(f):
+                x = json.loads(line)
+                claim = x["claim"]
+                evidences = x["sents"]
+                label = x["label"]
+                evidences_this_list=[]
+                evidences_this_str = ""
+                if (len(evidences) > 1):
+                    for e in evidences:
+                        evidences_this_list.append(e)
+                    evidences_this_str=", ".join(evidences_this_list)
+                else:
+                    evidences_this_str = evidences
+
+                    all_claims.append(claim)
+                    all_evidences.append(evidences_this_str)
+                    all_labels.append(label)
+
+                print(f"claim:{claim}")
+                print(f"evidences_this_str:{evidences_this_str}")
+                print(f"label:{label}")
+                sys.exit(1)
+
+
+        # return np.array(entities), np.array([np.array(c) for c in contexts]), np.array(labels)
+        return all_claims, all_evidences, all_labels
 
     @classmethod
     def read_re_data(cls, filename, type, max_entity_len, max_inbetween_len, train_labels):
@@ -276,6 +316,8 @@ class Datautils:
             print('Number of test datapoints thrown away because of its label did not seen in train:' + str(len(oov_label)))
 
         return entities1, entities2, labels, chunks_inbetween, word_counts, oov_label
+
+
 
     ## Takes as input an array of entity mentions(ids) along with their contexts(ids) and converts them to individual pairs of entity and context
     ## Entity_Mention_1  -- context_mention_1, context_mention_2, ...

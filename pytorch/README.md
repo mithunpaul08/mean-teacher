@@ -1,4 +1,4 @@
-# Mean Teacher using PyTorch
+# Fact Verification using Mean Teacher in PyTorch
 
 This is the PyTorch source code for the Mean Teacher paper. The code runs on Python 3. Install the dependencies and prepare the datasets with the following commands:
 
@@ -15,21 +15,23 @@ The code expects to find the data in specific directories inside the data-local 
 ./data-local/bin/prepare_cifar10.sh
 ```
 
-(ImageNet instructions coming up.)
 
-To train on CIFAR-10, run e.g.:
+To train on FEVER, run e.g.:
 
 ```
 python main.py \
-    --dataset cifar10 \
+    --dataset fever \
     --labels data-local/labels/cifar10/1000_balanced_labels/00.txt \
-    --arch cifar_shakeshake26 \
+    --arch simple_MLP_embed_RTE \
     --consistency 100.0 \
     --consistency-rampup 5 \
     --labeled-batch-size 62 \
     --epochs 180 \
     --lr-rampdown-epochs 210
 ```
+A single line version of the same command is as follows:
+
+```python main.py --dataset fever --labels data-local/labels/cifar10/1000_balanced_labels/00.txt      --arch simple_MLP_embed_RTE      --consistency 100.0      --consistency-rampup 5      --labeled-batch-size 62      --epochs 180      --lr-rampdown-epochs 210```
 
 Use `python main.py --help` to see other command line arguments.
 

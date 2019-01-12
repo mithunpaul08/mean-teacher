@@ -52,8 +52,6 @@ class Datautils:
         all_claims = []
         all_evidences = []
 
-
-
         fn = "train_full_with_evi_sents.jsonl"
         with open(fn) as f:
             for index, line in enumerate(f):

@@ -24,15 +24,21 @@ Note that in this particular case the file train_full_with_evi_sents is a collec
 To train on FEVER, run e.g.:
 
 
-```python main.py 
---dataset fever 
---
---labels data-local/labels/cifar10/1000_balanced_labels/00.txt      
---arch simple_MLP_embed_RTE      
---consistency 100.0      
---consistency-rampup 5      
---labeled-batch-size 62      
---epochs 180      --lr-rampdown-epochs 210```
+``` 
+python main.py 
+--dataset fever
+--labels 20.0 
+--arch simple_MLP_embed_RE 
+--epochs 60 
+--labeled-batch-size 64
+--consistency=0.3 
+--run-name log_gids_labels20.0_epochs60_labeled-batch-size64_cons0.3_simple
+
+```
+
+--labels: is the percentage or number of labels indicating the number of labeled data points amongst the entire training data.
+
+Details of other command line parameters can be found in `pytorch/mean_teacher/tests/cli.py`
 
 Use `python main.py --help` to see other command line arguments.
 

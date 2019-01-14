@@ -106,7 +106,6 @@ def main(context):
     else:
         num_classes = dataset_config.pop('num_classes')
 
-    #askfan: is ema false only when you don't pass anything or always? ans;yes
     def create_model(ema=False):
         LOG.info("=> creating {pretrained}{ema}model '{arch}'".format(
             pretrained='pre-trained ' if args.pretrained else '',
@@ -276,11 +275,11 @@ def create_data_loaders(train_transformation,
         LOG.info("Type of Noise : "+ dataset.WORD_NOISE_TYPE)
         LOG.info("Size of Noise : "+ str(dataset.NUM_WORDS_TO_REPLACE))
 
+        # askfan what does this relabel_dataset do?
         if args.labels:
-            #askfan what does this relabel_dataset do?
             labeled_idxs, unlabeled_idxs = data.relabel_dataset_nlp(dataset, args)
 
-        # askfan what does exclude_unlabeleddo?
+        # askajay what does exclude_unlabeled do?
         if args.exclude_unlabeled:
             sampler = SubsetRandomSampler(labeled_idxs)
             batch_sampler = BatchSampler(sampler, args.batch_size, drop_last=True)

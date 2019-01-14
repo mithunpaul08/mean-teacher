@@ -179,6 +179,8 @@ def relabel_dataset_RE(dataset, args):
     LOG.info("[relabel dataset] TOTAL : " + str(len(labeled_ids)+len(unlabeled_idxs)))
     return labeled_ids, unlabeled_idxs
 
+
+#randomly choose propotional labeled samples per class
 def relabel_dataset_nlp(dataset, args):
     unlabeled_idxs = []
     labeled_ids = []

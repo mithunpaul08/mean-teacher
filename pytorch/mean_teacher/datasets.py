@@ -292,7 +292,7 @@ class NECDataset(Dataset):
             context_words_dropout.append([[self.word_vocab.get_id(w)
                                             for w in ctx]
                                            for ctx in context_words_dropout_str[0]])
-            context_words_dropout.append([[self.word_vocab.get_id(w)
+            x.append([[self.word_vocab.get_id(w)
                                             for w in ctx]
                                            for ctx in context_words_dropout_str[1]])
 
@@ -701,7 +701,7 @@ class RTEDataset(Dataset):
         print(self.lbl[0])
 
         #ask fan: what is self.transform do?
-        # self.transform = transform
+        self.transform = transform
 
     def get_num_classes(self):
         return len(list({l for l in self.lbl}))

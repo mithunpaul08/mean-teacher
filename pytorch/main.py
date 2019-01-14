@@ -96,11 +96,14 @@ def main(context):
         train_loader, eval_loader, dataset, dataset_test = create_data_loaders(**dataset_config, args=args)
         word_vocab_embed = dataset.word_vocab_embed
         word_vocab_size = dataset.word_vocab.size()
+    #todo: this is temporary while am coding for training fever. Once i get training running, i will add eval_loader etc
+    elif args.dataset in ['fever']:
+        train_loader= create_data_loaders(**dataset_config, args=args)
     else:
         #mithun: i think this is the actual code from valpola that ran on cifar10 dataset
         train_loader, eval_loader = create_data_loaders(**dataset_config, args=args)
 
-    if args.dataset in ['riedel', 'gids']:
+    if args.dataset in ['riedel', 'gids','fever']:
         num_classes = len(dataset.categories)
         print('number of classes: ' + str(num_classes))
     else:
@@ -299,17 +302,15 @@ def create_data_loaders(train_transformation,
                                                   # batch_size=args.batch_size,
                                                   # shuffle=False)
 
-        #mithun:this is the place where they are reading the data, packaging it into a format that the data loader in torch understands?
-
-        #ans: askajay -this looks like a python or pytorch thing where getitem is internally called
-        dataset_test = datasets.NECDataset(evaldir, args, eval_transformation) ## NOTE: test data is the same as train data
-
-        eval_loader = torch.utils.data.DataLoader(dataset_test,
-                                                  pin_memory,
-                                                  batch_size=args.batch_size,
-                                                  shuffle=False,
-                                                  num_workers=2 * args.workers,
-                                                  drop_last=False)
+        #mithun: commenting out during coding since we dont have an eval dataset yet.
+        # dataset_test = datasets.RTEDataset(evaldir, args, eval_transformation) ## NOTE: test data is the same as train data
+        #
+        # eval_loader = torch.utils.data.DataLoader(dataset_test,
+        #                                           pin_memory,
+        #                                           batch_size=args.batch_size,
+        #                                           shuffle=False,
+        #                                           num_workers=2 * args.workers,
+        #                                           drop_last=False)
 
     elif args.dataset in ['riedel', 'gids']:
 
@@ -423,6 +424,8 @@ def create_data_loaders(train_transformation,
     #mithun: once you have both the train and test data in the DataLoader format that torch understands, return it to the calling function
     if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids']:
         return train_loader, eval_loader, dataset, dataset_test
+    elif args.dataset in ['fever']:
+            return train_loader
     else:
         return train_loader, eval_loader
 

@@ -18,20 +18,16 @@ The code expects to find the data in specific directories inside the data-local 
 
 To train on FEVER, run e.g.:
 
-```
-python main.py \
-    --dataset fever \
-    --labels data-local/labels/cifar10/1000_balanced_labels/00.txt \
-    --arch simple_MLP_embed_RTE \
-    --consistency 100.0 \
-    --consistency-rampup 5 \
-    --labeled-batch-size 62 \
-    --epochs 180 \
-    --lr-rampdown-epochs 210
-```
-A single line version of the same command is as follows:
 
-```python main.py --dataset fever --labels data-local/labels/cifar10/1000_balanced_labels/00.txt      --arch simple_MLP_embed_RTE      --consistency 100.0      --consistency-rampup 5      --labeled-batch-size 62      --epochs 180      --lr-rampdown-epochs 210```
+```python main.py 
+--dataset fever 
+--
+--labels data-local/labels/cifar10/1000_balanced_labels/00.txt      
+--arch simple_MLP_embed_RTE      
+--consistency 100.0      
+--consistency-rampup 5      
+--labeled-batch-size 62      
+--epochs 180      --lr-rampdown-epochs 210```
 
 Use `python main.py --help` to see other command line arguments.
 

@@ -23,7 +23,7 @@ from mean_teacher.utils import *
 import contextlib
 import random
 
-
+#askfan: where is log file stored?
 LOG = logging.getLogger('main')
 
 ################
@@ -266,13 +266,13 @@ def create_data_loaders(train_transformation,
     else:
         pin_memory = False
 
-    if args.dataset in ['conll', 'ontonotes']:
+    if args.dataset in ['conll', 'ontonotes','fever']:
 
         LOG.info("traindir : " + traindir)
         LOG.info("evaldir : " + evaldir)
 
         #askfan: why isn't this code returning anything explicitly? is __getitem__ whcih returns
-        dataset = datasets.NECDataset(traindir, args, train_transformation)
+        dataset = datasets.RTEDataset(traindir, args, train_transformation)
         LOG.info("Type of Noise : "+ dataset.WORD_NOISE_TYPE)
         LOG.info("Size of Noise : "+ str(dataset.NUM_WORDS_TO_REPLACE))
 

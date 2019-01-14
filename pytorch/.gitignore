@@ -6,3 +6,4 @@ data-local/images
 *.pyc
 results
 transient
+data-local/*

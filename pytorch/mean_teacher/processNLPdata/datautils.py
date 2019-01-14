@@ -47,13 +47,13 @@ class Datautils:
         return entities, contexts, labels
 
     @classmethod
-    def read_rte_data(cls, filename, entity_vocab, context_vocab):
+    def read_rte_data(cls, filename):
         all_labels = []
         all_claims = []
         all_evidences = []
 
-        fn = "train_full_with_evi_sents.jsonl"
-        with open(fn) as f:
+
+        with open(filename) as f:
             for index, line in enumerate(f):
                 x = json.loads(line)
                 claim = x["claim"]
@@ -75,7 +75,7 @@ class Datautils:
                 print(f"claim:{claim}")
                 print(f"evidences_this_str:{evidences_this_str}")
                 print(f"label:{label}")
-                sys.exit(1)
+
 
 
         # return np.array(entities), np.array([np.array(c) for c in contexts]), np.array(labels)

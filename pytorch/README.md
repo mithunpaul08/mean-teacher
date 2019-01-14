@@ -9,12 +9,17 @@ conda install pytorch-cpu torchvision-cpu -c pytorch
 
 ```
 
-The code expects to find the data in specific directories inside the data-local directory. You can prepare the CIFAR-10 with this command:
+The code expects to find the data in specific directories inside the data-local directory. So do remember to 
+ add the data before you run the code.
+ 
+ For example the data for RTE-FEVER is kept here:
 
 ```
-./data-local/bin/prepare_cifar10.sh
+/data-local/rte/fever/train/train_full_with_evi_sents.jsonl
 ```
-
+Note that in this particular case the file train_full_with_evi_sents is a collection of all claims and the corresponding
+ evidences in the training data of [FEVER](http://fever.ai/) challenge. This is not available in public unlike the FEVER data. 
+ This is the output of the IR module of FEVER baseline [code](http://fever.ai/task.html).
 
 To train on FEVER, run e.g.:
 

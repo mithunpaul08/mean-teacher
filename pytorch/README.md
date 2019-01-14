@@ -30,7 +30,8 @@ python main.py
 --labels 20.0 
 --arch simple_MLP_embed_RE 
 --epochs 60 
---labeled-batch-size 64
+--labeled-batch-size 2
+--batch-size 4
 --consistency=0.3 
 --run-name log_gids_labels20.0_epochs60_labeled-batch-size64_cons0.3_simple
 

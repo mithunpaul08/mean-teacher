@@ -271,14 +271,16 @@ def create_data_loaders(train_transformation,
         LOG.info("traindir : " + traindir)
         LOG.info("evaldir : " + evaldir)
 
-        #askfan: why isn't this code returning anything explicitly? is __getitem__ whcih returns
+
         dataset = datasets.RTEDataset(traindir, args, train_transformation)
         LOG.info("Type of Noise : "+ dataset.WORD_NOISE_TYPE)
         LOG.info("Size of Noise : "+ str(dataset.NUM_WORDS_TO_REPLACE))
 
         if args.labels:
+            #askfan what does this relabel_dataset do?
             labeled_idxs, unlabeled_idxs = data.relabel_dataset_nlp(dataset, args)
 
+        # askfan what does exclude_unlabeleddo?
         if args.exclude_unlabeled:
             sampler = SubsetRandomSampler(labeled_idxs)
             batch_sampler = BatchSampler(sampler, args.batch_size, drop_last=True)
@@ -299,7 +301,7 @@ def create_data_loaders(train_transformation,
                                                   # shuffle=False)
 
         #mithun:this is the place where they are reading the data, packaging it into a format that the data loader in torch understands?
-        #askfan: why isn't the constructor not returning anything? who is returning the data?
+
         #ans: askajay -this looks like a python or pytorch thing where getitem is internally called
         dataset_test = datasets.NECDataset(evaldir, args, eval_transformation) ## NOTE: test data is the same as train data
 

@@ -52,9 +52,9 @@ class Datautils:
         all_claims = []
         all_evidences = []
 
-
         with open(filename) as f:
             for index, line in enumerate(f):
+                multiple_ev = False
                 x = json.loads(line)
                 claim = x["claim"]
                 evidences = x["sents"]
@@ -62,23 +62,17 @@ class Datautils:
                 evidences_this_list=[]
                 evidences_this_str = ""
                 if (len(evidences) > 1):
+                    multiple_ev=True
                     for e in evidences:
                         evidences_this_list.append(e)
-                    evidences_this_str=", ".join(evidences_this_list)
+                    evidences_this_str=" ".join(evidences_this_list)
                 else:
-                    evidences_this_str = evidences
+                    evidences_this_str = "".join(evidences)
 
-                    all_claims.append(claim)
-                    all_evidences.append(evidences_this_str)
-                    all_labels.append(label)
+                all_claims.append(claim)
+                all_evidences.append(evidences_this_str)
+                all_labels.append(label)
 
-                print(f"claim:{claim}")
-                print(f"evidences_this_str:{evidences_this_str}")
-                print(f"label:{label}")
-
-
-
-        # return np.array(entities), np.array([np.array(c) for c in contexts]), np.array(labels)
         return all_claims, all_evidences, all_labels
 
     @classmethod

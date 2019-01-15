@@ -693,12 +693,16 @@ class RTEDataset(Dataset):
 
         self.claims, self.evidences,self.lbl = Datautils.read_rte_data(dataset_file)
 
+        self.categories = sorted(list({l for l in self.lbl}))
+
         for e in self.evidences:
             print(e)
 
-        print(self.claims[0])
-        print(self.evidences[0])
-        print(self.lbl[0])
+        print(self.categories)
+        print(len(self.categories))
+        # print(self.claims[0])
+        # print(self.evidences[0])
+        # print(self.lbl[0])
 
         #ask fan: what is self.transform do?
         self.transform = transform

@@ -92,22 +92,24 @@ def main(context):
         elif args.subset_labels == 'None':
             args.labels_set = []
 
-    if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids', 'fever']:
+    num_classes=3
+    if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids']:
         train_loader, eval_loader, dataset, dataset_test = create_data_loaders(**dataset_config, args=args)
         word_vocab_embed = dataset.word_vocab_embed
         word_vocab_size = dataset.word_vocab.size()
     #todo: this is temporary while am coding for training fever. Once i get training running, i will add eval_loader etc
     elif args.dataset in ['fever']:
-        train_loader= create_data_loaders(**dataset_config, args=args)
+        train_loader, dataset= create_data_loaders(**dataset_config, args=args)
+        num_classes = len(dataset.categories)
     else:
         #mithun: i think this is the actual code from valpola that ran on cifar10 dataset
         train_loader, eval_loader = create_data_loaders(**dataset_config, args=args)
 
-    if args.dataset in ['riedel', 'gids','fever']:
-        num_classes = len(dataset.categories)
-        print('number of classes: ' + str(num_classes))
-    else:
-        num_classes = dataset_config.pop('num_classes')
+    #uncomment this if you want to pop the number of classes instead from the config file
+    # if args.dataset in ['riedel', 'gids','fever']:
+    #
+    # else:
+    #     num_classes = dataset_config.pop('num_classes')
 
     def create_model(ema=False):
         LOG.info("=> creating {pretrained}{ema}model '{arch}'".format(
@@ -425,7 +427,7 @@ def create_data_loaders(train_transformation,
     if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids']:
         return train_loader, eval_loader, dataset, dataset_test
     elif args.dataset in ['fever']:
-            return train_loader
+            return train_loader,dataset
     else:
         return train_loader, eval_loader
 

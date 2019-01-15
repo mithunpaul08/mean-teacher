@@ -120,9 +120,11 @@ def main(context):
         model_factory = architectures.__dict__[args.arch]
         model_params = dict(pretrained=args.pretrained, num_classes=num_classes)
 
-        if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids']:
-            model_params['word_vocab_embed'] = word_vocab_embed
-            model_params['word_vocab_size'] = word_vocab_size
+        if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids','fever']:
+
+            #first two (word_vocab_embed,word_vocab_size) needs to be provided from command line
+            # model_params['word_vocab_embed'] = word_vocab_embed
+            # model_params['word_vocab_size'] = word_vocab_size
             model_params['wordemb_size'] = args.wordemb_size
             model_params['hidden_size'] = args.hidden_size
             model_params['update_pretrained_wordemb'] = args.update_pretrained_wordemb

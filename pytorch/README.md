@@ -28,7 +28,7 @@ To train on FEVER, run e.g.:
 python main.py 
 --dataset fever
 --labels 20.0 
---arch simple_MLP_embed_RE 
+--arch simple_MLP_embed_RTE 
 --epochs 60 
 --labeled-batch-size 2
 --batch-size 4

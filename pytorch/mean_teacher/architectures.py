@@ -257,6 +257,7 @@ class FeedForwardMLPEmbed_RTE(nn.Module):
         self.embeddings = nn.Embedding(word_vocab_size, embedding_size)
         print("word_vocab_size=", word_vocab_size)
 
+        #ask becky: do i need embeddings for mean teacher and fever?
         if word_vocab_embed is not None: # Pre-initalize the embedding layer from a vector loaded from word2vec/glove/or such
             print("Using a pre-initialized word-embedding vector .. loaded from disk")
             self.embeddings.weight = nn.Parameter(torch.from_numpy(word_vocab_embed))

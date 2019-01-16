@@ -27,7 +27,7 @@ To train on FEVER, run e.g.:
 ``` 
 python main.py 
 --dataset fever
---labeled_data_percent 20.0 
+--labels 20.0 
 --arch simple_MLP_embed_RTE 
 --pretrained_wordemb false
 --update_pretrained_wordemb true

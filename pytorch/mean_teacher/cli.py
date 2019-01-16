@@ -21,8 +21,8 @@ def create_parser():
                         help='the subdirectory inside the data directory that contains the training data')
     parser.add_argument('--eval-subdir', type=str, default='dev',
                         help='the subdirectory inside the data directory that contains the evaluation data')
-    parser.add_argument('--labeled_data_percent', default=None, type=str, #metavar='FILE',
-                        help='list of image labels (default: based on directory structure) OR \% of labeled data to be used for the NLP task (randomly selected)')
+    parser.add_argument('--labels', default=None, type=str, #metavar='FILE',
+                        help='% of labeled data to be used for the NLP task (randomly selected)')
     parser.add_argument('--exclude-unlabeled', default=False, type=str2bool, metavar='BOOL',
                         help='exclude unlabeled examples from the training set')
     parser.add_argument('--arch', '-a', metavar='ARCH', default='simple_MLP_embed',

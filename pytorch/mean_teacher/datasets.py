@@ -660,6 +660,9 @@ class RiedelDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
+
+
+
         if self.transform is not None:
             tensor_datum = self.transform(torch.Tensor(self.data[idx]))
         else:
@@ -773,10 +776,22 @@ class RTEDataset(Dataset):
     #askajay: so if i want to do some data processing on the raw data that i read from disk, is this the point where i do it? for each data point kind of thing?
 
     def __getitem__(self, idx):
+
+        # for each word in claim (and evidence in turn) get the corresponding unique id
+        claims_words = [self.word_vocab.get_id(w) for w in self.entity_vocab.get_word(self.claims[idx]).split(" ")]
+        ev_words = [self.word_vocab.get_id(w) for w in self.entity_vocab.get_word(self.claims[idx]).split(" ")]
+
+
+
         if self.transform is not None:
-            tensor_datum = self.transform(torch.Tensor(self.data[idx]))
+            tensor_datum = self.transform(torch.Tensor(self.dataset[idx]))
         else:
+            claims_datum = torch.LongTensor(claims_words)
+            ev_datum = torch.LongTensor(ev_words)
+
             tensor_datum = torch.Tensor(self.data[idx])
+
+        return (claims_datum, ev_datum), label
 
         label = self.lbl[idx]
 

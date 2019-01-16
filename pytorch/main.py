@@ -101,6 +101,8 @@ def main(context):
     elif args.dataset in ['fever']:
         train_loader, dataset= create_data_loaders(**dataset_config, args=args)
         num_classes = len(dataset.categories)
+        word_vocab_embed = dataset.word_vocab_embed
+        word_vocab_size = dataset.word_vocab.size()
     else:
         #mithun: i think this is the actual code from valpola that ran on cifar10 dataset
         train_loader, eval_loader = create_data_loaders(**dataset_config, args=args)
@@ -123,8 +125,8 @@ def main(context):
         if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids','fever']:
 
             #first two (word_vocab_embed,word_vocab_size) needs to be provided from command line
-            # model_params['word_vocab_embed'] = word_vocab_embed
-            # model_params['word_vocab_size'] = word_vocab_size
+            model_params['word_vocab_embed'] = word_vocab_embed
+            model_params['word_vocab_size'] = word_vocab_size
             model_params['wordemb_size'] = args.wordemb_size
             model_params['hidden_size'] = args.hidden_size
             model_params['update_pretrained_wordemb'] = args.update_pretrained_wordemb

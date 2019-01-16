@@ -402,7 +402,12 @@ class REDataset(Dataset):
             print("number of lines in train counts = ", len(self.entities1_words))
             print("len(self.word_counts)=", len(self.word_counts))
 
+            #askfan: what does Vocabulary() do? does it just create a list of all unique words? but,
+            # we need to explicitly feeed it data right? also why does ajay's code have a different implementation for word_vocab. refer line 144 inside NEC dataset
+
             self.word_vocab = Vocabulary()
+
+            # ask fan what is padding and all those things. is it something specific to your code/data set?
             for word in self.word_counts:
                 if self.word_counts[word] >= args.word_frequency:
                     self.word_vocab.add(word, self.word_counts[word])
@@ -683,29 +688,78 @@ class RTEDataset(Dataset):
     NUM_WORDS_TO_REPLACE = 1
     WORD_NOISE_TYPE = "drop"
 
+    def create_word_vocab_embed(self, args):
+
+        word_vocab_embed = list()
+
+        # leave last word = "@PADDING"
+        for word_id in range(0, self.word_vocab.size() - 1):
+            word_embed = self.sanitise_and_lookup_embedding(word_id, args)
+            word_vocab_embed.append(word_embed)
+
+        # NOTE: adding the embed for @PADDING
+        word_vocab_embed.append(Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga["<pad>"]]))
+        return np.array(word_vocab_embed).astype('float32')
+
     #mithun this is called using:#dataset = datasets.NECDataset(traindir, args, train_transformation)
     def __init__(self, dir, args, transform=None):
 
         #mithun: the part without labels will be the one which will be used to
-        #askfan or ask becky: so in the implementatino of ajay and fan, there is only noise addition? isn't there a phase where some training point have labels and some dont?
+        # ask becky: so in the implementatino of ajay and fan, there is only noise addition? isn't there a phase where some training point have labels and some dont?
         dataset_file = dir + "/train_small_100_claims_with_evi_sents.jsonl"
+        self.claims, self.evidences, self.lbl = Datautils.read_rte_data(dataset_file)
+
+        if args.pretrained_wordemb:
+            if args.eval_subdir not in dir:  # do not load the word embeddings again in eval
+                self.gigaW2vEmbed, self.lookupGiga = Gigaword.load_pretrained_embeddings(w2vfile)
+                self.word_vocab_embed = self.create_word_vocab_embed()
+
+        else:
+            print("Not loading the pretrained embeddings ... ")
+            assert args.update_pretrained_wordemb, "Pretrained embeddings should be updated but " \
+                                                   "--update-pretrained-wordemb = {}".format(args.update_pretrained_wordemb)
+            self.word_vocab_embed = None
+
+        self.word_vocab = self.build_word_vocabulary()
 
 
-        self.claims, self.evidences,self.lbl = Datautils.read_rte_data(dataset_file)
+        print("self.word_vocab.size=", self.word_vocab.size())
 
         self.categories = sorted(list({l for l in self.lbl}))
 
-        for e in self.evidences:
-            print(e)
 
-        print(self.categories)
-        print(len(self.categories))
         # print(self.claims[0])
         # print(self.evidences[0])
         # print(self.lbl[0])
 
         #ask fan: what is self.transform do?
         self.transform = transform
+
+
+    def build_word_vocabulary(self):
+        word_vocab = Vocabulary()
+
+        for each_claim in self.claims:
+            words = [w for w in each_claim.split(" ")]
+            for w in words:
+                word_vocab.add(w)
+
+
+
+        for each_ev in self.evidences:
+            words = [w for w in each_ev.split(" ")]
+            for w in words:
+                word_vocab.add(w)
+
+
+        #ask fan, what is padding?
+
+        word_vocab.add(NECDataset.PAD, 0)  # Note: Init a count of 0 to PAD, as we are not using it other than padding
+        # print (max_entity)
+        # print (max_entity_len)
+        # print (max_pattern)
+        # print (max_pattern_len)
+        return word_vocab
 
     def get_num_classes(self):
         return len(list({l for l in self.lbl}))

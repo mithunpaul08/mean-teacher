@@ -27,8 +27,10 @@ To train on FEVER, run e.g.:
 ``` 
 python main.py 
 --dataset fever
---labels 20.0 
+--labeled_data_percent 20.0 
 --arch simple_MLP_embed_RTE 
+--pretrained_wordemb false
+--update_pretrained_wordemb true
 --epochs 60 
 --labeled-batch-size 2
 --batch-size 4
@@ -37,7 +39,7 @@ python main.py
 
 ```
 
---labels: is the percentage or number of labels indicating the number of labeled data points amongst the entire training data.
+--labeled_data_percent: is the percentage or number of labels indicating the number of labeled data points amongst the entire training data.
 
 Details of other command line parameters can be found in `pytorch/mean_teacher/tests/cli.py`
 

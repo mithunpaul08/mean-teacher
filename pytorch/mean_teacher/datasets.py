@@ -736,7 +736,8 @@ class RTEDataset(Dataset):
         # print(self.lbl[0])
 
         #ask fan: what is self.transform do?
-        self.transform = transform
+        #todo: mithun change later- after figuring out what transform is
+        self.transform = None
 
 
     def build_word_vocabulary(self):
@@ -757,7 +758,7 @@ class RTEDataset(Dataset):
 
         #ask fan, what is padding?
 
-        word_vocab.add(NECDataset.PAD, 0)  # Note: Init a count of 0 to PAD, as we are not using it other than padding
+       # word_vocab.add(NECDataset.PAD, 0)  # Note: Init a count of 0 to PAD, as we are not using it other than padding
         # print (max_entity)
         # print (max_entity_len)
         # print (max_pattern)
@@ -778,21 +779,35 @@ class RTEDataset(Dataset):
     def __getitem__(self, idx):
 
         # for each word in claim (and evidence in turn) get the corresponding unique id
-        claims_words = [self.word_vocab.get_id(w) for w in self.entity_vocab.get_word(self.claims[idx]).split(" ")]
-        ev_words = [self.word_vocab.get_id(w) for w in self.entity_vocab.get_word(self.claims[idx]).split(" ")]
 
+        #ask fan: can we just use the common word vocabulary dictionary. do we need to have separate dict for claim and evidence? ajay has done it but fan hasn't
+
+        c=self.claims[idx]
+        e = self.evidences[idx]
+        label = self.lbl[idx]
+
+
+        claims_words_ids = [self.word_vocab.get_id(w) for w in (self.claims[idx].split(" "))]
+        ev_words_ids = [self.word_vocab.get_id(w) for w in (self.evidences[idx].split(" "))]
+
+        print(f"claim:{c}")
+        print(f"evidence:{e}")
+        print(f"label:{label}")
+        print(f"idx:{idx}")
+        print(f"---------------------\n")
+
+        #ask fan: i get label =-1 is that the ones where we manually removed the labels?
+
+        #ask fan: idx- that isn't a unique id right? its just an enumerator right
 
 
         if self.transform is not None:
             tensor_datum = self.transform(torch.Tensor(self.dataset[idx]))
         else:
-            claims_datum = torch.LongTensor(claims_words)
-            ev_datum = torch.LongTensor(ev_words)
+            claims_datum = torch.LongTensor(claims_words_ids)
+            ev_datum = torch.LongTensor(ev_words_ids)
 
-            tensor_datum = torch.Tensor(self.data[idx])
+
 
         return (claims_datum, ev_datum), label
 
-        label = self.lbl[idx]
-
-        return tensor_datum, label

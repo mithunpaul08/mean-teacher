@@ -160,7 +160,7 @@ class NECDataset(Dataset):
 
         type_of_noise, size_of_noise = args.word_noise.split(":")
         NECDataset.WORD_NOISE_TYPE = type_of_noise
-        #askfan: so in his case, noise is just removing words?
+
         NECDataset.NUM_WORDS_TO_REPLACE = int(size_of_noise)
 
         categories = sorted(list({l for l in self.labels_str}))
@@ -386,6 +386,7 @@ class REDataset(Dataset):
         self.max_inbetween_len = args.max_inbetween_len  # 60
         self.pad_len = self.max_inbetween_len + self.max_entity_len*2 #+ max_inbetween_len
 
+        #ask fan: what does this do? Ans: training. i.e if you are passing eval_traindir
         if args.eval_subdir not in dir:
 
             dataset_file = dir + "/" + args.train_subdir + ".txt"
@@ -402,15 +403,17 @@ class REDataset(Dataset):
             print("number of lines in train counts = ", len(self.entities1_words))
             print("len(self.word_counts)=", len(self.word_counts))
 
-            #askfan: what does Vocabulary() do? does it just create a list of all unique words? but,
-            # we need to explicitly feeed it data right? also why does ajay's code have a different implementation for word_vocab. refer line 144 inside NEC dataset
 
             self.word_vocab = Vocabulary()
 
-            # ask fan what is padding and all those things. is it something specific to your code/data set?
+            # this is to pick only the words with highest frequency..i.e remove accidental words like typos ...
             for word in self.word_counts:
                 if self.word_counts[word] >= args.word_frequency:
                     self.word_vocab.add(word, self.word_counts[word])
+
+            # ask fan what is padding and all those things. is it something specific to your code/data set?
+            # ans: no: padding is to make sure that all the sentences are of same length.
+
             self.word_vocab.add("@PADDING", 0)
             self.pad_id = self.word_vocab.get_id(REDataset.PAD)
 
@@ -425,8 +428,9 @@ class REDataset(Dataset):
                 for lbl in self.categories:
                     f.write(lbl + '\n')
 
+        #if its dev
         else:
-
+            #load the vocab dictionary you created for training. don't create another vocabulary for training.
             vocab_file = dir + '/../vocabulary_train_' + str(self.args.run_name) + '.txt'
             print("Using vocab file:", vocab_file)
             self.word_vocab = Vocabulary.from_file(vocab_file)
@@ -667,8 +671,6 @@ class RiedelDataset(Dataset):
             tensor_datum = self.transform(torch.Tensor(self.data[idx]))
         else:
             tensor_datum = torch.Tensor(self.data[idx])
-        #askfan: she is able to do this since her data is directly in a lookup-able/dictionary form is it?
-        #askfan: did she every have jsonl files? or is it like, we process whatever we want to, but give it back as a tensor datum?
         label = self.lbl[idx]
 
         return tensor_datum, label
@@ -708,9 +710,20 @@ class RTEDataset(Dataset):
     def __init__(self, dir, args, transform=None):
 
         #mithun: the part without labels will be the one which will be used to
-        # ask becky: so in the implementatino of ajay and fan, there is only noise addition? isn't there a phase where some training point have labels and some dont?
         dataset_file = dir + "/train_small_100_claims_with_evi_sents.jsonl"
         self.claims, self.evidences, self.lbl = Datautils.read_rte_data(dataset_file)
+
+        self.word_vocab = self.build_word_vocabulary()
+
+
+        #askfan :can i do this above word count thing later?- right now i want all words, maybe, for starters?
+        # for word in self.word_counts:
+        #     if self.word_counts[word] >= args.word_frequency:
+        #         self.word_vocab.add(word, self.word_counts[word])
+
+
+        self.word_vocab.add("@PADDING", 0)
+        self.pad_id = self.word_vocab.get_id(REDataset.PAD)
 
         if args.pretrained_wordemb:
             if args.eval_subdir not in dir:  # do not load the word embeddings again in eval
@@ -723,25 +736,37 @@ class RTEDataset(Dataset):
                                                    "--update-pretrained-wordemb = {}".format(args.update_pretrained_wordemb)
             self.word_vocab_embed = None
 
-        self.word_vocab = self.build_word_vocabulary()
+
 
 
         print("self.word_vocab.size=", self.word_vocab.size())
 
         self.categories = sorted(list({l for l in self.lbl}))
 
+        #write the vocab file to disk so that you can load it later
+        print("self.word_vocab.size=", self.word_vocab.size())
+        vocab_file = dir + '/../vocabulary_train_' + '.txt'
+        self.word_vocab.to_file(vocab_file)
+
+        print("num of types of labels considered =", len(self.categories))
+        label_category_file = dir + '/../label_category_train_'  + '.txt'
+        with io.open(label_category_file, 'w', encoding='utf8') as f:
+            for lbl in self.categories:
+                f.write(lbl + '\n')
 
         # print(self.claims[0])
         # print(self.evidences[0])
         # print(self.lbl[0])
 
-        #ask fan: what is self.transform do?
         #todo: mithun change later- after figuring out what transform is
         self.transform = None
 
 
     def build_word_vocabulary(self):
         word_vocab = Vocabulary()
+        self.word_vocab.add("@PADDING", 0)
+
+        #todo: mithun,. when you need to filter based on  frequency :if self.word_counts[word] >= args.word_frequency:
 
         for each_claim in self.claims:
             words = [w for w in each_claim.split(" ")]
@@ -755,10 +780,13 @@ class RTEDataset(Dataset):
             for w in words:
                 word_vocab.add(w)
 
-
+    def pad_item(self, dataitem):
+        dataitem_padded = dataitem + [self.pad_id] * (self.pad_len - len(dataitem))
+        return dataitem_padded
         #ask fan, what is padding?
 
-       # word_vocab.add(NECDataset.PAD, 0)  # Note: Init a count of 0 to PAD, as we are not using it other than padding
+
+        # Note: Init a count of 0 to PAD, as we are not using it other than padding
         # print (max_entity)
         # print (max_entity_len)
         # print (max_pattern)
@@ -780,15 +808,16 @@ class RTEDataset(Dataset):
 
         # for each word in claim (and evidence in turn) get the corresponding unique id
 
-        #ask fan: can we just use the common word vocabulary dictionary. do we need to have separate dict for claim and evidence? ajay has done it but fan hasn't
+
 
         c=self.claims[idx]
         e = self.evidences[idx]
         label = self.lbl[idx]
 
-
-        claims_words_ids = [self.word_vocab.get_id(w) for w in (self.claims[idx].split(" "))]
-        ev_words_ids = [self.word_vocab.get_id(w) for w in (self.evidences[idx].split(" "))]
+        # ask fan: can we just use the common word vocabulary dictionary. do we need to have separate dict
+        # for claim and evidence? ajay has done it but fan hasn't- note the dictionar is still the same, its two different sentences and two different words
+        claims_words_id = [self.word_vocab.get_id(w) for w in (self.claims[idx].split(" "))]
+        ev_words_id = [self.word_vocab.get_id(w) for w in (self.evidences[idx].split(" "))]
 
         print(f"claim:{c}")
         print(f"evidence:{e}")
@@ -796,16 +825,17 @@ class RTEDataset(Dataset):
         print(f"idx:{idx}")
         print(f"---------------------\n")
 
-        #ask fan: i get label =-1 is that the ones where we manually removed the labels?
+        claims_words_id_padded = self.pad_item(claims_words_id)
+        ev_words_id_padded = self.pad_item(ev_words_id)
 
-        #ask fan: idx- that isn't a unique id right? its just an enumerator right
+        #ask fan: i get label =-1 is that the ones where we manually removed the labels? ans: yes
 
-
+        #transform means, if you want a different noise for student and teacher
         if self.transform is not None:
             tensor_datum = self.transform(torch.Tensor(self.dataset[idx]))
         else:
-            claims_datum = torch.LongTensor(claims_words_ids)
-            ev_datum = torch.LongTensor(ev_words_ids)
+            claims_datum = torch.LongTensor(claims_words_id_padded)
+            ev_datum = torch.LongTensor(ev_words_id_padded)
 
 
 

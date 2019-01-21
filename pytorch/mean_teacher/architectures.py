@@ -226,6 +226,7 @@ class FeedForwardMLPEmbed_RE(nn.Module):
         # Apply mask (clear out the embeddings of padded items)
         masked_embedded = embedded * expanded_mask
 
+        #todo: this can be replaced with lstm.
         summation = masked_embedded.sum(1)  # Variable containing torch.FloatTensor of size 256x100
 
         if torch.cuda.is_available():
@@ -368,12 +369,13 @@ class SeqModel_RE(nn.Module):
         embed = self.embeddings(input_sorted).permute(1, 0, 2)  # compute the embeddings of the words in the entity (Note the permute step)
         #print("shape of embed:", embed.shape)
 
+        #mithun: dealing with padding. to ignore padding
         packed = pack_padded_sequence(embed, sorted_lengths.cpu().numpy(), batch_first=False)
 
         # https://discuss.pytorch.org/t/rnn-module-weights-are-not-part-of-single-contiguous-chunk-of-memory/6011/13
         self.lstm.flatten_parameters()
 
-        _, (lstm_out, _) = self.lstm(packed)  # bi-LSTM over entities, hidden state is initialized to 0 if not provided
+        _, (lstm_out, _) = self.lstm(packed)  # bi-x over entities, hidden state is initialized to 0 if not provided
         lstm_out = torch.cat([lstm_out[0], lstm_out[1]], 1) # roll out the 2 tuple output each of the LSTMs
 
         res = self.layer1(lstm_out)

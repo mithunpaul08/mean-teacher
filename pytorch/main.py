@@ -284,7 +284,7 @@ def create_data_loaders(train_transformation,
         LOG.info("Type of Noise : "+ dataset.WORD_NOISE_TYPE)
         LOG.info("Size of Noise : "+ str(dataset.NUM_WORDS_TO_REPLACE))
 
-        # askfan what does this relabel_dataset do?
+        # askfan what does this relabel_dataset do? Ans: creating a bunch of labeled ones.
         if args.labels:
             labeled_idxs, unlabeled_idxs = data.relabel_dataset_nlp(dataset, args)
 

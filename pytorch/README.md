@@ -147,7 +147,15 @@ time stamped and logs all the training epoch parameters etc. It is done using `m
 It is stored in the folder `/results/main`
  
 # Todo Sun Jan 20 21:31:41 MST 2019:
+- replace labels with int
+- add the tranformation -i.e different noise for student and teacher
+- replace feed forward with that of ajay-2 classes
+- get training to run 
 - read the readme of original code again. the part where they talk about twostreamsampler
-- read teh pytorch documentation on dataloader again
+- read the pytorch documentation on dataloader again
+- add eval data
+- add pre-trained embeddings
+- remove low frequency words.
+- do 2xfeedforward 
 
  

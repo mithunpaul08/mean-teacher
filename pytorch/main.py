@@ -492,7 +492,7 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
         adjust_learning_rate(optimizer, epoch, i, len(train_loader))
         meters.update('lr', optimizer.param_groups[0]['lr'])
 
-        if args.dataset in ['conll', 'ontonotes']:
+        if args.dataset in ['conll', 'ontonotes','fever']:
 
             input = datapoint[0]
             ema_input = datapoint[1]
@@ -517,7 +517,7 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
                 ema_entity_var = torch.autograd.Variable(ema_input_entity, volatile=True).cpu()
                 ema_patterns_var = torch.autograd.Variable(ema_input_patterns, volatile=True).cpu()
 
-        elif args.dataset in ['riedel', 'gids','fever']:
+        elif args.dataset in ['riedel', 'gids']:
             input = datapoint[0][0]
             ema_input = datapoint[0][1]
             lengths = datapoint[1]

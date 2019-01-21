@@ -313,6 +313,7 @@ class NECDataset(Dataset):
         label = self.lbl[idx]  # Note: .. no need to create a tensor variable
 
         #mithun: askajay i think this is the place where the data that is read from the disk is sent back to main.py
+        #ans: no. this is the per data point enumerator. getitem is called internally by pytorch
         # that is because in evaluation we won't add noise.
         if self.transform is not None:
             return (entity_datum, context_datums[0]), (entity_datum, context_datums[1]), label
@@ -713,7 +714,7 @@ class RTEDataset(Dataset):
 
         #mithun: the part without labels will be the one which will be used to
         dataset_file = dir + "/train_small_100_claims_with_evi_sents.jsonl"
-        self.claims, self.evidences, self.lbl = Datautils.read_rte_data(dataset_file)
+        self.claims, self.evidences, self.labels_str = Datautils.read_rte_data(dataset_file)
 
 
         self.word_vocab, self.max_claims_len, self.max_ev_len = self.build_word_vocabulary()
@@ -746,7 +747,8 @@ class RTEDataset(Dataset):
 
         print("self.word_vocab.size=", self.word_vocab.size())
 
-        self.categories = sorted(list({l for l in self.lbl}))
+        self.categories = sorted(list({l for l in self.labels_str}))
+        self.lbl = [self.categories.index(l) for l in self.labels_str]
 
         #write the vocab file to disk so that you can load it later
         print("self.word_vocab.size=", self.word_vocab.size())
@@ -833,33 +835,92 @@ class RTEDataset(Dataset):
         # for each word in claim (and evidence in turn) get the corresponding unique id
 
 
-
-        c=self.claims[idx]
-        e = self.evidences[idx]
-        label = self.lbl[idx]
+        #
+        # c=self.claims[idx]
+        # e = self.evidences[idx]
+        # label = self.lbl[idx]
+        #entity=claim
+        # context=evidence
 
         # ask fan: can we just use the common word vocabulary dictionary. do we need to have separate dict
-        # for claim and evidence? ajay has done it but fan hasn't- note the dictionar is still the same, its two different sentences and two different words
+        # Ans: the dictionar is still the same, its two different sentences and two different words
+
+        entity_words = [self.word_vocab.get_id(w) for w in self.entity_vocab.get_word(self.mentions[idx]).split(" ")]
+        entity_words_padded = self.pad_item(entity_words, False)
+        entity_datum = torch.LongTensor(entity_words_padded)
+
+        context_words_str = [[w for w in self.context_vocab.get_word(ctxId).split(" ")] for ctxId in self.contexts[idx]]
+        context_words = [[self.word_vocab.get_id(w) for w in self.context_vocab.get_word(ctxId).split(" ")] for ctxId in
+                         self.contexts[idx]]
+
+
         claims_words_id = [self.word_vocab.get_id(w) for w in (self.claims[idx].split(" "))]
         ev_words_id = [self.word_vocab.get_id(w) for w in (self.evidences[idx].split(" "))]
-
-        # print(f"claim:{c}")
-        # print(f"evidence:{e}")
-        # print(f"label:{label}")
-        # print(f"idx:{idx}")
-        # print(f"---------------------\n")
 
         claims_words_id_padded = self.pad_item(claims_words_id)
         ev_words_id_padded = self.pad_item(ev_words_id,True)
 
+
+        if self.transform is not None:
+            # 1. Replace word with synonym word in Wordnet / NIL (whichever is enabled)
+            context_words_dropout_str = self.transform(context_words_str, RTEDataset.ENTITY)
+
+            if RTEDataset.WORD_NOISE_TYPE == 'replace':
+                assert len(context_words_dropout_str) == 2, "There is some issue with TransformTwice ... " #todo: what if we do not want to use the teacher ?
+                new_replaced_words = [w for ctx in context_words_dropout_str[0] + context_words_dropout_str[1]
+                                        for w in ctx
+                                        if not self.word_vocab.contains(w)]
+
+                # 2. Add word to word vocab (expand vocab)
+                new_replaced_word_ids = [self.word_vocab.add(w, count=1)
+                                         for w in new_replaced_words]
+
+                # 3. Add the replaced words to the word_vocab_embed (if using pre-trained embedding)
+                if self.args.pretrained_wordemb:
+                    for word_id in new_replaced_word_ids:
+                        word_embed = self.sanitise_and_lookup_embedding(word_id)
+                        self.word_vocab_embed = np.vstack([self.word_vocab_embed, word_embed])
+
+                # print("Added " + str(len(new_replaced_words)) + " words to the word_vocab... New Size: " + str(self.word_vocab.size()))
+
+            context_words_dropout = list()
+            context_words_dropout.append([[self.word_vocab.get_id(w)
+                                            for w in ctx]
+                                           for ctx in context_words_dropout_str[0]])
+            x.append([[self.word_vocab.get_id(w)
+                                            for w in ctx]
+                                           for ctx in context_words_dropout_str[1]])
+
+            if len(context_words_dropout) == 2:  # transform twice (1. student 2. teacher): DONE
+                context_words_padded_0 = self.pad_item(context_words_dropout[0])
+                context_words_padded_1 = self.pad_item(context_words_dropout[1])
+                context_datums = (torch.LongTensor(context_words_padded_0), torch.LongTensor(context_words_padded_1))
+            else: # todo: change this to an assert (if we are always using the student and teacher networks)
+                context_words_padded = self.pad_item(context_words_dropout)
+                context_datums = torch.LongTensor(context_words_padded)
+        else:
+            context_words_padded = self.pad_item(context_words)
+            context_datums = torch.LongTensor(context_words_padded)
+
+
+
         #ask fan: i get label =-1 is that the ones where we manually removed the labels? ans: yes
 
+
         #transform means, if you want a different noise for student and teacher
+
+        claims_datum = torch.LongTensor(claims_words_id_padded)
+        ev_datum = torch.LongTensor(ev_words_id_padded)
+
+        if self.transform is not None:
+            return (entity_datum, context_datums[0]), (entity_datum, context_datums[1]), label
+        else:
+            return (entity_datum, context_datums), label
+
         if self.transform is not None:
             tensor_datum = self.transform(torch.Tensor(self.dataset[idx]))
         else:
-            claims_datum = torch.LongTensor(claims_words_id_padded)
-            ev_datum = torch.LongTensor(ev_words_id_padded)
+
 
 
 

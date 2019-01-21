@@ -838,20 +838,20 @@ class RTEDataset(Dataset):
         #
         # c=self.claims[idx]
         # e = self.evidences[idx]
-        # label = self.lbl[idx]
+        label = self.lbl[idx]
         #entity=claim
         # context=evidence
 
         # ask fan: can we just use the common word vocabulary dictionary. do we need to have separate dict
         # Ans: the dictionar is still the same, its two different sentences and two different words
 
-        entity_words = [self.word_vocab.get_id(w) for w in self.entity_vocab.get_word(self.mentions[idx]).split(" ")]
-        entity_words_padded = self.pad_item(entity_words, False)
-        entity_datum = torch.LongTensor(entity_words_padded)
-
-        context_words_str = [[w for w in self.context_vocab.get_word(ctxId).split(" ")] for ctxId in self.contexts[idx]]
-        context_words = [[self.word_vocab.get_id(w) for w in self.context_vocab.get_word(ctxId).split(" ")] for ctxId in
-                         self.contexts[idx]]
+        # entity_words = [self.word_vocab.get_id(w) for w in self.entity_vocab.get_word(self.mentions[idx]).split(" ")]
+        # entity_words_padded = self.pad_item(entity_words, False)
+        # entity_datum = torch.LongTensor(entity_words_padded)
+        #
+        # context_words_str = [[w for w in self.context_vocab.get_word(ctxId).split(" ")] for ctxId in self.contexts[idx]]
+        # context_words = [[self.word_vocab.get_id(w) for w in self.context_vocab.get_word(ctxId).split(" ")] for ctxId in
+        #                  self.contexts[idx]]
 
 
         claims_words_id = [self.word_vocab.get_id(w) for w in (self.claims[idx].split(" "))]
@@ -899,30 +899,28 @@ class RTEDataset(Dataset):
                 context_words_padded = self.pad_item(context_words_dropout)
                 context_datums = torch.LongTensor(context_words_padded)
         else:
-            context_words_padded = self.pad_item(context_words)
-            context_datums = torch.LongTensor(context_words_padded)
+            claims_datum = torch.LongTensor(claims_words_id_padded)
+            ev_datum = torch.LongTensor(ev_words_id_padded)
+
+            # context_words_padded = self.pad_item(context_words)
+            # context_datums = torch.LongTensor(context_words_padded)
 
 
 
         #ask fan: i get label =-1 is that the ones where we manually removed the labels? ans: yes
 
 
-        #transform means, if you want a different noise for student and teacher
 
-        claims_datum = torch.LongTensor(claims_words_id_padded)
-        ev_datum = torch.LongTensor(ev_words_id_padded)
 
-        if self.transform is not None:
-            return (entity_datum, context_datums[0]), (entity_datum, context_datums[1]), label
-        else:
-            return (entity_datum, context_datums), label
+
+
+        # transform means, if you want a different noise for student and teacher
+        # so if you are transforming , you will be returning two different types of claim and evidence. else just one.
 
         if self.transform is not None:
-            tensor_datum = self.transform(torch.Tensor(self.dataset[idx]))
+            return (claims_datum, ev_datum[0]), (claims_datum, ev_datum[1]), label
         else:
+            return (claims_datum, ev_datum), label
 
 
-
-
-        return (claims_datum, ev_datum), label
 

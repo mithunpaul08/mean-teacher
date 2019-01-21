@@ -494,28 +494,37 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
 
         if args.dataset in ['conll', 'ontonotes','fever']:
 
-            input = datapoint[0]
-            ema_input = datapoint[1]
-            target = datapoint[2]
+            #if there is no transformation, the data will be inside datapoint[0] itself
+            if(dataset.transform) is None:
 
-            ## Input consists of tuple (entity_id, pattern_ids)
-            input_entity = input[0]
-            input_patterns = input[1]
+                input = datapoint[0][0]
+                ema_input = datapoint[0][1]
+                target = datapoint[1]
 
-            ema_input_entity = ema_input[0]
-            ema_input_patterns = ema_input[1]
+                ## Input consists of tuple (entity_id, pattern_ids)
+                input_entity = input[0]
+                input_patterns = input[1]
 
-            if torch.cuda.is_available():
-                entity_var = torch.autograd.Variable(input_entity).cuda()
-                patterns_var = torch.autograd.Variable(input_patterns).cuda()
-                ema_entity_var = torch.autograd.Variable(ema_input_entity, volatile=True).cuda()
-                ema_patterns_var = torch.autograd.Variable(ema_input_patterns, volatile=True).cuda()
+                ema_input_entity = ema_input[0]
+                ema_input_patterns = ema_input[1]
 
+                if torch.cuda.is_available():
+                    entity_var = torch.autograd.Variable(input_entity).cuda()
+                    patterns_var = torch.autograd.Variable(input_patterns).cuda()
+                    ema_entity_var = torch.autograd.Variable(ema_input_entity, volatile=True).cuda()
+                    ema_patterns_var = torch.autograd.Variable(ema_input_patterns, volatile=True).cuda()
+
+                else:
+                    entity_var = torch.autograd.Variable(input_entity).cpu()
+                    patterns_var = torch.autograd.Variable(input_patterns).cpu()
+                    ema_entity_var = torch.autograd.Variable(ema_input_entity, volatile=True).cpu()
+                    ema_patterns_var = torch.autograd.Variable(ema_input_patterns, volatile=True).cpu()
             else:
-                entity_var = torch.autograd.Variable(input_entity).cpu()
-                patterns_var = torch.autograd.Variable(input_patterns).cpu()
-                ema_entity_var = torch.autograd.Variable(ema_input_entity, volatile=True).cpu()
-                ema_patterns_var = torch.autograd.Variable(ema_input_patterns, volatile=True).cpu()
+                input = datapoint[0]
+                ema_input = datapoint[1]
+                target = datapoint[2]
+
+
 
         elif args.dataset in ['riedel', 'gids']:
             input = datapoint[0][0]
@@ -564,6 +573,9 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
             ema_model_out, _, _ = ema_model(ema_entity_var, ema_patterns_var)
             model_out, _, _ = model(entity_var, patterns_var)
         elif args.dataset in ['conll', 'ontonotes'] and args.arch == 'simple_MLP_embed':
+            ema_model_out = ema_model(ema_entity_var, ema_patterns_var)
+            model_out = model(entity_var, patterns_var)
+        elif args.dataset in ['fever'] and args.arch == 'simple_MLP_embed':
             ema_model_out = ema_model(ema_entity_var, ema_patterns_var)
             model_out = model(entity_var, patterns_var)
 

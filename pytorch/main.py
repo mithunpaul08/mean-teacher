@@ -469,7 +469,9 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
     meters = AverageMeterSet()
 
     # switch to train mode
-    model.train() ### From the documentation (nn.module,py) : i) Sets the module in training mode. (ii) This has any effect only on modules such as Dropout or BatchNorm. (iii) Returns: Module: self
+    model.train() ### From the documentation (nn.module,py) :
+    # i) Sets the module in training mode.
+    # (ii) This has any effect only on modules such as Dropout or BatchNorm. (iii) Returns: Module: self
     ema_model.train()
 
     end = time.time()
@@ -511,7 +513,7 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
                 ema_entity_var = torch.autograd.Variable(ema_input_entity, volatile=True).cpu()
                 ema_patterns_var = torch.autograd.Variable(ema_input_patterns, volatile=True).cpu()
 
-        elif args.dataset in ['riedel', 'gids']:
+        elif args.dataset in ['riedel', 'gids','fever']:
             input = datapoint[0][0]
             ema_input = datapoint[0][1]
             lengths = datapoint[1]

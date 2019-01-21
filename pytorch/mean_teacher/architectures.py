@@ -258,11 +258,12 @@ class FeedForwardMLPEmbed_RTE(nn.Module):
         self.embeddings = nn.Embedding(word_vocab_size, embedding_size)
         print("word_vocab_size=", word_vocab_size)
 
-        #ask becky: do i need embeddings for mean teacher and fever?
+        #ask becky: do i need embeddings for mean teacher and fever? Ans: yes. take an average for starters
         if word_vocab_embed is not None: # Pre-initalize the embedding layer from a vector loaded from word2vec/glove/or such
             print("Using a pre-initialized word-embedding vector .. loaded from disk")
             self.embeddings.weight = nn.Parameter(torch.from_numpy(word_vocab_embed))
 
+            #todo : update word embeddings after you load glove
             if update_pretrained_wordemb is False:
                 # NOTE: do not update the emebddings
                 # https://discuss.pytorch.org/t/how-to-exclude-embedding-layer-from-model-parameters/1283
@@ -278,6 +279,7 @@ class FeedForwardMLPEmbed_RTE(nn.Module):
         ## create : layer2 + Softmax: Create softmax here
         self.layer2 = nn.Linear(hidden_sz, output_sz, bias=True)
         # self.softmax = nn.Softmax(dim=1) ## IMPT NOTE: Removing the softmax from here as it is done in the loss function
+
 
     def forward(self, input_tuple):
         input = input_tuple[0]

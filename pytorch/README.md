@@ -32,12 +32,15 @@ python main.py
 --pretrained_wordemb false
 --update_pretrained_wordemb true
 --epochs 60 
---labeled-batch-size 2
---batch-size 4
 --consistency=0.3 
 --run-name log_gids_labels20.0_epochs60_labeled-batch-size64_cons0.3_simple
+--labeled_batch_size 10
+--batch_size 50
+
 
 ```
+
+note to self: initially we are using a dataset of 100 only of which 20% are only labeled. So try to keep the --labeled_batch_size 10 --batch_size 40
 
 --labeled_data_percent: is the percentage or number of labels indicating the number of labeled data points amongst the entire training data.
 

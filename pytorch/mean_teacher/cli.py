@@ -35,9 +35,9 @@ def create_parser():
                         help='number of total epochs to run')
     parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                         help='manual epoch number (useful on restarts)')
-    parser.add_argument('-b', '--batch-size', default=256, type=int,
+    parser.add_argument('-b', '--batch_size', default=256, type=int,
                         metavar='N', help='mini-batch size (default: 256)')
-    parser.add_argument('--labeled-batch-size', default=None, type=int,
+    parser.add_argument('--labeled_batch_size', default=None, type=int,
                         metavar='N', help="labeled examples per minibatch (default: no constrain)")
     parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
                         metavar='LR', help='max learning rate')

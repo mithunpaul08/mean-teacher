@@ -713,7 +713,8 @@ class RTEDataset(Dataset):
         dataset_file = dir + "/train_small_100_claims_with_evi_sents.jsonl"
         self.claims, self.evidences, self.lbl = Datautils.read_rte_data(dataset_file)
 
-        self.word_vocab = self.build_word_vocabulary()
+
+        self.word_vocab, self.max_claims_len, self.max_ev_len = self.build_word_vocabulary()
 
 
         #askfan :can i do this above word count thing later?- right now i want all words, maybe, for starters?
@@ -723,7 +724,9 @@ class RTEDataset(Dataset):
 
 
         self.word_vocab.add("@PADDING", 0)
-        self.pad_id = self.word_vocab.get_id(REDataset.PAD)
+        self.pad_id = self.word_vocab.get_id(RTEDataset.PAD)
+
+        #todo: load pretrained wordemb
 
         if args.pretrained_wordemb:
             if args.eval_subdir not in dir:  # do not load the word embeddings again in eval
@@ -764,34 +767,53 @@ class RTEDataset(Dataset):
 
     def build_word_vocabulary(self):
         word_vocab = Vocabulary()
-        self.word_vocab.add("@PADDING", 0)
 
-        #todo: mithun,. when you need to filter based on  frequency :if self.word_counts[word] >= args.word_frequency:
+        max_claim_len = 0
+        max_evidence_len = 0
+        max_num_evidences = 0
+
+        max_claim = ""
+        max_evidence = ""
+
 
         for each_claim in self.claims:
             words = [w for w in each_claim.split(" ")]
             for w in words:
                 word_vocab.add(w)
 
-
+                if len(words) > max_claim_len:
+                    max_claim_len = len(words)
+                    max_claim = words
 
         for each_ev in self.evidences:
             words = [w for w in each_ev.split(" ")]
             for w in words:
                 word_vocab.add(w)
 
-    def pad_item(self, dataitem):
-        dataitem_padded = dataitem + [self.pad_id] * (self.pad_len - len(dataitem))
+                if len(words) > max_evidence_len:
+                    max_evidence_len = len(words)
+                    max_evidence = words
+
+            # if len(context) > max_num_patterns:
+            #     max_num_patterns = len(context)
+
+        print (f"max_claim:{max_claim}")
+        print (max_claim_len)
+        print (max_evidence)
+        print (max_evidence_len)
+        return word_vocab, max_claim_len, max_evidence_len
+
+
+    def pad_item(self, dataitem,isev=False):
+        if(isev):
+            dataitem_padded = dataitem + [self.word_vocab.get_id(NECDataset.PAD)] * (
+                        self.max_ev_len - len(dataitem))
+        #ask becky : right now am padding with the max entity length. that is what fan also is doing .shouldn't i be padding both claim and evidence -with its own max length (eg:20 and 18719)
+        # or should i pad upto  the biggest amongst both, i.e 18719 words in evidence
+        else:
+            dataitem_padded = dataitem + [self.word_vocab.get_id(NECDataset.PAD)] * (self.max_claims_len - len(dataitem))
+
         return dataitem_padded
-        #ask fan, what is padding?
-
-
-        # Note: Init a count of 0 to PAD, as we are not using it other than padding
-        # print (max_entity)
-        # print (max_entity_len)
-        # print (max_pattern)
-        # print (max_pattern_len)
-        return word_vocab
 
     def get_num_classes(self):
         return len(list({l for l in self.lbl}))
@@ -799,7 +821,7 @@ class RTEDataset(Dataset):
     def get_labels(self):
         return self.lbl
 
-    #mithun:apparently __getitem__ is a function of pytorch's Dataset class. Which this class inherits. Here he is just overriding it
+    # __getitem__ is a function of pytorch's Dataset class. Which this class inherits. Here he is just overriding it
     # go to https://pytorch.org/tutorials/beginner/data_loading_tutorial.html and search for __getitem__
     # this is some internal memory saving thing to not load the entire dataset into memory at once.
     #askajay: so if i want to do some data processing on the raw data that i read from disk, is this the point where i do it? for each data point kind of thing?
@@ -819,14 +841,14 @@ class RTEDataset(Dataset):
         claims_words_id = [self.word_vocab.get_id(w) for w in (self.claims[idx].split(" "))]
         ev_words_id = [self.word_vocab.get_id(w) for w in (self.evidences[idx].split(" "))]
 
-        print(f"claim:{c}")
-        print(f"evidence:{e}")
-        print(f"label:{label}")
-        print(f"idx:{idx}")
-        print(f"---------------------\n")
+        # print(f"claim:{c}")
+        # print(f"evidence:{e}")
+        # print(f"label:{label}")
+        # print(f"idx:{idx}")
+        # print(f"---------------------\n")
 
         claims_words_id_padded = self.pad_item(claims_words_id)
-        ev_words_id_padded = self.pad_item(ev_words_id)
+        ev_words_id_padded = self.pad_item(ev_words_id,True)
 
         #ask fan: i get label =-1 is that the ones where we manually removed the labels? ans: yes
 

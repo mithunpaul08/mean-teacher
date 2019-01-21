@@ -128,6 +128,7 @@ class NECDataset(Dataset):
     WORD_NOISE_TYPE = "drop"
 
     #mithun this is called using:#dataset = datasets.NECDataset(traindir, args, train_transformation)
+    #transform means, the kind of dropping you want to do. look for function called fever():
     def __init__(self, dir, args, transform=None):
         entity_vocab_file = dir + "/entity_vocabulary.emboot.filtered.txt"
         context_vocab_file = dir + "/pattern_vocabulary_emboot.filtered.txt"
@@ -312,6 +313,7 @@ class NECDataset(Dataset):
         label = self.lbl[idx]  # Note: .. no need to create a tensor variable
 
         #mithun: askajay i think this is the place where the data that is read from the disk is sent back to main.py
+        # that is because in evaluation we won't add noise.
         if self.transform is not None:
             return (entity_datum, context_datums[0]), (entity_datum, context_datums[1]), label
         else:

@@ -23,7 +23,7 @@ from mean_teacher.utils import *
 import contextlib
 import random
 
-#askfan: where is log file stored?
+#askfan: where is log file stored? Ans: results/main
 LOG = logging.getLogger('main')
 
 ################
@@ -138,6 +138,7 @@ def main(context):
         else:
             model = model.cpu()
 
+        #here if ema (e mean teacher)=True, they don't do back propagation. that is what param.detach does.
         if ema:
             for param in model.parameters():
                 param.detach_() ##NOTE: Detaches the variable from the gradient computation, making it a leaf .. needed from EMA model
@@ -289,16 +290,19 @@ def create_data_loaders(train_transformation,
             labeled_idxs, unlabeled_idxs = data.relabel_dataset_nlp(dataset, args)
 
         # askajay what does exclude_unlabeled do?
+        #ans: if you want to do a simple feed forward - i.e ignore all unlabeled.
         if args.exclude_unlabeled:
             sampler = SubsetRandomSampler(labeled_idxs)
             batch_sampler = BatchSampler(sampler, args.batch_size, drop_last=True)
         elif args.labeled_batch_size:
-            batch_sampler = data.TwoStreamBatchSampler(
-                unlabeled_idxs, labeled_idxs, args.batch_size, args.labeled_batch_size)
+            batch_sampler = data.TwoStreamBatchSampler(unlabeled_idxs, labeled_idxs, args.batch_size, args.labeled_batch_size)
         else:
             assert False, "labeled batch size {}".format(args.labeled_batch_size)
 
-        #mithun: pytorch thing. train_loader uses getitem internally
+        #mithun: pytorch thing. train_loader uses getitem internally-
+        # train_loader.next gives you the next mini batch -
+        # it picks randomly to create a batch, but it also has to have a minimum:rgs.batch_size, args.labeled_batch_size
+        # for each mini batch: for each data point, it will call __getitem__
         train_loader = torch.utils.data.DataLoader(dataset,
                                                    pin_memory,
                                                    batch_sampler=batch_sampler,
@@ -435,7 +439,7 @@ def create_data_loaders(train_transformation,
     else:
         return train_loader, eval_loader
 
-#mithun: this is whe4re they are doing the average thing
+#mithun: this is whe4re they are doing the average thing -ema=exponential moving average
 def update_ema_variables(model, ema_model, alpha, global_step):
     # Use the true average until the exponential average is more correct
     alpha = min(1 - 1 / (global_step + 1), alpha)

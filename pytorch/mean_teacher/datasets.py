@@ -810,8 +810,7 @@ class RTEDataset(Dataset):
 
     def pad_item(self, dataitem,isev=False):
         if(isev):
-            dataitem_padded = dataitem + [self.word_vocab.get_id(NECDataset.PAD)] * (
-                        self.max_ev_len - len(dataitem))
+            dataitem_padded = dataitem + [self.word_vocab.get_id(NECDataset.PAD)] * (self.max_ev_len - len(dataitem))
         #ask becky : right now am padding with the max entity length. that is what fan also is doing .shouldn't i be padding both claim and evidence -with its own max length (eg:20 and 18719)
         # or should i pad upto  the biggest amongst both, i.e 18719 words in evidence
         else:

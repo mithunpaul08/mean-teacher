@@ -509,16 +509,16 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
                 ema_input_patterns = ema_input[1]
 
                 if torch.cuda.is_available():
-                    entity_var = torch.autograd.Variable(input_entity).cuda()
-                    patterns_var = torch.autograd.Variable(input_patterns).cuda()
-                    ema_entity_var = torch.autograd.Variable(ema_input_entity, volatile=True).cuda()
-                    ema_patterns_var = torch.autograd.Variable(ema_input_patterns, volatile=True).cuda()
+                    claims_var = torch.autograd.Variable(input_entity).cuda()
+                    evidences_var = torch.autograd.Variable(input_patterns).cuda()
+                    ema_claims_var = torch.autograd.Variable(ema_input_entity, volatile=True).cuda()
+                    ema_evidences_var = torch.autograd.Variable(ema_input_patterns, volatile=True).cuda()
 
                 else:
-                    entity_var = torch.autograd.Variable(input_entity).cpu()
-                    patterns_var = torch.autograd.Variable(input_patterns).cpu()
-                    ema_entity_var = torch.autograd.Variable(ema_input_entity, volatile=True).cpu()
-                    ema_patterns_var = torch.autograd.Variable(ema_input_patterns, volatile=True).cpu()
+                    claims_var = torch.autograd.Variable(input_entity).cpu()
+                    evidences_var = torch.autograd.Variable(input_patterns).cpu()
+                    ema_claims_var = torch.autograd.Variable(ema_input_entity, volatile=True).cpu()
+                    ema_evidences_var = torch.autograd.Variable(ema_input_patterns, volatile=True).cpu()
             else:
                 input = datapoint[0]
                 ema_input = datapoint[1]
@@ -568,16 +568,16 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
         # LOG.info("[Batch " + str(i) + "] NumLabeled="+str(num_labeled)+ "; NumUnlabeled="+str(num_unlabeled))
 
         if args.dataset in ['conll', 'ontonotes'] and args.arch == 'custom_embed':
-            # print("entity_var = " + str(entity_var.size()))
-            # print("patterns_var = " + str(patterns_var.size()))
-            ema_model_out, _, _ = ema_model(ema_entity_var, ema_patterns_var)
-            model_out, _, _ = model(entity_var, patterns_var)
-        elif args.dataset in ['conll', 'ontonotes'] and args.arch == 'simple_MLP_embed':
-            ema_model_out = ema_model(ema_entity_var, ema_patterns_var)
-            model_out = model(entity_var, patterns_var)
+            # print("claims_var = " + str(claims_var.size()))
+            # print("evidences_var = " + str(evidences_var.size()))
+            ema_model_out, _, _ = ema_model(ema_claims_var, ema_evidences_var)
+            model_out, _, _ = model(claims_var, evidences_var)
+        elif args.dataset in ['fever'] and args.arch == 'simple_MLP_embed_RTE':
+            ema_model_out = ema_model(ema_claims_var, ema_evidences_var)
+            model_out = model(claims_var, evidences_var)
         elif args.dataset in ['fever'] and args.arch == 'simple_MLP_embed':
-            ema_model_out = ema_model(ema_entity_var, ema_patterns_var)
-            model_out = model(entity_var, patterns_var)
+            ema_model_out = ema_model(ema_claims_var, ema_evidences_var)
+            model_out = model(claims_var, evidences_var)
 
         # US - TRAIN!!
         elif args.dataset in ['riedel', 'gids'] and args.arch == 'lstm_RE':

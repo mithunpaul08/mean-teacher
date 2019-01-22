@@ -1,3 +1,4 @@
+
 # Fact Verification using Mean Teacher in PyTorch
 
 This is the PyTorch source code for the Mean Teacher paper. The code runs on Python 3. Install the dependencies and prepare the datasets with the following commands:
@@ -141,20 +142,23 @@ Similarly the class `class SeqModelCustomEmbed(nn.Module):` does the same but fo
 Ans: this is where you decide whether you want to do training or testing/eval/dev. Only difference
 between training and dev is that, there is no noise added in dev.
 
-Qn) I see a log file is being created using `LOG = logging.getLogger('main')`. But I can't see any files. Where is the log file stored?
+**Qn) I see a log file is being created using `LOG = logging.getLogger('main')`. But I can't see any files. Where is the log file stored?**
+
 Ans: Its printed into `stdout` by default. Alternately there is this log file which is
 time stamped and logs all the training epoch parameters etc. It is done using `meters.update('data_time', time.time() - end)` in main.py
 It is stored in the folder `/results/main`
- 
+
 # Todo Sun Jan 20 21:31:41 MST 2019:
-- replace labels with int 
-- replace feed forward with that of ajay-2 classes
+
+
+- replace labels with int --done
+- replace feed forward with that of ajay-2 classes --done
+- add pre-trained embeddings
 - get training to run 
 - add the tranformation -i.e different noise for student and teacher
 - read the readme of original code again. the part where they talk about twostreamsampler
 - read the pytorch documentation on dataloader again
 - add eval data
-- add pre-trained embeddings
 - remove low frequency words.
 - do 2xfeedforward 
 

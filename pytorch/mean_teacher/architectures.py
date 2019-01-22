@@ -255,72 +255,60 @@ class FeedForwardMLPEmbed_RTE(nn.Module):
     def __init__(self, word_vocab_size, embedding_size, hidden_sz, output_sz, word_vocab_embed, update_pretrained_wordemb):
         super().__init__()
         self.embedding_size = embedding_size
-        self.embeddings = nn.Embedding(word_vocab_size, embedding_size)
-        print("word_vocab_size=", word_vocab_size)
+        self.entity_embeddings = nn.Embedding(word_vocab_size, embedding_size)
+        self.pat_embeddings = nn.Embedding(word_vocab_size, embedding_size)
 
-        #ask becky: do i need embeddings for mean teacher and fever? Ans: yes. take an average for starters
+        # https://discuss.pytorch.org/t/can-we-use-pre-trained-word-embeddings-for-weight-initialization-in-nn-embedding/1222
         if word_vocab_embed is not None: # Pre-initalize the embedding layer from a vector loaded from word2vec/glove/or such
             print("Using a pre-initialized word-embedding vector .. loaded from disk")
-            self.embeddings.weight = nn.Parameter(torch.from_numpy(word_vocab_embed))
+            self.entity_embeddings.weight = nn.Parameter(torch.from_numpy(word_vocab_embed))
+            self.pat_embeddings.weight = nn.Parameter(torch.from_numpy(word_vocab_embed))
 
-            #todo : update word embeddings after you load glove
             if update_pretrained_wordemb is False:
                 # NOTE: do not update the emebddings
                 # https://discuss.pytorch.org/t/how-to-exclude-embedding-layer-from-model-parameters/1283
                 print ("NOT UPDATING the word embeddings ....")
-                self.embeddings.weight.detach_()
+                self.entity_embeddings.weight.detach_()
+                self.pat_embeddings.weight.detach_()
             else:
                 print("UPDATING the word embeddings ....")
 
         ## Intialize the embeddings if pre-init enabled ? -- or in the fwd pass ?
         ## create : layer1 + ReLU
-        self.layer1 = nn.Linear(embedding_size, hidden_sz, bias=True) ## concatenate entity and pattern embeddings
+
+        print(f"embeddding_size:{embedding_size}")
+        print(f"hidden_sz:{hidden_sz}")
+        print(f"output_sz:{output_sz}")
+        self.layer1 = nn.Linear(embedding_size*2, hidden_sz, bias=True) ## concatenate entity and pattern embeddings
         self.activation = nn.ReLU()
         ## create : layer2 + Softmax: Create softmax here
         self.layer2 = nn.Linear(hidden_sz, output_sz, bias=True)
         # self.softmax = nn.Softmax(dim=1) ## IMPT NOTE: Removing the softmax from here as it is done in the loss function
 
+    def forward(self, entity, pattern):
 
-    def forward(self, input_tuple):
-        input = input_tuple[0]
-        seq_lengths = input_tuple[1]   # LongTensor
-        pad_id = input_tuple[2]
+        #ask becky: entity in my case is claim. why does it have a max of 18719: i thought max of evidence was 18719. Max of claim was some 20 something
+        entity_embed = torch.mean(self.entity_embeddings(entity), 1)             # Note: Average the word-embeddings
 
-        # Embed the input
-        embedded = self.embeddings(input)   # embedded.shape: torch.Size([256, 66, 100])
+        #ajay's code was like this, but was giving me dimension erorr while concatenation. I think he used this pattern_flattened, since his pattern has
+        #two parts, via the student and teacher part...right now am going to just directly use patter. mithun
+        #pattern_flattened = pattern.view(pattern.size()[0], -1)                  # Note: Flatten the list of list of words into a list of words
+        #pattern_embed = torch.mean((self.pat_embeddings(pattern_flattened)), 1)  # Note: Average the words in every pattern in the list of patterns
 
-        # Make the mask for removing the padded items
-        mask = input.ne(pad_id)
-
-        if torch.cuda.is_available():
-            mask = mask.type(torch.cuda.FloatTensor)
-        else:
-            mask = mask.type(torch.FloatTensor)
-
-        # add an extra dimension, initially of size 1
-        # then "expand_as" copies the last dimension into the new dimension
-        # This essentially propogates the mask through the final dimension
-        # input.shape[0] should be batch size and input.shape[1] should be the num_words
-        expanded_mask = mask.view(input.shape[0], input.shape[1], 1).expand_as(embedded)
-
-        # Apply mask (clear out the embeddings of padded items)
-        masked_embedded = embedded * expanded_mask
-
-        summation = masked_embedded.sum(1)  # Variable containing torch.FloatTensor of size 256x100
-
-        if torch.cuda.is_available():
-            seq_lengths = torch.autograd.Variable(seq_lengths.type(torch.cuda.FloatTensor))
-        else:
-            seq_lengths = torch.autograd.Variable(seq_lengths.type(torch.FloatTensor))  # Variable containing torch.FloatTensor of size 256x100
-
-        seq_lengths = seq_lengths.view(-1, 1).expand_as(summation)
-
-        avg = summation / seq_lengths
-
-        res = self.layer1(avg)
+        pattern_embed = torch.mean(self.pat_embeddings(pattern),1)
+        print (entity_embed.size())
+        print (pattern_embed.size())
+        print(entity_embed.shape)
+        print(pattern_embed.shape)
+        ## concatenate entity and pattern embeddings
+        concatenated = torch.cat([entity_embed, pattern_embed], 1)
+        res = self.layer1(concatenated)
         res = self.activation(res)
         res = self.layer2(res)
-
+        # print (res)
+        # print (res.shape)
+        # res = self.softmax(res) ## IMPT NOTE: Removing the softmax from here as it is done in the loss function
+        # print ("After softmax : " + str(res))
         return res
 
 ##############################################

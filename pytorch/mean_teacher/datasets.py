@@ -100,22 +100,6 @@ def conll():
 
 
 
-@export
-def fever():
-
-    if NECDataset.WORD_NOISE_TYPE in ['drop', 'replace']:
-        addNoise = data.RandomPatternWordNoise(NECDataset.NUM_WORDS_TO_REPLACE, NECDataset.OOV, NECDataset.WORD_NOISE_TYPE)
-    else:
-        assert False, "Unknown type of noise {}".format(NECDataset.WORD_NOISE_TYPE)
-
-    return {
-        'train_transformation': data.TransformTwiceNEC(addNoise),
-        'eval_transformation': None,
-        'datadir': 'data-local/rte/fever'
-        #ask ajay what does this do? why comment out? 'num_classes': 11
-    }
-
-
 #mithun: ohh the Dataset is a pytorch class, not a python class..and this class NECDataset just inherits from that class. Apparently in python you inherit by passing the parent into the constructor. WHo knew
 class NECDataset(Dataset):
 
@@ -369,6 +353,9 @@ def gids():
         'eval_transformation': None,
         'datadir': 'data-local/re/gids'
     }
+
+
+
 
 class REDataset(Dataset):
 
@@ -686,6 +673,21 @@ class RiedelDataset(Dataset):
 
 
 
+@export
+def fever():
+
+    if RTEDataset.WORD_NOISE_TYPE in ['drop', 'replace']:
+        addNoise = data.RandomPatternWordNoise(NECDataset.NUM_WORDS_TO_REPLACE, NECDataset.OOV, NECDataset.WORD_NOISE_TYPE)
+    else:
+        assert False, "Unknown type of noise {}".format(NECDataset.WORD_NOISE_TYPE)
+
+    return {
+        'train_transformation': data.TransformTwiceNEC(addNoise),
+        'eval_transformation': None,
+        'datadir': 'data-local/rte/fever'
+        #ask ajay what does this do? why comment out? 'num_classes': 11
+    }
+
 class RTEDataset(Dataset):
 
     PAD = "@PADDING"
@@ -756,6 +758,8 @@ class RTEDataset(Dataset):
         self.word_vocab.to_file(vocab_file)
 
         print("num of types of labels considered =", len(self.categories))
+
+        #write the list of labels to disk
         label_category_file = dir + '/../label_category_train_'  + '.txt'
         with io.open(label_category_file, 'w', encoding='utf8') as f:
             for lbl in self.categories:
@@ -777,7 +781,10 @@ class RTEDataset(Dataset):
         max_num_evidences = 0
 
         max_claim = ""
-        max_evidence = ""
+        longest_evidence_words = ""
+
+        list_of_longest_ev_lengths=[]
+        list_of_longest_evidences=[]
 
 
         for each_claim in self.claims:
@@ -796,15 +803,32 @@ class RTEDataset(Dataset):
 
                 if len(words) > max_evidence_len:
                     max_evidence_len = len(words)
-                    max_evidence = words
+                    longest_evidence_words = words
+                    list_of_longest_ev_lengths.append(max_evidence_len)
+                    list_of_longest_evidences.append(longest_evidence_words)
 
             # if len(context) > max_num_patterns:
             #     max_num_patterns = len(context)
 
+
+        ######So looked like the longest sentence of 18000 words was a bug. Somehow the data had an entire html dump. So right now we are going to pick
+        # the biggest number that is  less than 1000
+        # Todo: Note that this is a hack and we are biasing the data. Need to find a cleaner way to do this.
+
+        # for x in sorted(list_of_longest_ev_lengths,reverse=True):
+        #     if(x<1000):
+        #         max_evidence_len=x
+        #         break
+
+
+        #for debug: find the top 10 longest sentences and their length
+        print(f"list_of_longest_evidences.sort(:{list_of_longest_evidences.sort()}")
+        print(f"list_of_longest_ev_lengths.sort(:{list_of_longest_ev_lengths.sort()}")
         print (f"max_claim:{max_claim}")
         print (max_claim_len)
-        print (max_evidence)
+        print (longest_evidence_words)
         print (max_evidence_len)
+
         return word_vocab, max_claim_len, max_evidence_len
 
 
@@ -852,6 +876,10 @@ class RTEDataset(Dataset):
         # context_words = [[self.word_vocab.get_id(w) for w in self.context_vocab.get_word(ctxId).split(" ")] for ctxId in
         #                  self.contexts[idx]]
 
+        #todo: ask becky if we should do lowercase for all words in claims and evidence
+
+        claims_words_str = [w for w in (self.claims[idx].split(" "))]
+        ev_words_str= [w for w in (self.evidences[idx].split(" "))]
 
         claims_words_id = [self.word_vocab.get_id(w) for w in (self.claims[idx].split(" "))]
         ev_words_id = [self.word_vocab.get_id(w) for w in (self.evidences[idx].split(" "))]
@@ -862,7 +890,7 @@ class RTEDataset(Dataset):
 
         if self.transform is not None:
             # 1. Replace word with synonym word in Wordnet / NIL (whichever is enabled)
-            context_words_dropout_str = self.transform(context_words_str, RTEDataset.ENTITY)
+            context_words_dropout_str = self.transform(claims_words_str, RTEDataset.ENTITY)
 
             if RTEDataset.WORD_NOISE_TYPE == 'replace':
                 assert len(context_words_dropout_str) == 2, "There is some issue with TransformTwice ... " #todo: what if we do not want to use the teacher ?
@@ -900,16 +928,6 @@ class RTEDataset(Dataset):
         else:
             claims_datum = torch.LongTensor(claims_words_id_padded)
             ev_datum = torch.LongTensor(ev_words_id_padded)
-
-            # context_words_padded = self.pad_item(context_words)
-            # context_datums = torch.LongTensor(context_words_padded)
-
-
-
-        #ask fan: i get label =-1 is that the ones where we manually removed the labels? ans: yes
-
-
-
 
 
 

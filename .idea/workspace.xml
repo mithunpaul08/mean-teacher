@@ -2,9 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="106d3cb0-0078-4c0d-8f45-f05ca8f31e37" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/pytorch/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pytorch/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pytorch/mean_teacher/architectures.py" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/mean_teacher/architectures.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pytorch/mean_teacher/cli.py" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/mean_teacher/cli.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pytorch/mean_teacher/datasets.py" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/mean_teacher/datasets.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -17,8 +20,9 @@
     <session id="942099614">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.open.time.0" value="1" />
-          <entry key="project.opened" value="1" />
+          <entry key="project.closed" value="1" />
+          <entry key="project.open.time.0" value="2" />
+          <entry key="project.opened" value="2" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -44,25 +48,27 @@
     </session>
   </component>
   <component name="FileEditorManager">
-    <leaf>
-      <file pinned="false" current-in-tab="false">
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="240">
-              <caret line="320" column="42" lean-forward="true" selection-start-line="320" selection-start-column="42" selection-end-line="320" selection-end-column="42" />
+            <state relative-caret-position="-920">
+              <caret line="408" selection-start-line="408" selection-end-line="408" />
               <folding>
                 <element signature="e#0#43#0" expanded="true" />
+                <element signature="e#3325#14363#0" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/architectures.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-2866">
+            <state relative-caret-position="-1481">
+              <caret line="8" column="41" selection-start-line="8" selection-start-column="41" selection-end-line="8" selection-end-column="41" />
               <folding>
-                <element signature="e#0#10#0" expanded="true" />
+                <element signature="e#6817#7130#0" />
               </folding>
             </state>
           </provider>
@@ -76,8 +82,8 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/pytorch/mean_teacher/datasets.py" />
         <option value="$PROJECT_DIR$/pytorch/mean_teacher/architectures.py" />
+        <option value="$PROJECT_DIR$/pytorch/mean_teacher/datasets.py" />
       </list>
     </option>
   </component>
@@ -166,13 +172,9 @@
     <frame x="0" y="23" width="1280" height="712" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info id="Favorites" side_tool="true" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.37648928" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.07704528" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info anchor="bottom" id="Version Control" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Python Console" />
-      <window_info anchor="bottom" id="Terminal" />
-      <window_info anchor="bottom" id="Event Log" side_tool="true" />
+      <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
       <window_info anchor="bottom" id="Run" order="2" />
@@ -180,6 +182,10 @@
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="Version Control" order="7" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Terminal" order="8" />
+      <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
+      <window_info anchor="bottom" id="Python Console" order="10" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -188,22 +194,45 @@
   <component name="VcsContentAnnotationSettings">
     <option name="myLimit" value="2678400000" />
   </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py</url>
+          <line>407</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py</url>
+          <line>555</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py</url>
+          <line>480</line>
+          <option name="timeStamp" value="3" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py">
+    <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/architectures.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="240">
-          <caret line="320" column="42" lean-forward="true" selection-start-line="320" selection-start-column="42" selection-end-line="320" selection-end-column="42" />
+        <state relative-caret-position="-1481">
+          <caret line="8" column="41" selection-start-line="8" selection-start-column="41" selection-end-line="8" selection-end-column="41" />
           <folding>
-            <element signature="e#0#43#0" expanded="true" />
+            <element signature="e#6817#7130#0" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/architectures.py">
+    <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-2866">
+        <state relative-caret-position="-920">
+          <caret line="408" selection-start-line="408" selection-end-line="408" />
           <folding>
-            <element signature="e#0#10#0" expanded="true" />
+            <element signature="e#0#43#0" expanded="true" />
+            <element signature="e#3325#14363#0" />
           </folding>
         </state>
       </provider>

@@ -285,7 +285,7 @@ def create_data_loaders(train_transformation,
         LOG.info("Type of Noise : "+ dataset.WORD_NOISE_TYPE)
         LOG.info("Size of Noise : "+ str(dataset.NUM_WORDS_TO_REPLACE))
 
-        # askfan what does this relabel_dataset do? Ans: creating a bunch of labeled ones.
+        # askfan what does this relabel_dataset do? Ans: taking the training set and dividing a part of it as labeled and rest as unlabeled (label =-1)
         if args.labels:
             labeled_idxs, unlabeled_idxs = data.relabel_dataset_nlp(dataset, args)
 
@@ -301,7 +301,7 @@ def create_data_loaders(train_transformation,
 
         #mithun: pytorch thing. train_loader uses getitem internally-
         # train_loader.next gives you the next mini batch -
-        # it picks randomly to create a batch, but it also has to have a minimum:rgs.batch_size, args.labeled_batch_size
+        # it picks randomly to create a batch, but it also has to have a minimum:args.batch_size, args.labeled_batch_size
         # for each mini batch: for each data point, it will call __getitem__
         train_loader = torch.utils.data.DataLoader(dataset,
                                                    pin_memory,
@@ -497,9 +497,13 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
             #if there is no transformation, the data will be inside datapoint[0] itself
             if(dataset.transform) is None:
 
-                input = datapoint[0][0]
-                ema_input = datapoint[0][1]
+                input = datapoint[0]
+                ema_input = datapoint[0]
                 target = datapoint[1]
+
+                # input = datapoint[0][0]
+                # ema_input = datapoint[0][1]
+                # target = datapoint[1]
 
                 ## Input consists of tuple (entity_id, pattern_ids)
                 input_entity = input[0]

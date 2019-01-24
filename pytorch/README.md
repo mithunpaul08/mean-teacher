@@ -28,18 +28,20 @@ To train on FEVER, run e.g.:
 ``` 
 python main.py 
 --dataset fever
---labels 20.0 
 --arch simple_MLP_embed_RTE 
 --pretrained_wordemb false
 --update_pretrained_wordemb true
 --epochs 60 
 --consistency=0.3 
 --run-name log_gids_labels20.0_epochs60_labeled-batch-size64_cons0.3_simple
---labeled_batch_size 10
 --batch_size 50
+--labeled_batch_size 10
+--labels 20
+
 
 
 ```
+#--exclude_unlabeled true
 
 note to self: initially we are using a dataset of 100 only of which 20% are only labeled. So try to keep the --labeled_batch_size 10 --batch_size 40
 
@@ -148,14 +150,32 @@ Ans: Its printed into `stdout` by default. Alternately there is this log file wh
 time stamped and logs all the training epoch parameters etc. It is done using `meters.update('data_time', time.time() - end)` in main.py
 It is stored in the folder `/results/main`
 
+
+
+
+**Qn) I see one of my labels is -1. I clearly marked mine from [0,1,2]?**
+
+Ans: Whenever the code removes a label  (for the mean teacher purposes) it assigns a label of -1
+
+
+Qn) Why do I get an error at `assert_exactly_one([args.exclude_unlabeled, args.labeled_batch_size])` 
+
+Ans: If you are doing `--exclude_unlabeled true` i.e to run mean teacher as a simple feed forward supervised network
+with all data points having labels, you shouldn't pass any of these argument parameters
+```
+
+--labeled_batch_size 10
+```
+also make `--labels 100`
+
 # Todo Sun Jan 20 21:31:41 MST 2019:
 
 
 - replace labels with int --done
 - replace feed forward with that of ajay-2 classes --done
+- add transformation(i.e diff noise for student and teacher)
 - add pre-trained embeddings
 - get training to run 
-- add the tranformation -i.e different noise for student and teacher
 - read the readme of original code again. the part where they talk about twostreamsampler
 - read the pytorch documentation on dataloader again
 - add eval data

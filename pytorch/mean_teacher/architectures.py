@@ -255,21 +255,21 @@ class FeedForwardMLPEmbed_RTE(nn.Module):
     def __init__(self, word_vocab_size, embedding_size, hidden_sz, output_sz, word_vocab_embed, update_pretrained_wordemb):
         super().__init__()
         self.embedding_size = embedding_size
-        self.entity_embeddings = nn.Embedding(word_vocab_size, embedding_size)
-        self.pat_embeddings = nn.Embedding(word_vocab_size, embedding_size)
+        self.claim_embeddings = nn.Embedding(word_vocab_size, embedding_size)
+        self.evidence_embeddings = nn.Embedding(word_vocab_size, embedding_size)
 
         # https://discuss.pytorch.org/t/can-we-use-pre-trained-word-embeddings-for-weight-initialization-in-nn-embedding/1222
         if word_vocab_embed is not None: # Pre-initalize the embedding layer from a vector loaded from word2vec/glove/or such
             print("Using a pre-initialized word-embedding vector .. loaded from disk")
-            self.entity_embeddings.weight = nn.Parameter(torch.from_numpy(word_vocab_embed))
-            self.pat_embeddings.weight = nn.Parameter(torch.from_numpy(word_vocab_embed))
+            self.claim_embeddings.weight = nn.Parameter(torch.from_numpy(word_vocab_embed))
+            self.evidence_embeddings.weight = nn.Parameter(torch.from_numpy(word_vocab_embed))
 
             if update_pretrained_wordemb is False:
                 # NOTE: do not update the emebddings
                 # https://discuss.pytorch.org/t/how-to-exclude-embedding-layer-from-model-parameters/1283
                 print ("NOT UPDATING the word embeddings ....")
-                self.entity_embeddings.weight.detach_()
-                self.pat_embeddings.weight.detach_()
+                self.claim_embeddings.weight.detach_()
+                self.evidence_embeddings.weight.detach_()
             else:
                 print("UPDATING the word embeddings ....")
 
@@ -285,23 +285,24 @@ class FeedForwardMLPEmbed_RTE(nn.Module):
         self.layer2 = nn.Linear(hidden_sz, output_sz, bias=True)
         # self.softmax = nn.Softmax(dim=1) ## IMPT NOTE: Removing the softmax from here as it is done in the loss function
 
-    def forward(self, entity, pattern):
+    def forward(self, claim, evidence):
 
         #ask becky: entity in my case is claim. why does it have a max of 18719: i thought max of evidence was 18719. Max of claim was some 20 something
-        entity_embed = torch.mean(self.entity_embeddings(entity), 1)             # Note: Average the word-embeddings
+        claim_embed = torch.mean(self.claim_embeddings(claim), 1)             # Note: Average the word-embeddings
 
         #ajay's code was like this, but was giving me dimension erorr while concatenation. I think he used this pattern_flattened, since his pattern has
-        #two parts, via the student and teacher part...right now am going to just directly use patter. mithun
-        #pattern_flattened = pattern.view(pattern.size()[0], -1)                  # Note: Flatten the list of list of words into a list of words
-        #pattern_embed = torch.mean((self.pat_embeddings(pattern_flattened)), 1)  # Note: Average the words in every pattern in the list of patterns
+        #two parts, via the student and teacher part...right now am going to just directly use pattern. mithun
+        # pattern_flattened = evidence.view(evidence.size()[0], -1)                  # Note: Flatten the list of list of words into a list of words
+        # evidence_embed = torch.mean((self.evidence_embeddings(pattern_flattened)), 1)  # Note: Average the words in every pattern in the list of patterns
+        evidence_embed = torch.mean(self.evidence_embeddings(evidence), 1)
 
-        pattern_embed = torch.mean(self.pat_embeddings(pattern),1)
-        print (entity_embed.size())
-        print (pattern_embed.size())
-        print(entity_embed.shape)
-        print(pattern_embed.shape)
+        print("claim_embed.size()")
+        print (claim_embed.size())
+        print (evidence_embed.size())
+        print(claim_embed.shape)
+        print(evidence_embed.shape)
         ## concatenate entity and pattern embeddings
-        concatenated = torch.cat([entity_embed, pattern_embed], 1)
+        concatenated = torch.cat([claim_embed, evidence_embed], 1)
         res = self.layer1(concatenated)
         res = self.activation(res)
         res = self.layer2(res)

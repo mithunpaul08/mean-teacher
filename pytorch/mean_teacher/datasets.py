@@ -770,7 +770,7 @@ class RTEDataset(Dataset):
         # print(self.lbl[0])
 
         #todo: mithun change later- after figuring out what transform is
-        self.transform = transform
+        self.transform = None
 
 
     def build_word_vocabulary(self):

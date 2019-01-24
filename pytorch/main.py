@@ -633,7 +633,9 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
         #note by mithun: this was originally class_loss.data[0], but changing to class_loss.data.item() since it was throwing error on [0]
         meters.update('class_loss', class_loss.data.item())
 
-        # note by mithun: this was originally _.data[0], but changing to  _.data.item()since it was throwing error on [0]
+        # note by mithun: this was originally _.data[0], but changing to  _.data.item()since it was throwing error on
+        # [0]. this error occurs because we are right now passing data into student and teavher without any transformation. so this change must be temporary
+
 
         ema_class_loss = class_criterion(ema_logit, target_var) / minibatch_size
         ## DONE: AJAY - WHAT IF target_var NOT PRESENT (UNLABELED DATAPOINT) ?
@@ -652,8 +654,14 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
             meters.update('cons_loss', 0)
 
         loss = class_loss + consistency_loss + res_loss # NOTE: AJAY - loss is a combination of classification loss and consistency loss (+ residual loss from the 2 outputs of student model fc1 and fc2, see args.logit_distance_cost)
-        assert not (np.isnan(loss.data[0]) or loss.data[0] > 1e5), 'Loss explosion: {}'.format(loss.data[0])
-        meters.update('loss', loss.data[0])
+
+        # note by mithun: uncomment this after we have transform turned on.
+        # below line was originally _.data[0], but changing to  _.data.item()since it was throwing error on
+        # [0]. this error occurs because we are right now passing data into student and teavher without any transformation. so this change must be temporary
+        #assert not (np.isnan(loss.data[0]) or loss.data[0] > 1e5), 'Loss explosion: {}'.format(loss.data[0])
+        #meters.update('loss', loss.data[0])
+
+        meters.update('loss', loss.data.item())
 
         if args.dataset in ['riedel', 'gids']:
             #student

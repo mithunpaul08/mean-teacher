@@ -770,7 +770,7 @@ class RTEDataset(Dataset):
         # print(self.lbl[0])
 
         #todo: mithun change later- after figuring out what transform is
-        self.transform = None
+        self.transform = transform
 
 
     def build_word_vocabulary(self):
@@ -890,11 +890,11 @@ class RTEDataset(Dataset):
 
         if self.transform is not None:
             # 1. Replace word with synonym word in Wordnet / NIL (whichever is enabled)
-            context_words_dropout_str = self.transform(claims_words_str, RTEDataset.ENTITY)
+            claim_words_dropout_str = self.transform(claims_words_str, RTEDataset.ENTITY)
 
             if RTEDataset.WORD_NOISE_TYPE == 'replace':
-                assert len(context_words_dropout_str) == 2, "There is some issue with TransformTwice ... " #todo: what if we do not want to use the teacher ?
-                new_replaced_words = [w for ctx in context_words_dropout_str[0] + context_words_dropout_str[1]
+                assert len(claim_words_dropout_str) == 2, "There is some issue with TransformTwice ... " #todo: what if we do not want to use the teacher ?
+                new_replaced_words = [w for ctx in claim_words_dropout_str[0] + claim_words_dropout_str[1]
                                         for w in ctx
                                         if not self.word_vocab.contains(w)]
 
@@ -910,21 +910,21 @@ class RTEDataset(Dataset):
 
                 # print("Added " + str(len(new_replaced_words)) + " words to the word_vocab... New Size: " + str(self.word_vocab.size()))
 
-            context_words_dropout = list()
-            context_words_dropout.append([[self.word_vocab.get_id(w)
+            claim_words_dropout = list()
+            claim_words_dropout.append([[self.word_vocab.get_id(w)
                                             for w in ctx]
-                                           for ctx in context_words_dropout_str[0]])
-            x.append([[self.word_vocab.get_id(w)
+                                           for ctx in claim_words_dropout_str[0]])
+            claim_words_dropout.append([[self.word_vocab.get_id(w)
                                             for w in ctx]
-                                           for ctx in context_words_dropout_str[1]])
+                                           for ctx in claim_words_dropout_str[1]])
 
-            if len(context_words_dropout) == 2:  # transform twice (1. student 2. teacher): DONE
-                context_words_padded_0 = self.pad_item(context_words_dropout[0])
-                context_words_padded_1 = self.pad_item(context_words_dropout[1])
-                context_datums = (torch.LongTensor(context_words_padded_0), torch.LongTensor(context_words_padded_1))
+            if len(claim_words_dropout) == 2:  # transform twice (1. student 2. teacher): DONE
+                claims_words_padded_0 = self.pad_item(claim_words_dropout[0])
+                claims_words_padded_1 = self.pad_item(claim_words_dropout[1])
+                claims_datum = (torch.LongTensor(claims_words_padded_0), torch.LongTensor(claims_words_padded_1))
             else: # todo: change this to an assert (if we are always using the student and teacher networks)
-                context_words_padded = self.pad_item(context_words_dropout)
-                context_datums = torch.LongTensor(context_words_padded)
+                context_words_padded = self.pad_item(claim_words_dropout)
+                claims_datum = torch.LongTensor(context_words_padded)
         else:
             claims_datum = torch.LongTensor(claims_words_id_padded)
             ev_datum = torch.LongTensor(ev_words_id_padded)

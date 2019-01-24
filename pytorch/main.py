@@ -496,7 +496,6 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
 
             #if there is no transformation, the data will be inside datapoint[0] itself
             if(dataset.transform) is None:
-
                 input = datapoint[0]
                 ema_input = datapoint[0]
                 target = datapoint[1]
@@ -627,11 +626,19 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
             class_logit, cons_logit = logit1, logit1    # class_logit.data.size(): torch.Size([256, 56])
             res_loss = 0
 
-        class_loss = class_criterion(class_logit, target_var) / minibatch_size  ## DONE: AJAY - WHAT IF target_var NOT PRESENT (UNLABELED DATAPOINT) ? Ans: See  ignore index in  `class_criterion = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cpu()`
-        meters.update('class_loss', class_loss.data[0])
+        class_loss = class_criterion(class_logit, target_var) / minibatch_size
+        ## WHAT IF target_var NOT PRESENT (UNLABELED DATAPOINT) ?
+        #  Ans: See  ignore index in  `class_criterion = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cpu()`
 
-        ema_class_loss = class_criterion(ema_logit, target_var) / minibatch_size ## DONE: AJAY - WHAT IF target_var NOT PRESENT (UNLABELED DATAPOINT) ? Ans: See  ignore index in  `class_criterion = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cpu()`
-        meters.update('ema_class_loss', ema_class_loss.data[0])    # Do we need this?
+        #note by mithun: this was originally class_loss.data[0], but changing to class_loss.data.item() since it was throwing error on [0]
+        meters.update('class_loss', class_loss.data.item())
+
+        # note by mithun: this was originally _.data[0], but changing to  _.data.item()since it was throwing error on [0]
+
+        ema_class_loss = class_criterion(ema_logit, target_var) / minibatch_size
+        ## DONE: AJAY - WHAT IF target_var NOT PRESENT (UNLABELED DATAPOINT) ?
+        # Ans: See  ignore index in  `class_criterion = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cpu()`
+        meters.update('ema_class_loss', ema_class_loss.data.item())    # Do we need this?
 
         #mithun askajay: is this where they are doing consistency comparison-but where is the subtRACTION?
         # #askajay: where is the construction cost and consistency cost and back prop only on student etc?
@@ -639,7 +646,7 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
             consistency_weight = get_current_consistency_weight(epoch)
             meters.update('cons_weight', consistency_weight)
             consistency_loss = consistency_weight * consistency_criterion(cons_logit, ema_logit) / minibatch_size
-            meters.update('cons_loss', consistency_loss.data[0])
+            meters.update('cons_loss', consistency_loss.data.item())
         else:
             consistency_loss = 0
             meters.update('cons_loss', 0)

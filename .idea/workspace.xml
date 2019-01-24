@@ -2,13 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="106d3cb0-0078-4c0d-8f45-f05ca8f31e37" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pytorch/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pytorch/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pytorch/mean_teacher/architectures.py" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/mean_teacher/architectures.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pytorch/mean_teacher/cli.py" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/mean_teacher/cli.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pytorch/mean_teacher/datasets.py" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/mean_teacher/datasets.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -52,8 +46,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-920">
-              <caret line="408" selection-start-line="408" selection-end-line="408" />
+            <state relative-caret-position="130">
+              <caret line="478" column="28" selection-start-line="478" selection-start-column="28" selection-end-line="478" selection-end-column="28" />
               <folding>
                 <element signature="e#0#43#0" expanded="true" />
                 <element signature="e#3325#14363#0" />
@@ -88,7 +82,8 @@
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="y" value="23" />
+    <option name="x" value="-1408" />
+    <option name="y" value="-13" />
     <option name="width" value="1280" />
     <option name="height" value="712" />
   </component>
@@ -169,7 +164,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="1280" height="712" extended-state="0" />
+    <frame x="-1408" y="-13" width="1280" height="712" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.07704528" />
@@ -228,8 +223,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-920">
-          <caret line="408" selection-start-line="408" selection-end-line="408" />
+        <state relative-caret-position="130">
+          <caret line="478" column="28" selection-start-line="478" selection-start-column="28" selection-end-line="478" selection-end-column="28" />
           <folding>
             <element signature="e#0#43#0" expanded="true" />
             <element signature="e#3325#14363#0" />

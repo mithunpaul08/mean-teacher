@@ -770,7 +770,7 @@ class RTEDataset(Dataset):
         # print(self.lbl[0])
 
         #todo: mithun change later- after figuring out what transform is
-        self.transform = None
+        self.transform = transform
 
 
     def build_word_vocabulary(self):
@@ -878,8 +878,8 @@ class RTEDataset(Dataset):
 
         #todo: ask becky if we should do lowercase for all words in claims and evidence
 
-        claims_words_str = [w for w in (self.claims[idx].split(" "))]
-        ev_words_str= [w for w in (self.evidences[idx].split(" "))]
+        claims_words_str = [[w for w in (self.claims[idx].split(" "))]]
+        ev_words_str= [[w for w in (self.evidences[idx].split(" "))]]
 
         claims_words_id = [self.word_vocab.get_id(w) for w in (self.claims[idx].split(" "))]
         ev_words_id = [self.word_vocab.get_id(w) for w in (self.evidences[idx].split(" "))]
@@ -889,8 +889,15 @@ class RTEDataset(Dataset):
 
 
         if self.transform is not None:
-            # 1. Replace word with synonym word in Wordnet / NIL (whichever is enabled)
+
+            #add noise to both claim and evidence anyway. on top of it, if you want to add replacement, or make it
+            #mutually exclusive, do it later. Also note that this function will return two strings each for one string given.
+            #that is because it assumes different transformation for student and teacher.
+
             claim_words_dropout_str = self.transform(claims_words_str, RTEDataset.ENTITY)
+            ev_words_dropout_str = self.transform(ev_words_str, RTEDataset.ENTITY)
+
+            # 1. Replace word with synonym word in Wordnet / NIL (whichever is enabled)
 
             if RTEDataset.WORD_NOISE_TYPE == 'replace':
                 assert len(claim_words_dropout_str) == 2, "There is some issue with TransformTwice ... " #todo: what if we do not want to use the teacher ?
@@ -922,7 +929,8 @@ class RTEDataset(Dataset):
                 claims_words_padded_0 = self.pad_item(claim_words_dropout[0])
                 claims_words_padded_1 = self.pad_item(claim_words_dropout[1])
                 claims_datum = (torch.LongTensor(claims_words_padded_0), torch.LongTensor(claims_words_padded_1))
-            else: # todo: change this to an assert (if we are always using the student and teacher networks)
+            else:
+                # todo: change this to an assert (if we are always using the student and teacher networks)
                 context_words_padded = self.pad_item(claim_words_dropout)
                 claims_datum = torch.LongTensor(context_words_padded)
         else:

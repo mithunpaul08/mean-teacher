@@ -5,7 +5,7 @@ from collections import defaultdict
 import re
 import io
 import json, sys
-
+from tqdm import tqdm
 class Datautils:
 
     ## read the data from the file with the entity_ids provided by entity_vocab and context_ids provided by context_vocab
@@ -23,7 +23,7 @@ class Datautils:
 
         with open(filename) as f:
             word_counts = dict()
-            for line in f:
+            for line in tqdm(f, total=get_num_lines(filename)):
                 vals = line.strip().split('\t')
                 labels.append(vals[0].strip())
                 if vals[1] not in word_counts:

@@ -17,9 +17,11 @@ def create_parser():
                         help='dataset: ' +
                             ' | '.join(datasets.__all__) +
                             ' (default: conll)')
-    parser.add_argument('--train-subdir', type=str, default='train',
+    parser.add_argument('--train-subdir', type=str, default='train/',
                         help='the subdirectory inside the data directory that contains the training data')
-    parser.add_argument('--eval-subdir', type=str, default='dev',
+    parser.add_argument('--results_subdir', type=str, default='results/',
+                        help='the subdirectory where the output will be stored under run_name')
+    parser.add_argument('--eval-subdir', type=str, default='dev/',
                         help='the subdirectory inside the data directory that contains the evaluation data')
     parser.add_argument('--labels', default=None, type=str, #metavar='FILE',
                         help='% of labeled data to be used for the NLP task (randomly selected)')
@@ -105,6 +107,13 @@ def create_parser():
     parser.add_argument('--ckpt-file', type=str, default='best.ckpt', help='best checkpoint file')
     parser.add_argument('--ckpt-path', type=str, default='', help='path where best checkpoint file locates')
     parser.add_argument('--subset-labels', type=str, default='None', help='if not \'None\', only datpoints with the specified subset of test labels are considered, for both train/dev/test; currently only implemented for fullyLex and headLex of Riedel')
+    parser.add_argument('--data_dir', type=str, default='None',
+                        help='link to the folder where training and dev data is kept')
+    parser.add_argument('--train_input_file', type=str, default='None',
+                        help='path to the training data file.folder path is hard coded via:data-local/rte/fever/train')
+    parser.add_argument('--dev_input_file', type=str, default='None',
+                        help='path to the dev data file. folder path is hard coded via:data-local/rte/fever/dev')
+
 
     return parser
 

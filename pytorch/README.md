@@ -4,7 +4,7 @@
 This is the PyTorch source code for the Mean Teacher paper. The code runs on Python 3. Install the dependencies and prepare the datasets with the following commands:
 
 ```
-pip install numpy scipy pandas sklearn nltk
+pip install numpy scipy pandas sklearn nltk tqdm
 pip install git+ssh://git@github.com/pytorch/vision@c31c3d7e0e68e871d2128c8b731698ed3b11b119
 conda install pytorch-cpu torchvision-cpu -c pytorch
 
@@ -27,17 +27,40 @@ To train on FEVER, run e.g.:
 
 ``` 
 python main.py 
---dataset fever
+--dataset fever 
 --arch simple_MLP_embed_RTE 
---pretrained_wordemb false
+--pretrained_wordemb false 
 --update_pretrained_wordemb true
 --epochs 60 
 --consistency=0.3 
---run-name log_gids_labels20.0_epochs60_labeled-batch-size64_cons0.3_simple
+--run-name fever_transform
 --batch_size 50
 --labeled_batch_size 10
 --labels 20
+--data_dir data-local/rte/fever
+--train_input_file train_small_100_claims_with_evi_sents.jsonl
+--dev_input_file dev_10_with_evi_sents.jsonl
 
+
+
+```
+
+version of same commad to copy past for linux command lines:
+```
+python main.py \
+--dataset fever 
+--arch simple_MLP_embed_RTE \
+--pretrained_wordemb false \
+--update_pretrained_wordemb true \
+--epochs 60 \
+--consistency=0.3 \
+--run-name fever_transform_on \
+--batch_size 50 \
+--labeled_batch_size 10 \
+--labels 20 \
+--data_dir data-local/rte/fever \
+--train_input_file train_120k_with_evi_sents.jsonl \
+--dev_input_file dev_10_with_evi_sents.jsonl.jsonl 
 
 
 ```

@@ -74,7 +74,7 @@ class Vocabulary(object):
 
     # write vocabulary to file
     def to_file(self, file, encoding=DEFAULT_ENCODING):
-        with io.open(file, 'w', encoding=encoding) as f:
+        with io.open(file, 'w+', encoding=encoding) as f:
             f.write(self.to_string())
 
     # read vocabulary from file

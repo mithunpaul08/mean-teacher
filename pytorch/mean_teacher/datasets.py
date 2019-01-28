@@ -684,8 +684,9 @@ def fever():
     return {
         'train_transformation': data.TransformTwiceNEC(addNoise),
         'eval_transformation': None,
-        'datadir': 'data-local/rte/fever'
-        #ask ajay what does this do? why comment out? 'num_classes': 11
+        #'datadir': 'data-local/rte/fever'
+        #ask ajay what does this do? why comment out?
+        # 'num_classes': 11
     }
 
 class RTEDataset(Dataset):
@@ -712,10 +713,9 @@ class RTEDataset(Dataset):
         return np.array(word_vocab_embed).astype('float32')
 
     #mithun this is called using:#dataset = datasets.NECDataset(traindir, args, train_transformation)
-    def __init__(self, dir, args, transform=None):
+    def __init__(self, dataset_file, args, transform=None):
 
-        #mithun: the part without labels will be the one which will be used to
-        dataset_file = dir + "/train_small_100_claims_with_evi_sents.jsonl"
+
         self.claims, self.evidences, self.labels_str = Datautils.read_rte_data(dataset_file)
 
 
@@ -754,7 +754,9 @@ class RTEDataset(Dataset):
 
         #write the vocab file to disk so that you can load it later
         print("self.word_vocab.size=", self.word_vocab.size())
-        vocab_file = dir + '/../vocabulary_train_' + '.txt'
+
+        dir=args.results_subdir+ "main_"+args.run_name
+        vocab_file = dir + '/vocabulary_train_' + '.txt'
         self.word_vocab.to_file(vocab_file)
 
         print("num of types of labels considered =", len(self.categories))

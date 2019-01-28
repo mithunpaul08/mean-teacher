@@ -261,12 +261,11 @@ def parse_dict_args(**kwargs):
 
 def create_data_loaders(train_transformation,
                         eval_transformation,
-                        datadir,
                         args):
 
     global NA_label
-    traindir = os.path.join(datadir, args.train_subdir)
-    evaldir = os.path.join(datadir, args.eval_subdir)
+    traindir = os.path.join(args.data_dir , args.train_subdir)
+    evaldir = os.path.join(args.data_dir , args.eval_subdir)
 
     assert_exactly_one([args.exclude_unlabeled, args.labeled_batch_size])
 
@@ -280,8 +279,8 @@ def create_data_loaders(train_transformation,
         LOG.info("traindir : " + traindir)
         LOG.info("evaldir : " + evaldir)
 
-
-        dataset = datasets.RTEDataset(traindir, args, train_transformation)
+        train_input_file = traindir + args.train_input_file
+        dataset = datasets.RTEDataset(train_input_file, args, train_transformation)
         LOG.info("Type of Noise : "+ dataset.WORD_NOISE_TYPE)
         LOG.info("Size of Noise : "+ str(dataset.NUM_WORDS_TO_REPLACE))
 
@@ -312,15 +311,17 @@ def create_data_loaders(train_transformation,
                                                   # batch_size=args.batch_size,
                                                   # shuffle=False)
 
-        #mithun: commenting out during coding since we dont have an eval dataset yet.
-        # dataset_test = datasets.RTEDataset(evaldir, args, eval_transformation) ## NOTE: test data is the same as train data
-        #
-        # eval_loader = torch.utils.data.DataLoader(dataset_test,
-        #                                           pin_memory,
-        #                                           batch_size=args.batch_size,
-        #                                           shuffle=False,
-        #                                           num_workers=2 * args.workers,
-        #                                           drop_last=False)
+        dev_input_file = evaldir + args.dev_input_file
+        dataset_test = datasets.RTEDataset(dev_input_file, args, eval_transformation) ## NOTE: test data is the same as train data
+
+
+        eval_loader = torch.utils.data.DataLoader(dataset_test,
+                                                  pin_memory,
+                                                  drop_last=False)
+        # these variables were already there in ajay's code . not sure what they do. need to ask him-mithun
+        # batch_size=args.batch_size,
+        # shuffle=False,
+        # num_workers=2 * args.workers,
 
     elif args.dataset in ['riedel', 'gids']:
 

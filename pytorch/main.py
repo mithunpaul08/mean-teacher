@@ -511,8 +511,11 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
             student_input_claim = student_input[0]
             student_input_evidence = student_input[1]
 
+
+
             teacher_input_claim = teacher_input[0]
             teacher_input_evidence = teacher_input[1]
+
 
             if torch.cuda.is_available():
                 claims_var = torch.autograd.Variable(student_input_claim).cuda()

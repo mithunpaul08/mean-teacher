@@ -173,13 +173,15 @@ also make `--labels 100`
 
 - replace labels with int --done
 - replace feed forward with that of ajay-2 classes --done
-- add transformation(i.e diff noise for student and teacher)
+- get training to run without noise --done
+- add transformation(i.e diff noise for student and teacher) --done
+- get training to run with noise --done
+- add eval data
 - add pre-trained embeddings
-- get training to run 
 - read the readme of original code again. the part where they talk about twostreamsampler
 - read the pytorch documentation on dataloader again
-- add eval data
+- do 2xfeedforward -i.e make the mean teacher as a simple mlp
 - remove low frequency words.
-- do 2xfeedforward 
+
 
  

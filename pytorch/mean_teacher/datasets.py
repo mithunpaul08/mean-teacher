@@ -890,8 +890,10 @@ class RTEDataset(Dataset):
 
         if self.transform is not None:
 
-            #add noise to both claim and evidence anyway. on top of it, if you want to add replacement, or make it
-            #mutually exclusive, do it later. Also note that this function will return two strings each for one string given.
+            #add noise to both claim and evidence anyway. on top of it, if you want to add replacement,
+            # or make it
+            #mutually exclusive, do it later. Also note that this function will return two strings
+            # each for one string given.
             #that is because it assumes different transformation for student and teacher.
 
             claim_words_dropout_str = self.transform(claims_words_str, RTEDataset.ENTITY)
@@ -917,35 +919,62 @@ class RTEDataset(Dataset):
 
                 # print("Added " + str(len(new_replaced_words)) + " words to the word_vocab... New Size: " + str(self.word_vocab.size()))
 
-            claim_words_dropout = list()
-            claim_words_dropout.append([[self.word_vocab.get_id(w)
-                                            for w in ctx]
-                                           for ctx in claim_words_dropout_str[0]])
-            claim_words_dropout.append([[self.word_vocab.get_id(w)
-                                            for w in ctx]
-                                           for ctx in claim_words_dropout_str[1]])
 
-            if len(claim_words_dropout) == 2:  # transform twice (1. student 2. teacher): DONE
-                claims_words_padded_0 = self.pad_item(claim_words_dropout[0])
-                claims_words_padded_1 = self.pad_item(claim_words_dropout[1])
+            #back to drop world: now pad 4 things separately i.e claim for teacher, claim for student, evidence for teacher, evidence for student
+            claim_dropout_word_ids = list()
+
+            #for each word in the claim (note, this is after drop out), find its corresponding ids from the vocabulary dictionary
+            claim_dropout_word_ids.append([[self.word_vocab.get_id(w)
+                                         for w in ctx]
+                                        for ctx in claim_words_dropout_str[0]])
+            claim_dropout_word_ids.append([[self.word_vocab.get_id(w)
+                                         for w in ctx]
+                                        for ctx in claim_words_dropout_str[1]])
+
+            if len(claim_dropout_word_ids) == 2:  # i.e if its ==2 , it means transform twice (1. student 2. teacher)
+                claims_words_padded_0 = self.pad_item(claim_dropout_word_ids[0][0])
+                claims_words_padded_1 = self.pad_item(claim_dropout_word_ids[1][0])
                 claims_datum = (torch.LongTensor(claims_words_padded_0), torch.LongTensor(claims_words_padded_1))
             else:
                 # todo: change this to an assert (if we are always using the student and teacher networks)
-                context_words_padded = self.pad_item(claim_words_dropout)
+                context_words_padded = self.pad_item(claim_dropout_word_ids)
                 claims_datum = torch.LongTensor(context_words_padded)
+
+            #do the same for evidence also
+            evidence_words_dropout = list()
+            evidence_words_dropout.append([[self.word_vocab.get_id(w)
+                                         for w in ctx]
+                                        for ctx in ev_words_dropout_str[0]])
+            evidence_words_dropout.append([[self.word_vocab.get_id(w)
+                                         for w in ctx]
+                                        for ctx in ev_words_dropout_str[1]])
+
+            if len(evidence_words_dropout) == 2:  # transform twice (1. student 2. teacher): DONE
+
+                #if its evidence , and not claim, pad_item requires the second argument to be True
+                evidence_words_padded_0 = self.pad_item(evidence_words_dropout[0][0],True)
+                evidence_words_padded_1 = self.pad_item(evidence_words_dropout[1][0],True)
+                evidence_datum = (torch.LongTensor(evidence_words_padded_0), torch.LongTensor(evidence_words_padded_1))
+            else:
+                # todo: change this to an assert (if we are always using the student and teacher networks)
+                context_words_padded = self.pad_item(evidence_words_dropout)
+                evidence_datum = torch.LongTensor(context_words_padded)
+
+        #if we are not doing any transformation or adding any noise, just pad plain claim adn evidence
         else:
             claims_datum = torch.LongTensor(claims_words_id_padded)
-            ev_datum = torch.LongTensor(ev_words_id_padded)
+            evidence_datum = torch.LongTensor(ev_words_id_padded)
 
 
 
         # transform means, if you want a different noise for student and teacher
-        # so if you are transforming , you will be returning two different types of claim and evidence. else just one.
+        # so if you are transforming (i.e adding noise to both claim and evidence, for both student and teacher
+        #  , you will be returning two different types of claim and evidence. else just one.
 
         if self.transform is not None:
-            return (claims_datum, ev_datum[0]), (claims_datum, ev_datum[1]), label
+            return (claims_datum[0], evidence_datum[0]), (claims_datum[1], evidence_datum[1]), label
         else:
-            return (claims_datum, ev_datum), label
+            return (claims_datum, evidence_datum), label
 
 
 

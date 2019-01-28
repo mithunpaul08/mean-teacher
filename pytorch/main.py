@@ -480,7 +480,7 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
 
     end = time.time()
 
-    # datapoint: List(input_student, input teacher, labels)
+    # datapoint: List(input_student, student_input teacher, labels)
     for i, datapoint in enumerate(train_loader):
         # print("len(datapoint) = ", len(datapoint))
         # print("datapoint[0] shape: {0}".format(datapoint[0].shape))
@@ -496,64 +496,37 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
 
             #if there is no transformation, the data will be inside datapoint[0] itself
             if(dataset.transform) is None:
-                input = datapoint[0]
-                ema_input = datapoint[0]
+                student_input = datapoint[0]
+                teacher_input = datapoint[0]
                 target = datapoint[1]
 
-                # input = datapoint[0][0]
-                # ema_input = datapoint[0][1]
-                # target = datapoint[1]
-
-                ## Input consists of tuple (entity_id, pattern_ids)
-                input_entity = input[0]
-                input_patterns = input[1]
-
-                ema_input_entity = ema_input[0]
-                ema_input_patterns = ema_input[1]
-
-                if torch.cuda.is_available():
-                    claims_var = torch.autograd.Variable(input_entity).cuda()
-                    evidences_var = torch.autograd.Variable(input_patterns).cuda()
-                    ema_claims_var = torch.autograd.Variable(ema_input_entity, volatile=True).cuda()
-                    ema_evidences_var = torch.autograd.Variable(ema_input_patterns, volatile=True).cuda()
-
-                else:
-                    claims_var = torch.autograd.Variable(input_entity).cpu()
-                    evidences_var = torch.autograd.Variable(input_patterns).cpu()
-                    ema_claims_var = torch.autograd.Variable(ema_input_entity, volatile=True).cpu()
-                    ema_evidences_var = torch.autograd.Variable(ema_input_patterns, volatile=True).cpu()
             else:
-                input = datapoint[0]
-                ema_input = datapoint[1]
+                student_input = datapoint[0]
+                teacher_input = datapoint[1]
                 target = datapoint[2]
 
 
 
-        elif args.dataset in ['riedel', 'gids']:
-            input = datapoint[0][0]
-            ema_input = datapoint[0][1]
-            lengths = datapoint[1]
-            target = datapoint[2]
+            ## Input consists of tuple (entity_id, pattern_ids)
+            student_input_claim = student_input[0]
+            student_input_evidence = student_input[1]
+
+            teacher_input_claim = teacher_input[0]
+            teacher_input_evidence = teacher_input[1]
 
             if torch.cuda.is_available():
-                input_var = torch.autograd.Variable(input).cuda()
-                ema_input_var = torch.autograd.Variable(ema_input, volatile=True).cuda()
-                seq_lengths = torch.cuda.LongTensor([x for x in lengths])
+                claims_var = torch.autograd.Variable(student_input_claim).cuda()
+                evidences_var = torch.autograd.Variable(student_input_evidence).cuda()
+                ema_claims_var = torch.autograd.Variable(teacher_input_claim, volatile=True).cuda()
+                ema_evidences_var = torch.autograd.Variable(teacher_input_evidence, volatile=True).cuda()
 
             else:
-                input_var = torch.autograd.Variable(input).cpu()
-                ema_input_var = torch.autograd.Variable(ema_input, volatile=True).cpu()
-                seq_lengths = torch.LongTensor([x for x in lengths])
+                claims_var = torch.autograd.Variable(student_input_claim).cpu()
+                evidences_var = torch.autograd.Variable(student_input_evidence).cpu()
+                ema_claims_var = torch.autograd.Variable(teacher_input_claim, volatile=True).cpu()
+                ema_evidences_var = torch.autograd.Variable(teacher_input_evidence, volatile=True).cpu()
 
-        else:
-            ((input, ema_input), target) = datapoint
 
-            if torch.cuda.is_available():
-                input_var = torch.autograd.Variable(input).cuda()
-                ema_input_var = torch.autograd.Variable(ema_input, volatile=True).cuda() ## NOTE: AJAY - volatile: Boolean indicating that the Variable should be used in inference mode,
-            else:
-                input_var = torch.autograd.Variable(input).cpu()
-                ema_input_var = torch.autograd.Variable(ema_input, volatile=True).cpu()
 
         if torch.cuda.is_available():
             target_var = torch.autograd.Variable(target.cuda())

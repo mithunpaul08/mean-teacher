@@ -755,14 +755,14 @@ class RTEDataset(Dataset):
         #write the vocab file to disk so that you can load it later
         print("self.word_vocab.size=", self.word_vocab.size())
 
-        dir=args.results_subdir+ "main_"+args.run_name
-        vocab_file = dir + '/vocabulary_train_' + '.txt'
+        dir=args.output_folder
+        vocab_file = dir + 'vocabulary_train_' + '.txt'
         self.word_vocab.to_file(vocab_file)
 
         print("num of types of labels considered =", len(self.categories))
 
         #write the list of labels to disk
-        label_category_file = dir + '/../label_category_train_'  + '.txt'
+        label_category_file = dir + 'label_category_train_'  + '.txt'
         with io.open(label_category_file, 'w', encoding='utf8') as f:
             for lbl in self.categories:
                 f.write(lbl + '\n')

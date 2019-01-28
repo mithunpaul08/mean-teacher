@@ -40,6 +40,7 @@ python main.py
 --data_dir data-local/rte/fever
 --train_input_file train_small_100_claims_with_evi_sents.jsonl
 --dev_input_file dev_10_with_evi_sents.jsonl
+--workers 1
 
 
 

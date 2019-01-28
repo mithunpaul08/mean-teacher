@@ -93,16 +93,17 @@ def main(context):
             args.labels_set = []
 
     num_classes=3
-    if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids']:
+    if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids','fever']:
         train_loader, eval_loader, dataset, dataset_test = create_data_loaders(**dataset_config, args=args)
-        word_vocab_embed = dataset.word_vocab_embed
-        word_vocab_size = dataset.word_vocab.size()
-    #todo: this is temporary while am coding for training fever. Once i get training running, i will add eval_loader etc
-    elif args.dataset in ['fever']:
-        train_loader, dataset= create_data_loaders(**dataset_config, args=args)
         num_classes = len(dataset.categories)
         word_vocab_embed = dataset.word_vocab_embed
         word_vocab_size = dataset.word_vocab.size()
+    #todo: this is temporary while am coding for training fever. Once i get training running, i will add eval_loader etc
+    # elif args.dataset in []:
+    #     train_loader, dataset= create_data_loaders(**dataset_config, args=args)
+    #
+    #     word_vocab_embed = dataset.word_vocab_embed
+    #     word_vocab_size = dataset.word_vocab.size()
     else:
         #mithun: i think this is the actual code from valpola that ran on cifar10 dataset
         train_loader, eval_loader = create_data_loaders(**dataset_config, args=args)
@@ -193,7 +194,7 @@ def main(context):
     cudnn.benchmark = True
 
     if args.evaluate:
-        if args.dataset in ['conll', 'ontonotes']:
+        if args.dataset in ['conll', 'ontonotes','fever']:
             LOG.info("Evaluating the primary model:")
             validate(eval_loader, model, validation_log, global_step, args.start_epoch, dataset, context.result_dir, "student")
             LOG.info("Evaluating the EMA model:")
@@ -303,8 +304,8 @@ def create_data_loaders(train_transformation,
         # it picks randomly to create a batch, but it also has to have a minimum:args.batch_size, args.labeled_batch_size
         # for each mini batch: for each data point, it will call __getitem__
         train_loader = torch.utils.data.DataLoader(dataset,
-                                                   pin_memory,
-                                                   batch_sampler=batch_sampler,
+                                                   pin_memory=pin_memory,
+                                                   batch_size=args.batch_size,
                                                    num_workers=args.workers
                                                   )
                                                   # drop_last=False)
@@ -316,8 +317,13 @@ def create_data_loaders(train_transformation,
 
 
         eval_loader = torch.utils.data.DataLoader(dataset_test,
-                                                  pin_memory,
-                                                  drop_last=False)
+                                                  pin_memory=pin_memory,
+                                                  batch_size=args.batch_size,
+                                                  num_workers=args.workers)
+
+        #__init__(self, dataset, batch_size=1, shuffle=False, sampler=None, batch_sampler=None,
+                 # num_workers=0, collate_fn=default_collate, pin_memory=False, drop_last=False,
+                 # timeout=0, worker_init_fn=None):
         # these variables were already there in ajay's code . not sure what they do. need to ask him-mithun
         # batch_size=args.batch_size,
         # shuffle=False,
@@ -433,10 +439,8 @@ def create_data_loaders(train_transformation,
 
 
     #mithun: once you have both the train and test data in the DataLoader format that torch understands, return it to the calling function
-    if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids']:
+    if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids','fever']:
         return train_loader, eval_loader, dataset, dataset_test
-    elif args.dataset in ['fever']:
-            return train_loader,dataset
     else:
         return train_loader, eval_loader
 

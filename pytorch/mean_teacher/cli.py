@@ -31,7 +31,7 @@ def create_parser():
                         choices=architectures.__all__,
                         help='model architecture: ' +
                             ' | '.join(architectures.__all__))
-    parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
+    parser.add_argument('--workers', default=4, type=int, metavar='N',
                         help='number of data loading workers (default: 4)')
     parser.add_argument('--epochs', default=90, type=int, metavar='N',
                         help='number of total epochs to run')
@@ -112,6 +112,8 @@ def create_parser():
     parser.add_argument('--train_input_file', type=str, default='None',
                         help='path to the training data file.folder path is hard coded via:data-local/rte/fever/train')
     parser.add_argument('--dev_input_file', type=str, default='None',
+                        help='path to the dev data file. folder path is hard coded via:data-local/rte/fever/dev')
+    parser.add_argument('--output_folder', type=str, default='outputs/',
                         help='path to the dev data file. folder path is hard coded via:data-local/rte/fever/dev')
 
 

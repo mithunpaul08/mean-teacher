@@ -735,6 +735,10 @@ class RTEDataset(Dataset):
 
         if args.pretrained_wordemb:
             if args.eval_subdir not in dir:  # do not load the word embeddings again in eval
+
+                #todo for mithun: should come up with a saner test than checking in dir.
+                # Right now , jan 28th2019, i have removed dir..should pass a flag from command line explicitly when doing dev or something. this check in dir is realy stupid
+
                 self.gigaW2vEmbed, self.lookupGiga = Gigaword.load_pretrained_embeddings(w2vfile)
                 self.word_vocab_embed = self.create_word_vocab_embed()
 

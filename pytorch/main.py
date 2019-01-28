@@ -98,12 +98,7 @@ def main(context):
         num_classes = len(dataset.categories)
         word_vocab_embed = dataset.word_vocab_embed
         word_vocab_size = dataset.word_vocab.size()
-    #todo: this is temporary while am coding for training fever. Once i get training running, i will add eval_loader etc
-    # elif args.dataset in []:
-    #     train_loader, dataset= create_data_loaders(**dataset_config, args=args)
-    #
-    #     word_vocab_embed = dataset.word_vocab_embed
-    #     word_vocab_size = dataset.word_vocab.size()
+
     else:
         #mithun: i think this is the actual code from valpola that ran on cifar10 dataset
         train_loader, eval_loader = create_data_loaders(**dataset_config, args=args)
@@ -152,17 +147,19 @@ def main(context):
 
     LOG.info(parameters_string(model))
 
-    evaldir = os.path.join(dataset_config['datadir'], args.eval_subdir)
-    train_student_pred_file = evaldir + '/' + args.run_name + '_train_student_pred.tsv'
-    train_teacher_pred_file = evaldir + '/' + args.run_name + '_train_teacher_pred.tsv'
-    test_student_pred_file = evaldir + '/' + args.run_name + '_test_student_pred.tsv'
-    test_teacher_pred_file = evaldir + '/' + args.run_name + '_test_teacher_pred.tsv'
+    evaldir = os.path.join(args.data_dir, args.eval_subdir)
+    train_student_pred_file = evaldir  + args.run_name + '_train_student_pred.tsv'
+    train_teacher_pred_file = evaldir  + args.run_name + '_train_teacher_pred.tsv'
+    test_student_pred_file = evaldir  + args.run_name + '_test_student_pred.tsv'
+    test_teacher_pred_file = evaldir  + args.run_name + '_test_teacher_pred.tsv'
     with contextlib.suppress(FileNotFoundError):
         os.remove(train_student_pred_file)
         os.remove(train_teacher_pred_file)
         os.remove(test_student_pred_file)
         os.remove(test_teacher_pred_file)
 
+
+    #todo mithun: ask becky or fan if we need thi adam optimizer...also why are they using only when pretrained is false? damned tuning.
     if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids'] and args.update_pretrained_wordemb is False:
         ## Note: removing the parameters of embeddings as they are not updated
         # https://discuss.pytorch.org/t/freeze-the-learnable-parameters-of-resnet-and-attach-it-to-a-new-network/949/9

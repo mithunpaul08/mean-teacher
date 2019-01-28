@@ -200,7 +200,9 @@ also make `--labels 100`
 - get training to run without noise --done
 - add transformation(i.e diff noise for student and teacher) --done
 - get training to run with noise --done
-- add eval data
+- add eval data 
+  - (verify manually dataset_test has size of 10 or whatever you are feeding)
+
 - add pre-trained embeddings
 - read the readme of original code again. the part where they talk about twostreamsampler
 - read the pytorch documentation on dataloader again

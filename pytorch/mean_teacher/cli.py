@@ -74,8 +74,8 @@ def create_parser():
                         metavar='N', help='print frequency (default: 10)')
     parser.add_argument('--resume', default=None, type=str, metavar='PATH',
                         help='path to latest checkpoint (default: none)')
-    parser.add_argument('-e', '--evaluate', type=str2bool,
-                        help='if you want to do evaluation. note: as of jan 28th 2019. i dont know what evaluation means. i.e if its dev or test. am gonna leave it is none')
+    parser.add_argument('-e', '--evaluate', type=str2bool,default=False,
+                        help='if you want to do evaluation. can be on dev or test.')
     parser.add_argument('--pretrained', dest='pretrained', action='store_true',
                         help='use pre-trained model')
     parser.add_argument('--wordemb_size', default=100, type=int,

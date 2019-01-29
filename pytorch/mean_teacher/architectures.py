@@ -296,11 +296,11 @@ class FeedForwardMLPEmbed_RTE(nn.Module):
         # evidence_embed = torch.mean((self.evidence_embeddings(pattern_flattened)), 1)  # Note: Average the words in every pattern in the list of patterns
         evidence_embed = torch.mean(self.evidence_embeddings(evidence), 1)
 
-        print("claim_embed.size()")
-        print (claim_embed.size())
-        print (evidence_embed.size())
-        print(claim_embed.shape)
-        print(evidence_embed.shape)
+        # print("claim_embed.size()")
+        # print (claim_embed.size())
+        # print (evidence_embed.size())
+        # print(claim_embed.shape)
+        # print(evidence_embed.shape)
         ## concatenate entity and pattern embeddings
         concatenated = torch.cat([claim_embed, evidence_embed], 1)
         res = self.layer1(concatenated)

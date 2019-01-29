@@ -46,7 +46,7 @@ python main.py
 
 ```
 
-version of same commad to copy past for linux command lines:
+For the above command to run from linux command line, you might need to add a backwards slash as shown below:
 ```
 python main.py \
 --dataset fever 
@@ -64,6 +64,7 @@ python main.py \
 --dev_input_file dev_10_with_evi_sents.jsonl.jsonl 
 
 
+
 ```
 #--exclude_unlabeled true
 
@@ -72,6 +73,10 @@ note to self: initially we are using a dataset of 100 only of which 20% are only
 --labeled_data_percent: is the percentage or number of labels indicating the number of labeled data points amongst the entire training data.
 
 Details of other command line parameters can be found in `pytorch/mean_teacher/tests/cli.py`
+
+#Testing
+To do testing (on dev or test partition), you need to run the code again with `--evaluate` set to `true`. i.e training and testing uses same code but are mutually exclusive. You cannot run testing immediately after training.
+You need to finish training and use the saved model to do testing.
 
 Use `python main.py --help` to see other command line arguments.
 
@@ -200,6 +205,7 @@ also make `--labels 100`
 - get training to run without noise --done
 - add transformation(i.e diff noise for student and teacher) --done
 - get training to run with noise --done
+- check if consistency loss works, now that we have noise
 - add eval data 
   - (verify manually dataset_test has size of 10 or whatever you are feeding)
 

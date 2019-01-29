@@ -302,7 +302,7 @@ def create_data_loaders(train_transformation,
         # for each mini batch: for each data point, it will call __getitem__
         train_loader = torch.utils.data.DataLoader(dataset,
                                                    pin_memory=pin_memory,
-                                                   batch_size=args.batch_size,
+                                                   batch_sampler=batch_sampler,
                                                    num_workers=args.workers
                                                   )
                                                   # drop_last=False)
@@ -315,7 +315,7 @@ def create_data_loaders(train_transformation,
 
         eval_loader = torch.utils.data.DataLoader(dataset_test,
                                                   pin_memory=pin_memory,
-                                                  batch_size=args.batch_size,
+                                                  batch_sampler=batch_sampler,
                                                   num_workers=args.workers)
 
         #__init__(self, dataset, batch_size=1, shuffle=False, sampler=None, batch_sampler=None,
@@ -541,10 +541,6 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
         assert labeled_minibatch_size > 0
         meters.update('labeled_minibatch_size', labeled_minibatch_size)
 
-        # some debug stmt ... to be removed later
-        # num_unlabeled = sum([1 for lbl in datapoint[2].numpy().flatten() if lbl == -1])
-        # num_labeled = minibatch_size - num_unlabeled
-        # LOG.info("[Batch " + str(i) + "] NumLabeled="+str(num_labeled)+ "; NumUnlabeled="+str(num_unlabeled))
 
         if args.dataset in ['conll', 'ontonotes'] and args.arch == 'custom_embed':
             # print("claims_var = " + str(claims_var.size()))
@@ -620,7 +616,10 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
 
         #mithun askajay: is this where they are doing consistency comparison-but where is the subtRACTION?
         # #askajay: where is the construction cost and consistency cost and back prop only on student etc?
-        if args.consistency:     # if pass --consistency in running script
+        #ans: no. they are doing the subtraction around line
+
+        # if you want to use consistency loss with given weight  pass --consistency in running script-
+        if args.consistency:
             consistency_weight = get_current_consistency_weight(epoch)
             meters.update('cons_weight', consistency_weight)
             consistency_loss = consistency_weight * consistency_criterion(cons_logit, ema_logit) / minibatch_size
@@ -631,7 +630,7 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
 
         loss = class_loss + consistency_loss + res_loss # NOTE: AJAY - loss is a combination of classification loss and consistency loss (+ residual loss from the 2 outputs of student model fc1 and fc2, see args.logit_distance_cost)
 
-        # note by mithun: uncomment this after we have transform turned on.
+        #todo: note by mithun: uncomment this after we have transform turned on.
         # below line was originally _.data[0], but changing to  _.data.item()since it was throwing error on
         # [0]. this error occurs because we are right now passing data into student and teavher without any transformation. so this change must be temporary
         #assert not (np.isnan(loss.data[0]) or loss.data[0] > 1e5), 'Loss explosion: {}'.format(loss.data[0])
@@ -639,97 +638,18 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
 
         meters.update('loss', loss.data.item())
 
-        if args.dataset in ['riedel', 'gids']:
-            #student
-            correct, num_target_notNA, num_pred_notNA = prec_rec(class_logit.data, target_var.data, NA_label, topk=(1,))
 
-            if num_pred_notNA > 0:
-                prec = float(correct) / float(num_pred_notNA)
-            else:
-                prec = 0.0
+        prec1, prec5 = accuracy(class_logit.data, target_var.data, topk=(1, 2)) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
+        meters.update('top1', prec1[0], labeled_minibatch_size)
+        meters.update('error1', 100. - prec1[0], labeled_minibatch_size)
+        meters.update('top5', prec5[0], labeled_minibatch_size)
+        meters.update('error5', 100. - prec5[0], labeled_minibatch_size)
 
-            if num_target_notNA > 0:
-                rec = float(correct) / float(num_target_notNA)
-            else:
-                rec = 0.0
-
-            if prec + rec == 0:
-                f1 = 0
-            else:
-                f1 = 2 * prec * rec / (prec + rec)
-
-            meters.update('correct', correct, 1)
-            meters.update('target_notNA', num_target_notNA, 1)
-            meters.update('pred_notNA', num_pred_notNA, 1)
-
-            if float(meters['pred_notNA'].sum) == 0:
-                accum_prec = 0
-            else:
-                accum_prec = float(meters['correct'].sum) / float(meters['pred_notNA'].sum)
-
-            if float(meters['target_notNA'].sum) == 0:
-                accum_rec = 0
-            else:
-                accum_rec = float(meters['correct'].sum) / float(meters['target_notNA'].sum)
-
-            if accum_prec + accum_rec == 0:
-                accum_f1 = 0
-            else:
-                accum_f1 = 2 * accum_prec * accum_rec / (accum_prec + accum_rec)
-
-            #teacher
-            ema_correct, ema_num_target_notNA, ema_num_pred_notNA = prec_rec(ema_logit.data, target_var.data, NA_label, topk=(1,))
-
-            if ema_num_pred_notNA > 0:
-                ema_prec = float(ema_correct) / float(ema_num_pred_notNA)
-            else:
-                ema_prec = 0.0
-
-            if ema_num_target_notNA > 0:
-                ema_rec = float(ema_correct) / float(ema_num_target_notNA)
-            else:
-                ema_rec = 0.0
-
-            if ema_prec + ema_rec == 0:
-                ema_f1 = 0
-            else:
-                ema_f1 = 2 * ema_prec * ema_rec / (ema_prec + ema_rec)
-
-            meters.update('ema_correct', ema_correct, 1)
-            meters.update('ema_target_notNA', ema_num_target_notNA, 1)
-            meters.update('ema_pred_notNA', ema_num_pred_notNA, 1)
-
-            if float(meters['ema_pred_notNA'].sum) == 0:
-                accum_ema_prec = 0
-            else:
-                accum_ema_prec = float(meters['ema_correct'].sum) / float(meters['ema_pred_notNA'].sum)
-
-            if float(meters['ema_target_notNA'].sum) == 0:
-                accum_ema_rec = 0
-            else:
-                accum_ema_rec = float(meters['ema_correct'].sum) / float(meters['ema_target_notNA'].sum)
-
-            if accum_ema_prec + accum_ema_rec == 0:
-                accum_ema_f1 = 0
-            else:
-                accum_ema_f1 = 2 * accum_ema_prec * accum_ema_rec / (accum_ema_prec + accum_ema_rec)
-
-            # if epoch == args.epochs - 1:
-            #     dump_result(i, args, class_logit.data, target_var.data, dataset, perm_idx, 'train_student', topk=(1,))
-            #     dump_result(i, args, ema_logit.data, target_var.data, dataset, perm_idx, 'train_teacher', topk=(1,))
-
-        else:
-            prec1, prec5 = accuracy(class_logit.data, target_var.data, topk=(1, 2)) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
-            meters.update('top1', prec1[0], labeled_minibatch_size)
-            meters.update('error1', 100. - prec1[0], labeled_minibatch_size)
-            meters.update('top5', prec5[0], labeled_minibatch_size)
-            meters.update('error5', 100. - prec5[0], labeled_minibatch_size)
-
-            ema_prec1, ema_prec5 = accuracy(ema_logit.data, target_var.data, topk=(1, 2)) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
-            meters.update('ema_top1', ema_prec1[0], labeled_minibatch_size)
-            meters.update('ema_error1', 100. - ema_prec1[0], labeled_minibatch_size)
-            meters.update('ema_top5', ema_prec5[0], labeled_minibatch_size)
-            meters.update('ema_error5', 100. - ema_prec5[0], labeled_minibatch_size)
+        ema_prec1, ema_prec5 = accuracy(ema_logit.data, target_var.data, topk=(1, 2)) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
+        meters.update('ema_top1', ema_prec1[0], labeled_minibatch_size)
+        meters.update('ema_error1', 100. - ema_prec1[0], labeled_minibatch_size)
+        meters.update('ema_top5', ema_prec5[0], labeled_minibatch_size)
+        meters.update('ema_error5', 100. - ema_prec5[0], labeled_minibatch_size)
 
         # compute gradient and do SGD step
         optimizer.zero_grad()
@@ -765,12 +685,14 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
                     'Prec@2 {meters[top5]:.3f}'.format(
                         epoch, i, len(train_loader), meters=meters))
 
-            log.record(epoch + i / len(train_loader), {
-                'step': global_step,
-                **meters.values(),
-                **meters.averages(),
-                **meters.sums()
-            })
+            # log.record(epoch + i / len(train_loader), {
+            #     'step': global_step,
+            #     **meters.values(),
+            #     **meters.averages(),
+            #     **meters.sums()
+            # }
+
+
 
     # if args.dataset in ['riedel', 'gids']:
     #     if epoch == args.epochs - 1:

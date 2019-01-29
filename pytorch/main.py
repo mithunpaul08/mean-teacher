@@ -1266,9 +1266,13 @@ def main(context):
             print("just got inside evaluation_epochs ")
             start_time = time.time()
             LOG.info("Evaluating the primary model:")
+            print(f"value of model: {model} ")
             print(f"value of eval_loader: {eval_loader} ")
-            print(f"value of args.model: {epoch} ")
-            print(f"value of args.epoch: {epoch} ")
+            print(f"value of global_step: {global_step} ")
+            print(f"value of epoch: {validation_log} ")
+            print(f"value of dataset_test: {dataset_test} ")
+            print(f"value of context.result_dir: {context.result_dir} ")
+
             prec1 = validate(eval_loader, model, validation_log, global_step, epoch + 1, dataset_test,
                              context.result_dir, "student")
             LOG.info("Evaluating the EMA model:")

@@ -828,12 +828,12 @@ class RTEDataset(Dataset):
 
 
         #for debug: find the top 10 longest sentences and their length
-        print(f"list_of_longest_evidences.sort(:{list_of_longest_evidences.sort()}")
-        print(f"list_of_longest_ev_lengths.sort(:{list_of_longest_ev_lengths.sort()}")
-        print (f"max_claim:{max_claim}")
-        print (max_claim_len)
-        print (longest_evidence_words)
-        print (max_evidence_len)
+        # print(f"list_of_longest_evidences.sort(:{list_of_longest_evidences.sort()}")
+        # print(f"list_of_longest_ev_lengths.sort(:{list_of_longest_ev_lengths.sort()}")
+        # print (f"max_claim:{max_claim}")
+        # print (max_claim_len)
+        # print (longest_evidence_words)
+        # print (max_evidence_len)
 
         return word_vocab, max_claim_len, max_evidence_len
 
@@ -867,6 +867,8 @@ class RTEDataset(Dataset):
         #
         # c=self.claims[idx]
         # e = self.evidences[idx]
+        print(f"value of index is:{idx}")
+        print(f"value of self.lbl is:{self.lbl}")
         label = self.lbl[idx]
         #entity=claim
         # context=evidence

@@ -60,187 +60,6 @@ train_teacher_true_noNA = 0.0
 # 1. Change args.dataset in the command line
 ###########
 
-
-def main(context):
-    global global_step
-    global best_prec1
-
-    time_start = time.time()
-
-    checkpoint_path = context.transient_dir
-    training_log = context.create_train_log("training")
-    validation_log = context.create_train_log("validation")
-    ema_validation_log = context.create_train_log("ema_validation")
-
-    dataset_config = datasets.__dict__[args.dataset]()
-
-    if args.dataset != 'riedel':
-        args.subset_labels = 'None'
-        args.labels_set = []
-    else:
-        if args.subset_labels == '5':
-            args.labels_set = ['NA', '/people/person/place_lived', '/people/deceased_person/place_of_death', '/people/person/ethnicity', '/people/person/religion']
-
-        elif args.subset_labels == '10':
-            args.labels_set = ['NA', '/people/person/nationality', '/location/country/administrative_divisions', '/people/person/place_of_birth', '/people/deceased_person/place_of_death', '/location/us_state/capital', '/business/company/place_founded', '/sports/sports_team/location', '/people/deceased_person/place_of_burial', '/location/br_state/capital']
-
-        elif args.subset_labels == '20':
-            args.labels_set = ['NA', '/location/location/contains', '/people/person/nationality', '/people/person/place_lived', '/location/country/administrative_divisions', '/business/person/company', '/people/person/place_of_birth', '/business/company/founders', '/people/deceased_person/place_of_death', '/business/company/major_shareholders', '/location/us_state/capital', '/location/us_county/county_seat', '/business/company/place_founded', '/location/province/capital', '/sports/sports_team/location', '/people/deceased_person/place_of_burial', '/business/company/advisors', '/people/person/religion', '/time/event/locations', '/location/br_state/capital']
-
-        elif args.subset_labels == 'all':
-            args.labels_set = ['NA', '/location/location/contains', '/people/person/nationality', '/location/country/capital', '/people/person/place_lived', '/location/country/administrative_divisions', '/location/administrative_division/country', '/business/person/company', '/people/person/place_of_birth', '/people/ethnicity/geographic_distribution', '/business/company/founders', '/people/deceased_person/place_of_death', '/location/neighborhood/neighborhood_of', '/business/company/major_shareholders', '/location/us_state/capital', '/people/person/children', '/location/us_county/county_seat', '/business/company/place_founded', '/people/person/ethnicity', '/location/province/capital', '/sports/sports_team/location', '/people/place_of_interment/interred_here', '/people/deceased_person/place_of_burial', '/business/company_advisor/companies_advised', '/business/company/advisors', '/people/person/religion', '/time/event/locations', '/location/country/languages_spoken', '/location/br_state/capital', '/film/film_location/featured_in_films', '/film/film/featured_film_locations', '/base/locations/countries/states_provinces_within']
-        elif args.subset_labels == 'None':
-            args.labels_set = []
-
-    num_classes=3
-    if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids','fever']:
-        train_loader, eval_loader, dataset, dataset_test = create_data_loaders(**dataset_config, args=args)
-        num_classes = len(dataset.categories)
-        word_vocab_embed = dataset.word_vocab_embed
-        word_vocab_size = dataset.word_vocab.size()
-
-    else:
-        #mithun: i think this is the actual code from valpola that ran on cifar10 dataset
-        train_loader, eval_loader = create_data_loaders(**dataset_config, args=args)
-
-    #uncomment this if you want to pop the number of classes instead from the config file
-    # if args.dataset in ['riedel', 'gids','fever']:
-    #
-    # else:
-    #     num_classes = dataset_config.pop('num_classes')
-
-    def create_model(ema=False):
-        LOG.info("=> creating {pretrained}{ema}model '{arch}'".format(
-            pretrained='pre-trained ' if args.pretrained else '',
-            ema='EMA ' if ema else '',
-            arch=args.arch))
-
-        model_factory = architectures.__dict__[args.arch]
-        model_params = dict(pretrained=args.pretrained, num_classes=num_classes)
-
-        if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids','fever']:
-
-            #first two (word_vocab_embed,word_vocab_size) needs to be provided from command line
-            model_params['word_vocab_embed'] = word_vocab_embed
-            model_params['word_vocab_size'] = word_vocab_size
-            model_params['wordemb_size'] = args.wordemb_size
-            model_params['hidden_size'] = args.hidden_size
-            model_params['update_pretrained_wordemb'] = args.update_pretrained_wordemb
-
-        model = model_factory(**model_params)
-        LOG.info("--------------------IMPORTANT: REMOVING nn.DataParallel for the moment --------------------")
-        if torch.cuda.is_available():
-            model = model.cuda()    # Note: Disabling data parallelism for now
-        else:
-            model = model.cpu()
-
-        #here if ema (e mean teacher)=True, they don't do back propagation. that is what param.detach does.
-        if ema:
-            for param in model.parameters():
-                param.detach_() ##NOTE: Detaches the variable from the gradient computation, making it a leaf .. needed from EMA model
-
-        return model
-
-    #askfan: so the ema is teacher? and teacher is just a copy of student itself-but how/where do they do the moving average thing?
-    model = create_model()
-    ema_model = create_model(ema=True)
-
-    LOG.info(parameters_string(model))
-
-    evaldir = os.path.join(args.data_dir, args.eval_subdir)
-    train_student_pred_file = evaldir  + args.run_name + '_train_student_pred.tsv'
-    train_teacher_pred_file = evaldir  + args.run_name + '_train_teacher_pred.tsv'
-    test_student_pred_file = evaldir  + args.run_name + '_test_student_pred.tsv'
-    test_teacher_pred_file = evaldir  + args.run_name + '_test_teacher_pred.tsv'
-    with contextlib.suppress(FileNotFoundError):
-        os.remove(train_student_pred_file)
-        os.remove(train_teacher_pred_file)
-        os.remove(test_student_pred_file)
-        os.remove(test_teacher_pred_file)
-
-
-    #todo mithun: ask becky or fan if we need thi adam optimizer...also why are they using only when pretrained is false? damned tuning.
-    if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids'] and args.update_pretrained_wordemb is False:
-        ## Note: removing the parameters of embeddings as they are not updated
-        # https://discuss.pytorch.org/t/freeze-the-learnable-parameters-of-resnet-and-attach-it-to-a-new-network/949/9
-        filtered_parameters = list(filter(lambda p: p.requires_grad, model.parameters()))
-        optimizer = torch.optim.Adam(filtered_parameters)
-        # optimizer = torch.optim.SGD(filtered_parameters, args.lr,
-        #                             momentum=args.momentum,
-        #                             weight_decay=args.weight_decay,
-        #                             nesterov=args.nesterov)
-    else:
-        optimizer = torch.optim.SGD(model.parameters(), args.lr,
-                                momentum=args.momentum,
-                                weight_decay=args.weight_decay,
-                                nesterov=args.nesterov)
-
-    # optionally resume from a checkpoint
-    if args.resume:
-        assert os.path.isfile(args.resume), "=> no checkpoint found at '{}'".format(args.resume)
-        LOG.info("=> loading checkpoint '{}'".format(args.resume))
-        checkpoint = torch.load(args.resume)
-        args.start_epoch = checkpoint['epoch']
-        global_step = checkpoint['global_step']
-        best_prec1 = checkpoint['best_prec1']
-        model.load_state_dict(checkpoint['state_dict'])
-        ema_model.load_state_dict(checkpoint['ema_state_dict'])
-        optimizer.load_state_dict(checkpoint['optimizer'])
-        LOG.info("=> loaded checkpoint '{}' (epoch {})".format(args.resume, checkpoint['epoch']))
-
-    cudnn.benchmark = True
-
-    if args.evaluate:
-        if args.dataset in ['conll', 'ontonotes','fever']:
-            LOG.info("Evaluating the primary model:")
-            validate(eval_loader, model, validation_log, global_step, args.start_epoch, dataset, context.result_dir, "student")
-            LOG.info("Evaluating the EMA model:")
-            validate(eval_loader, ema_model, ema_validation_log, global_step, args.start_epoch, dataset, context.result_dir, "teacher")
-        elif args.dataset in ['riedel', 'gids']:
-            LOG.info("Evaluating the primary model:")
-            validate(eval_loader, model, validation_log, global_step, args.start_epoch, dataset_test, context.result_dir, "student")
-            LOG.info("Evaluating the EMA model:")
-            validate(eval_loader, ema_model, ema_validation_log, global_step, args.start_epoch, dataset_test, context.result_dir, "teacher")
-        return
-
-    for epoch in range(args.start_epoch, args.epochs):
-        start_time = time.time()
-        # train for one epoch
-        train(train_loader, model, ema_model, optimizer, epoch, dataset, training_log)
-        LOG.info("--- training epoch in %s seconds ---" % (time.time() - start_time))
-
-        if args.evaluation_epochs and (epoch + 1) % args.evaluation_epochs == 0:
-            start_time = time.time()
-            LOG.info("Evaluating the primary model:")
-            prec1 = validate(eval_loader, model, validation_log, global_step, epoch + 1, dataset_test,
-                             context.result_dir, "student")
-            LOG.info("Evaluating the EMA model:")
-            ema_prec1 = validate(eval_loader, ema_model, ema_validation_log, global_step, epoch + 1, dataset_test,
-                                 context.result_dir, "teacher")
-            LOG.info("--- validation in %s seconds ---" % (time.time() - start_time))
-            is_best = ema_prec1 > best_prec1
-            best_prec1 = max(ema_prec1, best_prec1)
-        else:
-            is_best = False
-
-        if args.checkpoint_epochs and (epoch + 1) % args.checkpoint_epochs == 0:
-            save_checkpoint({
-                'epoch': epoch + 1,
-                'global_step': global_step,
-                'arch': args.arch,
-                'state_dict': model.state_dict(),
-                'ema_state_dict': ema_model.state_dict(),
-                'best_prec1': best_prec1,
-                'optimizer' : optimizer.state_dict(),
-                'dataset' : args.dataset,
-            }, is_best, checkpoint_path, epoch + 1)
-
-    # for testing only .. commented
-    # LOG.info("For testing only; Comment the following line of code--------------------------------")
-    # validate(eval_loader, model, validation_log, global_step, 0, dataset, context.result_dir, "student")
-    LOG.info("--------Total end to end time %s seconds ----------- " % (time.time() - time_start))
-
-
 def parse_dict_args(**kwargs):
     global args
 
@@ -314,13 +133,13 @@ def create_data_loaders(train_transformation,
 
 
         eval_loader = torch.utils.data.DataLoader(dataset_test,
-                                                  pin_memory=pin_memory,
-                                                  batch_sampler=batch_sampler,
-                                                  num_workers=args.workers)
+                                                  batch_size = args.batch_size,
+                                                  shuffle=False,
+                                                  num_workers=2 * args.workers,
+                                                  pin_memory=True,
+                                                  drop_last=False)
 
-        #__init__(self, dataset, batch_size=1, shuffle=False, sampler=None, batch_sampler=None,
-                 # num_workers=0, collate_fn=default_collate, pin_memory=False, drop_last=False,
-                 # timeout=0, worker_init_fn=None):
+
         # these variables were already there in ajay's code . not sure what they do. need to ask him-mithun
         # batch_size=args.batch_size,
         # shuffle=False,
@@ -1279,6 +1098,188 @@ def dump_result(batch_id, args, output, target, dataset, perm_idx, model_type='t
 
                 line = target_label + '\t' + pred_label + '\t' + str(match) + '\t' + str(float(score[p])) + '\n'
                 fo.write(line)
+
+
+
+def main(context):
+    global global_step
+    global best_prec1
+
+    time_start = time.time()
+
+    checkpoint_path = context.transient_dir
+    training_log = context.create_train_log("training")
+    validation_log = context.create_train_log("validation")
+    ema_validation_log = context.create_train_log("ema_validation")
+
+    dataset_config = datasets.__dict__[args.dataset]()
+
+    if args.dataset != 'riedel':
+        args.subset_labels = 'None'
+        args.labels_set = []
+    else:
+        if args.subset_labels == '5':
+            args.labels_set = ['NA', '/people/person/place_lived', '/people/deceased_person/place_of_death', '/people/person/ethnicity', '/people/person/religion']
+
+        elif args.subset_labels == '10':
+            args.labels_set = ['NA', '/people/person/nationality', '/location/country/administrative_divisions', '/people/person/place_of_birth', '/people/deceased_person/place_of_death', '/location/us_state/capital', '/business/company/place_founded', '/sports/sports_team/location', '/people/deceased_person/place_of_burial', '/location/br_state/capital']
+
+        elif args.subset_labels == '20':
+            args.labels_set = ['NA', '/location/location/contains', '/people/person/nationality', '/people/person/place_lived', '/location/country/administrative_divisions', '/business/person/company', '/people/person/place_of_birth', '/business/company/founders', '/people/deceased_person/place_of_death', '/business/company/major_shareholders', '/location/us_state/capital', '/location/us_county/county_seat', '/business/company/place_founded', '/location/province/capital', '/sports/sports_team/location', '/people/deceased_person/place_of_burial', '/business/company/advisors', '/people/person/religion', '/time/event/locations', '/location/br_state/capital']
+
+        elif args.subset_labels == 'all':
+            args.labels_set = ['NA', '/location/location/contains', '/people/person/nationality', '/location/country/capital', '/people/person/place_lived', '/location/country/administrative_divisions', '/location/administrative_division/country', '/business/person/company', '/people/person/place_of_birth', '/people/ethnicity/geographic_distribution', '/business/company/founders', '/people/deceased_person/place_of_death', '/location/neighborhood/neighborhood_of', '/business/company/major_shareholders', '/location/us_state/capital', '/people/person/children', '/location/us_county/county_seat', '/business/company/place_founded', '/people/person/ethnicity', '/location/province/capital', '/sports/sports_team/location', '/people/place_of_interment/interred_here', '/people/deceased_person/place_of_burial', '/business/company_advisor/companies_advised', '/business/company/advisors', '/people/person/religion', '/time/event/locations', '/location/country/languages_spoken', '/location/br_state/capital', '/film/film_location/featured_in_films', '/film/film/featured_film_locations', '/base/locations/countries/states_provinces_within']
+        elif args.subset_labels == 'None':
+            args.labels_set = []
+
+    num_classes=3
+    if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids','fever']:
+        train_loader, eval_loader, dataset, dataset_test = create_data_loaders(**dataset_config, args=args)
+        num_classes = len(dataset.categories)
+        word_vocab_embed = dataset.word_vocab_embed
+        word_vocab_size = dataset.word_vocab.size()
+
+    else:
+        #mithun: i think this is the actual code from valpola that ran on cifar10 dataset
+        train_loader, eval_loader = create_data_loaders(**dataset_config, args=args)
+
+    #uncomment this if you want to pop the number of classes instead from the config file
+    # if args.dataset in ['riedel', 'gids','fever']:
+    #
+    # else:
+    #     num_classes = dataset_config.pop('num_classes')
+
+    def create_model(ema=False):
+        LOG.info("=> creating {pretrained}{ema}model '{arch}'".format(
+            pretrained='pre-trained ' if args.pretrained else '',
+            ema='EMA ' if ema else '',
+            arch=args.arch))
+
+        model_factory = architectures.__dict__[args.arch]
+        model_params = dict(pretrained=args.pretrained, num_classes=num_classes)
+
+        if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids','fever']:
+
+            #first two (word_vocab_embed,word_vocab_size) needs to be provided from command line
+            model_params['word_vocab_embed'] = word_vocab_embed
+            model_params['word_vocab_size'] = word_vocab_size
+            model_params['wordemb_size'] = args.wordemb_size
+            model_params['hidden_size'] = args.hidden_size
+            model_params['update_pretrained_wordemb'] = args.update_pretrained_wordemb
+
+        model = model_factory(**model_params)
+        LOG.info("--------------------IMPORTANT: REMOVING nn.DataParallel for the moment --------------------")
+        if torch.cuda.is_available():
+            model = model.cuda()    # Note: Disabling data parallelism for now
+        else:
+            model = model.cpu()
+
+        #here if ema (e mean teacher)=True, they don't do back propagation. that is what param.detach does.
+        if ema:
+            for param in model.parameters():
+                param.detach_() ##NOTE: Detaches the variable from the gradient computation, making it a leaf .. needed from EMA model
+
+        return model
+
+    #askfan: so the ema is teacher? and teacher is just a copy of student itself-but how/where do they do the moving average thing?
+    model = create_model()
+    ema_model = create_model(ema=True)
+
+    LOG.info(parameters_string(model))
+
+    evaldir = os.path.join(args.data_dir, args.eval_subdir)
+    train_student_pred_file = evaldir  + args.run_name + '_train_student_pred.tsv'
+    train_teacher_pred_file = evaldir  + args.run_name + '_train_teacher_pred.tsv'
+    test_student_pred_file = evaldir  + args.run_name + '_test_student_pred.tsv'
+    test_teacher_pred_file = evaldir  + args.run_name + '_test_teacher_pred.tsv'
+    with contextlib.suppress(FileNotFoundError):
+        os.remove(train_student_pred_file)
+        os.remove(train_teacher_pred_file)
+        os.remove(test_student_pred_file)
+        os.remove(test_teacher_pred_file)
+
+
+    #todo mithun: ask becky or fan if we need thi adam optimizer...also why are they using only when pretrained is false? damned tuning.
+    if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids'] and args.update_pretrained_wordemb is False:
+        ## Note: removing the parameters of embeddings as they are not updated
+        # https://discuss.pytorch.org/t/freeze-the-learnable-parameters-of-resnet-and-attach-it-to-a-new-network/949/9
+        filtered_parameters = list(filter(lambda p: p.requires_grad, model.parameters()))
+        optimizer = torch.optim.Adam(filtered_parameters)
+        # optimizer = torch.optim.SGD(filtered_parameters, args.lr,
+        #                             momentum=args.momentum,
+        #                             weight_decay=args.weight_decay,
+        #                             nesterov=args.nesterov)
+    else:
+        optimizer = torch.optim.SGD(model.parameters(), args.lr,
+                                momentum=args.momentum,
+                                weight_decay=args.weight_decay,
+                                nesterov=args.nesterov)
+
+    # optionally resume from a checkpoint
+    if args.resume:
+        assert os.path.isfile(args.resume), "=> no checkpoint found at '{}'".format(args.resume)
+        LOG.info("=> loading checkpoint '{}'".format(args.resume))
+        checkpoint = torch.load(args.resume)
+        args.start_epoch = checkpoint['epoch']
+        global_step = checkpoint['global_step']
+        best_prec1 = checkpoint['best_prec1']
+        model.load_state_dict(checkpoint['state_dict'])
+        ema_model.load_state_dict(checkpoint['ema_state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer'])
+        LOG.info("=> loaded checkpoint '{}' (epoch {})".format(args.resume, checkpoint['epoch']))
+
+    cudnn.benchmark = True
+
+    if args.evaluate:
+        if args.dataset in ['conll', 'ontonotes','fever']:
+            LOG.info("Evaluating the primary model:")
+            validate(eval_loader, model, validation_log, global_step, args.start_epoch, dataset, context.result_dir, "student")
+            LOG.info("Evaluating the EMA model:")
+            validate(eval_loader, ema_model, ema_validation_log, global_step, args.start_epoch, dataset, context.result_dir, "teacher")
+        elif args.dataset in ['riedel', 'gids']:
+            LOG.info("Evaluating the primary model:")
+            validate(eval_loader, model, validation_log, global_step, args.start_epoch, dataset_test, context.result_dir, "student")
+            LOG.info("Evaluating the EMA model:")
+            validate(eval_loader, ema_model, ema_validation_log, global_step, args.start_epoch, dataset_test, context.result_dir, "teacher")
+        return
+
+    for epoch in range(args.start_epoch, args.epochs):
+        start_time = time.time()
+        # train for one epoch
+        train(train_loader, model, ema_model, optimizer, epoch, dataset, training_log)
+        LOG.info("--- training epoch in %s seconds ---" % (time.time() - start_time))
+
+        if args.evaluation_epochs and (epoch + 1) % args.evaluation_epochs == 0:
+            start_time = time.time()
+            LOG.info("Evaluating the primary model:")
+            prec1 = validate(eval_loader, model, validation_log, global_step, epoch + 1, dataset_test,
+                             context.result_dir, "student")
+            LOG.info("Evaluating the EMA model:")
+            ema_prec1 = validate(eval_loader, ema_model, ema_validation_log, global_step, epoch + 1, dataset_test,
+                                 context.result_dir, "teacher")
+            LOG.info("--- validation in %s seconds ---" % (time.time() - start_time))
+            is_best = ema_prec1 > best_prec1
+            best_prec1 = max(ema_prec1, best_prec1)
+        else:
+            is_best = False
+
+        if args.checkpoint_epochs and (epoch + 1) % args.checkpoint_epochs == 0:
+            save_checkpoint({
+                'epoch': epoch + 1,
+                'global_step': global_step,
+                'arch': args.arch,
+                'state_dict': model.state_dict(),
+                'ema_state_dict': ema_model.state_dict(),
+                'best_prec1': best_prec1,
+                'optimizer' : optimizer.state_dict(),
+                'dataset' : args.dataset,
+            }, is_best, checkpoint_path, epoch + 1)
+
+    # for testing only .. commented
+    # LOG.info("For testing only; Comment the following line of code--------------------------------")
+    # validate(eval_loader, model, validation_log, global_step, 0, dataset, context.result_dir, "student")
+    LOG.info("--------Total end to end time %s seconds ----------- " % (time.time() - time_start))
+
 
 
 if __name__ == '__main__':

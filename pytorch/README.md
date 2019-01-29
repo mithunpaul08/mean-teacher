@@ -31,16 +31,16 @@ python main.py
 --arch simple_MLP_embed_RTE 
 --pretrained_wordemb false 
 --update_pretrained_wordemb true
---epochs 60 
+--epochs 6
 --consistency=0.3 
 --run-name fever_transform
---batch_size 50
---labeled_batch_size 10
---labels 20
+--batch_size 10
+--labeled_batch_size 2
+--labels 20.0
 --data_dir data-local/rte/fever
 --train_input_file train_small_100_claims_with_evi_sents.jsonl
 --dev_input_file dev_10_with_evi_sents.jsonl
---workers 1
+
 
 
 
@@ -50,18 +50,7 @@ For the above command to run from linux command line, you might need to add a ba
 ```
 python main.py \
 --dataset fever 
---arch simple_MLP_embed_RTE \
---pretrained_wordemb false \
---update_pretrained_wordemb true \
---epochs 60 \
---consistency=0.3 \
---run-name fever_transform_on \
---batch_size 50 \
---labeled_batch_size 10 \
---labels 20 \
---data_dir data-local/rte/fever \
---train_input_file train_120k_with_evi_sents.jsonl \
---dev_input_file dev_10_with_evi_sents.jsonl.jsonl 
+
 
 
 

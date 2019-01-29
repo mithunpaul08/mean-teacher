@@ -34,14 +34,14 @@ python main.py
 --epochs 6
 --consistency=0.3 
 --run-name fever_transform
---batch_size 10
+--batch_size 82
 --labeled_batch_size 2
 --labels 20.0
 --data_dir data-local/rte/fever
 --train_input_file train_small_100_claims_with_evi_sents.jsonl
---dev_input_file dev_10_with_evi_sents.jsonl
-
-
+--dev_input_file dev_90_with_evi_sents.jsonl
+--print-freq 1
+--workers 1
 
 
 ```

@@ -133,11 +133,9 @@ def create_data_loaders(train_transformation,
 
 
         eval_loader = torch.utils.data.DataLoader(dataset_test,
-                                                  batch_size = args.batch_size,
-                                                  shuffle=False,
-                                                  num_workers=2 * args.workers,
-                                                  pin_memory=True,
-                                                  drop_last=False)
+                                                  pin_memory=pin_memory,
+                                                  batch_sampler=batch_sampler,
+                                                  num_workers=args.workers)
 
 
         # these variables were already there in ajay's code . not sure what they do. need to ask him-mithun
@@ -216,10 +214,9 @@ def create_data_loaders(train_transformation,
 
         eval_loader = torch.utils.data.DataLoader(dataset_test,
                                                   pin_memory,
-                                                  batch_size=args.batch_size,
-                                                  shuffle=False,
-                                                  num_workers=2 * args.workers,
-                                                  drop_last=False)
+                                                  batch_sampler=batch_sampler,
+                                                  num_workers=args.workers,
+                                                  )
 
     else:
 
@@ -481,6 +478,8 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
         meters.update('batch_time', time.time() - end)
         end = time.time()
 
+        #args.print_freq= 10
+
         if i % args.print_freq == 0 or i == len(train_loader) - 1:
             if args.dataset in ['riedel', 'gids']:
                 LOG.info(
@@ -549,6 +548,7 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
     #             teacher_precision, teacher_recall, teacher_f1))
 
 def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, model_type):
+    LOG.info(f"got here after validate")
     global NA_label
     global test_student_pred_match_noNA
     global test_student_pred_noNA
@@ -566,13 +566,13 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
 
     # switch to evaluate mode
     model.eval() ### From the documentation (nn.module,py) : i) Sets the module in evaluation mode. (ii) This has any effect only on modules such as Dropout or BatchNorm. (iii) Returns: Module: self
-
+    LOG.info(f"got here after model.eval()")
     end = time.time()
 
     save_custom_embed_condition = args.arch == 'custom_embed' \
                                   and args.save_custom_embedding \
                                   and epoch == args.epochs  # todo: only in the final epoch or best_epoch ?
-
+    LOG.info(f"got here after save_custom_embed_condition")
     if save_custom_embed_condition:
         # Note: contains a tuple: (custom_entity_embed, custom_patterns_embed, min-batch-size)
         # enumerating the list of tuples gives the minibatch_id
@@ -581,12 +581,18 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
         # LOG.info("NOTE: Setting the eval_loader's batch_size=1 .. to dump all the entity and pattern embeddings ....")
 
     for i, datapoint in enumerate(eval_loader):
+        LOG.info(f"got inside .i, datapoint in enumerate(eval_loader)")
         meters.update('data_time', time.time() - end)
 
-        if args.dataset in ['conll', 'ontonotes']:
+        if args.dataset in ['conll', 'ontonotes','fever']:
+            LOG.info(f"got inside args.dataset in fever")
             entity = datapoint[0][0]
             patterns = datapoint[0][1]
             target = datapoint[1]
+
+            LOG.info(f"value of entity is:{entity}")
+            LOG.info(f"value of patterns is:{patterns}")
+            LOG.info(f"value of target is:{target}")
 
             if torch.cuda.is_available():
                 entity_var = torch.autograd.Variable(entity, volatile=True).cuda()
@@ -1249,9 +1255,20 @@ def main(context):
         train(train_loader, model, ema_model, optimizer, epoch, dataset, training_log)
         LOG.info("--- training epoch in %s seconds ---" % (time.time() - start_time))
 
+        print(f"value of args.evaluation_epochs: {args.evaluation_epochs} ")
+        print(f"value of args.epoch: {epoch} ")
+
+        #i don't completely understand what this below code is doing. THe official documentation of and for integers in python says :
+        # The expression x and y first evaluates x; if x is false, its value is returned; otherwise, y is evaluated and the resulting value is returned.
+        #i think you evaluate only in some epochs? why on earth would you do that?
+        #update: this is the documentation from cli.py:evaluation frequency in epochs, 0 to turn evaluation off (default: 1)'). ok, so probably default value 1 means it'll evaluate at every epoch, hopefully...
         if args.evaluation_epochs and (epoch + 1) % args.evaluation_epochs == 0:
+            print("just got inside evaluation_epochs ")
             start_time = time.time()
             LOG.info("Evaluating the primary model:")
+            print(f"value of eval_loader: {eval_loader} ")
+            print(f"value of args.model: {epoch} ")
+            print(f"value of args.epoch: {epoch} ")
             prec1 = validate(eval_loader, model, validation_log, global_step, epoch + 1, dataset_test,
                              context.result_dir, "student")
             LOG.info("Evaluating the EMA model:")

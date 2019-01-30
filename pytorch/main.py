@@ -589,7 +589,7 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
         # eval_loader.batch_size = 1
         # LOG.info("NOTE: Setting the eval_loader's batch_size=1 .. to dump all the claims_dev and pattern embeddings ....")
 
-    LOG.info(f"inside validate function. value of  eval_loaderis {(eval_loader)}")
+    print(f"inside validate function. value of  eval_loaderis {(eval_loader)}")
     LOG.info(f"inside validate function. value of  len(eval_loader.dataset.claims) : {len(eval_loader.dataset.claims)}")
     LOG.info(f"inside validate function. value of  len(eval_loader.sampler.data_source.claims) : {len(eval_loader.sampler.data_source.claims)}")
     LOG.info(f"inside validate function. value of  len(eval_loader.sampler.data_source.lbl : {len(eval_loader.sampler.data_source.lbl)}")
@@ -1303,7 +1303,7 @@ def main(context):
             ema_prec1 = validate(eval_loader, ema_model, ema_validation_log, global_step, epoch + 1, dataset_test,
                                  context.result_dir, "teacher")
             LOG.info("--- validation in %s seconds ---" % (time.time() - start_time))
-            is_best = ema_prec1 > best_prec1
+            is_best = ema_prec1 > best_prec1x
             best_prec1 = max(ema_prec1, best_prec1)
         else:
             is_best = False

@@ -26,7 +26,7 @@ To train on FEVER, run e.g.:
 
 
 ``` 
-python main.py 
+python -u main.py 
 --dataset fever 
 --arch simple_MLP_embed_RTE 
 --pretrained_wordemb false 

@@ -86,10 +86,10 @@ def create_data_loaders(train_transformation,
 
     assert_exactly_one([args.exclude_unlabeled, args.labeled_batch_size])
 
-    if torch.cuda.is_available():
-        pin_memory = True
-    else:
-        pin_memory = False
+    # if torch.cuda.is_available():
+    #     pin_memory = True
+    # else:
+    #     pin_memory = False
 
     if args.dataset in ['conll', 'ontonotes','fever']:
 
@@ -120,21 +120,38 @@ def create_data_loaders(train_transformation,
         # it picks randomly to create a batch, but it also has to have a minimum:args.batch_size, args.labeled_batch_size
         # for each mini batch: for each data point, it will call __getitem__
         train_loader = torch.utils.data.DataLoader(dataset,
-                                                   pin_memory=pin_memory,
                                                    batch_sampler=batch_sampler,
-                                                   num_workers=args.workers
+                                                   num_workers=args.workers,
+                                                   pin_memory=True
                                                   )
                                                   # drop_last=False)
                                                   # batch_size=args.batch_size,
                                                   # shuffle=False)
 
+
+        #do the same for eval data also. i.e read the dev data, and add a sampler..
         dev_input_file = evaldir + args.dev_input_file
         dataset_test = datasets.RTEDataset(dev_input_file, args, eval_transformation) ## NOTE: test data is the same as train data
 
+        if args.labels:
+            labeled_idxs, unlabeled_idxs = data.relabel_dataset_nlp(dataset, args)
+
+            # askajay what does exclude_unlabeled do?
+            # ans: if you want to do a simple feed forward - i.e ignore all unlabeled.
+        if args.exclude_unlabeled:
+            sampler = SubsetRandomSampler(labeled_idxs)
+            batch_sampler = BatchSampler(sampler, args.batch_size, drop_last=True)
+        elif args.labeled_batch_size:
+            batch_sampler = data.TwoStreamBatchSampler(unlabeled_idxs, labeled_idxs, args.batch_size,
+                                                       args.labeled_batch_size)
+        else:
+            assert False, "labeled batch size {}".format(args.labeled_batch_size)
 
         eval_loader = torch.utils.data.DataLoader(dataset_test,
-                                                  pin_memory=pin_memory,
-                                                  batch_sampler=batch_sampler,
+                                                  batch_size=args.batch_size,
+                                                  shuffle=False,
+                                                  pin_memory=True,
+                                                  drop_last=False,
                                                   num_workers=args.workers)
 
 
@@ -548,7 +565,7 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
     #             teacher_precision, teacher_recall, teacher_f1))
 
 def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, model_type):
-    LOG.info(f"got here after validate")
+    LOG.info(f"got here inside validate")
     global NA_label
     global test_student_pred_match_noNA
     global test_student_pred_noNA
@@ -572,7 +589,7 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
     save_custom_embed_condition = args.arch == 'custom_embed' \
                                   and args.save_custom_embedding \
                                   and epoch == args.epochs  # todo: only in the final epoch or best_epoch ?
-    LOG.info(f"got here after save_custom_embed_condition")
+    print(f"got here after save_custom_embed_condition")
     if save_custom_embed_condition:
         # Note: contains a tuple: (custom_entity_embed, custom_patterns_embed, min-batch-size)
         # enumerating the list of tuples gives the minibatch_id
@@ -580,6 +597,7 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
         # eval_loader.batch_size = 1
         # LOG.info("NOTE: Setting the eval_loader's batch_size=1 .. to dump all the entity and pattern embeddings ....")
 
+    LOG.info(f"inside validate function. value of  eval_loaderis {len(eval_loader.claims)}")
     for i, datapoint in enumerate(eval_loader):
         LOG.info(f"got inside .i, datapoint in enumerate(eval_loader)")
         meters.update('data_time', time.time() - end)
@@ -1120,23 +1138,23 @@ def main(context):
 
     dataset_config = datasets.__dict__[args.dataset]()
 
-    if args.dataset != 'riedel':
-        args.subset_labels = 'None'
-        args.labels_set = []
-    else:
-        if args.subset_labels == '5':
-            args.labels_set = ['NA', '/people/person/place_lived', '/people/deceased_person/place_of_death', '/people/person/ethnicity', '/people/person/religion']
-
-        elif args.subset_labels == '10':
-            args.labels_set = ['NA', '/people/person/nationality', '/location/country/administrative_divisions', '/people/person/place_of_birth', '/people/deceased_person/place_of_death', '/location/us_state/capital', '/business/company/place_founded', '/sports/sports_team/location', '/people/deceased_person/place_of_burial', '/location/br_state/capital']
-
-        elif args.subset_labels == '20':
-            args.labels_set = ['NA', '/location/location/contains', '/people/person/nationality', '/people/person/place_lived', '/location/country/administrative_divisions', '/business/person/company', '/people/person/place_of_birth', '/business/company/founders', '/people/deceased_person/place_of_death', '/business/company/major_shareholders', '/location/us_state/capital', '/location/us_county/county_seat', '/business/company/place_founded', '/location/province/capital', '/sports/sports_team/location', '/people/deceased_person/place_of_burial', '/business/company/advisors', '/people/person/religion', '/time/event/locations', '/location/br_state/capital']
-
-        elif args.subset_labels == 'all':
-            args.labels_set = ['NA', '/location/location/contains', '/people/person/nationality', '/location/country/capital', '/people/person/place_lived', '/location/country/administrative_divisions', '/location/administrative_division/country', '/business/person/company', '/people/person/place_of_birth', '/people/ethnicity/geographic_distribution', '/business/company/founders', '/people/deceased_person/place_of_death', '/location/neighborhood/neighborhood_of', '/business/company/major_shareholders', '/location/us_state/capital', '/people/person/children', '/location/us_county/county_seat', '/business/company/place_founded', '/people/person/ethnicity', '/location/province/capital', '/sports/sports_team/location', '/people/place_of_interment/interred_here', '/people/deceased_person/place_of_burial', '/business/company_advisor/companies_advised', '/business/company/advisors', '/people/person/religion', '/time/event/locations', '/location/country/languages_spoken', '/location/br_state/capital', '/film/film_location/featured_in_films', '/film/film/featured_film_locations', '/base/locations/countries/states_provinces_within']
-        elif args.subset_labels == 'None':
-            args.labels_set = []
+    # if args.dataset != 'riedel':
+    #     args.subset_labels = 'None'
+    #     args.labels_set = []
+    # else:
+    #     if args.subset_labels == '5':
+    #         args.labels_set = ['NA', '/people/person/place_lived', '/people/deceased_person/place_of_death', '/people/person/ethnicity', '/people/person/religion']
+    #
+    #     elif args.subset_labels == '10':
+    #         args.labels_set = ['NA', '/people/person/nationality', '/location/country/administrative_divisions', '/people/person/place_of_birth', '/people/deceased_person/place_of_death', '/location/us_state/capital', '/business/company/place_founded', '/sports/sports_team/location', '/people/deceased_person/place_of_burial', '/location/br_state/capital']
+    #
+    #     elif args.subset_labels == '20':
+    #         args.labels_set = ['NA', '/location/location/contains', '/people/person/nationality', '/people/person/place_lived', '/location/country/administrative_divisions', '/business/person/company', '/people/person/place_of_birth', '/business/company/founders', '/people/deceased_person/place_of_death', '/business/company/major_shareholders', '/location/us_state/capital', '/location/us_county/county_seat', '/business/company/place_founded', '/location/province/capital', '/sports/sports_team/location', '/people/deceased_person/place_of_burial', '/business/company/advisors', '/people/person/religion', '/time/event/locations', '/location/br_state/capital']
+    #
+    #     elif args.subset_labels == 'all':
+    #         args.labels_set = ['NA', '/location/location/contains', '/people/person/nationality', '/location/country/capital', '/people/person/place_lived', '/location/country/administrative_divisions', '/location/administrative_division/country', '/business/person/company', '/people/person/place_of_birth', '/people/ethnicity/geographic_distribution', '/business/company/founders', '/people/deceased_person/place_of_death', '/location/neighborhood/neighborhood_of', '/business/company/major_shareholders', '/location/us_state/capital', '/people/person/children', '/location/us_county/county_seat', '/business/company/place_founded', '/people/person/ethnicity', '/location/province/capital', '/sports/sports_team/location', '/people/place_of_interment/interred_here', '/people/deceased_person/place_of_burial', '/business/company_advisor/companies_advised', '/business/company/advisors', '/people/person/religion', '/time/event/locations', '/location/country/languages_spoken', '/location/br_state/capital', '/film/film_location/featured_in_films', '/film/film/featured_film_locations', '/base/locations/countries/states_provinces_within']
+    #     elif args.subset_labels == 'None':
+    #         args.labels_set = []
 
     num_classes=3
     if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids','fever']:

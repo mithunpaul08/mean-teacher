@@ -587,7 +587,7 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
         # enumerating the list of tuples gives the minibatch_id
         custom_embeddings_minibatch = list()
         # eval_loader.batch_size = 1
-        # LOG.info("NOTE: Setting the eval_loader's batch_size=1 .. to dump all the entity and pattern embeddings ....")
+        # LOG.info("NOTE: Setting the eval_loader's batch_size=1 .. to dump all the claims_dev and pattern embeddings ....")
 
     LOG.info(f"inside validate function. value of  eval_loaderis {(eval_loader)}")
     LOG.info(f"inside validate function. value of  len(eval_loader.dataset.claims) : {len(eval_loader.dataset.claims)}")
@@ -602,26 +602,26 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
 
         if args.dataset in ['conll', 'ontonotes','fever']:
             LOG.info(f"got inside args.dataset in fever")
-            entity = datapoint[0][0]
-            patterns = datapoint[0][1]
-            target = datapoint[1]
+            claims_dev = datapoint[0][0]
+            evidence_dev = datapoint[0][1]
+            labels_dev = datapoint[1]
 
-            LOG.info(f"value of entity is:{entity}")
-            LOG.info(f"value of patterns is:{patterns}")
-            LOG.info(f"value of target is:{target}")
+            LOG.info(f"value of claims_dev is:{claims_dev}")
+            LOG.info(f"value of patterns is:{evidence_dev}")
+            LOG.info(f"value of target is:{labels_dev}")
 
             if torch.cuda.is_available():
-                entity_var = torch.autograd.Variable(entity, volatile=True).cuda()
-                patterns_var = torch.autograd.Variable(patterns, volatile=True).cuda()
+                entity_var = torch.autograd.Variable(claims_dev, volatile=True).cuda()
+                patterns_var = torch.autograd.Variable(evidence_dev, volatile=True).cuda()
             else:
-                entity_var = torch.autograd.Variable(entity, volatile=True).cpu()
-                patterns_var = torch.autograd.Variable(patterns, volatile=True).cpu()
+                entity_var = torch.autograd.Variable(claims_dev, volatile=True).cpu()
+                patterns_var = torch.autograd.Variable(evidence_dev, volatile=True).cpu()
 
         elif args.dataset in ['riedel', 'gids']:
 
             input = datapoint[0]
             lengths = datapoint[1]
-            target = datapoint[2]
+            labels_dev = datapoint[2]
 
             if torch.cuda.is_available():
                 input_var = torch.autograd.Variable(input, volatile=True).cuda()
@@ -632,16 +632,16 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
                 seq_lengths = torch.LongTensor([x for x in lengths])
 
         else:
-            (input, target) = datapoint
+            (input, labels_dev) = datapoint
             if torch.cuda.is_available():
                 input_var = torch.autograd.Variable(input, volatile=True).cuda()
             else:
                 input_var = torch.autograd.Variable(input, volatile=True).cpu() ## NOTE: AJAY - volatile: Boolean indicating that the Variable should be used in inference mode,
 
         if torch.cuda.is_available():
-            target_var = torch.autograd.Variable(target.cuda(), volatile=True)
+            target_var = torch.autograd.Variable(labels_dev.cuda(), volatile=True)
         else:
-            target_var = torch.autograd.Variable(target.cpu(), volatile=True) ## NOTE: AJAY - volatile: Boolean indicating that the Variable should be used in inference mode,
+            target_var = torch.autograd.Variable(labels_dev.cpu(), volatile=True) ## NOTE: AJAY - volatile: Boolean indicating that the Variable should be used in inference mode,
 
         minibatch_size = len(target_var)
         labeled_minibatch_size = target_var.data.ne(NO_LABEL).sum()
@@ -654,6 +654,9 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
             continue
         ###################################################
         meters.update('labeled_minibatch_size', labeled_minibatch_size)
+
+        LOG.info(f"value of args.arch is:{args.arch}")
+        LOG.info(f"value of args.dataset is:{args.dataset}")
 
         # compute output
         if args.dataset in ['conll', 'ontonotes'] and args.arch == 'custom_embed':
@@ -672,6 +675,10 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
         elif args.dataset in ['riedel', 'gids'] and args.arch == 'simple_MLP_embed_RE':
             output1 = model((input_var, seq_lengths, dataset.pad_id))
 
+
+        elif args.dataset in ['fever'] and args.arch == 'simple_MLP_embed_RTE':
+            output1, entity_custom_embed, pattern_custom_embed = model(entity_var, patterns_var)
+
             if torch.cuda.is_available():
                 perm_idx_test = torch.cuda.LongTensor([i for i in range(len(input_var))])
             else:
@@ -681,6 +688,7 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
             output1 = model(input_var) ##, output2 = model(input_var)
         #softmax1, softmax2 = F.softmax(output1, dim=1), F.softmax(output2, dim=1)
         class_loss = class_criterion(output1, target_var) / minibatch_size
+        LOG.info(f"value of class_loss.arch is:{class_loss}")
 
         if args.dataset in ['riedel', 'gids']:
             correct_test, num_target_notNA_test, num_pred_notNA_test = prec_rec(output1.data, target_var.data, NA_label, topk=(1,))

@@ -866,14 +866,8 @@ class RTEDataset(Dataset):
         # for each word in claim (and evidence in turn) get the corresponding unique id
 
 
-        #
-        # c=self.claims[idx]
-        # e = self.evidences[idx]
-        print(f"inside get itemvalue of index is:{idx}")
-        print(f"value of self.lbl is:{self.lbl}")
+
         label = self.lbl[idx]
-        #entity=claim
-        # context=evidence
 
         # ask fan: can we just use the common word vocabulary dictionary. do we need to have separate dict
         # Ans: the dictionar is still the same, its two different sentences and two different words

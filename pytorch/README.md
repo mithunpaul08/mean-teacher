@@ -192,7 +192,17 @@ between training and dev is that, there is no noise added in dev.
 
 Ans: Its printed into `stdout` by default. Alternately there is this log file which is
 time stamped and logs all the training epoch parameters etc. It is done using `meters.update('data_time', time.time() - end)` in main.py
-It is stored in the folder `/results/main`
+It is stored in the folder `/results/main`.
+Update: found out that meters is just a dictionary. Its not printing anything to log file. 
+all the `meters.update` are simply feeding data into the dictionary. You can print it using log.info as shown below
+
+```
+LOG.info('Epoch: [{0}][{1}/{2}]\t'
+                    'ClassLoss {meters[class_loss]:.4f}\t'
+                    'Prec@1 {meters[top1]:.3f}\t'
+                    'Prec@2 {meters[top5]:.3f}'.format(
+                        epoch, i, len(train_loader), meters=meters))
+```
 
 
 

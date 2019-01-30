@@ -133,19 +133,9 @@ def create_data_loaders(train_transformation,
         dev_input_file = evaldir + args.dev_input_file
         dataset_test = datasets.RTEDataset(dev_input_file, args, eval_transformation) ## NOTE: test data is the same as train data
 
-        if args.labels:
-            labeled_idxs, unlabeled_idxs = data.relabel_dataset_nlp(dataset, args)
-
-            # askajay what does exclude_unlabeled do?
-            # ans: if you want to do a simple feed forward - i.e ignore all unlabeled.
-        if args.exclude_unlabeled:
-            sampler = SubsetRandomSampler(labeled_idxs)
-            batch_sampler = BatchSampler(sampler, args.batch_size, drop_last=True)
-        elif args.labeled_batch_size:
-            batch_sampler = data.TwoStreamBatchSampler(unlabeled_idxs, labeled_idxs, args.batch_size,
-                                                       args.labeled_batch_size)
-        else:
-            assert False, "labeled batch size {}".format(args.labeled_batch_size)
+        #in dev, there shouldn't be two stream sampler
+        sampler = SubsetRandomSampler(labeled_idxs)
+        batch_sampler = BatchSampler(sampler, args.batch_size, drop_last=True)
 
         eval_loader = torch.utils.data.DataLoader(dataset_test,
                                                   batch_size=args.batch_size,
@@ -589,7 +579,9 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
     save_custom_embed_condition = args.arch == 'custom_embed' \
                                   and args.save_custom_embedding \
                                   and epoch == args.epochs  # todo: only in the final epoch or best_epoch ?
-    print(f"got here after save_custom_embed_condition")
+    LOG.info(f"got here after save_custom_embed_condition")
+
+
     if save_custom_embed_condition:
         # Note: contains a tuple: (custom_entity_embed, custom_patterns_embed, min-batch-size)
         # enumerating the list of tuples gives the minibatch_id
@@ -597,7 +589,13 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
         # eval_loader.batch_size = 1
         # LOG.info("NOTE: Setting the eval_loader's batch_size=1 .. to dump all the entity and pattern embeddings ....")
 
-    LOG.info(f"inside validate function. value of  eval_loaderis {len(eval_loader.claims)}")
+    LOG.info(f"inside validate function. value of  eval_loaderis {(eval_loader)}")
+    LOG.info(f"inside validate function. value of  len(eval_loader.dataset.claims) : {len(eval_loader.dataset.claims)}")
+    LOG.info(f"inside validate function. value of  len(eval_loader.sampler.data_source.claims) : {len(eval_loader.sampler.data_source.claims)}")
+    LOG.info(f"inside validate function. value of  len(eval_loader.sampler.data_source.lbl : {len(eval_loader.sampler.data_source.lbl)}")
+    LOG.info(f"inside validate function. value of  eval_loader.batch_size : {(eval_loader.batch_size)}")
+
+
     for i, datapoint in enumerate(eval_loader):
         LOG.info(f"got inside .i, datapoint in enumerate(eval_loader)")
         meters.update('data_time', time.time() - end)
@@ -1276,7 +1274,7 @@ def main(context):
         print(f"value of args.evaluation_epochs: {args.evaluation_epochs} ")
         print(f"value of args.epoch: {epoch} ")
 
-        #i don't completely understand what this below code is doing. THe official documentation of and for integers in python says :
+        #i don't completely understand what this  below modulo code is doing. THe official documentation of and for integers in python says :
         # The expression x and y first evaluates x; if x is false, its value is returned; otherwise, y is evaluated and the resulting value is returned.
         #i think you evaluate only in some epochs? why on earth would you do that?
         #update: this is the documentation from cli.py:evaluation frequency in epochs, 0 to turn evaluation off (default: 1)'). ok, so probably default value 1 means it'll evaluate at every epoch, hopefully...

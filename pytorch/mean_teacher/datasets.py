@@ -778,6 +778,8 @@ class RTEDataset(Dataset):
         #todo: mithun change later- after figuring out what transform is
         self.transform = transform
 
+    def __len__(self):
+        return len(self.claims)
 
     def build_word_vocabulary(self):
         word_vocab = Vocabulary()
@@ -867,7 +869,7 @@ class RTEDataset(Dataset):
         #
         # c=self.claims[idx]
         # e = self.evidences[idx]
-        print(f"value of index is:{idx}")
+        print(f"inside get itemvalue of index is:{idx}")
         print(f"value of self.lbl is:{self.lbl}")
         label = self.lbl[idx]
         #entity=claim

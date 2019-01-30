@@ -41,8 +41,7 @@ python main.py
 --train_input_file train_small_100_claims_with_evi_sents.jsonl
 --dev_input_file dev_90_with_evi_sents.jsonl
 --print-freq 1
---workers 1
-
+--workers 0
 
 ```
 
@@ -55,13 +54,40 @@ python main.py \
 
 
 ```
-#--exclude_unlabeled true
+#explanation of command line paramaeters
 
-note to self: initially we are using a dataset of 100 only of which 20% are only labeled. So try to keep the --labeled_batch_size 10 --batch_size 40
+`--workers`: if you dont want multiprocessing make workers=0
+
+`--exclude_unlabeled true` means : first dataset is divided into labeled and unlabeled based on the percentage you mentioned in `--labels`.
+now instead if you just want to work with labeled data: i.e supervised training. i.e you don't want to run mean teacher for some reason: then you turn this on/true.
+also note that due to the below code whenever exclude_unlabeled=true, 
+the sampler becomes a simple batch sampler, and not a TwoStreamBatchSampler (which is
+the name of the sampler used in mean teacher).
+
+*Note:* when you are running validation on dev after training, you might want to turn  `--exclude_unlabeled true` just
+after you call train_loader before calling eval_loader
+
+```
+
+if args.exclude_unlabeled:
+            sampler = SubsetRandomSampler(labeled_idxs)
+            batch_sampler = BatchSampler(sampler, args.batch_size, drop_last=True)
+
+elif args.labeled_batch_size:
+            batch_sampler = data.TwoStreamBatchSampler(
+                unlabeled_idxs, labeled_idxs, args.batch_size, args.labeled_batch_size)
+
+```
+
+
 
 --labeled_data_percent: is the percentage or number of labels indicating the number of labeled data points amongst the entire training data.
 
+
 Details of other command line parameters can be found in `pytorch/mean_teacher/tests/cli.py`
+
+note to self: initially we are using a dataset of 100 only of which 20% are only labeled. So try to keep the --labeled_batch_size 10 --batch_size 40
+
 
 #Testing
 To do testing (on dev or test partition), you need to run the code again with `--evaluate` set to `true`. i.e training and testing uses same code but are mutually exclusive. You cannot run testing immediately after training.
@@ -186,6 +212,16 @@ with all data points having labels, you shouldn't pass any of these argument par
 ```
 also make `--labels 100`
 
+
+Qn) what exactly is shuffling, batching, sampler, pin_memory ,drop_last etc?
+
+Ans: these are all properties of the pytorch dataloader class . 
+Even though the official   tutorial is 
+[this](https://pytorch.org/tutorials/beginner/data_loading_tutorial.html) one I really liked the [the stanford tutorial on dataloader](https://stanford.edu/~shervine/blog/pytorch-how-to-generate-data-parallel)
+
+also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/utils/data/dataloader.html)
+ and [documentation](https://pytorch.org/docs/0.4.0/data.html#torch.utils.data.DataLoader)
+  of dataloader class
 # Todo Sun Jan 20 21:31:41 MST 2019:
 
 
@@ -194,15 +230,15 @@ also make `--labels 100`
 - get training to run without noise --done
 - add transformation(i.e diff noise for student and teacher) --done
 - get training to run with noise --done
-- check if consistency loss works, now that we have noise
+- read the readme of original code again. the part where they talk about twostreamsampler --done
+- check if consistency loss works, now that we have noise ---done
 - add eval data 
   - (verify manually dataset_test has size of 10 or whatever you are feeding)
 
 - add pre-trained embeddings
-- read the readme of original code again. the part where they talk about twostreamsampler
 - read the pytorch documentation on dataloader again
 - do 2xfeedforward -i.e make the mean teacher as a simple mlp
 - remove low frequency words.
-
+- after all debug purpoes, increase the value of `--workers` to enable multiprocessing
 
  

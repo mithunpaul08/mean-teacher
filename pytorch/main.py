@@ -606,42 +606,19 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
             evidence_dev = datapoint[0][1]
             labels_dev = datapoint[1]
 
-            LOG.info(f"value of claims_dev is:{claims_dev}")
-            LOG.info(f"value of patterns is:{evidence_dev}")
-            LOG.info(f"value of target is:{labels_dev}")
+            # LOG.info(f"value of claims_dev is:{claims_dev}")
+            # LOG.info(f"value of patterns is:{evidence_dev}")
+            # LOG.info(f"value of target is:{labels_dev}")
 
             if torch.cuda.is_available():
-                entity_var = torch.autograd.Variable(claims_dev, volatile=True).cuda()
-                patterns_var = torch.autograd.Variable(evidence_dev, volatile=True).cuda()
+                claims_var = torch.autograd.Variable(claims_dev, volatile=True).cuda()
+                evidence_var = torch.autograd.Variable(evidence_dev, volatile=True).cuda()
+                target_var = torch.autograd.Variable(labels_dev.cuda(), volatile=True)
             else:
-                entity_var = torch.autograd.Variable(claims_dev, volatile=True).cpu()
-                patterns_var = torch.autograd.Variable(evidence_dev, volatile=True).cpu()
-
-        elif args.dataset in ['riedel', 'gids']:
-
-            input = datapoint[0]
-            lengths = datapoint[1]
-            labels_dev = datapoint[2]
-
-            if torch.cuda.is_available():
-                input_var = torch.autograd.Variable(input, volatile=True).cuda()
-                seq_lengths = torch.cuda.LongTensor([x for x in lengths])
-
-            else:
-                input_var = torch.autograd.Variable(input, volatile=True).cpu()
-                seq_lengths = torch.LongTensor([x for x in lengths])
-
-        else:
-            (input, labels_dev) = datapoint
-            if torch.cuda.is_available():
-                input_var = torch.autograd.Variable(input, volatile=True).cuda()
-            else:
-                input_var = torch.autograd.Variable(input, volatile=True).cpu() ## NOTE: AJAY - volatile: Boolean indicating that the Variable should be used in inference mode,
-
-        if torch.cuda.is_available():
-            target_var = torch.autograd.Variable(labels_dev.cuda(), volatile=True)
-        else:
-            target_var = torch.autograd.Variable(labels_dev.cpu(), volatile=True) ## NOTE: AJAY - volatile: Boolean indicating that the Variable should be used in inference mode,
+                claims_var = torch.autograd.Variable(claims_dev, volatile=True).cpu()
+                evidence_var = torch.autograd.Variable(evidence_dev, volatile=True).cpu()
+                target_var = torch.autograd.Variable(labels_dev.cpu(),
+                                                     volatile=True)  ## NOTE: AJAY - volatile: Boolean indicating that the Variable should be used in inference mode,
 
         minibatch_size = len(target_var)
         labeled_minibatch_size = target_var.data.ne(NO_LABEL).sum()
@@ -660,85 +637,26 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
 
         # compute output
         if args.dataset in ['conll', 'ontonotes'] and args.arch == 'custom_embed':
-            output1, entity_custom_embed, pattern_custom_embed = model(entity_var, patterns_var)
+            output1, entity_custom_embed, pattern_custom_embed = model(claims_var, evidence_var)
             if save_custom_embed_condition:
                 custom_embeddings_minibatch.append((entity_custom_embed, pattern_custom_embed))  # , minibatch_size))
-        elif args.dataset in ['conll', 'ontonotes'] and args.arch == 'simple_MLP_embed':
-            output1 = model(entity_var, patterns_var)
-
-        ## US -- TEST!
-        elif args.dataset in ['riedel', 'gids']and args.arch == 'lstm_RE':
-            output1, perm_idx_test = model((input_var, seq_lengths))
-            target_var = target_var[perm_idx_test]
-
-        ## AVG MODEL
-        elif args.dataset in ['riedel', 'gids'] and args.arch == 'simple_MLP_embed_RE':
-            output1 = model((input_var, seq_lengths, dataset.pad_id))
-
 
         elif args.dataset in ['fever'] and args.arch == 'simple_MLP_embed_RTE':
-            output1, entity_custom_embed, pattern_custom_embed = model(entity_var, patterns_var)
+            output1 = model(claims_var, evidence_var)
 
-            if torch.cuda.is_available():
-                perm_idx_test = torch.cuda.LongTensor([i for i in range(len(input_var))])
-            else:
-                perm_idx_test = torch.LongTensor([i for i in range(len(input_var))])
 
-        else:
-            output1 = model(input_var) ##, output2 = model(input_var)
-        #softmax1, softmax2 = F.softmax(output1, dim=1), F.softmax(output2, dim=1)
+
         class_loss = class_criterion(output1, target_var) / minibatch_size
         LOG.info(f"value of class_loss.arch is:{class_loss}")
 
-        if args.dataset in ['riedel', 'gids']:
-            correct_test, num_target_notNA_test, num_pred_notNA_test = prec_rec(output1.data, target_var.data, NA_label, topk=(1,))
-            if num_pred_notNA_test > 0:
-                prec_test = float(correct_test) / float(num_pred_notNA_test)
-            else:
-                prec_test = 0.0
 
-            if num_target_notNA_test > 0:
-                rec_test = float(correct_test) / float(num_target_notNA_test)
-            else:
-                rec_test = 0.0
-
-            if prec_test + rec_test == 0:
-                f1_test = 0
-            else:
-                f1_test = 2 * prec_test * rec_test / (prec_test + rec_test)
-
-            meters.update('correct_test', correct_test, 1)
-            meters.update('target_notNA_test', num_target_notNA_test, 1)
-            meters.update('pred_notNA_test', num_pred_notNA_test, 1)
-
-            if float(meters['pred_notNA_test'].sum) == 0:
-                accum_prec_test = 0
-            else:
-                accum_prec_test = float(meters['correct_test'].sum) / float(meters['pred_notNA_test'].sum)
-
-            if float(meters['target_notNA_test'].sum) == 0:
-                accum_rec_test = 0
-            else:
-                accum_rec_test = float(meters['correct_test'].sum) / float(meters['target_notNA_test'].sum)
-
-            if accum_prec_test + accum_rec_test == 0:
-                accum_f1_test = 0
-            else:
-                accum_f1_test = 2 * accum_prec_test * accum_rec_test / (accum_prec_test + accum_rec_test)
-
-            meters.update('class_loss', class_loss.data[0], labeled_minibatch_size)
-
-            # if epoch == args.epochs:
-            #     dump_result(i, args, output1.data, target_var.data, dataset, perm_idx_test, 'test_'+model_type, topk=(1,))
-
-        else:
             # measure accuracy and record loss
-            prec1, prec5 = accuracy(output1.data, target_var.data, topk=(1, 2)) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
-            meters.update('class_loss', class_loss.data[0], labeled_minibatch_size)
-            meters.update('top1', prec1[0], labeled_minibatch_size)
-            meters.update('error1', 100.0 - prec1[0], labeled_minibatch_size)
-            meters.update('top5', prec5[0], labeled_minibatch_size)
-            meters.update('error5', 100.0 - prec5[0], labeled_minibatch_size)
+        prec1, prec5 = accuracy(output1.data, target_var.data, topk=(1, 2)) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
+        meters.update('class_loss', class_loss.data.item(), labeled_minibatch_size)
+        meters.update('top1', prec1[0], labeled_minibatch_size)
+        meters.update('error1', 100.0 - prec1[0], labeled_minibatch_size)
+        meters.update('top5', prec5[0], labeled_minibatch_size)
+        meters.update('error5', 100.0 - prec5[0], labeled_minibatch_size)
 
         # measure elapsed time
         meters.update('batch_time', time.time() - end)
@@ -761,54 +679,13 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
                     'Prec@1 {meters[top1]:.3f}'.format(
                         i, len(eval_loader), meters=meters))
 
-    # # FINAL PERFORMANCE
-    # if args.dataset in ['riedel', 'gids']:
-    #     if epoch == args.epochs:
-    #
-    #         if model_type == 'student':
-    #             if test_student_pred_noNA == 0.0:
-    #                 student_precision = 0.0
-    #             else:
-    #                 student_precision = test_student_pred_match_noNA / test_student_pred_noNA
-    #             if test_student_true_noNA == 0.0:
-    #                 student_recall = 0.0
-    #             else:
-    #                 student_recall = test_student_pred_match_noNA / test_student_true_noNA
-    #             if student_precision + student_recall == 0.0:
-    #                 student_f1 = 0.0
-    #             else:
-    #                 student_f1 = 2 * student_precision * student_recall / (student_precision + student_recall)
-    #
-    #             LOG.info('******* [Test] Student : Overall Precision {0}  Recall {1}  F1 {2}  ********'.format(
-    #                     student_precision, student_recall, student_f1))
-    #
-    #         else:
-    #             if test_teacher_pred_noNA == 0.0:
-    #                 teacher_precision = 0.0
-    #             else:
-    #                 teacher_precision = test_teacher_pred_match_noNA / test_teacher_pred_noNA
-    #             if test_teacher_true_noNA == 0.0:
-    #                 teacher_recall = 0.0
-    #             else:
-    #                 teacher_recall = test_teacher_pred_match_noNA / test_teacher_true_noNA
-    #             if teacher_precision + teacher_recall == 0.0:
-    #                 teacher_f1 = 0.0
-    #             else:
-    #                 teacher_f1 = 2 * teacher_precision * teacher_recall / (teacher_precision + teacher_recall)
-    #
-    #             LOG.info('******* [Test] Teacher : Overall Precision {0}  Recall {1}  F1 {2}  ********'.format(
-    #                 teacher_precision, teacher_recall, teacher_f1))
-    # else:
-    #     LOG.info(' * Prec@1 {top1.avg:.3f}\tClassLoss {class_loss.avg:.3f}'
-    #           .format(top1=meters['top1'], class_loss=meters['class_loss']))
 
-
-    log.record(epoch, {
-        'step': global_step,
-        **meters.values(),
-        **meters.averages(),
-        **meters.sums()
-    })
+    # log.record(epoch, {
+    #     'step': global_step,
+    #     **meters.values(),
+    #     **meters.averages(),
+    #     **meters.sums()
+    # })
 
     if save_custom_embed_condition:
         save_custom_embeddings(custom_embeddings_minibatch, dataset, result_dir, model_type)
@@ -1303,7 +1180,7 @@ def main(context):
             ema_prec1 = validate(eval_loader, ema_model, ema_validation_log, global_step, epoch + 1, dataset_test,
                                  context.result_dir, "teacher")
             LOG.info("--- validation in %s seconds ---" % (time.time() - start_time))
-            is_best = ema_prec1 > best_prec1x
+            is_best = ema_prec1 > best_prec1
             best_prec1 = max(ema_prec1, best_prec1)
         else:
             is_best = False

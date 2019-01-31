@@ -250,5 +250,7 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
 - do 2xfeedforward -i.e make the mean teacher as a simple mlp
 - remove low frequency words.
 - after all debug purpoes, increase the value of `--workers` to enable multiprocessing
+- fix: UserWarning: volatile was removed and now has no effect. Use `with torch.no_grad():` instead.
+  entity_var = torch.autograd.Variable(claims_dev, volatile=True).cpu()
 
  

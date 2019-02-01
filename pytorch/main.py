@@ -707,15 +707,20 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
         end = time.time()
 
         #if i % args.print_freq == 0
-
+    #
+    #     LOG.info(
+    #         'Test: [{0}/{1}]  '
+    #         'ClassLoss {meters[class_loss]:.4f}  '
+    #         'Precision {prec:.3f} ({accum_prec:.3f})  '
+    #         'Recall {rec:.3f} ({accum_rec:.3f})  '
+    #         'F1 {f1:.3f} ({accum_f1:.3f})'.format(
+    #             i, len(eval_loader), prec=prec_test, accum_prec=accum_prec_test, rec=rec_test, accum_rec=accum_rec_test,
+    #             f1=f1_test, accum_f1=accum_f1_test, meters=meters))
         LOG.info(
-            'Test: [{0}/{1}]  '
-            'ClassLoss {meters[class_loss]:.4f}  '
-            'Precision {prec:.3f} ({accum_prec:.3f})  '
-            'Recall {rec:.3f} ({accum_rec:.3f})  '
-            'F1 {f1:.3f} ({accum_f1:.3f})'.format(
-                i, len(eval_loader), prec=prec_test, accum_prec=accum_prec_test, rec=rec_test, accum_rec=accum_rec_test,
-                f1=f1_test, accum_f1=accum_f1_test, meters=meters))
+                'Test: [{0}/{1}]\t'
+                'ClassLoss {meters[class_loss]:.4f}\t'
+                'Prec@1 {meters[top1]:.3f}'.format(
+                    i, len(eval_loader), meters=meters))
 
     LOG.info(' * Prec@1 {top1.avg:.3f}\tClassLoss {class_loss.avg:.3f}'
              .format(top1=meters['top1'], class_loss=meters['class_loss']))

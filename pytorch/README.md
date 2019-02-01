@@ -35,15 +35,19 @@ python -u main.py
 --consistency=0.3 
 --run-name fever_transform
 --batch_size 82
---labeled_batch_size 2
 --labels 20.0
 --data_dir data-local/rte/fever
 --train_input_file train_small_100_claims_with_evi_sents.jsonl
 --dev_input_file dev_90_with_evi_sents.jsonl
 --print-freq 1
 --workers 0
-
+--labeled_batch_size 2
+--consistency 35.5
 ```
+### removed labels
+--exclude_unlabeled true
+--consistency 20
+
 
 For the above command to run from linux command line, you might need to add a backwards slash as shown below:
 ```
@@ -100,10 +104,9 @@ To reproduce the CIFAR-10 ResNet results of the paper run `python -m experiments
 To reproduce the ImageNet results of the paper run `python -m experiments.imagenet_valid` using 10 GPUs.
 
 # FAQ :
-### these are questions I had when i was trying to load the mean teacher project. Noting it down for myself
-and for the sake of others who might end up using this code.
+*These are questions I had when i was trying to load the mean teacher project. Noting it down for myself and for the sake of others who might end up using this code.*
 
-Qn) What does transform() do?
+#### Qn) What does transform() do?
 
 Ans: `transform` decides what kind of noise you want to add. 
 For example the class `NECDataset` internally calls the function ontonotes() in the file
@@ -127,7 +130,7 @@ Both the student and teacher will have different type of noise added. That is de
     
 ```
 
-Qn) What is ema? so the ema is teacher? and teacher is just a copy of student itself-but how/where do they do the moving average thing?
+#### Qn) What is ema? so the ema is teacher? and teacher is just a copy of student itself-but how/where do they do the moving average thing?
 
 Ans: Yes. ema is exponetial moving average. This denotes the teacher. So whenever you want to create a techer, just make ema=True in:
  ```
@@ -135,7 +138,7 @@ Ans: Yes. ema is exponetial moving average. This denotes the teacher. So wheneve
     ema_model = create_model(ema=True)
 ```
 
-Qn) I get this below error. What does it mean?
+#### Qn) I get this below error. What does it mean?
 
 ```
  File "/anaconda3/envs/meanteacher/lib/python3.7/site-packages/torch/utils/data/dataloader.py", line 224, in default_collate
@@ -147,13 +150,13 @@ TypeError: an integer is required (got type str)
 
 Ans: you are passing labels as string. Create a dictionary to make it an int.
 
-Qn) what is `__getitem__`? who calls it?
+#### Qn) what is `__getitem__`? who calls it?
 
 Ans: This is a pytorch internal function. The train function in main.py calls it as:
 
 `train(train_loader, model, ema_model, optimizer, epoch, dataset, training_log)`
 
-Qn) In the mean teacher paper I read that there is no backpropagation within the teacher. However, where exactly do they achieve it ? the teacher is looks like a copy of the same student model itself right?
+#### Qn) In the mean teacher paper I read that there is no backpropagation within the teacher. However, where exactly do they achieve it ? the teacher is looks like a copy of the same student model itself right?
 
 Ans: They do it in this code below in main.py
 
@@ -166,7 +169,7 @@ Ans: They do it in this code below in main.py
 
 ```
 
-Qn) what does the below code in main.py do?
+#### Qn) what does the below code in main.py do?
 ```if args.exclude_unlabeled:```
 
 Ans: If you want to use the mean teacher as a simple feed forward network. Note that the
@@ -175,14 +178,14 @@ to run the mean teacher as two parallel feed forward networks, without noise, bu
 consistency cost, just turn this on: `args.exclude_unlabeled`
     
  
-Qn) what models can the student/teacher contain? LSTM?
+#### Qn) what models can the student/teacher contain? LSTM?
 
 Ans: it can have anything ranging from a simple feed forward network to an LSTM. In 
 the file `mean_teacher/architectures.py` look for the function class `FeedForwardMLPEmbed()`. That takes two inputs (eg:claim, evidence or entity, patterns) .
 Similarly the class `class SeqModelCustomEmbed(nn.Module):` does the same but for LSTM.
  
  
- Qn) what does the below code do in datasets.py?
+ #### Qn) what does the below code do in datasets.py?
  `if args.eval_subdir not in dir:`
 
 Ans: this is where you decide whether you want to do training or testing/eval/dev. Only difference
@@ -211,11 +214,10 @@ LOG.info('Epoch: [{0}][{1}/{2}]\t'
 
 Ans: Whenever the code removes a label  (for the mean teacher purposes) it assigns a label of -1
 
-
-Qn) Why do I get an error at `assert_exactly_one([args.exclude_unlabeled, args.labeled_batch_size])` 
+**Qn) Why do I get an error at `assert_exactly_one([args.exclude_unlabeled, args.labeled_batch_size])` ?**
 
 Ans: If you are doing `--exclude_unlabeled true` i.e to run mean teacher as a simple feed forward supervised network
-with all data points having labels, you shouldn't pass any of these argument parameters
+with all data points having labels, you shouldn't pass any of these argument parameters which are meant for mean teacher.
 ```
 
 --labeled_batch_size 10
@@ -242,11 +244,16 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
 - get training to run with noise --done
 - read the readme of original code again. the part where they talk about twostreamsampler --done
 - check if consistency loss works, now that we have noise ---done
-- add eval data 
-  - (verify manually dataset_test has size of 10 or whatever you are feeding)
-
+- add eval data  --done
+  - (verify manually dataset_test has size of 10 or whatever you are feeding) --done
+- run as a simple feed forward network and check predictions on local machine
+- run as a simple feed forward network and check predictions on server -full 145kdata
+- run as a mean teacher and check predictions on server: full 145k
+- read paper on batching and tuning.
+- add dump() from fan's code to print predicted values
+- add F1 scores also.
 - add pre-trained embeddings
-- read the pytorch documentation on dataloader again
+- read the pytorch documentation on dataloader again --done
 - do 2xfeedforward -i.e make the mean teacher as a simple mlp
 - remove low frequency words.
 - after all debug purpoes, increase the value of `--workers` to enable multiprocessing

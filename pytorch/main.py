@@ -23,8 +23,9 @@ from mean_teacher.utils import *
 import contextlib
 import random
 
-#askfan: where is log file stored? Ans: results/main
+#askfan: where is log file stored? Ans: stdout
 LOG = logging.getLogger('main')
+LOG.setLevel(logging.INFO)
 
 ################
 # NOTE: To enable logging on IPythonConsole output or IPyNoteBook
@@ -39,7 +40,7 @@ LOG = logging.getLogger('main')
 ################
 
 args = None
-best_prec1 = 0
+best_F1 = 0
 global_step = 0
 NA_label = -1
 test_student_pred_match_noNA = 0.0
@@ -190,7 +191,7 @@ def create_data_loaders(train_transformation,
 
         NA_label = dataset.categories.index('NA')
 
-        print('NA_label: ' + str(NA_label))
+        LOG.debug('NA_label: ' + str(NA_label))
     # https://stackoverflow.com/questions/44429199/how-to-load-a-list-of-numpy-arrays-to-pytorch-dataset-loader
     ## Used for loading the riedel10 arrays into pytorch
     elif args.dataset in ['riedel10']:
@@ -468,7 +469,7 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
         meters.update('top5', prec5[0], labeled_minibatch_size)
         meters.update('error5', 100. - prec5[0], labeled_minibatch_size)
 
-        ema_prec1, ema_prec5 = accuracy(ema_logit.data, target_var.data, topk=(1, 2)) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
+        ema_prec1, ema_prec5 = accuracy(ema_logit.data, target_var.data, topk=(1,2 )) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
         meters.update('ema_top1', ema_prec1[0], labeled_minibatch_size)
         meters.update('ema_error1', 100. - ema_prec1[0], labeled_minibatch_size)
         meters.update('ema_top5', ema_prec5[0], labeled_minibatch_size)
@@ -555,7 +556,7 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
     #             teacher_precision, teacher_recall, teacher_f1))
 
 def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, model_type):
-    LOG.info(f"got here inside validate")
+    LOG.debug(f"got here inside validate")
     global NA_label
     global test_student_pred_match_noNA
     global test_student_pred_noNA
@@ -573,13 +574,13 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
 
     # switch to evaluate mode
     model.eval() ### From the documentation (nn.module,py) : i) Sets the module in evaluation mode. (ii) This has any effect only on modules such as Dropout or BatchNorm. (iii) Returns: Module: self
-    LOG.info(f"got here after model.eval()")
+    LOG.debug(f"got here after model.eval()")
     end = time.time()
 
     save_custom_embed_condition = args.arch == 'custom_embed' \
                                   and args.save_custom_embedding \
                                   and epoch == args.epochs  # todo: only in the final epoch or best_epoch ?
-    LOG.info(f"got here after save_custom_embed_condition")
+    LOG.debug(f"got here after save_custom_embed_condition")
 
 
     if save_custom_embed_condition:
@@ -589,26 +590,26 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
         # eval_loader.batch_size = 1
         # LOG.info("NOTE: Setting the eval_loader's batch_size=1 .. to dump all the claims_dev and pattern embeddings ....")
 
-    print(f"inside validate function. value of  eval_loaderis {(eval_loader)}")
-    LOG.info(f"inside validate function. value of  len(eval_loader.dataset.claims) : {len(eval_loader.dataset.claims)}")
-    LOG.info(f"inside validate function. value of  len(eval_loader.sampler.data_source.claims) : {len(eval_loader.sampler.data_source.claims)}")
-    LOG.info(f"inside validate function. value of  len(eval_loader.sampler.data_source.lbl : {len(eval_loader.sampler.data_source.lbl)}")
-    LOG.info(f"inside validate function. value of  eval_loader.batch_size : {(eval_loader.batch_size)}")
+    LOG.debug(f"inside validate function. value of  eval_loaderis {(eval_loader)}")
+    LOG.debug(f"inside validate function. value of  len(eval_loader.dataset.claims) : {len(eval_loader.dataset.claims)}")
+    LOG.debug(f"inside validate function. value of  len(eval_loader.sampler.data_source.claims) : {len(eval_loader.sampler.data_source.claims)}")
+    LOG.debug(f"inside validate function. value of  len(eval_loader.sampler.data_source.lbl : {len(eval_loader.sampler.data_source.lbl)}")
+    LOG.debug(f"inside validate function. value of  eval_loader.batch_size : {(eval_loader.batch_size)}")
 
 
     for i, datapoint in enumerate(eval_loader):
-        LOG.info(f"got inside .i, datapoint in enumerate(eval_loader)")
+        LOG.debug(f"got inside .i, datapoint in enumerate(eval_loader)")
         meters.update('data_time', time.time() - end)
 
         if args.dataset in ['conll', 'ontonotes','fever']:
-            LOG.info(f"got inside args.dataset in fever")
+            LOG.debug(f"got inside args.dataset in fever")
             claims_dev = datapoint[0][0]
             evidence_dev = datapoint[0][1]
             labels_dev = datapoint[1]
 
-            # LOG.info(f"value of claims_dev is:{claims_dev}")
-            # LOG.info(f"value of patterns is:{evidence_dev}")
-            # LOG.info(f"value of target is:{labels_dev}")
+            # LOG.debug(f"value of claims_dev is:{claims_dev}")
+            # LOG.debug(f"value of patterns is:{evidence_dev}")
+            # LOG.debug(f"value of target is:{labels_dev}")
 
             if torch.cuda.is_available():
                 claims_var = torch.autograd.Variable(claims_dev, volatile=True).cuda()
@@ -632,8 +633,8 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
         ###################################################
         meters.update('labeled_minibatch_size', labeled_minibatch_size)
 
-        LOG.info(f"value of args.arch is:{args.arch}")
-        LOG.info(f"value of args.dataset is:{args.dataset}")
+        LOG.debug(f"value of args.arch is:{args.arch}")
+        LOG.debug(f"value of args.dataset is:{args.dataset}")
 
         # compute output
         if args.dataset in ['conll', 'ontonotes'] and args.arch == 'custom_embed':
@@ -647,11 +648,54 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
 
 
         class_loss = class_criterion(output1, target_var) / minibatch_size
-        LOG.info(f"value of class_loss.arch is:{class_loss}")
+        LOG.debug(f"value of class_loss.arch is:{class_loss}")
 
+        #pred_labels=get_label_from_softmax(output1.data)
+
+        #fan's code for calculating f1 starts here
+        # correct_test, num_target_notNA_test, num_pred_notNA_test = prec_rec(output1.data, target_var.data, NA_label,
+        #                                                                     topk=(1,))
+        #
+        # #prec_rec(output, target, NA_label, topk=(1,)):
+        #
+        # if num_pred_notNA_test > 0:
+        #     prec_test = float(correct_test) / float(num_pred_notNA_test)
+        # else:
+        #     prec_test = 0.0
+        #
+        # if num_target_notNA_test > 0:
+        #     rec_test = float(correct_test) / float(num_target_notNA_test)
+        # else:
+        #     rec_test = 0.0
+        #
+        # if prec_test + rec_test == 0:
+        #     f1_test = 0
+        # else:
+        #     f1_test = 2 * prec_test * rec_test / (prec_test + rec_test)
+        #
+        # meters.update('correct_test', correct_test, 1)
+        # meters.update('target_notNA_test', num_target_notNA_test, 1)
+        # meters.update('pred_notNA_test', num_pred_notNA_test, 1)
+        #
+        # if float(meters['pred_notNA_test'].sum) == 0:
+        #     accum_prec_test = 0
+        # else:
+        #     accum_prec_test = float(meters['correct_test'].sum) / float(meters['pred_notNA_test'].sum)
+        #
+        # if float(meters['target_notNA_test'].sum) == 0:
+        #     accum_rec_test = 0
+        # else:
+        #     accum_rec_test = float(meters['correct_test'].sum) / float(meters['target_notNA_test'].sum)
+        #
+        # if accum_prec_test + accum_rec_test == 0:
+        #     accum_f1_test = 0
+        # else:
+        #     accum_f1_test = 2 * accum_prec_test * accum_rec_test / (accum_prec_test + accum_rec_test)
+        #
+        # meters.update('class_loss', class_loss.data[0], labeled_minibatch_size)
 
             # measure accuracy and record loss
-        prec1, prec5 = accuracy(output1.data, target_var.data, topk=(1, 2)) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
+        prec1, prec5 = accuracy(output1.data, target_var.data, topk=(1,2 )) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
         meters.update('class_loss', class_loss.data.item(), labeled_minibatch_size)
         meters.update('top1', prec1[0], labeled_minibatch_size)
         meters.update('error1', 100.0 - prec1[0], labeled_minibatch_size)
@@ -662,30 +706,19 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
         meters.update('batch_time', time.time() - end)
         end = time.time()
 
-        if i % args.print_freq == 0 or i == len(eval_loader) - 1:
-            if args.dataset in ['riedel', 'gids']:
-                LOG.info(
-                    'Test: [{0}/{1}]  '
-                    'ClassLoss {meters[class_loss]:.4f}  '
-                    'Precision {prec:.3f} ({accum_prec:.3f})  '
-                    'Recall {rec:.3f} ({accum_rec:.3f})  '
-                    'F1 {f1:.3f} ({accum_f1:.3f})'.format(
-                        i, len(eval_loader), prec=prec_test, accum_prec=accum_prec_test, rec=rec_test, accum_rec=accum_rec_test, f1=f1_test, accum_f1=accum_f1_test, meters=meters))
+        #if i % args.print_freq == 0
 
-            else:
-                LOG.info(
-                    'Test: [{0}/{1}]\t'
-                    'ClassLoss {meters[class_loss]:.4f}\t'
-                    'Prec@1 {meters[top1]:.3f}'.format(
-                        i, len(eval_loader), meters=meters))
+        LOG.info(
+            'Test: [{0}/{1}]  '
+            'ClassLoss {meters[class_loss]:.4f}  '
+            'Precision {prec:.3f} ({accum_prec:.3f})  '
+            'Recall {rec:.3f} ({accum_rec:.3f})  '
+            'F1 {f1:.3f} ({accum_f1:.3f})'.format(
+                i, len(eval_loader), prec=prec_test, accum_prec=accum_prec_test, rec=rec_test, accum_rec=accum_rec_test,
+                f1=f1_test, accum_f1=accum_f1_test, meters=meters))
 
-
-    # log.record(epoch, {
-    #     'step': global_step,
-    #     **meters.values(),
-    #     **meters.averages(),
-    #     **meters.sums()
-    # })
+    LOG.info(' * Prec@1 {top1.avg:.3f}\tClassLoss {class_loss.avg:.3f}'
+             .format(top1=meters['top1'], class_loss=meters['class_loss']))
 
     if save_custom_embed_condition:
         save_custom_embeddings(custom_embeddings_minibatch, dataset, result_dir, model_type)
@@ -827,6 +860,12 @@ def accuracy(output, target, topk=(1,)):
         res.append(correct_k.mul_(100.0 / labeled_minibatch_size))
     return res
 
+def get_label_from_softmax(output):
+    list_labels_pred=[]
+    for tensor in output:
+        values, indices = torch.max(tensor, 0)
+        list_labels_pred.append(indices.data.item())
+    return list_labels_pred
 
 def prec_rec(output, target, NA_label, topk=(1,)):
     maxk = max(topk)
@@ -841,13 +880,16 @@ def prec_rec(output, target, NA_label, topk=(1,)):
 
     tp_fn_1 = target.ne(NA_label)  # 1s where not NA
     tp_fn_2 = target.ne(NO_LABEL)  # 1s where labels not NONE
-    tp_fn_idx = tp_fn_1.eq(tp_fn_2)   # 1s where target labels are not NA and not NONE; Note tp_fn_1 and tp_fn_2 do not equal to 0 at same index, tp_fn_1[idx] =0 means NA, tp_fn_2[idx] =0 means no label, they do not happen at the same time
+    tp_fn_idx = tp_fn_1.eq(
+        tp_fn_2)  # 1s where target labels are not NA and not NONE; Note tp_fn_1 and tp_fn_2 do not equal to 0 at same index, tp_fn_1[idx] =0 means NA, tp_fn_2[idx] =0 means no label, they do not happen at the same time
     tp_fn = tp_fn_idx.sum()  # number of target labels which are not NA and not NONE (number of non NA labels in ONLY supervised portion of target)
 
     # index() takes same size of pred with idx value 0 and 1, and only return pred[idx] where idx is 1
-    tp_fp = pred.index(tp_fn_2).ne(NA_label).sum()  # number of non NA labels in pred where target labels are not NONE  (Note: corresponded target labels can be NA)
+    tp_fp = pred.index(tp_fn_2).ne(
+        NA_label).sum()  # number of non NA labels in pred where target labels are not NONE  (Note: corresponded target labels can be NA)
 
-    tp = pred.index(tp_fn_idx).eq(target.view(1, -1).index(tp_fn_idx)).sum()  # number of matches where target labels are not NA and not NONE
+    tp = pred.index(tp_fn_idx).eq(
+        target.view(1, -1).index(tp_fn_idx)).sum()  # number of matches where target labels are not NA and not NONE
 
     return tp, tp_fn, tp_fp
 
@@ -1010,7 +1052,7 @@ def dump_result(batch_id, args, output, target, dataset, perm_idx, model_type='t
 
 def main(context):
     global global_step
-    global best_prec1
+    global best_F1
 
     time_start = time.time()
 
@@ -1021,7 +1063,7 @@ def main(context):
 
     dataset_config = datasets.__dict__[args.dataset]()
 
-    # if args.dataset != 'riedel':
+    # if args`.dataset != 'riedel':
     #     args.subset_labels = 'None'
     #     args.labels_set = []
     # else:
@@ -1078,6 +1120,8 @@ def main(context):
         LOG.info("--------------------IMPORTANT: REMOVING nn.DataParallel for the moment --------------------")
         if torch.cuda.is_available():
             model = model.cuda()    # Note: Disabling data parallelism for now
+            LOG.info(f"cUDA is available")
+
         else:
             model = model.cpu()
 
@@ -1129,7 +1173,7 @@ def main(context):
         checkpoint = torch.load(args.resume)
         args.start_epoch = checkpoint['epoch']
         global_step = checkpoint['global_step']
-        best_prec1 = checkpoint['best_prec1']
+        best_F1 = checkpoint['best_prec1']
         model.load_state_dict(checkpoint['state_dict'])
         ema_model.load_state_dict(checkpoint['ema_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer'])
@@ -1156,32 +1200,38 @@ def main(context):
         train(train_loader, model, ema_model, optimizer, epoch, dataset, training_log)
         LOG.info("--- training epoch in %s seconds ---" % (time.time() - start_time))
 
-        print(f"value of args.evaluation_epochs: {args.evaluation_epochs} ")
-        print(f"value of args.epoch: {epoch} ")
+        LOG.debug(f"value of args.evaluation_epochs: {args.evaluation_epochs} ")
+        LOG.debug(f"value of args.epoch: {epoch} ")
 
-        #i don't completely understand what this  below modulo code is doing. THe official documentation of and for integers in python says :
-        # The expression x and y first evaluates x; if x is false, its value is returned; otherwise, y is evaluated and the resulting value is returned.
+        #i don't completely understand what this  below modulo code is doing. THe official documentation of
+        # "and" for integers in python says :
+        # The expression x and y first evaluates x; if x is false, its value is returned;
+        # otherwise, y is evaluated and the resulting value is returned.
         #i think you evaluate only in some epochs? why on earth would you do that?
-        #update: this is the documentation from cli.py:evaluation frequency in epochs, 0 to turn evaluation off (default: 1)'). ok, so probably default value 1 means it'll evaluate at every epoch, hopefully...
+        #update: this is the documentation from cli.py:evaluation frequency in epochs,
+        # 0 to turn evaluation off (default: 1)').
+        # ok, so probably default value 1 means it'll evaluate at every epoch, hopefully...
         if args.evaluation_epochs and (epoch + 1) % args.evaluation_epochs == 0:
-            print("just got inside evaluation_epochs ")
+            LOG.debug("just got inside evaluation_epochs ")
             start_time = time.time()
             LOG.info("Evaluating the primary model:")
-            print(f"value of model: {model} ")
-            print(f"value of eval_loader: {eval_loader} ")
-            print(f"value of global_step: {global_step} ")
-            print(f"value of epoch: {validation_log} ")
-            print(f"value of dataset_test: {dataset_test} ")
-            print(f"value of context.result_dir: {context.result_dir} ")
+            LOG.debug(f"value of model: {model} ")
+            LOG.debug(f"value of eval_loader: {eval_loader} ")
+            LOG.debug(f"value of global_step: {global_step} ")
+            LOG.debug(f"value of epoch: {validation_log} ")
+            LOG.debug(f"value of dataset_test: {dataset_test} ")
+            LOG.debug(f"value of context.result_dir: {context.result_dir} ")
 
-            prec1 = validate(eval_loader, model, validation_log, global_step, epoch + 1, dataset_test,
+            student_F1 = validate(eval_loader, model, validation_log, global_step, epoch + 1, dataset_test,
                              context.result_dir, "student")
             LOG.info("Evaluating the EMA model:")
-            ema_prec1 = validate(eval_loader, ema_model, ema_validation_log, global_step, epoch + 1, dataset_test,
+            teacher_F1 = validate(eval_loader, ema_model, ema_validation_log, global_step, epoch + 1, dataset_test,
                                  context.result_dir, "teacher")
             LOG.info("--- validation in %s seconds ---" % (time.time() - start_time))
-            is_best = ema_prec1 > best_prec1
-            best_prec1 = max(ema_prec1, best_prec1)
+            local_best= max(teacher_F1, student_F1)
+            is_best = teacher_F1 > best_F1
+
+            best_F1 = max(local_best, best_F1)
         else:
             is_best = False
 
@@ -1192,16 +1242,18 @@ def main(context):
                 'arch': args.arch,
                 'state_dict': model.state_dict(),
                 'ema_state_dict': ema_model.state_dict(),
-                'best_prec1': best_prec1,
+                'best_prec1': best_F1,
                 'optimizer' : optimizer.state_dict(),
                 'dataset' : args.dataset,
             }, is_best, checkpoint_path, epoch + 1)
+
+
 
     # for testing only .. commented
     # LOG.info("For testing only; Comment the following line of code--------------------------------")
     # validate(eval_loader, model, validation_log, global_step, 0, dataset, context.result_dir, "student")
     LOG.info("--------Total end to end time %s seconds ----------- " % (time.time() - time_start))
-
+    LOG.info(f"best f1 score is:{best_F1}")
 
 
 if __name__ == '__main__':

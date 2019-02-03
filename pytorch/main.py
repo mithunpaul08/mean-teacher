@@ -772,9 +772,17 @@ def accuracy(output, target, topk=(1,)):
     maxk = max(topk)
     labeled_minibatch_size = max(target.ne(NO_LABEL).sum(), 1e-8)
 
-    _, pred = output.topk(maxk, 1, True, True)   # pred: torch.LongTensor of size 256x2, which 2 labels (labels' id) have highest score
-    pred = pred.t()    # 2 * 256
-    correct = pred.eq(target.view(1, -1).expand_as(pred))
+
+    _, pred = output.topk(maxk, 1, True, True)
+
+    # transpose dimensions 0 and 1
+    pred = pred.t()
+
+    a=target.view(1, -1)
+    b=a.expand_as(pred)
+    correct = pred.eq(b)
+
+
     # target.size(): torch.Size([256])
     # target.view(1, -1): 1 * 256
     # expand_as(pred): copy the first row to be the second row to get 2*256
@@ -782,9 +790,38 @@ def accuracy(output, target, topk=(1,)):
 
     res = []
     for k in topk:
-        correct_k = correct[:k].view(-1).float().sum(0, keepdim=True)
+        q= correct[:k].view(-1)
+        r= q  .float()
+        correct_k=r.sum(0, keepdim=True)
         res.append(correct_k.mul_(100.0 / labeled_minibatch_size))
     return res
+
+#this accuracy is a simpler version where there are no topk elements. It just picks the element with highest value
+def accuracy_fever(output, target):
+    m = nn.Softmax()
+    output_sftmax = m(output)
+    labeled_minibatch_size = max(target.ne(NO_LABEL).sum(), 1e-8)
+
+    predictions, indices = torch.max(output_sftmax,0)
+
+
+    # target/gold labels actually will be there for all the labeled and unlabeled inputs we provided.
+    # However, we really can compare only against the labeled ones.
+    # note 256 here means batch size
+    # Example
+    # target.size(): torch.Size([256])
+    # target.view(1, -1): 1 * 256
+    # expand_as(pred): copy the first row to be the second row to get 2*256
+    # correct: 2*256
+
+    correct = pred.eq(target.view(1, -1).expand_as(pred))
+
+
+    #divide each of the elements /labeled batch size.
+    correct_k = correct[:k].view(-1).float().sum(0, keepdim=True)
+    result=correct_k.mul_(100.0 / labeled_minibatch_size))
+
+    return result
 
 def get_label_from_softmax(output):
     list_labels_pred=[]

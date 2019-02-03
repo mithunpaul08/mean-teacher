@@ -40,7 +40,8 @@ LOG.setLevel(logging.INFO)
 ################
 
 args = None
-best_F1 = 0
+best_accuracy_across_epochs = 0
+best_epochs = 0
 global_step = 0
 NA_label = -1
 test_student_pred_match_noNA = 0.0
@@ -443,6 +444,8 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
         #ans: no. they are doing the subtraction around line
 
         # if you want to use consistency loss with given weight  pass --consistency in running script-
+        # consistency has to be a positive value. give =1 they must be equally weighted
+        # if you are doing feed forward this can be zero
         if args.consistency:
             consistency_weight = get_current_consistency_weight(epoch)
             meters.update('cons_weight', consistency_weight)
@@ -463,17 +466,17 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
         meters.update('loss', loss.data.item())
 
 
-        prec1, prec5 = accuracy(class_logit.data, target_var.data, topk=(1, 2)) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
+        prec1 = accuracy(class_logit.data, target_var.data, topk=(1, 1)) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
         meters.update('top1', prec1[0], labeled_minibatch_size)
         meters.update('error1', 100. - prec1[0], labeled_minibatch_size)
-        meters.update('top5', prec5[0], labeled_minibatch_size)
-        meters.update('error5', 100. - prec5[0], labeled_minibatch_size)
+        #meters.update('top5', prec5[0], labeled_minibatch_size)
+        #meters.update('error5', 100. - prec5[0], labeled_minibatch_size)
 
-        ema_prec1, ema_prec5 = accuracy(ema_logit.data, target_var.data, topk=(1,2 )) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
+        ema_prec1 = accuracy(ema_logit.data, target_var.data, topk=(1,1)) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
         meters.update('ema_top1', ema_prec1[0], labeled_minibatch_size)
         meters.update('ema_error1', 100. - ema_prec1[0], labeled_minibatch_size)
-        meters.update('ema_top5', ema_prec5[0], labeled_minibatch_size)
-        meters.update('ema_error5', 100. - ema_prec5[0], labeled_minibatch_size)
+        # meters.update('ema_top5', ema_prec5[0], labeled_minibatch_size)
+        # meters.update('ema_error5', 100. - ema_prec5[0], labeled_minibatch_size)
 
         # compute gradient and do SGD step
         optimizer.zero_grad()
@@ -507,53 +510,11 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
                 LOG.info(
                     'Epoch: [{0}][{1}/{2}]\t'
                     'ClassLoss {meters[class_loss]:.4f}\t'
-                    'Prec@1 {meters[top1]:.3f}\t'
-                    'Prec@2 {meters[top5]:.3f}'.format(
-                        epoch, i, len(train_loader), meters=meters))
-
-            # log.record(epoch + i / len(train_loader), {
-            #     'step': global_step,
-            #     **meters.values(),
-            #     **meters.averages(),
-            #     **meters.sums()
-            # }
+                    'Prec@1 {meters[top1]:.3f}\t'.format(
+                    epoch, i, len(train_loader), meters=meters))
 
 
 
-    # if args.dataset in ['riedel', 'gids']:
-    #     if epoch == args.epochs - 1:
-    #
-    #         if train_student_pred_noNA == 0.0:
-    #             student_precision = 0.0
-    #         else:
-    #             student_precision = train_student_pred_match_noNA / train_student_pred_noNA
-    #         if train_student_true_noNA == 0.0:
-    #             student_recall = 0.0
-    #         else:
-    #             student_recall = train_student_pred_match_noNA / train_student_true_noNA
-    #         if student_precision + student_recall == 0.0:
-    #             student_f1 = 0.0
-    #         else:
-    #             student_f1 = 2 * student_precision * student_recall / (student_precision + student_recall)
-    #
-    #         LOG.info('******* [Train] Student : Overall Precision {0}  Recall {1}  F1 {2}  ********'.format(
-    #                 student_precision, student_recall, student_f1))
-    #
-    #         if train_teacher_pred_noNA == 0.0:
-    #             teacher_precision = 0.0
-    #         else:
-    #             teacher_precision = train_teacher_pred_match_noNA / train_teacher_pred_noNA
-    #         if train_teacher_true_noNA == 0.0:
-    #             teacher_recall = 0.0
-    #         else:
-    #             teacher_recall = train_teacher_pred_match_noNA / train_teacher_true_noNA
-    #         if teacher_precision + teacher_recall == 0.0:
-    #             teacher_f1 = 0.0
-    #         else:
-    #             teacher_f1 = 2 * teacher_precision * teacher_recall / (teacher_precision + teacher_recall)
-    #
-    #         LOG.info('******* [Train] Teacher : Overall Precision {0}  Recall {1}  F1 {2}  ********'.format(
-    #             teacher_precision, teacher_recall, teacher_f1))
 
 def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, model_type):
     LOG.debug(f"got here inside validate")
@@ -652,55 +613,15 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
 
         #pred_labels=get_label_from_softmax(output1.data)
 
-        #fan's code for calculating f1 starts here
-        # correct_test, num_target_notNA_test, num_pred_notNA_test = prec_rec(output1.data, target_var.data, NA_label,
-        #                                                                     topk=(1,))
-        #
-        # #prec_rec(output, target, NA_label, topk=(1,)):
-        #
-        # if num_pred_notNA_test > 0:
-        #     prec_test = float(correct_test) / float(num_pred_notNA_test)
-        # else:
-        #     prec_test = 0.0
-        #
-        # if num_target_notNA_test > 0:
-        #     rec_test = float(correct_test) / float(num_target_notNA_test)
-        # else:
-        #     rec_test = 0.0
-        #
-        # if prec_test + rec_test == 0:
-        #     f1_test = 0
-        # else:
-        #     f1_test = 2 * prec_test * rec_test / (prec_test + rec_test)
-        #
-        # meters.update('correct_test', correct_test, 1)
-        # meters.update('target_notNA_test', num_target_notNA_test, 1)
-        # meters.update('pred_notNA_test', num_pred_notNA_test, 1)
-        #
-        # if float(meters['pred_notNA_test'].sum) == 0:
-        #     accum_prec_test = 0
-        # else:
-        #     accum_prec_test = float(meters['correct_test'].sum) / float(meters['pred_notNA_test'].sum)
-        #
-        # if float(meters['target_notNA_test'].sum) == 0:
-        #     accum_rec_test = 0
-        # else:
-        #     accum_rec_test = float(meters['correct_test'].sum) / float(meters['target_notNA_test'].sum)
-        #
-        # if accum_prec_test + accum_rec_test == 0:
-        #     accum_f1_test = 0
-        # else:
-        #     accum_f1_test = 2 * accum_prec_test * accum_rec_test / (accum_prec_test + accum_rec_test)
-        #
-        # meters.update('class_loss', class_loss.data[0], labeled_minibatch_size)
+
 
             # measure accuracy and record loss
-        prec1, prec5 = accuracy(output1.data, target_var.data, topk=(1,2 )) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
+        prec1 = accuracy(output1.data, target_var.data, topk=(1, 1)) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
         meters.update('class_loss', class_loss.data.item(), labeled_minibatch_size)
         meters.update('top1', prec1[0], labeled_minibatch_size)
         meters.update('error1', 100.0 - prec1[0], labeled_minibatch_size)
-        meters.update('top5', prec5[0], labeled_minibatch_size)
-        meters.update('error5', 100.0 - prec5[0], labeled_minibatch_size)
+        # meters.update('top5', prec5[0], labeled_minibatch_size)
+        # meters.update('error5', 100.0 - prec5[0], labeled_minibatch_size)
 
         # measure elapsed time
         meters.update('batch_time', time.time() - end)
@@ -1057,7 +978,8 @@ def dump_result(batch_id, args, output, target, dataset, perm_idx, model_type='t
 
 def main(context):
     global global_step
-    global best_F1
+    global best_accuracy_across_epochs
+    global best_epochs
 
     time_start = time.time()
 
@@ -1178,7 +1100,7 @@ def main(context):
         checkpoint = torch.load(args.resume)
         args.start_epoch = checkpoint['epoch']
         global_step = checkpoint['global_step']
-        best_F1 = checkpoint['best_prec1']
+        best_accuracy_across_epochs = checkpoint['best_prec1']
         model.load_state_dict(checkpoint['state_dict'])
         ema_model.load_state_dict(checkpoint['ema_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer'])
@@ -1203,7 +1125,7 @@ def main(context):
         start_time = time.time()
         # train for one epoch
         train(train_loader, model, ema_model, optimizer, epoch, dataset, training_log)
-        LOG.info("--- training epoch in %s seconds ---" % (time.time() - start_time))
+        LOG.info("--- done training epoch {epoch} in %s seconds ---" % (time.time() - start_time))
 
         LOG.debug(f"value of args.evaluation_epochs: {args.evaluation_epochs} ")
         LOG.debug(f"value of args.epoch: {epoch} ")
@@ -1216,7 +1138,9 @@ def main(context):
         #update: this is the documentation from cli.py:evaluation frequency in epochs,
         # 0 to turn evaluation off (default: 1)').
         # ok, so probably default value 1 means it'll evaluate at every epoch, hopefully...
-        if args.evaluation_epochs and (epoch + 1) % args.evaluation_epochs == 0:
+        #update commented it out. using simple modulo
+        #if args.evaluation_epochs and (epoch + 1) % args.evaluation_epochs == 0:
+        if (epoch) % args.evaluation_epochs == 0:
             LOG.debug("just got inside evaluation_epochs ")
             start_time = time.time()
             LOG.info("Evaluating the primary model:")
@@ -1227,30 +1151,34 @@ def main(context):
             LOG.debug(f"value of dataset_test: {dataset_test} ")
             LOG.debug(f"value of context.result_dir: {context.result_dir} ")
 
-            student_F1 = validate(eval_loader, model, validation_log, global_step, epoch + 1, dataset_test,
+            student_accuracy = validate(eval_loader, model, validation_log, global_step, epoch , dataset_test,
                              context.result_dir, "student")
             LOG.info("Evaluating the EMA model:")
-            teacher_F1 = validate(eval_loader, ema_model, ema_validation_log, global_step, epoch + 1, dataset_test,
+            teacher_accuracy = validate(eval_loader, ema_model, ema_validation_log, global_step, epoch , dataset_test,
                                  context.result_dir, "teacher")
             LOG.info("--- validation in %s seconds ---" % (time.time() - start_time))
-            local_best= max(teacher_F1, student_F1)
-            is_best = teacher_F1 > best_F1
+            local_best= max(teacher_accuracy, student_accuracy)
+            is_best = teacher_accuracy > best_accuracy_across_epochs
 
-            best_F1 = max(local_best, best_F1)
-        else:
-            is_best = False
+            if(local_best>best_accuracy_across_epochs):
+                best_accuracy_across_epochs = local_best
+                best_epochs=epoch
+            else:
+                is_best = False
 
-        if args.checkpoint_epochs and (epoch + 1) % args.checkpoint_epochs == 0:
-            save_checkpoint({
-                'epoch': epoch + 1,
-                'global_step': global_step,
-                'arch': args.arch,
-                'state_dict': model.state_dict(),
-                'ema_state_dict': ema_model.state_dict(),
-                'best_prec1': best_F1,
-                'optimizer' : optimizer.state_dict(),
-                'dataset' : args.dataset,
-            }, is_best, checkpoint_path, epoch + 1)
+            LOG.info(f"best value of accuracy after epoch {epoch} is {local_best}")
+
+            if args.checkpoint_epochs and (epoch + 1) % args.checkpoint_epochs == 0:
+                save_checkpoint({
+                    'epoch': epoch + 1,
+                    'global_step': global_step,
+                    'arch': args.arch,
+                    'state_dict': model.state_dict(),
+                    'ema_state_dict': ema_model.state_dict(),
+                    'best_prec1': best_accuracy_across_epochs,
+                    'optimizer' : optimizer.state_dict(),
+                    'dataset' : args.dataset,
+                }, is_best, checkpoint_path, epoch + 1)
 
 
 
@@ -1258,7 +1186,7 @@ def main(context):
     # LOG.info("For testing only; Comment the following line of code--------------------------------")
     # validate(eval_loader, model, validation_log, global_step, 0, dataset, context.result_dir, "student")
     LOG.info("--------Total end to end time %s seconds ----------- " % (time.time() - time_start))
-    LOG.info(f"best f1 score is:{best_F1}")
+    LOG.info(f"best best_accuracy_across_epochs  is:{best_accuracy_across_epochs} at epoch number:{best_epochs}")
 
 
 if __name__ == '__main__':

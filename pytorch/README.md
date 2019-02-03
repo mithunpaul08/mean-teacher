@@ -6,9 +6,14 @@ This is the PyTorch source code for the Mean Teacher paper. The code runs on Pyt
 ```
 pip install numpy scipy pandas sklearn nltk tqdm
 pip install git+ssh://git@github.com/pytorch/vision@c31c3d7e0e68e871d2128c8b731698ed3b11b119
-conda install pytorch-cpu torchvision-cpu -c pytorch
+conda install pytorch-cpu torchvision-cpu -c pytorch 
+
+*note: for conda install get the right command from the pytorch home page based on your OS and configs.*
 
 ```
+
+*PS: I personally like/trust `pip install *` instead of `conda install`*
+
 
 The code expects to find the data in specific directories inside the data-local directory. So do remember to 
  add the data before you run the code.
@@ -31,33 +36,35 @@ python -u main.py
 --arch simple_MLP_embed_RTE 
 --pretrained_wordemb false 
 --update_pretrained_wordemb true
---epochs 6
---consistency=0.3 
+--epochs 2
+--consistency 1
 --run-name fever_transform
---batch_size 1000
+--batch_size 20
 --labels 20.0
 --data_dir data-local/rte/fever
---train_input_file train_120k_with_evi_sents.jsonl
---dev_input_file dev_25k_with_evi_sents.jsonl
+--train_input_file train_small_200_claims_with_evi_sents.jsonl
+--dev_input_file dev_90_with_evi_sents.jsonl
 --print-freq 1
 --workers 0
---labeled_batch_size 250
---consistency 35.5
+--labeled_batch_size 10
+--consistency 1
 ```
-### removed labels
---exclude_unlabeled true
---consistency 20
+**removed labels**\
+`--exclude_unlabeled true`\ (refer below)
 
+`--consistency 20`\
+`-- dev_input_file dev_90_with_evi_sents.jsonl` (use this when testing on a local machine/laptop with small ram)
+`--train_input_file train_small_200_claims_with_evi_sents.jsonl`
 
-For the above command to run from linux command line, you might need to add a backwards slash as shown below:
+**Below is a version that runs on linux command line (local machine/laptop):**
 ```
-python main.py \
---dataset fever 
-
-
-
-
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 6 --consistency=0.3 --run-name fever_transform --batch_size 10 --labels 20.0 --data_dir data-local/rte/fever --print-freq 1 --workers 0 --labeled_batch_size 2 --consistency 35.5 --dev_input_file dev_90_with_evi_sents.jsonl --train_input_file train_small_200_claims_with_evi_sents.jsonl
 ```
+**Below is a version that runs on linux command line (server/big memory):**
+```
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 6 --consistency=0.3 --run-name fever_transform --batch_size 1000 --labels 20.0 --data_dir data-local/rte/fever --print-freq 1 --workers 0 --labeled_batch_size 250 --consistency 35.5 --dev_input_file dev_25k_with_evi_sents.jsonl --train_input_file train_120k_with_evi_sents.jsonl
+```
+
 #explanation of command line paramaeters
 
 `--workers`: if you dont want multiprocessing make workers=0

@@ -36,7 +36,7 @@ python -u main.py
 --arch simple_MLP_embed_RTE 
 --pretrained_wordemb false 
 --update_pretrained_wordemb true
---epochs 2
+--epochs 3
 --consistency 1
 --run-name fever_transform
 --batch_size 15

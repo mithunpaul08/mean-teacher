@@ -39,14 +39,14 @@ python -u main.py
 --epochs 2
 --consistency 1
 --run-name fever_transform
---batch_size 20
+--batch_size 15
 --labels 20.0
 --data_dir data-local/rte/fever
 --train_input_file train_small_200_claims_with_evi_sents.jsonl
 --dev_input_file dev_90_with_evi_sents.jsonl
 --print-freq 1
 --workers 0
---labeled_batch_size 10
+--labeled_batch_size 7
 --consistency 1
 ```
 **removed labels**\

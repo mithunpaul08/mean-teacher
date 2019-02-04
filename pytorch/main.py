@@ -466,13 +466,13 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
         meters.update('loss', loss.data.item())
 
 
-        prec1 = accuracy(class_logit.data, target_var.data, topk=(1, 1)) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
+        prec1 = accuracy_fever(class_logit.data, target_var.data) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
         meters.update('top1', prec1[0], labeled_minibatch_size)
         meters.update('error1', 100. - prec1[0], labeled_minibatch_size)
         #meters.update('top5', prec5[0], labeled_minibatch_size)
         #meters.update('error5', 100. - prec5[0], labeled_minibatch_size)
 
-        ema_prec1 = accuracy(ema_logit.data, target_var.data, topk=(1,1)) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
+        ema_prec1 = accuracy_fever(ema_logit.data, target_var.data) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
         meters.update('ema_top1', ema_prec1[0], labeled_minibatch_size)
         meters.update('ema_error1', 100. - ema_prec1[0], labeled_minibatch_size)
         # meters.update('ema_top5', ema_prec5[0], labeled_minibatch_size)
@@ -616,7 +616,7 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
 
 
             # measure accuracy and record loss
-        prec1 = accuracy(output1.data, target_var.data, topk=(1, 1)) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
+        prec1 = accuracy_fever(output1.data, target_var.data, topk=(1, 1)) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
         meters.update('class_loss', class_loss.data.item(), labeled_minibatch_size)
         meters.update('top1', prec1[0], labeled_minibatch_size)
         meters.update('error1', 100.0 - prec1[0], labeled_minibatch_size)
@@ -772,15 +772,14 @@ def accuracy(output, target, topk=(1,)):
     maxk = max(topk)
     labeled_minibatch_size = max(target.ne(NO_LABEL).sum(), 1e-8)
 
-
+    #topk returns two values, first one is the actual list of top most values and second one is the indices of them
     _, pred = output.topk(maxk, 1, True, True)
 
     # transpose dimensions 0 and 1
     pred = pred.t()
 
-    a=target.view(1, -1)
-    b=a.expand_as(pred)
-    correct = pred.eq(b)
+    #if your max k is 1, target will almost always be the same size as pred (maybe after transfpose, but yes)
+    correct = pred.eq(target.view(1, -1).expand_as(pred))
 
 
     # target.size(): torch.Size([256])
@@ -790,36 +789,31 @@ def accuracy(output, target, topk=(1,)):
 
     res = []
     for k in topk:
-        q= correct[:k].view(-1)
-        r= q  .float()
-        correct_k=r.sum(0, keepdim=True)
+        correct_k = correct[:k].view(-1).float().sum(0, keepdim=True)
         res.append(correct_k.mul_(100.0 / labeled_minibatch_size))
     return res
 
 #this accuracy is a simpler version where there are no topk elements. It just picks the element with highest value
-def accuracy_fever(output, target):
+def accuracy_fever(predicted_labels, gold_labels):
     m = nn.Softmax()
-    output_sftmax = m(output)
-    labeled_minibatch_size = max(target.ne(NO_LABEL).sum(), 1e-8)
+    output_sftmax = m(predicted_labels)
+    labeled_minibatch_size = max(gold_labels.ne(NO_LABEL).sum(), 1e-8)
 
-    predictions, indices = torch.max(output_sftmax,0)
+    #predictions, indices = torch.max(output_sftmax,0)
+    _, pred = output_sftmax.topk(1, 1, True, True)
 
+    #gold labels and predictions are in transposes (eg:1x15 vs 15x1). so take a transpose to correct it.
+    pred_t=pred.t()
 
-    # target/gold labels actually will be there for all the labeled and unlabeled inputs we provided.
-    # However, we really can compare only against the labeled ones.
-    # note 256 here means batch size
-    # Example
-    # target.size(): torch.Size([256])
-    # target.view(1, -1): 1 * 256
-    # expand_as(pred): copy the first row to be the second row to get 2*256
-    # correct: 2*256
-
-    correct = pred.eq(target.view(1, -1).expand_as(pred))
+    #check how many predictions you got right?
+    correct = pred_t.eq(gold_labels.view(1, -1).expand_as(pred_t))
 
 
-    #divide each of the elements /labeled batch size.
-    correct_k = correct[:k].view(-1).float().sum(0, keepdim=True)
-    result=correct_k.mul_(100.0 / labeled_minibatch_size))
+    #take sum because in correct_k all the ones that match are now denoted by 1. So the sum means, total number of correct answers
+    correct_k = correct.sum(1)
+
+    #if out of 7 labeled, you got only 2 right, then your accuracy is 2/7*100
+    result=correct_k.mul_(100.0 / labeled_minibatch_size)
 
     return result
 

@@ -509,8 +509,13 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
             else:
                 LOG.info(
                     'Epoch: [{0}][{1}/{2}]\t'
-                    'ClassLoss {meters[class_loss]:.4f}\t'
-                    'Prec@1 {meters[top1]:.3f}\t'.format(
+                    'Classification_loss:{meters[class_loss]:.4f}\t'
+                    'Consistency_losslassLoss{meters[cons_loss]:.4f}\t'
+                    'Prec_student: {meters[top1]:.3f}\t'
+                    'student_error:{meters[error1]:.3f}\t'
+                    'Prec_teacher: {meters[ema_top1]:.3f}\t'
+                    'teacher_error: {meters[ema_error1]:.3f}\t'
+                        .format(
                     epoch, i, len(train_loader), meters=meters))
 
 
@@ -616,7 +621,7 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
 
 
             # measure accuracy and record loss
-        prec1 = accuracy_fever(output1.data, target_var.data, topk=(1, 1)) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
+        prec1 = accuracy_fever(output1.data, target_var.data, ) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
         meters.update('class_loss', class_loss.data.item(), labeled_minibatch_size)
         meters.update('top1', prec1[0], labeled_minibatch_size)
         meters.update('error1', 100.0 - prec1[0], labeled_minibatch_size)

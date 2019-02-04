@@ -510,7 +510,7 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
                 LOG.info(
                     'Epoch: [{0}][{1}/{2}]\t'
                     'Classification_loss:{meters[class_loss]:.4f}\t'
-                    'Consistency_losslassLoss{meters[cons_loss]:.4f}\t'
+                    'Consistency_loss:{meters[cons_loss]:.4f}\t'
                     'Prec_student: {meters[top1]:.3f}\t'
                     'student_error:{meters[error1]:.3f}\t'
                     'Prec_teacher: {meters[ema_top1]:.3f}\t'
@@ -643,10 +643,15 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
     #             i, len(eval_loader), prec=prec_test, accum_prec=accum_prec_test, rec=rec_test, accum_rec=accum_rec_test,
     #             f1=f1_test, accum_f1=accum_f1_test, meters=meters))
         LOG.info(
-                'Test: [{0}/{1}]\t'
-                'ClassLoss {meters[class_loss]:.4f}\t'
-                'Prec@1 {meters[top1]:.3f}'.format(
-                    i, len(eval_loader), meters=meters))
+            'Epoch: [{0}][{1}/{2}]\t'
+            'Classification_loss:{meters[class_loss]:.4f}\t'
+            'Consistency_loss:{meters[cons_loss]:.4f}\t'
+            'Prec_student: {meters[top1]:.3f}\t'
+            'student_error:{meters[error1]:.3f}\t'
+            'Prec_teacher: {meters[ema_top1]:.3f}\t'
+            'teacher_error: {meters[ema_error1]:.3f}\t'
+                .format(
+                epoch, i, len(train_loader), meters=meters))
 
     LOG.info(' * Prec@1 {top1.avg:.3f}\tClassLoss {class_loss.avg:.3f}'
              .format(top1=meters['top1'], class_loss=meters['class_loss']))

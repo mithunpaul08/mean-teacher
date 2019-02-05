@@ -257,14 +257,21 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
 - run as a simple feed forward network and check predictions on server -full 145kdata
 - run as a mean teacher and check predictions on server: full 145k
 - read paper on batching and tuning.
+- store trained model/enable checkpoint
 - add dump() from fan's code to print predicted values
 - add F1 scores also.
 - add pre-trained embeddings
 - read the pytorch documentation on dataloader again --done
 - do 2xfeedforward -i.e make the mean teacher as a simple mlp
 - remove low frequency words.
-- after all debug purpoes, increase the value of `--workers` to enable multiprocessing
+- after all debug runs, increase the value of `--workers` to enable multiprocessing
 - fix: UserWarning: volatile was removed and now has no effect. Use `with torch.no_grad():` instead.
   entity_var = torch.autograd.Variable(claims_dev, volatile=True).cpu()
-
+- confirm that data distribution is even - in the 120k split.
+- store the epoch into disk.- only whenever best.- rewrite the previous best.
+- add replace: so that /s is not used
+- padding
+    - check if pytorch every padding is zero
+    - remove padding and replace it with packing
+    - torch.nn.utils.rnn.pack_padded_sequence() 
  

@@ -511,14 +511,12 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
                     'Epoch: [{0}][{1}/{2}]\t'
                     'Classification_loss:{meters[class_loss]:.4f}\t'
                     'Consistency_loss:{meters[cons_loss]:.4f}\t'
-                    'Prec_student: {meters[top1]:.3f}\t'
-                    'student_error:{meters[error1]:.3f}\t'
+                    'Prec_student: {meters[top1]:.3f}\t'                    
                     'Prec_teacher: {meters[ema_top1]:.3f}\t'
                     'teacher_error: {meters[ema_error1]:.3f}\t'
+                    'student_error:{meters[error1]:.3f}\t'
                         .format(
                     epoch, i, len(train_loader), meters=meters))
-
-
 
 
 def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, model_type):
@@ -563,6 +561,7 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
     LOG.debug(f"inside validate function. value of  eval_loader.batch_size : {(eval_loader.batch_size)}")
 
 
+    #enumerate means enumerate through each of the batches.
     for i, datapoint in enumerate(eval_loader):
         LOG.debug(f"got inside .i, datapoint in enumerate(eval_loader)")
         meters.update('data_time', time.time() - end)
@@ -614,7 +613,7 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
 
 
         class_loss = class_criterion(output1, target_var) / minibatch_size
-        LOG.debug(f"value of class_loss.arch is:{class_loss}")
+        LOG.debug(f"value of class_loss is:{class_loss}")
 
         #pred_labels=get_label_from_softmax(output1.data)
 
@@ -635,23 +634,23 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
 
         LOG.info(
             'Epoch: [{0}][{1}/{2}]\t'
-            'Prec_student: {meters[top1]:.3f}\t'
-            'student_error:{meters[error1]:.3f}\t'
-            'Prec_teacher: {meters[ema_top1]:.3f}\t'
-            'teacher_error: {meters[ema_error1]:.3f}\t'
+            'Prec_model: {meters[top1]:.3f}\t'
+            'error_model:{meters[error1]:.3f}\t'
                 .format(
                 epoch, i, len(eval_loader), meters=meters))
 
-    LOG.info(' * Prec@1 {top1.avg:.3f}\tClassLoss {class_loss.avg:.3f}'
-             .format(top1=meters['top1'], class_loss=meters['class_loss']))
+
+
+    # LOG.info(' * Prec@1 {top1.avg:.3f}\tClassLoss {class_loss.avg:.3f}'
+    #          .format(top1=meters['top1'], class_loss=meters['class_loss']))
 
     if save_custom_embed_condition:
         save_custom_embeddings(custom_embeddings_minibatch, dataset, result_dir, model_type)
 
-    if args.dataset in ['riedel', 'gids']:
-        return accum_f1_test
-    else:
-        return meters['top1'].avg
+    x=meters['top1'].avg
+    LOG.info(f"average precision after epoch {epoch} is :{x}")
+
+    return x
 
 #todo: do we need to save custom_embeddings?  - mihai
 def save_custom_embeddings(custom_embeddings_minibatch, dataset, result_dir, model_type):
@@ -1154,6 +1153,7 @@ def main(context):
     for epoch in range(args.start_epoch, args.epochs):
         start_time = time.time()
         # train for one epoch
+        #ask ajay: why are they not returning the trained models explicitly
         train(train_loader, model, ema_model, optimizer, epoch, dataset, training_log)
         LOG.info(f"--- done training epoch {epoch} in %s seconds ---" % (time.time() - start_time))
 
@@ -1196,7 +1196,7 @@ def main(context):
             else:
                 is_best = False
 
-            LOG.info(f"best value of accuracy after epoch {epoch} is {local_best}")
+            LOG.info(f"best value of validation accuracy after epoch {epoch} is {local_best}")
 
             if args.checkpoint_epochs and (epoch + 1) % args.checkpoint_epochs == 0:
                 save_checkpoint({

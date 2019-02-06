@@ -771,11 +771,6 @@ class RTEDataset(Dataset):
             for lbl in self.categories:
                 f.write(lbl + '\n')
 
-        # print(self.claims[0])
-        # print(self.evidences[0])
-        # print(self.lbl[0])
-
-        #todo: mithun change later- after figuring out what transform is
         self.transform = transform
 
     def __len__(self):

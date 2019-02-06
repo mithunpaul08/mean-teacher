@@ -295,19 +295,20 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
  
  *suggestions from ajay*
 
-- Fix why epochs in validation ---done
-- Verify epochs in training are going through and not just missing printing ---done
-- Fix softmax ---done
-- Read on softmax or ajay’s code ---done
-- Debug validate code line by line ---done
-- Why isn’t code going to epoch two in validate? ---done
+- Fix why epochs in validation **----done**
+- Verify epochs in training are going through and not just missing printing **----done**
+- Fix softmax **----done**
+- Read on softmax or ajay’s code **----done**
+- Debug validate code line by line **----done**
+- Why isn’t code going to epoch two in validate? **----done**
 - Why is after removing 20% labels 100 reduces to 88 and not 80?
 - Why is mini batch 200/10 not =20, but is 17? Is it after removing 20% labels?
 - Change mini batch to start from 1 instead of 0. So confusing
 - Fix UserWarning: volatile was removed and now has no effect. Use `with torch.no_grad():` instead. ema_evidences_var = torch.autograd.Variable(teacher_input_evidence, volatile=True).cpu()
-- Try batch size =256
-- Run on clara (not jenny)
-- Make sure it sees gpu (do a sys.exit)`
-- Run with 10% of data
+- Try batch size =256 **----done**
+- Run on clara (not jenny) **----done**
+- Make sure it sees gpu (do a sys.exit)` **----done**
+- Run with 10% of data **----done**
+- add tqdm to data read part 
 
 

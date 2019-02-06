@@ -6,7 +6,20 @@ import re
 import io
 import json, sys
 from tqdm import tqdm
+import mmap
+
 class Datautils:
+
+
+
+
+    def get_num_lines(file_path):
+        fp = open(file_path, "r+")
+        buf = mmap.mmap(fp.fileno(), 0)
+        lines = 0
+        while buf.readline():
+            lines += 1
+        return lines
 
     ## read the data from the file with the entity_ids provided by entity_vocab and context_ids provided by context_vocab
     ## data format:
@@ -15,7 +28,6 @@ class Datautils:
     ## NOTE: The label to be removed later from the dataset and the routine suitably adjusted. Inserted here for debugging
 
     @classmethod
-    # askajay : but then what exactly does Datautils.read_data do? i thought it was returning entity,context,label too?-so we shouldn't do any data processing here
     def read_data(cls, filename, entity_vocab, context_vocab):
         labels = []
         entities = []
@@ -23,7 +35,7 @@ class Datautils:
 
         with open(filename) as f:
             word_counts = dict()
-            for line in tqdm(f, total=get_num_lines(filename)):
+            for line in tqdm(f, total= get_num_lines(filename)):
                 vals = line.strip().split('\t')
                 labels.append(vals[0].strip())
                 if vals[1] not in word_counts:
@@ -53,7 +65,7 @@ class Datautils:
         all_evidences = []
 
         with open(filename) as f:
-            for index, line in enumerate(f):
+            for index,line in enumerate(tqdm(f, total=cls.get_num_lines(filename))):
                 multiple_ev = False
                 x = json.loads(line)
                 claim = x["claim"]

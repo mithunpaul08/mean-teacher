@@ -39,44 +39,62 @@ python -u main.py
 --epochs 3
 --consistency 1
 --run-name fever_transform
---batch_size 15
---labels 20.0
 --data_dir data-local/rte/fever
---train_input_file train_small_200_claims_with_evi_sents.jsonl
---dev_input_file dev_90_with_evi_sents.jsonl
+--train_input_file  train_12k_with_evi_sents.jsonl -- dev_input_file dev_2k_with_evi_sents.jsonl
 --print-freq 1
---workers 0
---labeled_batch_size 7
+--workers 4
 --consistency 1
+--exclude_unlabeled false
+--batch_size 1000
+--labeled_batch_size 250
+--labels 20.0
+
+
 ```
 **removed labels**\
 `--exclude_unlabeled true`\ (refer below)
 
-`--consistency 20`\
 `-- dev_input_file dev_90_with_evi_sents.jsonl` (use this when testing on a local machine/laptop with small ram)
+
 `--train_input_file train_small_200_claims_with_evi_sents.jsonl`
 
-**Below is a version that runs on linux command line (local machine/laptop):**
+`--train_input_file  train_12k_with_evi_sents.jsonl -- dev_input_file dev_2k_with_evi_sents.jsonl`
+
+**Some linux versions of the start up command**
+
+Below is a version that runs on linux command line (local machine/laptop):**
 ```
 python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 6 --consistency=0.3 --run-name fever_transform --batch_size 10 --labels 20.0 --data_dir data-local/rte/fever --print-freq 1 --workers 0 --labeled_batch_size 2 --consistency 35.5 --dev_input_file dev_90_with_evi_sents.jsonl --train_input_file train_small_200_claims_with_evi_sents.jsonl
 ```
-**Below is a version that runs on linux command line (server/big memory):**
+Below is a version that runs on linux command line (server/big memory:120k training 25k dev):
 ```
 python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 6 --consistency=0.3 --run-name fever_transform --batch_size 1000 --labels 20.0 --data_dir data-local/rte/fever --print-freq 1 --workers 0 --labeled_batch_size 250 --consistency 35.5 --dev_input_file dev_25k_with_evi_sents.jsonl --train_input_file train_120k_with_evi_sents.jsonl
 ```
+Below is a version that runs on linux command line (server/big memory-but with 12k training and 2.5k dev):
 
-#explanation of command line paramaeters
+```
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 3 --consistency 1 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_12k_with_evi_sents.jsonl -- dev_input_file dev_2k_with_evi_sents.jsonl --print-freq 1 --workers 4 --consistency 1 --exclude_unlabeled false --batch_size 1000 --labeled_batch_size 250 --labels 20.0 
+```
+
+#explanation of command line parameters
 
 `--workers`: if you dont want multiprocessing make workers=0
 
 `--exclude_unlabeled true` means : first dataset is divided into labeled and unlabeled based on the percentage you mentioned in `--labels`.
 now instead if you just want to work with labeled data: i.e supervised training. i.e you don't want to run mean teacher for some reason: then you turn this on/true.
-also note that due to the below code whenever exclude_unlabeled=true, 
-the sampler becomes a simple batch sampler, and not a TwoStreamBatchSampler (which is
-the name of the sampler used in mean teacher).
 
-*Note:* when you are running validation on dev after training, you might want to turn  `--exclude_unlabeled true` just
-after you call train_loader before calling eval_loader
+
+ If you are doing --exclude_unlabeled true i.e to run mean teacher as a simple feed forward supervised network with all data points having labels, you shouldn't pass any of these argument parameters which are meant for mean teacher.
+
+```
+--labeled_batch_size
+--labels
+```
+also, make sure the value of `--labels` is removed.
+
+also note that due to the below code whenever `exclude_unlabeled=true`, 
+the sampler becomes a simple `BatchSampler`, and not a `TwoStreamBatchSampler` (which is
+the name of the sampler used in mean teacher).
 
 ```
 
@@ -92,12 +110,12 @@ elif args.labeled_batch_size:
 
 
 
---labeled_data_percent: is the percentage or number of labels indicating the number of labeled data points amongst the entire training data.
+`--labels`: is the percentage or number of labels indicating the number of labeled data points amongst the entire training data. If its int, the code assumes that you are
+passing the actual number of data points you want to be labeled. Else
+if its float, the code assumes it is a percentage value.
 
 
-Details of other command line parameters can be found in `pytorch/mean_teacher/tests/cli.py`
-
-note to self: initially we are using a dataset of 100 only of which 20% are only labeled. So try to keep the --labeled_batch_size 10 --batch_size 40
+Further details of other command line parameters can be found in `pytorch/mean_teacher/tests/cli.py`
 
 
 #Testing

@@ -200,6 +200,7 @@ def relabel_dataset_nlp(dataset, args):
         percent_labels = float(args.labels)
         num_labels = int(percent_labels * len(all_labels) / 100.0)
 
+    #to make sure that the labels are evenly distributed, from each class mark x number of labels as labeled,.
     num_labels_per_cat = int(num_labels / num_classes)
 
     labels_hist = {}
@@ -216,8 +217,11 @@ def relabel_dataset_nlp(dataset, args):
     for idx, l in all_labels:
         if num_labels_per_cat_dict[l] > 0:
             labeled_ids.append(idx)
+
+            #reduce the count of label/category which was stored in num_labels_per_cat_dict, by 1, every time you move a label as indexed.
             num_labels_per_cat_dict[l] -= 1
         else:
+            #once you run out of all the count of labels that you had earmarked for labeling in a given category, mark the rest all as unlabeled.
             unlabeled_idxs.append(idx)
             dataset.lbl[idx] = NO_LABEL
 
@@ -225,6 +229,13 @@ def relabel_dataset_nlp(dataset, args):
     LOG.info("[relabel dataset] Number of UNLABELED examples : " + str(len(unlabeled_idxs)))
     LOG.info("[relabel dataset] TOTAL : " + str(len(labeled_ids)+len(unlabeled_idxs)))
     return labeled_ids, unlabeled_idxs
+
+
+def get_all_label_indices(dataset, args):
+
+    labeled_ids = list(enumerate(dataset.get_labels()))
+    labeled_ids=random.shuffle(labeled_ids) # randomizing the relabeling ...
+    return labeled_ids,
 
 
 def relabel_dataset(dataset, labels):

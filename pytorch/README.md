@@ -73,7 +73,7 @@ python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_worde
 Below is a version that runs on linux command line (server/big memory-but with 12k training and 2.5k dev):
 
 ```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 3 --consistency 1 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_12k_with_evi_sents.jsonl -- dev_input_file dev_2k_with_evi_sents.jsonl --print-freq 1 --workers 4 --consistency 1 --exclude_unlabeled false --batch_size 1000 --labeled_batch_size 250 --labels 20.0 
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 3 --consistency 1 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_12k_with_evi_sents.jsonl --dev_input_file dev_2k_with_evi_sents.jsonl --print-freq 1 --workers 4 --consistency 1 --exclude_unlabeled false --batch_size 256 --labeled_batch_size 100 --labels 20.0 
 ```
 
 #explanation of command line parameters
@@ -293,3 +293,21 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
     - remove padding and replace it with packing
     - torch.nn.utils.rnn.pack_padded_sequence() 
  
+ *suggestions from ajay*
+
+- Fix why epochs in validation ---done
+- Verify epochs in training are going through and not just missing printing ---done
+- Fix softmax ---done
+- Read on softmax or ajay’s code ---done
+- Debug validate code line by line ---done
+- Why isn’t code going to epoch two in validate? ---done
+- Why is after removing 20% labels 100 reduces to 88 and not 80?
+- Why is mini batch 200/10 not =20, but is 17? Is it after removing 20% labels?
+- Change mini batch to start from 1 instead of 0. So confusing
+- Fix UserWarning: volatile was removed and now has no effect. Use `with torch.no_grad():` instead. ema_evidences_var = torch.autograd.Variable(teacher_input_evidence, volatile=True).cpu()
+- Try batch size =256
+- Run on clara (not jenny)
+- Make sure it sees gpu (do a sys.exit)`
+- Run with 10% of data
+
+

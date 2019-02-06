@@ -90,12 +90,12 @@ def create_data_loaders(train_transformation,
 
     if torch.cuda.is_available():
         pin_memory = True
-        print(f"found torch.cuda is true. giong to exit")
-        sys.exit(1)
+        LOG.info(f"found torch.cuda is true. giong to exit")
+        #sys.exit(1)
     else:
         pin_memory = False
-        print(f"found torch.cuda is false. giong to exit")
-        sys.exit(1)
+        LOG.info(f"found torch.cuda is false. giong to exit")
+        #sys.exit(1)
 
     if args.dataset in ['conll', 'ontonotes','fever']:
 

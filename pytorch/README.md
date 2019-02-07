@@ -128,6 +128,13 @@ To reproduce the CIFAR-10 ResNet results of the paper run `python -m experiments
 
 To reproduce the ImageNet results of the paper run `python -m experiments.imagenet_valid` using 10 GPUs.
 
+Note to anyone testing from clulab (including myself, mithun). Run on 
+server:clara.
+- tmux
+- git pull
+- source activate meanteacher
+- one of the linux commands above    
+
 # FAQ :
 *These are questions I had when i was trying to load the mean teacher project. Noting it down for myself and for the sake of others who might end up using this code.*
 

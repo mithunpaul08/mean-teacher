@@ -88,14 +88,21 @@ def create_data_loaders(train_transformation,
 
     assert_exactly_one([args.exclude_unlabeled, args.labeled_batch_size])
 
+    LOG.info(torch.cuda.device_count())
+    LOG.info(cuda0 = torch.cuda.set_device(0))
+    LOG.info(torch.cuda.current_device())
+    LOG.info(torch.cuda.get_device_name(0))
+    LOG.info(torch.cuda.device_count())
+
+
     if torch.cuda.is_available():
         pin_memory = True
         LOG.info(f"found torch.cuda is true. giong to exit")
-        #sys.exit(1)
+        sys.exit(1)
     else:
         pin_memory = False
         LOG.info(f"found torch.cuda is false. giong to exit")
-        #sys.exit(1)
+        sys.exit(1)
 
     if args.dataset in ['conll', 'ontonotes','fever']:
 

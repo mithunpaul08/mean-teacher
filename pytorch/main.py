@@ -98,11 +98,10 @@ def create_data_loaders(train_transformation,
         LOG.info(torch.cuda.current_device())
         LOG.info(torch.cuda.get_device_name(0))
         LOG.info(torch.cuda.device_count())
-        sys.exit(1)
     else:
         pin_memory = False
         LOG.info(f"found torch.cuda is false. giong to exit")
-        sys.exit(1)
+        
 
     if args.dataset in ['conll', 'ontonotes','fever']:
 

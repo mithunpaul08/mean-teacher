@@ -89,7 +89,7 @@ def create_data_loaders(train_transformation,
     assert_exactly_one([args.exclude_unlabeled, args.labeled_batch_size])
 
     LOG.info(torch.cuda.device_count())
-    LOG.info(cuda0 = torch.cuda.set_device(0))
+    cuda0 = torch.cuda.set_device(0)
     LOG.info(torch.cuda.current_device())
     LOG.info(torch.cuda.get_device_name(0))
     LOG.info(torch.cuda.device_count())

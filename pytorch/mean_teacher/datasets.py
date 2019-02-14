@@ -795,6 +795,7 @@ class RTEDataset(Dataset):
 
         list_of_longest_ev_lengths=[]
         list_of_longest_evidences=[]
+        list_of_longest_claim_lengths = []
 
 
         for each_claim in self.claims:
@@ -805,6 +806,7 @@ class RTEDataset(Dataset):
                 if len(words) > max_claim_len:
                     max_claim_len = len(words)
                     max_claim = words
+                    list_of_longest_claim_lengths.append(max_claim_len)
 
         for each_ev in self.evidences:
             words = [w for w in each_ev.split(" ")]
@@ -838,10 +840,17 @@ class RTEDataset(Dataset):
         #LOG.debug(f"list_of_longest_evidences.sort(:{top10}")
         s_lengths=sorted(list_of_longest_ev_lengths,reverse=True)
         LOG.debug(f"list_of_longest_ev_lengths.sort(:{s_lengths[:10]}")
+
+        claim_sorted_len=sorted(list_of_longest_claim_lengths,reverse=True)
+        x=claim_sorted_len[:10]
+        LOG.debug(f"claim_sorted_len_t10.(:{x}")
+
+
+
         #LOG.debug (f"max_claim:{max_claim}")
         #LOG.debug (max_claim_len)
         #LOG.debug (longest_evidence_words)
-        LOG.debug (max_evidence_len)
+        #LOG.debug (max_evidence_len)
         import sys
         sys.exit(1)
 

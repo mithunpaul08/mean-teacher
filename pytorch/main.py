@@ -25,7 +25,7 @@ import random
 
 #askfan: where is log file stored? Ans: stdout
 LOG = logging.getLogger('main')
-LOG.setLevel(logging.INFO)
+LOG.setLevel(logging.DEBUG)
 
 ################
 # NOTE: To enable logging on IPythonConsole output or IPyNoteBook
@@ -109,7 +109,7 @@ def create_data_loaders(train_transformation,
         LOG.info("evaldir : " + evaldir)
 
         train_input_file = traindir + args.train_input_file
-        dataset = datasets.RTEDataset(train_input_file, args, train_transformation)
+        dataset = datasets.RTEDataset(train_input_file, args, LOG,train_transformation)
         LOG.info("Type of Noise : "+ dataset.WORD_NOISE_TYPE)
         LOG.info("Size of Noise : "+ str(dataset.NUM_WORDS_TO_REPLACE))
 

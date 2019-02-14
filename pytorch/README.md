@@ -68,7 +68,7 @@ python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_worde
 ```
 Below is a version that runs on linux command line (server/big memory:120k training 25k dev):
 ```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 6 --consistency=0.3 --run-name fever_transform --batch_size 1000 --labels 20.0 --data_dir data-local/rte/fever --print-freq 1 --workers 0 --labeled_batch_size 250 --consistency 35.5 --dev_input_file dev_25k_with_evi_sents.jsonl --train_input_file train_120k_with_evi_sents.jsonl
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 6 --consistency=0.3 --run-name fever_transform --batch_size 1000 --labels 20.0 --data_dir data-local/rte/fever --print-freq 1 --workers 4 --labeled_batch_size 250 --consistency 35.5 --dev_input_file dev_25k_with_evi_sents.jsonl --train_input_file train_120k_with_evi_sents.jsonl
 ```
 Below is a version that runs on linux command line (server/big memory-but with 12k training and 2.5k dev):
 

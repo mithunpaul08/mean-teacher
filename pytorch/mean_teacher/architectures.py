@@ -206,6 +206,13 @@ class FeedForwardMLPEmbed_RE(nn.Module):
         seq_lengths = input_tuple[1]  # LongTensor
         pad_id = input_tuple[2]
 
+        # keep track of how code and comm were sorted so that we can unsort them later
+        # # because packing requires them to be in descending order
+        # code_lengths, code_sort_order = code_lengths.sort(descending=True)
+        # comm_lengths, comm_sort_order = comm_lengths.sort(descending=True)
+        # code_inv_order = code_sort_order.sort()[1]
+        # comm_inv_order = comm_sort_order.sort()[1]
+
         # Embed the input
         embedded = self.embeddings(input)  # embedded.shape: torch.Size([256, 66, 100])
 

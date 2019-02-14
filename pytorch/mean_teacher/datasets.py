@@ -713,16 +713,23 @@ class RTEDataset(Dataset):
         return np.array(word_vocab_embed).astype('float32')
 
     #mithun this is called using:#dataset = datasets.NECDataset(traindir, args, train_transformation)
-    def __init__(self, dataset_file, args, transform=None):
+    def __init__(self, dataset_file, args, LOG,transform=None):
 
 
         self.claims, self.evidences, self.labels_str = Datautils.read_rte_data(dataset_file)
 
+        assert len(self.claims)== len(self.evidences)==len(self.labels_str), "claims and evidences are not of equal length"
 
-        self.word_vocab, self.max_claims_len, self.max_ev_len = self.build_word_vocabulary()
+        #to find the top 10 longest evidences. am doing this because GPU was getting memory overloaded because of padding
+        #for e in self.evidences:
 
 
-        #askfan :can i do this above word count thing later?- right now i want all words, maybe, for starters?
+
+
+        self.word_vocab, self.max_claims_len, self.max_ev_len = self.build_word_vocabulary(LOG)
+
+
+        #askfan :can i do this above word count thing later?- right now i want all words, maybe, for starters? Ans: yes
         # for word in self.word_counts:
         #     if self.word_counts[word] >= args.word_frequency:
         #         self.word_vocab.add(word, self.word_counts[word])
@@ -776,7 +783,7 @@ class RTEDataset(Dataset):
     def __len__(self):
         return len(self.claims)
 
-    def build_word_vocabulary(self):
+    def build_word_vocabulary(self,LOG):
         word_vocab = Vocabulary()
 
         max_claim_len = 0
@@ -824,13 +831,20 @@ class RTEDataset(Dataset):
         #         break
 
 
-        #for debug: find the top 10 longest sentences and their length
-        # print(f"list_of_longest_evidences.sort(:{list_of_longest_evidences.sort()}")
-        # print(f"list_of_longest_ev_lengths.sort(:{list_of_longest_ev_lengths.sort()}")
-        # print (f"max_claim:{max_claim}")
-        # print (max_claim_len)
-        # print (longest_evidence_words)
-        # print (max_evidence_len)
+        #for debug: find the top 10 longest sentences
+        #  and their length
+        s=sorted(list_of_longest_evidences,key=len,reverse=True)
+        top10=s[:10]
+        #LOG.debug(f"list_of_longest_evidences.sort(:{top10}")
+        s_lengths=sorted(list_of_longest_ev_lengths,reverse=True)
+        LOG.debug(f"list_of_longest_ev_lengths.sort(:{s_lengths[:10]}")
+        #LOG.debug (f"max_claim:{max_claim}")
+        #LOG.debug (max_claim_len)
+        #LOG.debug (longest_evidence_words)
+        LOG.debug (max_evidence_len)
+        import sys
+        sys.exit(1)
+
 
         return word_vocab, max_claim_len, max_evidence_len
 

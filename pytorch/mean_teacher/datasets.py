@@ -720,9 +720,29 @@ class RTEDataset(Dataset):
 
         assert len(self.claims)== len(self.evidences)==len(self.labels_str), "claims and evidences are not of equal length"
 
-        #to find the top 10 longest evidences. am doing this because GPU was getting memory overloaded because of padding
-        #for e in self.evidences:
+        #to find the top 10 longest evidences adn remove them. am doing this because GPU was getting memory overloaded because of padding
+        list_of_longest_ev_lengths=[]
+        list_of_longest_evidences=[]
+        max_evidence_len=0
+        for each_ev in self.evidences:
+            words = [w for w in each_ev.split(" ")]
+            if len(words) > max_evidence_len:
+                    max_evidence_len = len(words)
+                    longest_evidence_words = words
+                    list_of_longest_ev_lengths.append(max_evidence_len)
+                    list_of_longest_evidences.append(longest_evidence_words)
 
+        s = sorted(list_of_longest_evidences, key=len, reverse=True)
+        top10 = s[:10]
+        # LOG.debug(f"list_of_longest_evidences.sort(:{top10}")
+        s_lengths = sorted(list_of_longest_ev_lengths, reverse=True)
+        LOG.debug(f"list_of_longest_ev_lengths.sort(:{s_lengths[:10]}")
+
+        #todo: remove the top 10. if more than length 1000-definitely remove it from the list and stop.
+
+        # claim_sorted_len = sorted(list_of_longest_claim_lengths, reverse=True)
+        # x = claim_sorted_len[:10]
+        # LOG.debug(f"claim_sorted_len_t10.(:{x}")
 
 
 
@@ -851,8 +871,8 @@ class RTEDataset(Dataset):
         #LOG.debug (max_claim_len)
         #LOG.debug (longest_evidence_words)
         #LOG.debug (max_evidence_len)
-        import sys
-        sys.exit(1)
+        # import sys
+        # sys.exit(1)
 
 
         return word_vocab, max_claim_len, max_evidence_len

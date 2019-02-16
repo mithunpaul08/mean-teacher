@@ -76,6 +76,7 @@ class Datautils:
                 if (len(evidences) > 1):
                     multiple_ev=True
                     for e in evidences:
+                        #todo: truncate at 1000 words. irrespective of claim or evidence truncate it at 1000...get 1000 from command line
                         evidences_this_list.append(e)
                     evidences_this_str=" ".join(evidences_this_list)
                 else:

@@ -736,9 +736,12 @@ class RTEDataset(Dataset):
         top10 = s[:10]
         # LOG.debug(f"list_of_longest_evidences.sort(:{top10}")
         s_lengths = sorted(list_of_longest_ev_lengths, reverse=True)
-        LOG.debug(f"list_of_longest_ev_lengths.sort(:{s_lengths[:10]}")
+        #LOG.debug(f"list_of_longest_ev_lengths.sort(:{s_lengths[:10]}")
 
         #todo: remove the top 10. if more than length 1000-definitely remove it from the list and stop.
+        #todo ask becky: in the middle of trying to remove the top sentences above size 1000...or should
+        #i say top 5? isn't 5 strategy better than 1000...because if we have a new data set tomorrow, where everything is between 1k and 2k, then we lose all data right? risky?
+        #solution: send length cut off from command line...length threshold from command line arguments
 
         # claim_sorted_len = sorted(list_of_longest_claim_lengths, reverse=True)
         # x = claim_sorted_len[:10]
@@ -859,11 +862,11 @@ class RTEDataset(Dataset):
         top10=s[:10]
         #LOG.debug(f"list_of_longest_evidences.sort(:{top10}")
         s_lengths=sorted(list_of_longest_ev_lengths,reverse=True)
-        LOG.debug(f"list_of_longest_ev_lengths.sort(:{s_lengths[:10]}")
+        #LOG.debug(f"list_of_longest_ev_lengths.sort(:{s_lengths[:10]}")
 
         claim_sorted_len=sorted(list_of_longest_claim_lengths,reverse=True)
         x=claim_sorted_len[:10]
-        LOG.debug(f"claim_sorted_len_t10.(:{x}")
+        #LOG.debug(f"claim_sorted_len_t10.(:{x}")
 
 
 
@@ -925,6 +928,10 @@ class RTEDataset(Dataset):
 
         claims_words_id = [self.word_vocab.get_id(w) for w in (self.claims[idx].split(" "))]
         ev_words_id = [self.word_vocab.get_id(w) for w in (self.evidences[idx].split(" "))]
+
+
+        len_claims_words=len(claims_words_id)
+        len_evidence_words = len(ev_words_id)
 
         claims_words_id_padded = self.pad_item(claims_words_id)
         ev_words_id_padded = self.pad_item(ev_words_id,True)
@@ -1014,9 +1021,9 @@ class RTEDataset(Dataset):
         #  , you will be returning two different types of claim and evidence. else just one.
 
         if self.transform is not None:
-            return (claims_datum[0], evidence_datum[0]), (claims_datum[1], evidence_datum[1]), label
+            return (claims_datum[0], evidence_datum[0]), (claims_datum[1], evidence_datum[1]), label, (len_claims_words,len_evidence_words)
         else:
-            return (claims_datum, evidence_datum), label
+            return (claims_datum, evidence_datum), label,(len_claims_words,len_evidence_words)
 
 
 

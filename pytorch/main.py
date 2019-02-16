@@ -354,6 +354,9 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
         adjust_learning_rate(optimizer, epoch, i, len(train_loader))
         meters.update('lr', optimizer.param_groups[0]['lr'])
 
+        len_claims_this_batch = None
+        len_evidences_this_batch= None
+
         if args.dataset in ['conll', 'ontonotes','fever']:
 
             #if there is no transformation, the data will be inside datapoint[0] itself
@@ -361,11 +364,15 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
                 student_input = datapoint[0]
                 teacher_input = datapoint[0]
                 target = datapoint[1]
+                len_claims_this_batch = datapoint[2][0]
+                len_evidences_this_batch = datapoint[2][1]
 
             else:
                 student_input = datapoint[0]
                 teacher_input = datapoint[1]
                 target = datapoint[2]
+                len_claims_this_batch       = datapoint[3][0]
+                len_evidences_this_batch    = datapoint[3][1]
 
 
 
@@ -408,8 +415,8 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
             ema_model_out, _, _ = ema_model(ema_claims_var, ema_evidences_var)
             model_out, _, _ = model(claims_var, evidences_var)
         elif args.dataset in ['fever'] and args.arch == 'simple_MLP_embed_RTE':
-            ema_model_out = ema_model(ema_claims_var, ema_evidences_var)
-            model_out = model(claims_var, evidences_var)
+            ema_model_out = ema_model(ema_claims_var, ema_evidences_var,len_claims_this_batch,len_evidences_this_batch)
+            model_out = model(claims_var, evidences_var,len_claims_this_batch,len_evidences_this_batch)
         elif args.dataset in ['fever'] and args.arch == 'simple_MLP_embed':
             ema_model_out = ema_model(ema_claims_var, ema_evidences_var)
             model_out = model(claims_var, evidences_var)

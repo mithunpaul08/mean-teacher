@@ -338,8 +338,8 @@ class FeedForwardMLPEmbed_RTE(nn.Module):
         #:claim_h_n hidden states at each word- will be used later when we have to get output of bilstm.
 
         #claim_c_n = context states at each word
-        claim_enc_pad, (claim_h_n, claim_c_n) = self.code_lstm(claim_enc_pack)
-        ev_enc_pad, (ev_h_n, ev_c_n) = self.comm_lstm(evidence_enc_pack)
+        claim_enc_pad, (claim_h_n, claim_c_n) = self.lstm(claim_enc_pack)
+        ev_enc_pad, (ev_h_n, ev_c_n) = self.lstm(evidence_enc_pack)
 
         # back to padding
         code_vecs, _ = torch.nn.utils.rnn.pad_packed_sequence(claim_enc_pad, batch_first=True)

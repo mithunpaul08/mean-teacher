@@ -613,6 +613,8 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
             claims_dev = datapoint[0][0]
             evidence_dev = datapoint[0][1]
             labels_dev = datapoint[1]
+            len_claims_this_batch = datapoint[2][0]
+            len_evidences_this_batch = datapoint[2][1]
 
             # LOG.debug(f"value of claims_dev is:{claims_dev}")
             # LOG.debug(f"value of patterns is:{evidence_dev}")
@@ -650,7 +652,7 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
                 custom_embeddings_minibatch.append((entity_custom_embed, pattern_custom_embed))  # , minibatch_size))
 
         elif args.dataset in ['fever'] and args.arch == 'simple_MLP_embed_RTE':
-            output1 = model(claims_var, evidence_var)
+            output1 = model(claims_var, evidence_var,len_claims_this_batch,len_evidences_this_batch)
 
 
 

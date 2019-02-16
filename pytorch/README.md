@@ -36,17 +36,18 @@ python -u main.py
 --arch simple_MLP_embed_RTE 
 --pretrained_wordemb false 
 --update_pretrained_wordemb true
---epochs 3
+--epochs 2
 --consistency 1
 --run-name fever_transform
 --data_dir data-local/rte/fever
---train_input_file  train_12k_with_evi_sents.jsonl -- dev_input_file dev_2k_with_evi_sents.jsonl
+--train_input_file  train_small_200_claims_with_evi_sents.jsonl 
+--dev_input_file dev_90_with_evi_sents.jsonl
 --print-freq 1
---workers 4
+--workers 0
 --consistency 1
 --exclude_unlabeled false
---batch_size 1000
---labeled_batch_size 250
+--batch_size 100
+--labeled_batch_size 25
 --labels 20.0
 
 
@@ -66,14 +67,14 @@ Below is a version that runs on linux command line (local machine/laptop):**
 ```
 python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 6 --consistency=0.3 --run-name fever_transform --batch_size 10 --labels 20.0 --data_dir data-local/rte/fever --print-freq 1 --workers 0 --labeled_batch_size 2 --consistency 35.5 --dev_input_file dev_90_with_evi_sents.jsonl --train_input_file train_small_200_claims_with_evi_sents.jsonl
 ```
-Below is a version that runs on linux command line (server/big memory:120k training 25k dev):
-```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 6 --consistency=0.3 --run-name fever_transform --batch_size 1000 --labels 20.0 --data_dir data-local/rte/fever --print-freq 1 --workers 4 --labeled_batch_size 250 --consistency 35.5 --dev_input_file dev_25k_with_evi_sents.jsonl --train_input_file train_120k_with_evi_sents.jsonl
-```
 Below is a version that runs on linux command line (server/big memory-but with 12k training and 2.5k dev):
 
 ```
 python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 3 --consistency 1 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_12k_with_evi_sents.jsonl --dev_input_file dev_2k_with_evi_sents.jsonl --print-freq 1 --workers 4 --consistency 1 --exclude_unlabeled false --batch_size 256 --labeled_batch_size 100 --labels 20.0 
+```
+Below is a version that runs on linux command line (server/big memory:120k training 25k dev):
+```
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 6 --consistency=0.3 --run-name fever_transform --batch_size 1000 --labels 20.0 --data_dir data-local/rte/fever --print-freq 1 --workers 4 --labeled_batch_size 250 --consistency 35.5 --dev_input_file dev_25k_with_evi_sents.jsonl --train_input_file train_120k_with_evi_sents.jsonl
 ```
 
 #explanation of command line parameters

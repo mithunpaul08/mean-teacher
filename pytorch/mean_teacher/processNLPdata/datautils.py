@@ -59,7 +59,8 @@ class Datautils:
         return entities, contexts, labels
 
     @classmethod
-    def read_rte_data(cls, filename):
+    def read_rte_data(cls, filename,args):
+        tr_len=args.truncate_words_length
         all_labels = []
         all_claims = []
         all_evidences = []
@@ -74,13 +75,28 @@ class Datautils:
                 evidences_this_list=[]
                 evidences_this_str = ""
                 if (len(evidences) > 1):
+                    #some claims have more than one evidences. Join them all together.
                     multiple_ev=True
                     for e in evidences:
-                        #todo: truncate at 1000 words. irrespective of claim or evidence truncate it at 1000...get 1000 from command line
                         evidences_this_list.append(e)
                     evidences_this_str=" ".join(evidences_this_list)
                 else:
                     evidences_this_str = "".join(evidences)
+
+
+                ## truncate at n words. irrespective of claim or evidence truncate it at n...
+                # Else it was overloading memory due to the packing/padding of all sentences into the longest size..
+                # which was like 180k words or something
+
+                claim_split=claim.split(" ")
+                if(len(claim_split) > tr_len):
+                    claim_tr=claim_split[:1000]
+                    claim = " ".join(claim_tr)
+
+                evidences_split = evidences_this_str.split(" ")
+                if (len(evidences_split) > tr_len):
+                    evidences_tr = evidences_split[:1000]
+                    evidences_this_str=" ".join(evidences_tr)
 
                 all_claims.append(claim)
                 all_evidences.append(evidences_this_str)

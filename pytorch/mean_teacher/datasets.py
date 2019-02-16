@@ -716,7 +716,7 @@ class RTEDataset(Dataset):
     def __init__(self, dataset_file, args, LOG,transform=None):
 
 
-        self.claims, self.evidences, self.labels_str = Datautils.read_rte_data(dataset_file)
+        self.claims, self.evidences, self.labels_str = Datautils.read_rte_data(dataset_file,args)
 
         assert len(self.claims)== len(self.evidences)==len(self.labels_str), "claims and evidences are not of equal length"
 

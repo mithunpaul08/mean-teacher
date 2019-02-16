@@ -118,6 +118,9 @@ def create_parser():
     parser.add_argument('--output_folder', type=str, default='outputs/',
                         help='path to the dev data file. folder path is hard coded via:data-local/rte/fever/dev')
 
+    parser.add_argument('--truncate_words_length', type=int, default=1000,
+                        help='if claim or evidence goes beyond.')
+
 
     return parser
 

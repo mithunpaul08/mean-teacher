@@ -25,7 +25,7 @@ import random
 
 #askfan: where is log file stored? Ans: stdout
 LOG = logging.getLogger('main')
-LOG.setLevel(logging.DEBUG)
+LOG.setLevel(logging.INFO)
 
 ################
 # NOTE: To enable logging on IPythonConsole output or IPyNoteBook

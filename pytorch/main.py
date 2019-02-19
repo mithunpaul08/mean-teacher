@@ -698,7 +698,7 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
                 .format(
                 epoch, i, len(eval_loader), meters=meters))
 
-        LOG.info(f"value of  i after epoch {epoch} is :{i}")
+        LOG.debug(f"value of  i after epoch {epoch} is :{i}")
         total_no_batches=i
 
 

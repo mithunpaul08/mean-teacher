@@ -1251,8 +1251,6 @@ def main(context):
                     'dataset' : args.dataset,
                 }, is_best, checkpoint_path, epoch + 1)
 
-            LOG.debug(f"done with epoch number: {epoch}")
-            sys.exit(1)
 
 
 

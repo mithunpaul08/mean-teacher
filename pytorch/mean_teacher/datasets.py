@@ -732,22 +732,13 @@ class RTEDataset(Dataset):
                     list_of_longest_ev_lengths.append(max_evidence_len)
                     list_of_longest_evidences.append(longest_evidence_words)
 
-        s = sorted(list_of_longest_evidences, key=len, reverse=True)
-        top10 = s[:10]
-        # LOG.debug(f"list_of_longest_evidences.sort(:{top10}")
-        s_lengths = sorted(list_of_longest_ev_lengths, reverse=True)
-        #LOG.debug(f"list_of_longest_ev_lengths.sort(:{s_lengths[:10]}")
-
-        #todo: remove the top 10. if more than length 1000-definitely remove it from the list and stop.
-        #todo ask becky: in the middle of trying to remove the top sentences above size 1000...or should
-        #i say top 5? isn't 5 strategy better than 1000...because if we have a new data set tomorrow, where everything is between 1k and 2k, then we lose all data right? risky?
-        #solution: send length cut off from command line...length threshold from command line arguments
-
-        # claim_sorted_len = sorted(list_of_longest_claim_lengths, reverse=True)
-        # x = claim_sorted_len[:10]
-        # LOG.debug(f"claim_sorted_len_t10.(:{x}")
-
-
+        # s = sorted(list_of_longest_evidences, key=len, reverse=True)
+        # top10 = s[:10]
+        # # LOG.debug(f"list_of_longest_evidences.sort(:{top10}")
+        # s_lengths = sorted(list_of_longest_ev_lengths, reverse=True)
+        # #LOG.debug(f"list_of_longest_ev_lengths.sort(:{s_lengths[:10]}")
+        #
+        #
 
         self.word_vocab, self.max_claims_len, self.max_ev_len = self.build_word_vocabulary(LOG)
 

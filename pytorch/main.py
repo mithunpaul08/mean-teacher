@@ -25,7 +25,7 @@ import random
 
 #askfan: where is log file stored? Ans: stdout
 LOG = logging.getLogger('main')
-LOG.setLevel(logging.INFO)
+LOG.setLevel(logging.DEBUG)
 
 ################
 # NOTE: To enable logging on IPythonConsole output or IPyNoteBook
@@ -96,7 +96,7 @@ def create_data_loaders(train_transformation,
         LOG.info(torch.cuda.device_count())
         cuda0 = torch.cuda.set_device(0)
         LOG.info(torch.cuda.current_device())
-        LOG.info(torch.cuda.get_device_name(0))
+        #LOG.info(torch.cuda.get_device_name(0))
         LOG.info(torch.cuda.device_count())
     else:
         pin_memory = False
@@ -1178,7 +1178,6 @@ def main(context):
 
     for epoch in range(args.start_epoch, args.epochs):
         start_time = time.time()
-        # train for one epoch
         #ask ajay: why are they not returning the trained models explicitly
         train(train_loader, model, ema_model, optimizer, epoch, dataset, training_log)
         LOG.info(f"--- done training epoch {epoch} in %s seconds ---" % (time.time() - start_time))
@@ -1235,6 +1234,9 @@ def main(context):
                     'optimizer' : optimizer.state_dict(),
                     'dataset' : args.dataset,
                 }, is_best, checkpoint_path, epoch + 1)
+
+            LOG.debug(f"done with epoch number: {epoch}")
+            sys.exit(1)
 
 
 

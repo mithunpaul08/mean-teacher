@@ -117,12 +117,12 @@ def create_data_loaders(train_transformation,
         if args.exclude_unlabeled:
             labeled_idxs = data.get_all_label_indices(dataset, args)
             sampler = SubsetRandomSampler(labeled_idxs)
-            batch_sampler = BatchSampler(sampler, args.batch_size, drop_last=True)
+            batch_sampler_local = BatchSampler(sampler, args.batch_size, drop_last=True)
         elif args.labeled_batch_size:
             # askfan what does this relabel_dataset do? Ans: taking the training set and dividing a part of it as labeled and rest as unlabeled (label =-1)
             if args.labels:
                 labeled_idxs, unlabeled_idxs = data.relabel_dataset_nlp(dataset, args)
-                batch_sampler = data.TwoStreamBatchSampler(unlabeled_idxs, labeled_idxs, args.batch_size,
+                batch_sampler_local = data.TwoStreamBatchSampler(unlabeled_idxs, labeled_idxs, args.batch_size,
                                                        args.labeled_batch_size)
         else:
             assert False, "labeled batch size {}".format(args.labeled_batch_size)
@@ -138,7 +138,7 @@ def create_data_loaders(train_transformation,
         # it picks randomly to create a batch, but it also has to have a minimum:args.batch_size, args.labeled_batch_size
         # for each mini batch: for each data point, it will call __getitem__
 
-        ''' CLASS torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False, sampler=None, batch_sampler=None, num_workers=0, collate_fn=<function default_collate>, pin_memory=False, drop_last=False, timeout=0, worker_init_fn=None)[SOURCE]
+        ''' CLASS torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False, sampler=None, batch_sampler_local=None, num_workers=0, collate_fn=<function default_collate>, pin_memory=False, drop_last=False, timeout=0, worker_init_fn=None)[SOURCE]
 Data loader. Combines a dataset and a sampler, and provides single- or multi-process iterators over the dataset.
 
 Parameters:	
@@ -146,7 +146,7 @@ dataset (Dataset) – dataset from which to load the data.
 batch_size (int, optional) – how many samples per batch to load (default: 1).
 shuffle (bool, optional) – set to True to have the data reshuffled at every epoch (default: False).
 sampler (Sampler, optional) – defines the strategy to draw samples from the dataset. If specified, shuffle must be False.
-batch_sampler (Sampler, optional) – like sampler, but returns a batch of indices at a time. Mutually exclusive with batch_size, shuffle, sampler, and drop_last.
+batch_sampler_local (Sampler, optional) – like sampler, but returns a batch of indices at a time. Mutually exclusive with batch_size, shuffle, sampler, and drop_last.
 num_workers (int, optional) – how many subprocesses to use for data loading. 0 means that the data will be loaded in the main process. (default: 0)
 collate_fn (callable, optional) – merges a list of samples to form a mini-batch.
 pin_memory (bool, optional) – If True, the data loader will copy tensors into CUDA pinned memory before returning them.
@@ -157,7 +157,7 @@ worker_init_fn (callable, optional) – If not None, this will be called on each
 
 
         train_loader = torch.utils.data.DataLoader(dataset,
-                                                   batch_sampler=batch_sampler,
+                                                   batch_sampler=batch_sampler_local,
                                                    num_workers=args.workers,
                                                    pin_memory=True
                                                   )
@@ -172,7 +172,7 @@ worker_init_fn (callable, optional) – If not None, this will be called on each
 
         #in dev, there shouldn't be two stream sampler
         sampler = SubsetRandomSampler(labeled_idxs)
-        batch_sampler = BatchSampler(sampler, args.batch_size, drop_last=True)
+        batch_sampler_local = BatchSampler(sampler, args.batch_size, drop_last=True)
 
         eval_loader = torch.utils.data.DataLoader(dataset_test,
                                                   batch_size=args.batch_size,
@@ -199,16 +199,16 @@ worker_init_fn (callable, optional) – If not None, this will be called on each
             labeled_idxs, unlabeled_idxs = data.relabel_dataset_RE(dataset, args)
         if args.exclude_unlabeled or len(unlabeled_idxs) == 0:
             sampler = SubsetRandomSampler(labeled_idxs)
-            batch_sampler = BatchSampler(sampler, args.batch_size, drop_last=True)
+            batch_sampler_local = BatchSampler(sampler, args.batch_size, drop_last=True)
         elif args.labeled_batch_size:
-            batch_sampler = data.TwoStreamBatchSampler(
+            batch_sampler_local = data.TwoStreamBatchSampler(
                 unlabeled_idxs, labeled_idxs, args.batch_size, args.labeled_batch_size)
         else:
             assert False, "labeled batch size {}".format(args.labeled_batch_size)
 
         train_loader = torch.utils.data.DataLoader(dataset,
                                                    pin_memory=pin_memory,
-                                                   batch_sampler=batch_sampler,
+                                                   batch_sampler=batch_sampler_local,
                                                    num_workers=args.workers
                                                    )
                                                   # drop_last=False)
@@ -238,16 +238,16 @@ worker_init_fn (callable, optional) – If not None, this will be called on each
             labeled_idxs, unlabeled_idxs = data.relabel_dataset_nlp(dataset, args)
         if args.exclude_unlabeled:
             sampler = SubsetRandomSampler(labeled_idxs)
-            batch_sampler = BatchSampler(sampler, args.batch_size, drop_last=True)
+            batch_sampler_local = BatchSampler(sampler, args.batch_size, drop_last=True)
         elif args.labeled_batch_size:
-            batch_sampler = data.TwoStreamBatchSampler(
+            batch_sampler_local = data.TwoStreamBatchSampler(
                 unlabeled_idxs, labeled_idxs, args.batch_size, args.labeled_batch_size)
         else:
             assert False, "labeled batch size {}".format(args.labeled_batch_size)
 
         train_loader = torch.utils.data.DataLoader(dataset,
                                                    pin_memory,
-                                                   batch_sampler=batch_sampler,
+                                                   batch_sampler=batch_sampler_local,
                                                    num_workers=args.workers,
                                                    )
                                                    # drop_last=False)
@@ -258,7 +258,7 @@ worker_init_fn (callable, optional) – If not None, this will be called on each
 
         eval_loader = torch.utils.data.DataLoader(dataset_test,
                                                   pin_memory,
-                                                  batch_sampler=batch_sampler,
+                                                  batch_sampler=batch_sampler_local,
                                                   num_workers=args.workers,
                                                   )
 
@@ -273,16 +273,16 @@ worker_init_fn (callable, optional) – If not None, this will be called on each
 
         if args.exclude_unlabeled:
             sampler = SubsetRandomSampler(labeled_idxs)
-            batch_sampler = BatchSampler(sampler, args.batch_size, drop_last=True)
+            batch_sampler_local = BatchSampler(sampler, args.batch_size, drop_last=True)
         elif args.labeled_batch_size:
-            batch_sampler = data.TwoStreamBatchSampler(
+            batch_sampler_local = data.TwoStreamBatchSampler(
                 unlabeled_idxs, labeled_idxs, args.batch_size, args.labeled_batch_size)
         else:
             assert False, "labeled batch size {}".format(args.labeled_batch_size)
 
         train_loader = torch.utils.data.DataLoader(dataset,
                                                    pin_memory,
-                                                   batch_sampler=batch_sampler,
+                                                   batch_sampler=batch_sampler_local,
                                                    num_workers=args.workers,
                                                    )
 

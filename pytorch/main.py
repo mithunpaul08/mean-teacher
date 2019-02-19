@@ -1259,7 +1259,7 @@ def main(context):
                 is_best = False
 
             LOG.info(f"best value of validation accuracy after epoch {epoch} is {local_best}")
-            LOG.info(f"best value of best_accuracy_across_epochs so far is {best_accuracy_across_epochs} at epoch number {epoch}")
+            LOG.info(f"best value of best_accuracy_across_epochs so far is {best_accuracy_across_epochs} at epoch number {best_epochs}")
 
             if args.checkpoint_epochs and (epoch + 1) % args.checkpoint_epochs == 0:
                 save_checkpoint({

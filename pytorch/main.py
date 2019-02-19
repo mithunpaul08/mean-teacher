@@ -508,13 +508,13 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
         meters.update('loss', loss.data.item())
 
 
-        prec1 = accuracy_fever(class_logit.data, target_var.data) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
+        prec1 = accuracy_fever(class_logit.data, target_var.data,LOG) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
         meters.update('top1', prec1[0], labeled_minibatch_size)
         meters.update('error1', 100. - prec1[0], labeled_minibatch_size)
         #meters.update('top5', prec5[0], labeled_minibatch_size)
         #meters.update('error5', 100. - prec5[0], labeled_minibatch_size)
 
-        ema_prec1 = accuracy_fever(ema_logit.data, target_var.data) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
+        ema_prec1 = accuracy_fever(ema_logit.data, target_var.data,LOG) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
         meters.update('ema_top1', ema_prec1[0], labeled_minibatch_size)
         meters.update('ema_error1', 100. - ema_prec1[0], labeled_minibatch_size)
         # meters.update('ema_top5', ema_prec5[0], labeled_minibatch_size)
@@ -661,10 +661,15 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
 
         #pred_labels=get_label_from_softmax(output1.data)
 
-
+        LOG.debug(f"list of predicted labels are: of class_loss is:{output1.data}")
+        LOG.debug(f"list of gold labels are:{target_var.data}")
 
             # measure accuracy and record loss
-        prec1 = accuracy_fever(output1.data, target_var.data, ) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
+        prec1 = accuracy_fever(output1.data, target_var.data, LOG)
+
+        LOG.debug(f"value of prec1 is :{prec1}")
+
+
         meters.update('class_loss', class_loss.data.item(), labeled_minibatch_size)
         meters.update('top1', prec1[0], labeled_minibatch_size)
         meters.update('error1', 100.0 - prec1[0], labeled_minibatch_size)
@@ -836,26 +841,33 @@ def accuracy(output, target, topk=(1,)):
     return res
 
 #this accuracy is a simpler version where there are no topk elements. It just picks the element with highest value
-def accuracy_fever(predicted_labels, gold_labels):
+def accuracy_fever(predicted_labels, gold_labels,LOG):
     m = nn.Softmax()
     output_sftmax = m(predicted_labels)
+    LOG.debug(f"value of output_sftmax is :{output_sftmax}")
+
     labeled_minibatch_size = max(gold_labels.ne(NO_LABEL).sum(), 1e-8)
+
+    LOG.debug(f"value of labeled_minibatch_size is :{labeled_minibatch_size}")
 
     #predictions, indices = torch.max(output_sftmax,0)
     _, pred = output_sftmax.topk(1, 1, True, True)
+    LOG.debug(f"value of pred is :{pred}")
 
     #gold labels and predictions are in transposes (eg:1x15 vs 15x1). so take a transpose to correct it.
     pred_t=pred.t()
 
     #check how many predictions you got right?
     correct = pred_t.eq(gold_labels.view(1, -1).expand_as(pred_t))
+    LOG.debug(f"value of correct is :{correct}")
 
-
-    #take sum because in correct_k all the ones that match are now denoted by 1. So the sum means, total number of correct answers
+    #take sum because in correct_k all the LABELS that match are now denoted by 1. So the sum means, total number of correct answers
     correct_k = correct.sum(1)
+    LOG.debug(f"value of correct_k is :{correct_k}")
 
     #if out of 7 labeled, you got only 2 right, then your accuracy is 2/7*100
     result=correct_k.mul_(100.0 / labeled_minibatch_size)
+    LOG.debug(f"value of result is :{result}")
 
     return result
 

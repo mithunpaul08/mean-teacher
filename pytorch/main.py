@@ -25,7 +25,7 @@ import random
 
 #askfan: where is log file stored? Ans: stdout
 LOG = logging.getLogger('main')
-LOG.setLevel(logging.INFO)
+LOG.setLevel(logging.DEBUG)
 
 ################
 # NOTE: To enable logging on IPythonConsole output or IPyNoteBook
@@ -465,7 +465,15 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
             class_logit, cons_logit = logit1, logit1    # class_logit.data.size(): torch.Size([256, 56])
             res_loss = 0
 
+        loss_output=class_criterion(class_logit, target_var)
+
+        LOG.debug(f"type of loss_output={type(loss_output)}")
+        LOG.debug(f"value of minibatch_size={minibatch_size} ")
         class_loss = class_criterion(class_logit, target_var) / minibatch_size
+        LOG.debug(f"value of class_loss={class_loss} ")
+
+
+
         ## WHAT IF target_var NOT PRESENT (UNLABELED DATAPOINT) ?
         #  Ans: See  ignore index in  `class_criterion = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cpu()`
 
@@ -602,7 +610,8 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
     LOG.debug(f"inside validate function. value of  len(eval_loader.sampler.data_source.lbl : {len(eval_loader.sampler.data_source.lbl)}")
     LOG.debug(f"inside validate function. value of  eval_loader.batch_size : {(eval_loader.batch_size)}")
 
-
+    sum_all_acc=0
+    total_no_batches=0
     #enumerate means enumerate through each of the batches.
     for i, datapoint in enumerate(eval_loader):
         LOG.debug(f"got inside .i, datapoint in enumerate(eval_loader)")
@@ -668,6 +677,7 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
         prec1 = accuracy_fever(output1.data, target_var.data, LOG)
 
         LOG.debug(f"value of prec1 is :{prec1}")
+        sum_all_acc=sum_all_acc+prec1
 
 
         meters.update('class_loss', class_loss.data.item(), labeled_minibatch_size)
@@ -688,6 +698,9 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
                 .format(
                 epoch, i, len(eval_loader), meters=meters))
 
+        LOG.info(f"value of  i after epoch {epoch} is :{i}")
+        total_no_batches=i
+
 
 
     # LOG.info(' * Prec@1 {top1.avg:.3f}\tClassLoss {class_loss.avg:.3f}'
@@ -697,9 +710,14 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
         save_custom_embeddings(custom_embeddings_minibatch, dataset, result_dir, model_type)
 
     x=meters['top1'].avg
-    LOG.info(f"average precision after epoch {epoch} is :{x}")
+    LOG.debug(f"average precision after all the {total_no_batches} batches in epoch {epoch} is :{x}")
+    LOG.debug(f"value of  total_no_batches  is :{total_no_batches}")
+    LOG.debug(f"value of sum_all_acc after epoch {epoch} is :{sum_all_acc}")
+    x2=float(sum_all_acc)/float(total_no_batches)
+    LOG.debug(f"value of average precision x2 after epoch {epoch} is :{x2}")
 
-    return x
+
+    return x2
 
 #todo: do we need to save custom_embeddings?  - mihai
 def save_custom_embeddings(custom_embeddings_minibatch, dataset, result_dir, model_type):

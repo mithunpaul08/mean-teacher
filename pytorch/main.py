@@ -329,7 +329,8 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
     elif args.consistency_type == 'kl':
         consistency_criterion = losses.softmax_kl_loss
     else:
-        assert False, args.consistency_type
+        assert False, args.\
+            consistency_type
     residual_logit_criterion = losses.symmetric_mse_loss
 
     meters = AverageMeterSet()
@@ -1197,6 +1198,7 @@ def main(context):
 
     cudnn.benchmark = True
 
+    #EVALUATE - ithink is for loading a trained model
     if args.evaluate:
         if args.dataset in ['conll', 'ontonotes','fever']:
             LOG.info("Evaluating the primary model:")

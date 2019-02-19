@@ -77,7 +77,7 @@ def create_parser():
     parser.add_argument('--resume', default=None, type=str, metavar='PATH',
                         help='path to latest checkpoint (default: none)')
     parser.add_argument('-e', '--evaluate', type=str2bool,default=False,
-                        help='if you want to do evaluation. can be on dev or test.')
+                        help='if you want to do evaluation i think using a loaded checkpoint from disk=.')
     parser.add_argument('--pretrained', dest='pretrained', action='store_true',
                         help='use pre-trained model')
     parser.add_argument('--wordemb_size', default=100, type=int,

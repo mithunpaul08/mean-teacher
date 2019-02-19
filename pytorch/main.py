@@ -1219,6 +1219,8 @@ def main(context):
         LOG.debug(f"value of args.evaluation_epochs: {args.evaluation_epochs} ")
         LOG.debug(f"value of args.epoch: {epoch} ")
 
+
+
         #i don't completely understand what this  below modulo code is doing. THe official documentation of
         # "and" for integers in python says :
         # The expression x and y first evaluates x; if x is false, its value is returned;
@@ -1229,6 +1231,7 @@ def main(context):
         # ok, so probably default value 1 means it'll evaluate at every epoch, hopefully...
         #update commented it out. using simple modulo
         #if args.evaluation_epochs and (epoch + 1) % args.evaluation_epochs == 0:
+
         if (epoch) % args.evaluation_epochs == 0:
             LOG.debug("just got inside evaluation_epochs ")
             start_time = time.time()
@@ -1256,6 +1259,7 @@ def main(context):
                 is_best = False
 
             LOG.info(f"best value of validation accuracy after epoch {epoch} is {local_best}")
+            LOG.info(f"best value of best_accuracy_across_epochs so far is {best_accuracy_across_epochs} at epoch number {epoch}")
 
             if args.checkpoint_epochs and (epoch + 1) % args.checkpoint_epochs == 0:
                 save_checkpoint({

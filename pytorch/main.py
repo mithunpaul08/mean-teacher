@@ -25,7 +25,7 @@ import random
 
 #askfan: where is log file stored? Ans: stdout
 LOG = logging.getLogger('main')
-LOG.setLevel(logging.INFO)
+LOG.setLevel(logging.DEBUG)
 #logging.basicConfig(filename='example.log',level=logging.DEBUG)
 
 ################
@@ -1044,9 +1044,10 @@ def main(context):
 
     def create_model(ema=False):
         LOG.info("=> creating {pretrained}{ema}model '{arch}'".format(
-            pretrained='pre-trained ' if args.pretrained else '',
-            ema='EMA ' if ema else '',
-            arch=args.arch))
+            pretrained='pre-trained '
+            if args.pretrained else '',
+            ema='EMA '
+            if ema else '',arch=args.arch))
 
         model_factory = architectures.__dict__[args.arch]
         model_params = dict(pretrained=args.pretrained, num_classes=num_classes)
@@ -1060,11 +1061,14 @@ def main(context):
             model_params['hidden_size'] = args.hidden_size
             model_params['update_pretrained_wordemb'] = args.update_pretrained_wordemb
 
+        LOG.debug(f"value of word_vocab_embed={word_vocab_embed}")
+        LOG.debug(f"value of word_vocab_size={word_vocab_size}")
+
         model = model_factory(**model_params)
         LOG.info("--------------------IMPORTANT: REMOVING nn.DataParallel for the moment --------------------")
         if torch.cuda.is_available():
             model = model.cuda()    # Note: Disabling data parallelism for now
-            LOG.info(f"cUDA is available")
+            LOG.info(f"in line 1067 of main. found thatcUDA is available")
 
         else:
             model = model.cpu()
@@ -1072,6 +1076,7 @@ def main(context):
         #here if ema (e mean teacher)=True, they don't do back propagation. that is what param.detach does.
         if ema:
             for param in model.parameters():
+                #LOG.debug("found that its ema . going to detach/no back prop")
                 param.detach_() ##NOTE: Detaches the variable from the gradient computation, making it a leaf .. needed from EMA model
 
         return model
@@ -1080,7 +1085,7 @@ def main(context):
     model = create_model()
     ema_model = create_model(ema=True)
 
-    LOG.info(parameters_string(model))
+    LOG.info(parameters_string(model,LOG))
 
     evaldir = os.path.join(args.data_dir, args.eval_subdir)
     train_student_pred_file = evaldir  + args.run_name + '_train_student_pred.tsv'

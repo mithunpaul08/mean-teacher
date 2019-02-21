@@ -23,11 +23,14 @@ class FeedForwardMLPEmbed_RTE(nn.Module):
         super().__init__()
         self.embedding_size = embedding_size
         self.embeddings = nn.Embedding(word_vocab_size, embedding_size)
+        print(f"at 1 value of self.embeddings.weight is {self.embeddings.weight.shape} ")
+        sys.exit(1)
 
         # https://discuss.pytorch.org/t/can-we-use-pre-trained-word-embeddings-for-weight-initialization-in-nn-embedding/1222
         if word_vocab_embed is not None:  # Pre-initalize the embedding layer from a vector loaded from word2vec/glove/or such
             print("Using a pre-initialized word-embedding vector .. loaded from disk")
             self.embeddings.weight = nn.Parameter(torch.from_numpy(word_vocab_embed))
+            print(f"at 2 value of self.embeddings.weight is {self.embeddings.weight} ")
 
             if update_pretrained_wordemb is False:
                 # NOTE: do not update the emebddings
@@ -36,6 +39,9 @@ class FeedForwardMLPEmbed_RTE(nn.Module):
                 self.embeddings.weight.detach_()
             else:
                 print("UPDATING the word embeddings ....")
+                print(f"at 2 value of self.embeddings.weight is {self.embeddings.weight} ")
+                sys.exit(1)
+
 
         #todo: pass them from somewhere...maybe command line or config file
         self.NUM_CLASSES = 3

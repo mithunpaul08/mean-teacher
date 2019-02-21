@@ -3,7 +3,7 @@
 import sys
 
 
-def parameters_string(module):
+def parameters_string(module,LOG):
     lines = [
         "",
         "List of model parameters:",
@@ -12,6 +12,11 @@ def parameters_string(module):
 
     row_format = "{name:<40} {shape:>20} ={total_size:>12,d}"
     params = list(module.named_parameters())
+    LOG.debug(f"first value of parameters is:{params[0][0]}")
+    LOG.debug(f"first value of parameters is:{len(params[1][0])}")
+    sys.exit(1)
+
+
     for name, param in params:
         lines.append(row_format.format(
             name=name,

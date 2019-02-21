@@ -792,7 +792,8 @@ class RTEDataset(Dataset):
             for lbl in self.categories:
                 f.write(lbl + '\n')
 
-        self.transform = transform
+        #self.transform = transform
+        self.transform = None
 
     def __len__(self):
         return len(self.claims)

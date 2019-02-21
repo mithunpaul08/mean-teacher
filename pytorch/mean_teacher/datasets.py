@@ -464,8 +464,9 @@ class RTEDataset(Dataset):
         self.lbl = [self.categories.index(l) for l in self.labels_str]
 
         #write the vocab file to disk so that you can load it later
-        LOG.info("self.word_vocab.size=", self.word_vocab.size())
-        LOG.info("self.words.size=", len(self.word_vocab.words))
+        if(LOG is not None):
+            LOG.info("self.word_vocab.size=", self.word_vocab.size())
+            LOG.info("self.words.size=", len(self.word_vocab.words))
 
         dir=args.output_folder
         vocab_file = dir + 'vocabulary_train_' + '.txt'

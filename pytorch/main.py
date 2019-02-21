@@ -26,6 +26,7 @@ import random
 #askfan: where is log file stored? Ans: stdout
 LOG = logging.getLogger('main')
 LOG.setLevel(logging.INFO)
+logging.basicConfig(filename='example.log',level=logging.DEBUG)
 
 ################
 # NOTE: To enable logging on IPythonConsole output or IPyNoteBook
@@ -113,7 +114,7 @@ def create_data_loaders(train_transformation,
         LOG.info("Type of Noise : "+ dataset.WORD_NOISE_TYPE)
         LOG.info("Size of Noise : "+ str(dataset.NUM_WORDS_TO_REPLACE))
 
-        # ans: if you want to do a simple feed forward - i.e ignore all labeled.=args.exclude_unlabeled=true
+        # ans: if you want to do a simple feed forward - i.e ignore all labeled.=args.x_unlabeled=true
         if args.exclude_unlabeled:
             labeled_idxs = data.get_all_label_indices(dataset, args)
             sampler = SubsetRandomSampler(labeled_idxs)

@@ -262,21 +262,18 @@ class FeedForwardMLPEmbed_RTE(nn.Module):
     def __init__(self, word_vocab_size, embedding_size, hidden_sz, output_sz, word_vocab_embed, update_pretrained_wordemb):
         super().__init__()
         self.embedding_size = embedding_size
-        self.claim_embeddings = nn.Embedding(word_vocab_size, embedding_size)
-        self.evidence_embeddings = nn.Embedding(word_vocab_size, embedding_size)
+        self.embeddings = nn.Embedding(word_vocab_size, embedding_size)
 
         # https://discuss.pytorch.org/t/can-we-use-pre-trained-word-embeddings-for-weight-initialization-in-nn-embedding/1222
         if word_vocab_embed is not None:  # Pre-initalize the embedding layer from a vector loaded from word2vec/glove/or such
             print("Using a pre-initialized word-embedding vector .. loaded from disk")
-            self.claim_embeddings.weight = nn.Parameter(torch.from_numpy(word_vocab_embed))
-            self.evidence_embeddings.weight = nn.Parameter(torch.from_numpy(word_vocab_embed))
+            self.embeddings.weight = nn.Parameter(torch.from_numpy(word_vocab_embed))
 
             if update_pretrained_wordemb is False:
                 # NOTE: do not update the emebddings
                 # https://discuss.pytorch.org/t/how-to-exclude-embedding-layer-from-model-parameters/1283
                 print("NOT UPDATING the word embeddings ....")
-                self.claim_embeddings.weight.detach_()
-                self.evidence_embeddings.weight.detach_()
+                self.embeddings.weight.detach_()
             else:
                 print("UPDATING the word embeddings ....")
 
@@ -305,17 +302,7 @@ class FeedForwardMLPEmbed_RTE(nn.Module):
         #todo: might have to add a softmax. look at what loss function you are using.-CrossEntropyLoss
 
 
-        ## Intialize the embeddings if pre-init enabled ? -- or in the fwd pass ?
-        ## create : layer1 + ReLU
 
-        # print(f"embeddding_size:{embedding_size}")
-        # print(f"hidden_sz:{hidden_sz}")
-        # print(f"output_sz:{output_sz}")
-        # self.layer1 = nn.Linear(embedding_size*2, hidden_sz, bias=True) ## concatenate entity and pattern embeddings
-        # self.activation = nn.ReLU()
-        # ## create : layer2 + Softmax: Create softmax here
-        # self.layer2 = nn.Linear(hidden_sz, output_sz, bias=True)
-        # self.softmax = nn.Softmax(dim=1) ## IMPT NOTE: Removing the softmax from here as it is done in the loss function
 
     def forward(self, claim, evidence, claim_lengths, evidence_lengths):
 
@@ -327,8 +314,8 @@ class FeedForwardMLPEmbed_RTE(nn.Module):
         ev_inv_order = ev_sort_order.sort()[1]
 
         # Encode the batch input using word embeddings
-        claim_encoding = self.claim_embeddings(claim[claim_sort_order])
-        ev_encoding = self.evidence_embeddings(evidence[ev_sort_order])
+        claim_encoding = self.embeddings(claim[claim_sort_order])
+        ev_encoding = self.embeddings(evidence[ev_sort_order])
 
         # pack padded input
         claim_enc_pack = torch.nn.utils.rnn.pack_padded_sequence(claim_encoding, claim_lengths, batch_first=True)

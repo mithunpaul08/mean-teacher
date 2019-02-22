@@ -401,6 +401,8 @@ class RTEDataset(Dataset):
     #mithun this is called using:#dataset = datasets.NECDataset(traindir, args, train_transformation)
     def __init__(self, dataset_file, args, LOG,transform=None):
 
+        print("got inside init of RTE data set")
+
 
         self.claims, self.evidences, self.labels_str = Datautils.read_rte_data(dataset_file,args)
 
@@ -429,6 +431,7 @@ class RTEDataset(Dataset):
         self.word_vocab, self.max_claims_len, self.max_ev_len = self.build_word_vocabulary(LOG)
 
         print(f"inside datasets.py line 431r value of word_vocab.size()={self.word_vocab.size()}")
+        sys.exit(1)
 
 
 

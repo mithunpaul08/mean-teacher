@@ -1030,6 +1030,7 @@ def main(context):
         train_loader, eval_loader, dataset, dataset_test = create_data_loaders(**dataset_config, args=args)
         num_classes = len(dataset.categories)
         word_vocab_embed = dataset.word_vocab_embed
+        LOG.debug(f"inside if arg.s dataset in fever value of word_vocab.size()={word_vocab.size()}")
         word_vocab_size = dataset.word_vocab.size()
 
     else:

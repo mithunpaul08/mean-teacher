@@ -428,6 +428,9 @@ class RTEDataset(Dataset):
 
         self.word_vocab, self.max_claims_len, self.max_ev_len = self.build_word_vocabulary(LOG)
 
+        LOG.debug(f"inside datasets.py line 431r value of word_vocab.size()={self.word_vocab.size()}")
+
+
 
         #askfan :can i do this above word count thing later?- right now i want all words, maybe, for starters? Ans: yes
         # for word in self.word_counts:

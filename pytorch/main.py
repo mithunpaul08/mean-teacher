@@ -120,8 +120,8 @@ def create_data_loaders(LOG,train_transformation,
         train_input_file = traindir + args.train_input_file
         dataset = datasets.RTEDataset(train_input_file, args, LOG,train_transformation)
         print(
-            f"after reading training dataset.value of word_vocab.size()={dataset.word_vocab.size()}")
-        sys.exit(1)
+            f"after reading training dataset.value of word_vocab.size()={len(dataset.word_vocab.keys())}")
+
 
         LOG.info("Type of Noise : "+ dataset.WORD_NOISE_TYPE)
         LOG.info("Size of Noise : "+ str(dataset.NUM_WORDS_TO_REPLACE))
@@ -183,7 +183,7 @@ def create_data_loaders(LOG,train_transformation,
         dev_input_file = evaldir + args.dev_input_file
         dataset_test = datasets.RTEDataset(dev_input_file, args, eval_transformation) ## NOTE: test data is the same as train data
         print(
-            f"after reading dev dataset.value of word_vocab.size()={dataset_test.word_vocab.size()}")
+            f"after reading dev dataset.value of word_vocab.size()={len(dataset_test.word_vocab.keys())}")
         sys.exit(1)
 
         #in dev, there shouldn't be two stream sampler
@@ -241,7 +241,7 @@ def create_data_loaders(LOG,train_transformation,
 
     #mithun: once you have both the train and test data in the DataLoader format that torch understands, return it to the calling function
 
-    LOG.debug(f"just before return statement inside create_data_loaders. main.py line 229. value of word_vocab.size()={dataset.word_vocab.size()}")
+    LOG.debug(f"just before return statement inside create_data_loaders. main.py line 229. value of word_vocab.size()={len(dataset.word_vocab.keys())}")
 
     return train_loader, eval_loader, dataset, dataset_test
 
@@ -1045,11 +1045,11 @@ def main(context):
     num_classes=3
     if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids','fever']:
         train_loader, eval_loader, dataset, dataset_test = create_data_loaders(LOG,**dataset_config, args=args)
-        LOG.debug(f"after create_data_loaders. main.py line 1031. value of word_vocab.size()={dataset.word_vocab.size()}")
+        LOG.debug(f"after create_data_loaders. main.py line 1031. value of word_vocab.size()={len(dataset.word_vocab.keys())}")
         num_classes = len(dataset.categories)
         word_vocab_embed = dataset.word_vocab_embed
-        LOG.debug(f"inside if arg.s dataset in fever value of word_vocab.size()={dataset.word_vocab.size()}")
-        word_vocab_size = dataset.word_vocab.size()
+        LOG.debug(f"inside if arg.s dataset in fever value of word_vocab.size()={len(dataset.word_vocab.keys())}")
+        word_vocab_size = len(dataset.word_vocab.keys())
 
     else:
         #mithun: i think this is the actual code from valpola that ran on cifar10 dataset

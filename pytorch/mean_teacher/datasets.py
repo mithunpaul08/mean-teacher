@@ -157,7 +157,7 @@ class RTEDataset(Dataset):
         #self.transform = transform
         self.transform = None
         print("4self.word_vocab.size=", len(self.word_vocab.keys()))
-        sys.exit(1)
+
 
     def __len__(self):
         return len(self.claims)

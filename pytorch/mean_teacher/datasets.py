@@ -135,14 +135,14 @@ class RTEDataset(Dataset):
         self.lbl = [self.categories.index(l) for l in self.labels_str]
 
         #write the vocab file to disk so that you can load it later
+        #update: vocab file for dev is same as train. no need to write it twice.
 
         print("2self.word_vocab.size=", len(self.word_vocab.keys()))
-        dir=args.output_folder
-        vocab_file = dir + 'vocabulary_'+ runName + '.txt'
-
-
-        with io.open(vocab_file, 'w+', encoding=DEFAULT_ENCODING) as f:
-            f.write(json.dumps(self.word_vocab))
+        dir = args.output_folder
+        if(runName=="train"):
+            vocab_file = dir + 'vocabulary_'+ 'train' + '.txt'
+            with io.open(vocab_file, 'w+', encoding=DEFAULT_ENCODING) as f:
+                f.write(json.dumps(self.word_vocab))
 
 
 

@@ -79,9 +79,11 @@ def parse_dict_args(**kwargs):
     cmdline_args = list(sum(kwargs_pairs, ()))
     args = parser.parse_args(cmdline_args)
 
-def create_data_loaders(train_transformation,
+def create_data_loaders(LOG,train_transformation,
                         eval_transformation,
                         args):
+    print(f"got inside create_data_loaders.")
+    LOG.debug(f"from log.info inside create_data_loaders.")
 
     global NA_label
     traindir = os.path.join(args.data_dir , args.train_subdir)
@@ -89,7 +91,7 @@ def create_data_loaders(train_transformation,
 
     assert_exactly_one([args.exclude_unlabeled, args.labeled_batch_size])
 
-    LOG.info(f"inside create_data_loaders.")
+
 
     if torch.cuda.is_available():
         pin_memory = True
@@ -104,16 +106,22 @@ def create_data_loaders(train_transformation,
         pin_memory = False
         LOG.info(f"found torch.cuda is false. giong to exit")
 
+    print(f"found value of args.dataset is {args.dataset}.")
+
 
     if args.dataset in ['conll', 'ontonotes','fever']:
+        print(f"got inside args.dataset in fever.")
+
+
 
         LOG.info("traindir : " + traindir)
         LOG.info("evaldir : " + evaldir)
 
         train_input_file = traindir + args.train_input_file
         dataset = datasets.RTEDataset(train_input_file, args, LOG,train_transformation)
-        LOG.debug(
+        print(
             f"after reading dataset.value of word_vocab.size()={dataset.word_vocab.size()}")
+        sys.exit(1)
         LOG.info("Type of Noise : "+ dataset.WORD_NOISE_TYPE)
         LOG.info("Size of Noise : "+ str(dataset.NUM_WORDS_TO_REPLACE))
 
@@ -1032,7 +1040,7 @@ def main(context):
 
     num_classes=3
     if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids','fever']:
-        train_loader, eval_loader, dataset, dataset_test = create_data_loaders(**dataset_config, args=args)
+        train_loader, eval_loader, dataset, dataset_test = create_data_loaders(LOG,**dataset_config, args=args)
         LOG.debug(f"after create_data_loaders. main.py line 1031. value of word_vocab.size()={dataset.word_vocab.size()}")
         num_classes = len(dataset.categories)
         word_vocab_embed = dataset.word_vocab_embed

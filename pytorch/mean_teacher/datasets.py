@@ -90,7 +90,7 @@ class RTEDataset(Dataset):
         #
         #
 
-        self.word_vocab, self.max_claims_len, self.max_ev_len = self.build_word_vocabulary(LOG)
+        self.word_vocab, self.max_claims_len, self.max_ev_len, self.word_count= self.build_word_vocabulary(LOG)
 
         print(f"inside datasets.py . just after  build_word_vocabulary.value of word_vocab.size()={len(self.word_vocab.keys())}")
 

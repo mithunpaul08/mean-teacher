@@ -8,8 +8,10 @@ import sys
 from .processNLPdata.processNECdata import *
 import os
 import contextlib
+import json
 
 words_in_glove =0
+DEFAULT_ENCODING = 'utf8'
 
 
 
@@ -90,19 +92,22 @@ class RTEDataset(Dataset):
         self.word_vocab, self.max_claims_len, self.max_ev_len = self.build_word_vocabulary(LOG)
 
         print(f"inside datasets.py . just after  build_word_vocabulary.value of word_vocab.size()={len(self.word_vocab.keys())}")
-        import sys
-        sys.exit(1)
 
 
 
-        #askfan :can i do this above word count thing later?- right now i want all words, maybe, for starters? Ans: yes
+
+
+        # #remove least frequent words
         # for word in self.word_counts:
         #     if self.word_counts[word] >= args.word_frequency:
         #         self.word_vocab.add(word, self.word_counts[word])
 
 
-        self.word_vocab.add("@PADDING", 0)
-        self.pad_id = self.word_vocab.get_id(RTEDataset.PAD)
+
+        if (RTEDataset.PAD not in self.word_vocab):
+            self.word_vocab[RTEDataset.PAD] = 0
+
+        self.pad_id = self.word_vocab[RTEDataset.PAD]
 
         #todo: load pretrained wordemb
 
@@ -124,19 +129,21 @@ class RTEDataset(Dataset):
 
 
 
-        print("1self.word_vocab.size=", self.word_vocab.size())
+        print("1self.word_vocab.size=", len(self.word_vocab.keys()))
 
         self.categories = sorted(list({l for l in self.labels_str}))
         self.lbl = [self.categories.index(l) for l in self.labels_str]
 
         #write the vocab file to disk so that you can load it later
 
-        print("2self.word_vocab.size=", self.word_vocab.size())
-        print("3self.words.size=", len(self.word_vocab.words))
-
+        print("2self.word_vocab.size=", len(self.word_vocab.keys()))
         dir=args.output_folder
         vocab_file = dir + 'vocabulary_train_' + '.txt'
-        self.word_vocab.to_file(vocab_file)
+
+
+        with io.open(vocab_file, 'w+', encoding=DEFAULT_ENCODING) as f:
+            f.write(json.dumps(self.word_vocab))
+
 
 
         print("num of types of labels considered =", len(self.categories))
@@ -149,7 +156,8 @@ class RTEDataset(Dataset):
 
         #self.transform = transform
         self.transform = None
-        print("4.done with init function self.word_vocab.size=", self.word_vocab.size())
+        print("4self.word_vocab.size=", len(self.word_vocab.keys()))
+        sys.exit(1)
 
     def __len__(self):
         return len(self.claims)

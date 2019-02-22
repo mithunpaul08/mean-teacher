@@ -160,6 +160,14 @@ class RTEDataset(Dataset):
         print("4self.word_vocab.size=", len(self.word_vocab.keys()))
 
 
+    def update_word_count(self, dict_wc,word ):
+        if(word in dict_wc.keys()):
+            old_count=dict_wc[word]
+            dict_wc[word]=old_count+1
+        else:
+            dict_wc[word] =  1
+
+
     def __len__(self):
         return len(self.claims)
 
@@ -168,7 +176,7 @@ class RTEDataset(Dataset):
 
         #their vocabulary function was giving issues (including having duplicates). creating my own dictionary.
         word_vocab = {"dummy":1}
-
+        word_count={"dummy":0}
 
         max_claim_len = 0
         max_evidence_len = 0
@@ -190,6 +198,9 @@ class RTEDataset(Dataset):
                     len_dict=len(word_vocab.keys())
                     word_vocab[w]=len_dict+1
 
+                #increase word frequency count
+                self.update_word_count(word_count,w)
+
                 if len(words) > max_claim_len:
                     max_claim_len = len(words)
                     max_claim = words
@@ -201,6 +212,8 @@ class RTEDataset(Dataset):
                 if (w not in word_vocab):
                     len_dict = len(word_vocab.keys())
                     word_vocab[w] = len_dict + 1
+                # increase word frequency count
+                self.update_word_count(word_count, w)
 
                 if len(words) > max_evidence_len:
                     max_evidence_len = len(words)
@@ -244,7 +257,7 @@ class RTEDataset(Dataset):
         # sys.exit(1)
 
         print(f"just before returning word_vocab. Number of unique words is {len(word_vocab.keys())}")
-        return word_vocab, max_claim_len, max_evidence_len
+        return word_vocab, max_claim_len, max_evidence_len,word_count
 
 
     def pad_item(self, dataitem,isev=False):

@@ -9,12 +9,13 @@ from .processNLPdata.processNECdata import *
 import os
 import contextlib
 import json
+import logging
 
 words_in_glove =0
 DEFAULT_ENCODING = 'utf8'
 
 
-
+LOG = logging.getLogger('datasets.py')
 
 @export
 def fever():
@@ -248,11 +249,11 @@ class RTEDataset(Dataset):
 
     def pad_item(self, dataitem,isev=False):
         if(isev):
-            dataitem_padded = dataitem + [self.word_vocab.get_id(NECDataset.PAD)] * (self.max_ev_len - len(dataitem))
+            dataitem_padded = dataitem + [self.word_vocab[RTEDataset.PAD]] * (self.max_ev_len - len(dataitem))
         #ask becky : right now am padding with the max entity length. that is what fan also is doing .shouldn't i be padding both claim and evidence -with its own max length (eg:20 and 18719)
         # or should i pad upto  the biggest amongst both, i.e 18719 words in evidence
         else:
-            dataitem_padded = dataitem + [self.word_vocab.get_id(NECDataset.PAD)] * (self.max_claims_len - len(dataitem))
+            dataitem_padded = dataitem + [self.word_vocab[RTEDataset.PAD]] * (self.max_claims_len - len(dataitem))
 
         return dataitem_padded
 
@@ -278,12 +279,12 @@ class RTEDataset(Dataset):
         # ask fan: can we just use the common word vocabulary dictionary. do we need to have separate dict
         # Ans: the dictionar is still the same, its two different sentences and two different words
 
-        # entity_words = [self.word_vocab.get_id(w) for w in self.entity_vocab.get_word(self.mentions[idx]).split(" ")]
+        # entity_words = [self.word_vocab[(w) for w in self.entity_vocab.get_word(self.mentions[idx]).split(" ")]
         # entity_words_padded = self.pad_item(entity_words, False)
         # entity_datum = torch.LongTensor(entity_words_padded)
         #
         # context_words_str = [[w for w in self.context_vocab.get_word(ctxId).split(" ")] for ctxId in self.contexts[idx]]
-        # context_words = [[self.word_vocab.get_id(w) for w in self.context_vocab.get_word(ctxId).split(" ")] for ctxId in
+        # context_words = [[self.word_vocab[(w) for w in self.context_vocab.get_word(ctxId).split(" ")] for ctxId in
         #                  self.contexts[idx]]
 
         #todo: ask becky if we should do lowercase for all words in claims and evidence
@@ -291,8 +292,8 @@ class RTEDataset(Dataset):
         claims_words_str = [[w for w in (self.claims[idx].split(" "))]]
         ev_words_str= [[w for w in (self.evidences[idx].split(" "))]]
 
-        claims_words_id = [self.word_vocab.get_id(w) for w in (self.claims[idx].split(" "))]
-        ev_words_id = [self.word_vocab.get_id(w) for w in (self.evidences[idx].split(" "))]
+        claims_words_id = [self.word_vocab[w] for w in (self.claims[idx].split(" "))]
+        ev_words_id = [self.word_vocab[w]  for w in (self.evidences[idx].split(" "))]
 
 
         len_claims_words=len(claims_words_id)
@@ -338,10 +339,10 @@ class RTEDataset(Dataset):
             claim_dropout_word_ids = list()
 
             #for each word in the claim (note, this is after drop out), find its corresponding ids from the vocabulary dictionary
-            claim_dropout_word_ids.append([[self.word_vocab.get_id(w)
+            claim_dropout_word_ids.append([[self.word_vocab[w]
                                          for w in ctx]
                                         for ctx in claim_words_dropout_str[0]])
-            claim_dropout_word_ids.append([[self.word_vocab.get_id(w)
+            claim_dropout_word_ids.append([[self.word_vocab[w]
                                          for w in ctx]
                                         for ctx in claim_words_dropout_str[1]])
 
@@ -356,10 +357,10 @@ class RTEDataset(Dataset):
 
             #do the same for evidence also
             evidence_words_dropout = list()
-            evidence_words_dropout.append([[self.word_vocab.get_id(w)
+            evidence_words_dropout.append([[self.word_vocab[w]
                                          for w in ctx]
                                         for ctx in ev_words_dropout_str[0]])
-            evidence_words_dropout.append([[self.word_vocab.get_id(w)
+            evidence_words_dropout.append([[self.word_vocab[w]
                                          for w in ctx]
                                         for ctx in ev_words_dropout_str[1]])
 

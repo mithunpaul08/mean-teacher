@@ -25,7 +25,7 @@ import random
 
 #askfan: where is log file stored? Ans: stdout
 LOG = logging.getLogger('main')
-LOG.setLevel(logging.DEBUG)
+LOG.setLevel(logging.INFO)
 #logging.basicConfig(filename='example.log',level=logging.DEBUG)
 
 ################
@@ -1104,7 +1104,7 @@ def main(context):
     model = create_model()
     ema_model = create_model(ema=True)
 
-    LOG.info(parameters_string(model,LOG))
+    LOG.info(parameters_string(model))
 
     evaldir = os.path.join(args.data_dir, args.eval_subdir)
     train_student_pred_file = evaldir  + args.run_name + '_train_student_pred.tsv'

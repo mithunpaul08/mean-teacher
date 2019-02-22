@@ -24,7 +24,7 @@ class FeedForwardMLPEmbed_RTE(nn.Module):
         self.embedding_size = embedding_size
         self.embeddings = nn.Embedding(word_vocab_size, embedding_size)
         print(f"inside architectures.py line 26 at 1 value of self.embeddings.weight is {self.embeddings.weight.shape} ")
-        sys.exit(1)
+
 
         # https://discuss.pytorch.org/t/can-we-use-pre-trained-word-embeddings-for-weight-initialization-in-nn-embedding/1222
         if word_vocab_embed is not None:  # Pre-initalize the embedding layer from a vector loaded from word2vec/glove/or such

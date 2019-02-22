@@ -1028,6 +1028,7 @@ def main(context):
     num_classes=3
     if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids','fever']:
         train_loader, eval_loader, dataset, dataset_test = create_data_loaders(**dataset_config, args=args)
+        LOG.debug(f"after create_data_loaders. main.py line 1031. value of word_vocab.size()={dataset.word_vocab.size()}")
         num_classes = len(dataset.categories)
         word_vocab_embed = dataset.word_vocab_embed
         LOG.debug(f"inside if arg.s dataset in fever value of word_vocab.size()={dataset.word_vocab.size()}")

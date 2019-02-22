@@ -428,8 +428,7 @@ class RTEDataset(Dataset):
 
         self.word_vocab, self.max_claims_len, self.max_ev_len = self.build_word_vocabulary(LOG)
 
-        if(LOG is not None):
-            LOG.debug(f"inside datasets.py line 431r value of word_vocab.size()={self.word_vocab.size()}")
+        print(f"inside datasets.py line 431r value of word_vocab.size()={self.word_vocab.size()}")
 
 
 
@@ -462,15 +461,15 @@ class RTEDataset(Dataset):
 
 
 
-        print("self.word_vocab.size=", self.word_vocab.size())
+        print("1self.word_vocab.size=", self.word_vocab.size())
 
         self.categories = sorted(list({l for l in self.labels_str}))
         self.lbl = [self.categories.index(l) for l in self.labels_str]
 
         #write the vocab file to disk so that you can load it later
-        if(LOG is not None):
-            LOG.info("self.word_vocab.size=", self.word_vocab.size())
-            LOG.info("self.words.size=", len(self.word_vocab.words))
+
+        print("2self.word_vocab.size=", self.word_vocab.size())
+        print("3self.words.size=", len(self.word_vocab.words))
 
         dir=args.output_folder
         vocab_file = dir + 'vocabulary_train_' + '.txt'
@@ -487,6 +486,7 @@ class RTEDataset(Dataset):
 
         #self.transform = transform
         self.transform = None
+        print("4.done with init function self.word_vocab.size=", self.word_vocab.size())
 
     def __len__(self):
         return len(self.claims)

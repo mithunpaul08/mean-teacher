@@ -69,7 +69,8 @@ python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_worde
 ```
 Below is a version that runs the code as a simple FFNN on a mac command line-but with toy data- best for laptop:
 ```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 100 --consistency 1 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file train_small_200_claims_with_evi_sents.jsonl  --dev_input_file dev_90_with_evi_sents.jsonl --print-freq 1 --workers 0 --exclude_unlabeled true --batch_size 20 
+--dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 100 --consistency 1 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file dev_25k_with_evi_sents.jsonl --print-freq 1 --workers 4 --exclude_unlabeled true --batch_size 2000 --lr 0.0000001 --ema_decay 8
+
 ```
 
 

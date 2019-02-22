@@ -55,7 +55,7 @@ def create_parser():
                         help='use nesterov momentum', metavar='BOOL')
     parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float,
                         metavar='W', help='weight decay (default: 1e-4)')
-    parser.add_argument('--ema-decay', default=0.999, type=float, metavar='ALPHA',
+    parser.add_argument('--ema_decay', default=0.999, type=float, metavar='ALPHA',
                         help='ema variable decay rate (default: 0.999)')
     parser.add_argument('--consistency', default=1, type=float, metavar='WEIGHT',
                         help='use consistency loss with given weight (default: 1) . Turn it to None when using a simple feed forward network')

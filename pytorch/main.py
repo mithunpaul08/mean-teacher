@@ -390,9 +390,6 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
 
 
 
-        ## WHAT IF target_var NOT PRESENT (UNLABELED DATAPOINT) ?
-        #  Ans: See  ignore index in  `class_criterion = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cpu()`
-
         #note by mithun: this was originally class_loss.data[0], but changing to class_loss.data.item() since it was throwing error on [0]
         meters.update('class_loss', class_loss.data.item())
 
@@ -401,6 +398,8 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
 
 
         ema_class_loss = class_criterion(ema_logit, target_var) / minibatch_size
+
+
         ## DONE: AJAY - WHAT IF target_var NOT PRESENT (UNLABELED DATAPOINT) ?
         # Ans: See  ignore index in  `class_criterion = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cpu()`
         meters.update('ema_class_loss', ema_class_loss.data.item())    # Do we need this?

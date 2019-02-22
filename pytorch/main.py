@@ -89,11 +89,12 @@ def create_data_loaders(train_transformation,
 
     assert_exactly_one([args.exclude_unlabeled, args.labeled_batch_size])
 
-
+    LOG.info(f"inside create_data_loaders.")
 
     if torch.cuda.is_available():
         pin_memory = True
         LOG.info(f"found torch.cuda is true.")
+        print(f"found torch.cuda is true.")
         LOG.info(torch.cuda.device_count())
         cuda0 = torch.cuda.set_device(0)
         LOG.info(torch.cuda.current_device())
@@ -111,6 +112,8 @@ def create_data_loaders(train_transformation,
 
         train_input_file = traindir + args.train_input_file
         dataset = datasets.RTEDataset(train_input_file, args, LOG,train_transformation)
+        LOG.debug(
+            f"after reading dataset.value of word_vocab.size()={dataset.word_vocab.size()}")
         LOG.info("Type of Noise : "+ dataset.WORD_NOISE_TYPE)
         LOG.info("Size of Noise : "+ str(dataset.NUM_WORDS_TO_REPLACE))
 
@@ -225,6 +228,8 @@ def create_data_loaders(train_transformation,
 
 
     #mithun: once you have both the train and test data in the DataLoader format that torch understands, return it to the calling function
+
+    LOG.debug(f"just before return statement inside create_data_loaders. main.py line 229. value of word_vocab.size()={dataset.word_vocab.size()}")
 
     return train_loader, eval_loader, dataset, dataset_test
 

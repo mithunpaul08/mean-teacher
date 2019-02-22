@@ -428,7 +428,8 @@ class RTEDataset(Dataset):
 
         self.word_vocab, self.max_claims_len, self.max_ev_len = self.build_word_vocabulary(LOG)
 
-        LOG.debug(f"inside datasets.py line 431r value of word_vocab.size()={self.word_vocab.size()}")
+        if(LOG is not None):
+            LOG.debug(f"inside datasets.py line 431r value of word_vocab.size()={self.word_vocab.size()}")
 
 
 

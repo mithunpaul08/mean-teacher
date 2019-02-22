@@ -121,6 +121,7 @@ def create_data_loaders(LOG,train_transformation,
         dataset = datasets.RTEDataset(train_input_file, args, LOG,train_transformation)
         print(
             f"after reading training dataset.value of word_vocab.size()={dataset.word_vocab.size()}")
+        sys.exit(1)
 
         LOG.info("Type of Noise : "+ dataset.WORD_NOISE_TYPE)
         LOG.info("Size of Noise : "+ str(dataset.NUM_WORDS_TO_REPLACE))

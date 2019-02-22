@@ -4,357 +4,12 @@ import torch
 import io
 from . import data
 from .utils import export
-
+import sys
 from .processNLPdata.processNECdata import *
 import os
 import contextlib
 
 words_in_glove =0
-
-@export
-def imagenet():
-    channel_stats = dict(mean=[0.485, 0.456, 0.406],
-                         std=[0.229, 0.224, 0.225])
-    train_transformation = data.TransformTwice(transforms.Compose([
-        transforms.RandomRotation(10),
-        transforms.RandomResizedCrop(224),
-        transforms.RandomHorizontalFlip(),
-        transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1),
-        transforms.ToTensor(),
-        transforms.Normalize(**channel_stats)
-    ]))
-    eval_transformation = transforms.Compose([
-        transforms.Resize(256),
-        transforms.CenterCrop(224),
-        transforms.ToTensor(),
-        transforms.Normalize(**channel_stats)
-    ])
-
-    return {
-        'train_transformation': train_transformation,
-        'eval_transformation': eval_transformation,
-        'datadir': 'data-local/images/ilsvrc2012/',
-        'num_classes': 1000
-    }
-
-
-@export
-def cifar10():
-    channel_stats = dict(mean=[0.4914, 0.4822, 0.4465],
-                         std=[0.2470,  0.2435,  0.2616])
-    train_transformation = data.TransformTwice(transforms.Compose([
-        data.RandomTranslateWithReflect(4),
-        transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(),
-        transforms.Normalize(**channel_stats)
-    ]))
-    eval_transformation = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize(**channel_stats)
-    ])
-
-    return {
-        'train_transformation': train_transformation,
-        'eval_transformation': eval_transformation,
-        'datadir': 'data-local/images/cifar/cifar10/by-image',
-        'num_classes': 10
-    }
-
-@export
-def ontonotes():
-
-    if NECDataset.WORD_NOISE_TYPE in ['drop', 'replace']:
-        addNoise = data.RandomPatternWordNoise(NECDataset.NUM_WORDS_TO_REPLACE, NECDataset.OOV, NECDataset.WORD_NOISE_TYPE)
-    else:
-        assert False, "Unknown type of noise {}".format(NECDataset.WORD_NOISE_TYPE)
-
-    return {
-        'train_transformation': data.TransformTwiceNEC(addNoise),
-        'eval_transformation': None,
-        'datadir': 'data-local/nec/ontonotes',
-        'num_classes': 11
-    }
-
-
-
-@export
-def conll():
-
-    if NECDataset.WORD_NOISE_TYPE in ['drop', 'replace']:
-        addNoise = data.RandomPatternWordNoise(NECDataset.NUM_WORDS_TO_REPLACE, NECDataset.OOV, NECDataset.WORD_NOISE_TYPE)
-    else:
-        assert False, "Unknown type of noise {}".format(NECDataset.WORD_NOISE_TYPE)
-
-    return {
-        'train_transformation': data.TransformTwiceNEC(addNoise),
-        'eval_transformation': None,
-        'datadir': 'data-local/nec/conll',
-        'num_classes': 4
-    }
-
-##### USING Torchtext ... now reverting to using custom code
-# def simple_tokenizer(datapoint):
-#     fields = datapoint.split("__")
-#     return fields
-######################################################################
-
-
-
-#mithun: ohh the Dataset is a pytorch class, not a python class..and this class NECDataset just inherits from that class. Apparently in python you inherit by passing the parent into the constructor. WHo knew
-class NECDataset(Dataset):
-
-    PAD = "@PADDING"
-    OOV = "</s>"
-    ENTITY = "@ENTITY"
-    OOV_ID = 0
-    ENTITY_ID = -1
-    NUM_WORDS_TO_REPLACE = 1
-    WORD_NOISE_TYPE = "drop"
-
-    #mithun this is called using:#dataset = datasets.NECDataset(traindir, args, train_transformation)
-    #transform means, the kind of dropping you want to do. look for function called fever():
-    def __init__(self, dir, args, transform=None):
-        entity_vocab_file = dir + "/entity_vocabulary.emboot.filtered.txt"
-        context_vocab_file = dir + "/pattern_vocabulary_emboot.filtered.txt"
-        dataset_file = dir + "/training_data_with_labels_emboot.filtered.txt"
-        w2vfile = dir + "/../../vectors.goldbergdeps.txt"
-
-        self.args = args
-        self.entity_vocab = Vocabulary.from_file(entity_vocab_file)
-        self.context_vocab = Vocabulary.from_file(context_vocab_file)
-
-        #This is the place where actual reading of data happens- i think the mentions and contexts can be replaced with headline and bodies-
-        #and labels can be the one of the three AGREE, DISAGREE , NEUTRAL
-        self.mentions, self.contexts, self.labels_str = Datautils.read_data(dataset_file, self.entity_vocab, self.context_vocab)
-        self.word_vocab, self.max_entity_len, self.max_pattern_len, self.max_num_patterns = self.build_word_vocabulary()
-
-        if args.pretrained_wordemb:
-            if args.eval_subdir not in dir:  # do not load the word embeddings again in eval
-                self.gigaW2vEmbed, self.lookupGiga = Gigaword.load_pretrained_embeddings(w2vfile)
-                self.word_vocab_embed = self.create_word_vocab_embed()
-
-        else:
-            print("Not loading the pretrained embeddings ... ")
-            assert args.update_pretrained_wordemb, "Pretrained embeddings should be updated but " \
-                                                   "--update-pretrained-wordemb = {}".format(args.update_pretrained_wordemb)
-            self.word_vocab_embed = None
-
-        # NOTE: Setting some class variables
-        NECDataset.OOV_ID = self.word_vocab.get_id(NECDataset.OOV)
-        NECDataset.ENTITY_ID = self.word_vocab.get_id(NECDataset.ENTITY)
-
-        type_of_noise, size_of_noise = args.word_noise.split(":")
-        NECDataset.WORD_NOISE_TYPE = type_of_noise
-
-        NECDataset.NUM_WORDS_TO_REPLACE = int(size_of_noise)
-
-        categories = sorted(list({l for l in self.labels_str}))
-        self.lbl = [categories.index(l) for l in self.labels_str]
-
-        self.transform = transform
-
-    def sanitise_and_lookup_embedding(self, word_id):
-
-        word = Gigaword.sanitiseWord(self.word_vocab.get_word(word_id))
-
-        if word in self.lookupGiga:
-            word_embed = Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga[word]])
-        else:
-            word_embed = Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga["<unk>"]])
-
-        return word_embed
-
-    def create_word_vocab_embed(self):
-
-        word_vocab_embed = list()
-
-        # leave last word = "@PADDING"
-        for word_id in range(0, self.word_vocab.size()-1):
-            word_embed = self.sanitise_and_lookup_embedding(word_id)
-            word_vocab_embed.append(word_embed)
-
-        # NOTE: adding the embed for @PADDING
-        word_vocab_embed.append(Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga["<pad>"]]))
-        return np.array(word_vocab_embed).astype('float32')
-
-    def build_word_vocabulary(self):
-        word_vocab = Vocabulary()
-
-        max_entity_len = 0
-        max_pattern_len = 0
-        max_num_patterns = 0
-
-        max_entity = ""
-        max_pattern = ""
-
-        for mentionId in self.mentions:
-            words = [w for w in self.entity_vocab.get_word(mentionId).split(" ")]
-            for w in words:
-                word_vocab.add(w)
-
-            if len(words) > max_entity_len:
-                max_entity_len = len(words)
-                max_entity = words
-
-        for context in self.contexts:
-            for patternId in context:
-                words = [w for w in self.context_vocab.get_word(patternId).split(" ")]
-                for w in words:
-                    word_vocab.add(w)
-
-                if len(words) > max_pattern_len:
-                    max_pattern_len = len(words)
-                    max_pattern = words
-
-            if len(context) > max_num_patterns:
-                max_num_patterns = len(context)
-
-        word_vocab.add(NECDataset.PAD, 0)  # Note: Init a count of 0 to PAD, as we are not using it other than padding
-        # print (max_entity)
-        # print (max_entity_len)
-        # print (max_pattern)
-        # print (max_pattern_len)
-        return word_vocab, max_entity_len, max_pattern_len, max_num_patterns
-
-    def __len__(self):
-        return len(self.mentions)
-
-    def pad_item(self, dataitem, isPattern=True):
-        if isPattern: # Note: precessing patterns .. consisting of list of lists (add pad to each list) and a final pad to the list of list
-            dataitem_padded = list()
-            for datum in dataitem:
-                datum_padded = datum + [self.word_vocab.get_id(NECDataset.PAD)] * (self.max_pattern_len - len(datum))
-                dataitem_padded.append(datum_padded)
-            for _ in range(0, self.max_num_patterns - len(dataitem)):
-                dataitem_padded.append([self.word_vocab.get_id(NECDataset.PAD)] * self.max_pattern_len)
-        else:  # Note: padding an entity (consisting of a seq of tokens)
-            dataitem_padded = dataitem + [self.word_vocab.get_id(NECDataset.PAD)] * (self.max_entity_len - len(dataitem))
-
-        return dataitem_padded
-
-    def get_num_classes(self):
-        return len(list({l for l in self.lbl}))
-
-    def get_labels(self):
-        return self.lbl
-
-    #mithun:apparently __getitem__ is a function of pytorch's Dataset class. Which this class inherits. Here he is just overriding it
-    # go to https://pytorch.org/tutorials/beginner/data_loading_tutorial.html and search for __getitem__
-    # this is some internal memory saving thing to not load the entire dataset into memory at once.
-    #askajay: so if i want to do some data processing on the raw data that i read from disk, is this the point where i do it? for each data point kind of thing?
-
-    def __getitem__(self, idx):
-        entity_words = [self.word_vocab.get_id(w) for w in self.entity_vocab.get_word(self.mentions[idx]).split(" ")]
-        entity_words_padded = self.pad_item(entity_words, isPattern=False)
-        entity_datum = torch.LongTensor(entity_words_padded)
-
-        context_words_str = [[w for w in self.context_vocab.get_word(ctxId).split(" ")] for ctxId in self.contexts[idx]]
-        context_words = [[self.word_vocab.get_id(w) for w in self.context_vocab.get_word(ctxId).split(" ")] for ctxId in self.contexts[idx]]
-
-        if self.transform is not None:
-            # 1. Replace word with synonym word in Wordnet / NIL (whichever is enabled)
-            context_words_dropout_str = self.transform(context_words_str, NECDataset.ENTITY)
-
-            if NECDataset.WORD_NOISE_TYPE == 'replace':
-                assert len(context_words_dropout_str) == 2, "There is some issue with TransformTwice ... " #todo: what if we do not want to use the teacher ?
-                new_replaced_words = [w for ctx in context_words_dropout_str[0] + context_words_dropout_str[1]
-                                        for w in ctx
-                                        if not self.word_vocab.contains(w)]
-
-                # 2. Add word to word vocab (expand vocab)
-                new_replaced_word_ids = [self.word_vocab.add(w, count=1)
-                                         for w in new_replaced_words]
-
-                # 3. Add the replaced words to the word_vocab_embed (if using pre-trained embedding)
-                if self.args.pretrained_wordemb:
-                    for word_id in new_replaced_word_ids:
-                        word_embed = self.sanitise_and_lookup_embedding(word_id)
-                        self.word_vocab_embed = np.vstack([self.word_vocab_embed, word_embed])
-
-                # print("Added " + str(len(new_replaced_words)) + " words to the word_vocab... New Size: " + str(self.word_vocab.size()))
-
-            context_words_dropout = list()
-            context_words_dropout.append([[self.word_vocab.get_id(w)
-                                            for w in ctx]
-                                           for ctx in context_words_dropout_str[0]])
-            x.append([[self.word_vocab.get_id(w)
-                                            for w in ctx]
-                                           for ctx in context_words_dropout_str[1]])
-
-            if len(context_words_dropout) == 2:  # transform twice (1. student 2. teacher): DONE
-                context_words_padded_0 = self.pad_item(context_words_dropout[0])
-                context_words_padded_1 = self.pad_item(context_words_dropout[1])
-                context_datums = (torch.LongTensor(context_words_padded_0), torch.LongTensor(context_words_padded_1))
-            else: # todo: change this to an assert (if we are always using the student and teacher networks)
-                context_words_padded = self.pad_item(context_words_dropout)
-                context_datums = torch.LongTensor(context_words_padded)
-        else:
-            context_words_padded = self.pad_item(context_words)
-            context_datums = torch.LongTensor(context_words_padded)
-
-        # print ("label : " + self.labels[idx])
-        # print ("label id : " + str(self.label_ids_all[idx]))
-        label = self.lbl[idx]  # Note: .. no need to create a tensor variable
-
-        #mithun: askajay i think this is the place where the data that is read from the disk is sent back to main.py
-        #ans: no. this is the per data point enumerator. getitem is called internally by pytorch
-        # that is because in evaluation we won't add noise.
-        if self.transform is not None:
-            return (entity_datum, context_datums[0]), (entity_datum, context_datums[1]), label
-        else:
-            return (entity_datum, context_datums), label
-
-        ##### USING Torchtext ... now reverting to using custom code
-        # print ("Dir in NECDataset : " + dir)
-        # data_file = "training_data_with_labels_emboot.filtered.txt.processed"
-        #
-        # LABEL = Field(sequential=False, use_vocab=True)
-        # ENTITY = Field(sequential=False, use_vocab=True, lower=True)
-        # PATTERN = Field(sequential=True, use_vocab=True, lower=True, tokenize=simple_tokenizer)
-        #
-        # datafields = [("label", LABEL), ("entity", ENTITY), ("patterns", PATTERN)]
-        # dataset, _ = TabularDataset.splits(path=dir, train=data_file, validation=data_file, format='tsv',
-        #                                  fields=datafields)
-        #
-        # LABEL.build_vocab(dataset)
-        # ENTITY.build_vocab(dataset)
-        # PATTERN.build_vocab(dataset)
-
-        # APPLY THE TRANSFORMATION HERE
-        # transform = transform
-
-        # return dataset
-        ######################################################################
-
-@export
-def riedel():
-
-    if REDataset.WORD_NOISE_TYPE in ['drop', 'replace']:
-        addNoise = data.RandomPatternWordNoise(REDataset.NUM_WORDS_TO_REPLACE, REDataset.OOV, REDataset.WORD_NOISE_TYPE)
-    else:
-        assert False, "Unknown type of noise {}".format(REDataset.WORD_NOISE_TYPE)
-
-    return {
-        'train_transformation': data.TransformTwiceNEC(addNoise),
-        'eval_transformation': None,
-        'datadir': 'data-local/re/Riedel2010'
-    }
-
-@export
-def gids():
-
-    if REDataset.WORD_NOISE_TYPE in ['drop', 'replace']:
-        addNoise = data.RandomPatternWordNoise(REDataset.NUM_WORDS_TO_REPLACE, REDataset.OOV, REDataset.WORD_NOISE_TYPE)
-    else:
-        assert False, "Unknown type of noise {}".format(REDataset.WORD_NOISE_TYPE)
-
-    return {
-        'train_transformation': data.TransformTwiceNEC(addNoise),
-        'eval_transformation': None,
-        'datadir': 'data-local/re/gids'
-    }
-
-
 
 
 
@@ -363,9 +18,9 @@ def gids():
 def fever():
 
     if RTEDataset.WORD_NOISE_TYPE in ['drop', 'replace']:
-        addNoise = data.RandomPatternWordNoise(NECDataset.NUM_WORDS_TO_REPLACE, NECDataset.OOV, NECDataset.WORD_NOISE_TYPE)
+        addNoise = data.RandomPatternWordNoise(RTEDataset.NUM_WORDS_TO_REPLACE, RTEDataset.OOV, RTEDataset.WORD_NOISE_TYPE)
     else:
-        assert False, "Unknown type of noise {}".format(NECDataset.WORD_NOISE_TYPE)
+        assert False, "Unknown type of noise {}".format(RTEDataset.WORD_NOISE_TYPE)
 
     return {
         'train_transformation': data.TransformTwiceNEC(addNoise),
@@ -406,6 +61,10 @@ class RTEDataset(Dataset):
 
         self.claims, self.evidences, self.labels_str = Datautils.read_rte_data(dataset_file,args)
 
+        print(f"inside dataset.py just after Datautils.read_rte_data. size of self.claism is:{len(self.claims)}")
+        import sys
+
+
         assert len(self.claims)== len(self.evidences)==len(self.labels_str), "claims and evidences are not of equal length"
 
         #to find the top 10 longest evidences adn remove them. am doing this because GPU was getting memory overloaded because of padding
@@ -430,7 +89,8 @@ class RTEDataset(Dataset):
 
         self.word_vocab, self.max_claims_len, self.max_ev_len = self.build_word_vocabulary(LOG)
 
-        print(f"inside datasets.py line 431r value of word_vocab.size()={self.word_vocab.size()}")
+        print(f"inside datasets.py . just after  build_word_vocabulary.value of word_vocab.size()={self.word_vocab.size()}")
+        import sys
         sys.exit(1)
 
 
@@ -495,7 +155,11 @@ class RTEDataset(Dataset):
         return len(self.claims)
 
     def build_word_vocabulary(self,LOG):
-        word_vocab = Vocabulary()
+        #word_vocab = Vocabulary()
+
+        #their vocabulary function was giving issues (including having duplicates). creating my own dictionary.
+        word_vocab = {"dummy":1}
+
 
         max_claim_len = 0
         max_evidence_len = 0
@@ -512,7 +176,10 @@ class RTEDataset(Dataset):
         for each_claim in self.claims:
             words = [w for w in each_claim.split(" ")]
             for w in words:
-                word_vocab.add(w)
+                #if the word is new, get the last id and add it
+                if(w not in word_vocab ):
+                    len_dict=len(word_vocab.keys())
+                    word_vocab[w]=len_dict+1
 
                 if len(words) > max_claim_len:
                     max_claim_len = len(words)
@@ -522,7 +189,9 @@ class RTEDataset(Dataset):
         for each_ev in self.evidences:
             words = [w for w in each_ev.split(" ")]
             for w in words:
-                word_vocab.add(w)
+                if (w not in word_vocab):
+                    len_dict = len(word_vocab.keys())
+                    word_vocab[w] = len_dict + 1
 
                 if len(words) > max_evidence_len:
                     max_evidence_len = len(words)
@@ -565,7 +234,7 @@ class RTEDataset(Dataset):
         # import sys
         # sys.exit(1)
 
-
+        print(f"just before returning word_vocab. Number of unique words is {len(word_vocab.keys())}")
         return word_vocab, max_claim_len, max_evidence_len
 
 

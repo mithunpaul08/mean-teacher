@@ -36,6 +36,7 @@ def fever():
 class RTEDataset(Dataset):
 
     PAD = "@PADDING"
+    UNKNOWN = "@UNKNOWN"
     OOV = "</s>"
     ENTITY = "@ENTITY"
     OOV_ID = 0
@@ -57,7 +58,7 @@ class RTEDataset(Dataset):
         return np.array(word_vocab_embed).astype('float32')
 
     #mithun this is called using:#dataset = datasets.NECDataset(traindir, args, train_transformation)
-    def __init__(self, runName,dataset_file, args, LOG,transform=None):
+    def __init__(self, word_vocab,runName,dataset_file, args, LOG,transform=None):
 
         print("got inside init of RTE data set")
 
@@ -82,15 +83,13 @@ class RTEDataset(Dataset):
                     list_of_longest_ev_lengths.append(max_evidence_len)
                     list_of_longest_evidences.append(longest_evidence_words)
 
-        # s = sorted(list_of_longest_evidences, key=len, reverse=True)
-        # top10 = s[:10]
-        # # LOG.debug(f"list_of_longest_evidences.sort(:{top10}")
-        # s_lengths = sorted(list_of_longest_ev_lengths, reverse=True)
-        # #LOG.debug(f"list_of_longest_ev_lengths.sort(:{s_lengths[:10]}")
-        #
-        #
+        '''The dictionary of words in training (vocabulary) should not be updated while reading dev. 
+               However, while in dev, if you see a word that exists in the vocabulary, return its index. 
+               But if its a new word, don’t update the vocabulary . Instead return the index of dictionary.
+               '''
 
-        self.word_vocab, self.max_claims_len, self.max_ev_len, self.word_count= self.build_word_vocabulary(LOG)
+
+        self.word_vocab, self.max_claims_len, self.max_ev_len, self.word_count= self.get_max_lengths_add_to_vocab(word_vocab,runName)
 
         print(f"inside datasets.py . just after  build_word_vocabulary.value of word_vocab.size()={len(self.word_vocab.keys())}")
 
@@ -171,11 +170,19 @@ class RTEDataset(Dataset):
     def __len__(self):
         return len(self.claims)
 
-    def build_word_vocabulary(self,LOG):
+    def build_word_vocabulary(self,w,word_vocab):
+        # if the word is new, get the last id and add it
+        if(w not in word_vocab ):
+            len_dict=len(word_vocab.keys())
+            word_vocab[w]=len_dict+1
+        return word_vocab
+
+
+
+    def get_max_lengths_add_to_vocab(self,word_vocab,runName):
+        #their vocabulary function was giving issues (including having duplicates). creating my own dictionary.
         #word_vocab = Vocabulary()
 
-        #their vocabulary function was giving issues (including having duplicates). creating my own dictionary.
-        word_vocab = {"dummy":1}
         word_count={"dummy":0}
 
         max_claim_len = 0
@@ -188,15 +195,16 @@ class RTEDataset(Dataset):
         list_of_longest_ev_lengths=[]
         list_of_longest_evidences=[]
         list_of_longest_claim_lengths = []
+        list_of_longest_claims = []
 
 
         for each_claim in self.claims:
             words = [w for w in each_claim.split(" ")]
             for w in words:
-                #if the word is new, get the last id and add it
-                if(w not in word_vocab ):
-                    len_dict=len(word_vocab.keys())
-                    word_vocab[w]=len_dict+1
+                #build vocabulary only from training data. In dev, a new word it sees must be returned @UNKNOWN
+                if(runName=='train'):
+                    word_vocab=self.build_word_vocabulary(w,word_vocab)
+
 
                 #increase word frequency count
                 self.update_word_count(word_count,w)
@@ -205,38 +213,24 @@ class RTEDataset(Dataset):
                     max_claim_len = len(words)
                     max_claim = words
                     list_of_longest_claim_lengths.append(max_claim_len)
+                    list_of_longest_claims.append(words)
 
         for each_ev in self.evidences:
             words = [w for w in each_ev.split(" ")]
             for w in words:
-                if (w not in word_vocab):
-                    len_dict = len(word_vocab.keys())
-                    word_vocab[w] = len_dict + 1
+                if (runName == 'train'):
+                    word_vocab=self.build_word_vocabulary(w,word_vocab)
                 # increase word frequency count
                 self.update_word_count(word_count, w)
-
                 if len(words) > max_evidence_len:
                     max_evidence_len = len(words)
                     longest_evidence_words = words
                     list_of_longest_ev_lengths.append(max_evidence_len)
                     list_of_longest_evidences.append(longest_evidence_words)
 
-            # if len(context) > max_num_patterns:
-            #     max_num_patterns = len(context)
 
 
-        ######So looked like the longest sentence of 18000 words was a bug. Somehow the data had an entire html dump. So right now we are going to pick
-        # the biggest number that is  less than 1000
-        # Todo: Note that this is a hack and we are biasing the data. Need to find a cleaner way to do this.
-
-        # for x in sorted(list_of_longest_ev_lengths,reverse=True):
-        #     if(x<1000):
-        #         max_evidence_len=x
-        #         break
-
-
-        #for debug: find the top 10 longest sentences
-        #  and their length
+        #for debug: find the top 10 longest sentences and their length
         s=sorted(list_of_longest_evidences,key=len,reverse=True)
         top10=s[:10]
         #LOG.debug(f"list_of_longest_evidences.sort(:{top10}")
@@ -245,16 +239,7 @@ class RTEDataset(Dataset):
 
         claim_sorted_len=sorted(list_of_longest_claim_lengths,reverse=True)
         x=claim_sorted_len[:10]
-        #LOG.debug(f"claim_sorted_len_t10.(:{x}")
 
-
-
-        #LOG.debug (f"max_claim:{max_claim}")
-        #LOG.debug (max_claim_len)
-        #LOG.debug (longest_evidence_words)
-        #LOG.debug (max_evidence_len)
-        # import sys
-        # sys.exit(1)
 
         print(f"just before returning word_vocab. Number of unique words is {len(word_vocab.keys())}")
         return word_vocab, max_claim_len, max_evidence_len,word_count
@@ -289,24 +274,34 @@ class RTEDataset(Dataset):
 
         label = self.lbl[idx]
 
-        # ask fan: can we just use the common word vocabulary dictionary. do we need to have separate dict
-        # Ans: the dictionar is still the same, its two different sentences and two different words
-
-        # entity_words = [self.word_vocab[(w) for w in self.entity_vocab.get_word(self.mentions[idx]).split(" ")]
-        # entity_words_padded = self.pad_item(entity_words, False)
-        # entity_datum = torch.LongTensor(entity_words_padded)
-        #
-        # context_words_str = [[w for w in self.context_vocab.get_word(ctxId).split(" ")] for ctxId in self.contexts[idx]]
-        # context_words = [[self.word_vocab[(w) for w in self.context_vocab.get_word(ctxId).split(" ")] for ctxId in
-        #                  self.contexts[idx]]
 
         #todo: ask becky if we should do lowercase for all words in claims and evidence
 
         claims_words_str = [[w for w in (self.claims[idx].split(" "))]]
         ev_words_str= [[w for w in (self.evidences[idx].split(" "))]]
 
-        claims_words_id = [self.word_vocab[w] for w in (self.claims[idx].split(" "))]
-        ev_words_id = [self.word_vocab[w]  for w in (self.evidences[idx].split(" "))]
+        # if the word existsin in word vocabulary return its id. else if it doesn't exist in word vocabulary,
+        # return the id of #UNKNOWN
+        claims_words_id=[]
+        ev_words_id=[]
+        claims_word_id=None
+        ev_word_id=None
+        for w in (self.claims[idx].split(" ")):
+            if (w in self.word_vocab):
+                claims_word_id = self.word_vocab[w]
+            else:
+                claims_word_id = self.word_vocab[self.UNKNOWN]
+            claims_words_id.append(claims_word_id)
+
+
+        for w in (self.evidences[idx].split(" ")):
+            if (w in self.word_vocab):
+                ev_word_id = self.word_vocab[w]
+            else:
+                ev_word_id = self.word_vocab[self.UNKNOWN]
+            ev_words_id.append(ev_word_id)
+
+
 
 
         len_claims_words=len(claims_words_id)

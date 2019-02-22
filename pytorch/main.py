@@ -118,7 +118,8 @@ def create_data_loaders(LOG,train_transformation,
         LOG.info("evaldir : " + evaldir)
 
         train_input_file = traindir + args.train_input_file
-        dataset = datasets.RTEDataset("train",train_input_file, args, LOG,train_transformation)
+        word_vocab = {"@UNKNOWN": 1}
+        dataset = datasets.RTEDataset(word_vocab,"train",train_input_file, args, LOG,train_transformation)
         print(
             f"after reading training dataset.value of word_vocab.size()={len(dataset.word_vocab.keys())}")
 
@@ -181,7 +182,7 @@ def create_data_loaders(LOG,train_transformation,
 
         #do the same for eval data also. i.e read the dev data, and add a sampler..
         dev_input_file = evaldir + args.dev_input_file
-        dataset_test = datasets.RTEDataset("dev",dev_input_file, args, eval_transformation) ## NOTE: test data is the same as train data
+        dataset_test = datasets.RTEDataset(word_vocab,"dev",dev_input_file, args, eval_transformation) ## NOTE: test data is the same as train data
         print(
             f"after reading dev dataset.value of word_vocab.size()={len(dataset_test.word_vocab.keys())}")
 
@@ -353,41 +354,11 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
         assert labeled_minibatch_size > 0
         meters.update('labeled_minibatch_size', labeled_minibatch_size)
 
+        if args.dataset in ['fever'] and args.arch == 'simple_MLP_embed_RTE':
+            ema_model_out = ema_model(ema_claims_var, ema_evidences_var, len_claims_this_batch, len_evidences_this_batch)
+            model_out = model(claims_var, evidences_var, len_claims_this_batch, len_evidences_this_batch)
 
-        if args.dataset in ['conll', 'ontonotes'] and args.arch == 'custom_embed':
-            # print("claims_var = " + str(claims_var.size()))
-            # print("evidences_var = " + str(evidences_var.size()))
-            ema_model_out, _, _ = ema_model(ema_claims_var, ema_evidences_var)
-            model_out, _, _ = model(claims_var, evidences_var)
-        elif args.dataset in ['fever'] and args.arch == 'simple_MLP_embed_RTE':
-            ema_model_out = ema_model(ema_claims_var, ema_evidences_var,len_claims_this_batch,len_evidences_this_batch)
-            model_out = model(claims_var, evidences_var,len_claims_this_batch,len_evidences_this_batch)
-        elif args.dataset in ['fever'] and args.arch == 'simple_MLP_embed':
-            ema_model_out = ema_model(ema_claims_var, ema_evidences_var)
-            model_out = model(claims_var, evidences_var)
 
-        # US - TRAIN!!
-        elif args.dataset in ['riedel', 'gids'] and args.arch == 'lstm_RE':
-            model_out, perm_idx = model((input_var, seq_lengths))            # model_out: size of one batch(256) * score of each label (torch.FloatTensor of size 56)
-            ema_model_out, perm_idx_ema = ema_model((ema_input_var, seq_lengths))
-            assert perm_idx_ema.ne(perm_idx).sum() == 0
-
-            target_var = target_var[perm_idx]
-
-        elif args.dataset in ['riedel', 'gids'] and args.arch == 'simple_MLP_embed_RE':
-
-            model_out = model((input_var, seq_lengths, dataset.pad_id))
-            ema_model_out = ema_model((ema_input_var, seq_lengths, dataset.pad_id))
-
-            # just to match lstm_RE, needed to be passed to dump_result
-            if torch.cuda.is_available():
-                perm_idx = torch.cuda.LongTensor([i for i in range(len(input_var))])
-            else:
-                perm_idx = torch.LongTensor([i for i in range(len(input_var))])
-
-        else:
-            ema_model_out = ema_model(ema_input_var)
-            model_out = model(input_var)
 
         ## DONE: AJAY - WHAT IS THIS CODE BLK ACHIEVING ? Ans: THIS IS RELATED TO --logit-distance-cost .. (fc1 and fc2 in model) ...
         if isinstance(model_out, Variable):       # this is default

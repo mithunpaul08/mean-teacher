@@ -56,7 +56,7 @@ class RTEDataset(Dataset):
         return np.array(word_vocab_embed).astype('float32')
 
     #mithun this is called using:#dataset = datasets.NECDataset(traindir, args, train_transformation)
-    def __init__(self, dataset_file, args, LOG,transform=None):
+    def __init__(self, runName,dataset_file, args, LOG,transform=None):
 
         print("got inside init of RTE data set")
 
@@ -138,7 +138,7 @@ class RTEDataset(Dataset):
 
         print("2self.word_vocab.size=", len(self.word_vocab.keys()))
         dir=args.output_folder
-        vocab_file = dir + 'vocabulary_train_' + '.txt'
+        vocab_file = dir + 'vocabulary_'+ runName + '.txt'
 
 
         with io.open(vocab_file, 'w+', encoding=DEFAULT_ENCODING) as f:
@@ -149,7 +149,7 @@ class RTEDataset(Dataset):
         print("num of types of labels considered =", len(self.categories))
 
         #write the list of labels to disk
-        label_category_file = dir + 'label_category_train_'  + '.txt'
+        label_category_file = dir + 'label_category_'  + runName+'.txt'
         with io.open(label_category_file, 'w', encoding='utf8') as f:
             for lbl in self.categories:
                 f.write(lbl + '\n')

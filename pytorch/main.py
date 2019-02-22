@@ -118,7 +118,7 @@ def create_data_loaders(LOG,train_transformation,
         LOG.info("evaldir : " + evaldir)
 
         train_input_file = traindir + args.train_input_file
-        dataset = datasets.RTEDataset(train_input_file, args, LOG,train_transformation)
+        dataset = datasets.RTEDataset("train",train_input_file, args, LOG,train_transformation)
         print(
             f"after reading training dataset.value of word_vocab.size()={len(dataset.word_vocab.keys())}")
 
@@ -181,10 +181,10 @@ def create_data_loaders(LOG,train_transformation,
 
         #do the same for eval data also. i.e read the dev data, and add a sampler..
         dev_input_file = evaldir + args.dev_input_file
-        dataset_test = datasets.RTEDataset(dev_input_file, args, eval_transformation) ## NOTE: test data is the same as train data
+        dataset_test = datasets.RTEDataset("dev",dev_input_file, args, eval_transformation) ## NOTE: test data is the same as train data
         print(
             f"after reading dev dataset.value of word_vocab.size()={len(dataset_test.word_vocab.keys())}")
-        sys.exit(1)
+
 
         #in dev, there shouldn't be two stream sampler
         sampler = SubsetRandomSampler(labeled_idxs)

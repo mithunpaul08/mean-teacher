@@ -120,8 +120,8 @@ def create_data_loaders(LOG,train_transformation,
         train_input_file = traindir + args.train_input_file
         dataset = datasets.RTEDataset(train_input_file, args, LOG,train_transformation)
         print(
-            f"after reading dataset.value of word_vocab.size()={dataset.word_vocab.size()}")
-        sys.exit(1)
+            f"after reading training dataset.value of word_vocab.size()={dataset.word_vocab.size()}")
+
         LOG.info("Type of Noise : "+ dataset.WORD_NOISE_TYPE)
         LOG.info("Size of Noise : "+ str(dataset.NUM_WORDS_TO_REPLACE))
 
@@ -181,6 +181,9 @@ def create_data_loaders(LOG,train_transformation,
         #do the same for eval data also. i.e read the dev data, and add a sampler..
         dev_input_file = evaldir + args.dev_input_file
         dataset_test = datasets.RTEDataset(dev_input_file, args, eval_transformation) ## NOTE: test data is the same as train data
+        print(
+            f"after reading dev dataset.value of word_vocab.size()={dataset_test.word_vocab.size()}")
+        sys.exit(1)
 
         #in dev, there shouldn't be two stream sampler
         sampler = SubsetRandomSampler(labeled_idxs)

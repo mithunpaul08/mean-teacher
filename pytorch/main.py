@@ -24,9 +24,10 @@ import contextlib
 import random
 
 #askfan: where is log file stored? Ans: stdout
+logging.basicConfig(filename='example.log',filemode='w+')
 LOG = logging.getLogger('main')
 LOG.setLevel(logging.INFO)
-#logging.basicConfig(filename='example.log',level=logging.DEBUG)
+
 
 ################
 # NOTE: To enable logging on IPythonConsole output or IPyNoteBook

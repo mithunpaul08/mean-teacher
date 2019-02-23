@@ -154,8 +154,8 @@ class RTEDataset(Dataset):
             for lbl in self.categories:
                 f.write(lbl + '\n')
 
-        #self.transform = transform
-        self.transform = None
+        self.transform = transform
+        #self.transform = None
         print("4self.word_vocab.size=", len(self.word_vocab.keys()))
 
 
@@ -209,11 +209,11 @@ class RTEDataset(Dataset):
                 #increase word frequency count
                 self.update_word_count(word_count,w)
 
-                if len(words) > max_claim_len:
-                    max_claim_len = len(words)
-                    max_claim = words
-                    list_of_longest_claim_lengths.append(max_claim_len)
-                    list_of_longest_claims.append(words)
+            if len(words) > max_claim_len:
+                max_claim_len = len(words)
+                max_claim = words
+                list_of_longest_claim_lengths.append(max_claim_len)
+                list_of_longest_claims.append(words)
 
         for each_ev in self.evidences:
             words = [w for w in each_ev.split(" ")]
@@ -222,11 +222,11 @@ class RTEDataset(Dataset):
                     word_vocab=self.build_word_vocabulary(w,word_vocab)
                 # increase word frequency count
                 self.update_word_count(word_count, w)
-                if len(words) > max_evidence_len:
-                    max_evidence_len = len(words)
-                    longest_evidence_words = words
-                    list_of_longest_ev_lengths.append(max_evidence_len)
-                    list_of_longest_evidences.append(longest_evidence_words)
+            if len(words) > max_evidence_len:
+                max_evidence_len = len(words)
+                longest_evidence_words = words
+                list_of_longest_ev_lengths.append(max_evidence_len)
+                list_of_longest_evidences.append(longest_evidence_words)
 
 
 

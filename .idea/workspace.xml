@@ -3,8 +3,10 @@
   <component name="ChangeListManager">
     <list default="true" id="106d3cb0-0078-4c0d-8f45-f05ca8f31e37" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pytorch/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pytorch/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pytorch/mean_teacher/datasets.py" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/mean_teacher/datasets.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pytorch/outputs/vocabulary_dev.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pytorch/outputs/vocabulary_train.txt" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/outputs/vocabulary_train.txt" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -25,39 +27,38 @@
       <usages-collector id="statistics.file.extensions.open">
         <counts>
           <entry key="md" value="1" />
-          <entry key="py" value="6" />
+          <entry key="py" value="11" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
           <entry key="Markdown" value="1" />
-          <entry key="Python" value="6" />
+          <entry key="Python" value="11" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="md" value="1" />
-          <entry key="py" value="887" />
+          <entry key="md" value="7" />
+          <entry key="py" value="1167" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Markdown" value="1" />
-          <entry key="Python" value="887" />
+          <entry key="Markdown" value="7" />
+          <entry key="Python" value="1167" />
         </counts>
       </usages-collector>
     </session>
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/pytorch/main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="362">
-              <caret line="1074" column="13" selection-start-line="1074" selection-start-column="13" selection-end-line="1074" selection-end-column="13" />
+            <state relative-caret-position="-1173">
+              <caret line="553" selection-start-line="553" selection-end-line="553" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
-                <element signature="e#24560#31683#0" />
                 <element signature="e#49877#51671#0" />
               </folding>
             </state>
@@ -65,31 +66,40 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file:///anaconda3/envs/meanteacher/lib/python3.7/site-packages/torch/nn/modules/module.py">
+        <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/utils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="72">
-              <caret line="483" selection-start-line="483" selection-end-line="483" />
+            <state relative-caret-position="155">
+              <caret line="53" selection-start-line="53" selection-end-line="53" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file:///anaconda3/envs/meanteacher/lib/python3.7/site-packages/torch/nn/functional.py">
+        <entry file="file:///anaconda3/envs/meanteacher/lib/python3.7/site-packages/torch/nn/modules/module.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="154">
-              <caret line="1453" selection-start-line="1453" selection-end-line="1453" />
+            <state relative-caret-position="215">
+              <caret line="488" selection-start-line="488" selection-end-line="488" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/data.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="111">
+              <caret line="135" column="22" selection-start-line="135" selection-start-column="8" selection-end-line="135" selection-end-column="22" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="103">
-              <caret line="141" column="29" selection-start-line="141" selection-start-column="29" selection-end-line="141" selection-end-column="29" />
+            <state relative-caret-position="4">
+              <caret line="156" column="8" selection-start-line="156" selection-start-column="8" selection-end-line="156" selection-end-column="8" />
               <folding>
                 <element signature="e#0#43#0" expanded="true" />
-                <marker date="1550876492000" expanded="true" signature="6288:6297" ph="..." />
+                <marker date="1550895842000" expanded="true" signature="6288:6297" ph="..." />
               </folding>
             </state>
           </provider>
@@ -98,8 +108,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/architectures.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="251">
-              <caret line="82" selection-start-line="82" selection-end-line="82" />
+            <state relative-caret-position="-238">
+              <caret line="77" selection-start-line="77" selection-end-line="77" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
               </folding>
@@ -111,8 +121,8 @@
         <entry file="file://$PROJECT_DIR$/pytorch/README.md">
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
             <state split_layout="SPLIT">
-              <first_editor relative-caret-position="206">
-                <caret line="71" column="370" selection-start-line="71" selection-start-column="366" selection-end-line="71" selection-end-column="370" />
+              <first_editor relative-caret-position="135">
+                <caret line="71" column="397" selection-start-line="71" selection-end-line="71" selection-end-column="397" />
               </first_editor>
               <second_editor />
             </state>
@@ -120,10 +130,28 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file:///anaconda3/envs/meanteacher/lib/python3.7/site-packages/torch/utils/data/dataloader.py">
+        <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/processNLPdata/datautils.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="147">
+              <caret line="61" column="8" selection-start-line="61" selection-start-column="8" selection-end-line="61" selection-end-column="8" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file:///anaconda3/envs/meanteacher/lib/python3.7/site-packages/torch/utils/data/dataloader.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="140">
               <caret line="615" selection-start-line="615" selection-end-line="615" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file:///anaconda3/envs/meanteacher/lib/python3.7/site-packages/torch/cuda/__init__.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="177">
+              <caret line="48" selection-start-line="48" selection-end-line="48" />
             </state>
           </provider>
         </entry>
@@ -132,10 +160,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>RTEDataset</find>
-      <find>forward</find>
-      <find>dataset</find>
-      <find>len_evidences_this_batch</find>
       <find>vocabu</find>
       <find>padding</find>
       <find>rteda</find>
@@ -144,6 +168,28 @@
       <find>@padd</find>
       <find>enumer</find>
       <find>validate(</find>
+      <find>vocabulary_</find>
+      <find>args.exclu</find>
+      <find>args.lr</find>
+      <find>--lr</find>
+      <find>consistenc</find>
+      <find>detach</find>
+      <find>NO_LABEL</find>
+      <find>getitem</find>
+      <find>meters[top1]</find>
+      <find>rtedatase</find>
+      <find>claims_words_id_padded</find>
+      <find>rtedat</find>
+      <find>shuffle</find>
+      <find>train(</find>
+      <find>self.transform</find>
+      <find>self.transform = None</find>
+      <find>self.transform=None</find>
+      <find>word_vocab</find>
+      <find>F</find>
+      <find>rted</find>
+      <find>self.transform =</find>
+      <find>validate</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -152,10 +198,10 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/pytorch/README.md" />
         <option value="$PROJECT_DIR$/pytorch/mean_teacher/architectures.py" />
-        <option value="$PROJECT_DIR$/pytorch/main.py" />
+        <option value="$PROJECT_DIR$/pytorch/README.md" />
         <option value="$PROJECT_DIR$/pytorch/mean_teacher/datasets.py" />
+        <option value="$PROJECT_DIR$/pytorch/main.py" />
       </list>
     </option>
   </component>
@@ -242,7 +288,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pytorch/main.py" />
-      <option name="PARAMETERS" value="--dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 100 --consistency 1 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_small_200_claims_with_evi_sents.jsonl --dev_input_file dev_90_with_evi_sents.jsonl --print-freq 1 --workers 0 --exclude_unlabeled true --batch_size 20 --lr 0.0000001 --ema_decay 8" />
+      <option name="PARAMETERS" value="--dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 100 --consistency 0 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_small_200_claims_with_evi_sents.jsonl --dev_input_file dev_90_with_evi_sents.jsonl --print-freq 1 --workers 0 --exclude_unlabeled true --batch_size 13 --lr 0.0000001 --ema_decay 8" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -273,13 +319,13 @@
     <frame x="34" y="23" width="2045" height="935" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.2910079" />
+      <window_info content_ui="combo" id="Project" order="0" weight="0.14426878" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.3292683" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.42560977" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.3292683" />
+      <window_info active="true" anchor="bottom" id="Debug" order="3" visible="true" weight="0.42560977" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -291,6 +337,25 @@
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
     </layout>
+    <layout-to-restore>
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.14426878" />
+      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.3292683" />
+      <window_info active="true" anchor="bottom" id="Debug" order="3" visible="true" weight="0.42560977" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="Version Control" order="7" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Terminal" order="8" />
+      <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
+      <window_info anchor="bottom" id="Python Console" order="10" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+    </layout-to-restore>
   </component>
   <component name="VcsContentAnnotationSettings">
     <option name="myLimit" value="2678400000" />
@@ -300,27 +365,17 @@
       <breakpoints>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py</url>
-          <line>403</line>
+          <line>402</line>
           <option name="timeStamp" value="1" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>422</line>
+          <line>424</line>
           <option name="timeStamp" value="23" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>1171</line>
-          <option name="timeStamp" value="27" />
-        </line-breakpoint>
-        <line-breakpoint suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>309</line>
-          <option name="timeStamp" value="28" />
-        </line-breakpoint>
-        <line-breakpoint suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>317</line>
+          <line>318</line>
           <option name="timeStamp" value="29" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
@@ -329,33 +384,23 @@
           <option name="timeStamp" value="31" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>578</line>
-          <option name="timeStamp" value="36" />
-        </line-breakpoint>
-        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/mean_teacher/architectures.py</url>
           <line>86</line>
           <option name="timeStamp" value="37" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>356</line>
-          <option name="timeStamp" value="39" />
-        </line-breakpoint>
-        <line-breakpoint suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>313</line>
+          <line>314</line>
           <option name="timeStamp" value="40" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>312</line>
+          <line>313</line>
           <option name="timeStamp" value="41" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>316</line>
+          <line>317</line>
           <option name="timeStamp" value="42" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
@@ -365,17 +410,17 @@
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py</url>
-          <line>310</line>
+          <line>309</line>
           <option name="timeStamp" value="45" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py</url>
-          <line>311</line>
+          <line>310</line>
           <option name="timeStamp" value="46" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py</url>
-          <line>182</line>
+          <line>181</line>
           <option name="timeStamp" value="49" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
@@ -383,15 +428,325 @@
           <line>121</line>
           <option name="timeStamp" value="52" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>1125</line>
+          <line>1149</line>
           <option name="timeStamp" value="71" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>752</line>
+          <option name="timeStamp" value="88" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>756</line>
+          <option name="timeStamp" value="89" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>333</line>
+          <option name="timeStamp" value="90" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file:///anaconda3/envs/meanteacher/lib/python3.7/site-packages/torch/nn/modules/module.py</url>
+          <line>483</line>
+          <option name="timeStamp" value="92" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file:///anaconda3/envs/meanteacher/lib/python3.7/site-packages/torch/nn/modules/module.py</url>
+          <line>486</line>
+          <option name="timeStamp" value="93" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>365</line>
+          <option name="timeStamp" value="97" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>383</line>
+          <option name="timeStamp" value="98" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>385</line>
+          <option name="timeStamp" value="99" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>388</line>
+          <option name="timeStamp" value="100" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>389</line>
+          <option name="timeStamp" value="101" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>415</line>
+          <option name="timeStamp" value="102" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>401</line>
+          <option name="timeStamp" value="103" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>655</line>
+          <option name="timeStamp" value="104" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>1131</line>
+          <option name="timeStamp" value="109" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>1146</line>
+          <option name="timeStamp" value="110" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>1162</line>
+          <option name="timeStamp" value="111" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>489</line>
+          <option name="timeStamp" value="114" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>301</line>
+          <option name="timeStamp" value="116" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>257</line>
+          <option name="timeStamp" value="120" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>266</line>
+          <option name="timeStamp" value="121" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>283</line>
+          <option name="timeStamp" value="122" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>1159</line>
+          <option name="timeStamp" value="124" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>378</line>
+          <option name="timeStamp" value="125" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>1181</line>
+          <option name="timeStamp" value="132" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>347</line>
+          <option name="timeStamp" value="133" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>435</line>
+          <option name="timeStamp" value="138" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>352</line>
+          <option name="timeStamp" value="139" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>372</line>
+          <option name="timeStamp" value="140" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>371</line>
+          <option name="timeStamp" value="141" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>367</line>
+          <option name="timeStamp" value="142" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>359</line>
+          <option name="timeStamp" value="143" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/mean_teacher/architectures.py</url>
+          <line>107</line>
+          <option name="timeStamp" value="145" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>1163</line>
+          <option name="timeStamp" value="147" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>1165</line>
+          <option name="timeStamp" value="148" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>1195</line>
+          <option name="timeStamp" value="150" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>491</line>
+          <option name="timeStamp" value="151" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>534</line>
+          <option name="timeStamp" value="156" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>535</line>
+          <option name="timeStamp" value="157" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py</url>
+          <line>274</line>
+          <option name="timeStamp" value="158" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py</url>
+          <line>279</line>
+          <option name="timeStamp" value="159" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py</url>
+          <line>306</line>
+          <option name="timeStamp" value="162" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py</url>
+          <line>248</line>
+          <option name="timeStamp" value="163" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py</url>
+          <line>252</line>
+          <option name="timeStamp" value="164" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>183</line>
+          <option name="timeStamp" value="165" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>185</line>
+          <option name="timeStamp" value="166" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>184</line>
+          <option name="timeStamp" value="167" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py</url>
+          <line>218</line>
+          <option name="timeStamp" value="170" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py</url>
+          <line>217</line>
+          <option name="timeStamp" value="174" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>492</line>
+          <option name="timeStamp" value="175" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>498</line>
+          <option name="timeStamp" value="176" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>1192</line>
+          <option name="timeStamp" value="177" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>599</line>
+          <option name="timeStamp" value="178" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>310</line>
+          <option name="timeStamp" value="179" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>309</line>
+          <option name="timeStamp" value="182" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>326</line>
+          <option name="timeStamp" value="183" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>327</line>
+          <option name="timeStamp" value="184" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>561</line>
+          <option name="timeStamp" value="185" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>1122</line>
-          <option name="timeStamp" value="74" />
+          <line>580</line>
+          <option name="timeStamp" value="189" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/mean_teacher/architectures.py</url>
+          <line>76</line>
+          <option name="timeStamp" value="193" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/mean_teacher/architectures.py</url>
+          <line>77</line>
+          <option name="timeStamp" value="194" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>615</line>
+          <option name="timeStamp" value="196" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>654</line>
+          <option name="timeStamp" value="197" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>647</line>
+          <option name="timeStamp" value="198" />
         </line-breakpoint>
       </breakpoints>
       <breakpoints-dialog>
@@ -402,63 +757,53 @@
   <component name="debuggerHistoryManager">
     <expressions id="evaluateExpression">
       <expression>
-        <expression-string>self.word_vocab[w]</expression-string>
+        <expression-string>dataset</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>len(word_count.keys())</expression-string>
+        <expression-string>datapoint[0]</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>len(word_vocab.keys())</expression-string>
+        <expression-string>student_input_evidence</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>if(runName=='train'):</expression-string>
+        <expression-string>student_input_claim</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>word_vocab.keys()</expression-string>
+        <expression-string>student_input[1]</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>word_vocab[&quot;@UNKNOWN&quot;]</expression-string>
+        <expression-string>student_input[0]</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>word_vocab[&quot;@unknown&quot;]</expression-string>
+        <expression-string>len(student_input_evidence)</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>word_vocab[&quot;@PADDING&quot;]</expression-string>
+        <expression-string>datapoint[0][1].shape</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>word_vocab</expression-string>
+        <expression-string>datapoint[0][0].shape</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
     </expressions>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/pytorch/README.md">
-      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
-        <state split_layout="SPLIT">
-          <first_editor relative-caret-position="206">
-            <caret line="71" column="370" selection-start-line="71" selection-start-column="366" selection-end-line="71" selection-end-column="370" />
-          </first_editor>
-          <second_editor />
-        </state>
-      </provider>
-    </entry>
     <entry file="file:///anaconda3/envs/meanteacher/lib/python3.7/site-packages/torch/nn/functional.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="154">
@@ -466,24 +811,83 @@
         </state>
       </provider>
     </entry>
-    <entry file="file:///anaconda3/envs/meanteacher/lib/python3.7/site-packages/torch/utils/data/dataloader.py">
+    <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/cli.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="130">
+          <caret line="59" column="37" selection-start-line="59" selection-start-column="27" selection-end-line="59" selection-end-column="37" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/utils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="155">
+          <caret line="53" selection-start-line="53" selection-end-line="53" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pytorch/README.md">
+      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+        <state split_layout="SPLIT">
+          <first_editor relative-caret-position="135">
+            <caret line="71" column="397" selection-start-line="71" selection-end-line="71" selection-end-column="397" />
+          </first_editor>
+          <second_editor />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///anaconda3/envs/meanteacher/lib/python3.7/site-packages/torch/cuda/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="177">
+          <caret line="48" selection-start-line="48" selection-end-line="48" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/processNLPdata/datautils.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="147">
+          <caret line="61" column="8" selection-start-line="61" selection-start-column="8" selection-end-line="61" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///anaconda3/envs/meanteacher/lib/python3.7/site-packages/torch/utils/data/dataloader.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="140">
           <caret line="615" selection-start-line="615" selection-end-line="615" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/data.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="111">
+          <caret line="135" column="22" selection-start-line="135" selection-start-column="8" selection-end-line="135" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4">
+          <caret line="156" column="8" selection-start-line="156" selection-start-column="8" selection-end-line="156" selection-end-column="8" />
+          <folding>
+            <element signature="e#0#43#0" expanded="true" />
+            <marker date="1550895842000" expanded="true" signature="6288:6297" ph="..." />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file:///anaconda3/envs/meanteacher/lib/python3.7/site-packages/torch/nn/modules/module.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="72">
-          <caret line="483" selection-start-line="483" selection-end-line="483" />
+        <state relative-caret-position="215">
+          <caret line="488" selection-start-line="488" selection-end-line="488" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/architectures.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="251">
-          <caret line="82" selection-start-line="82" selection-end-line="82" />
+        <state relative-caret-position="-238">
+          <caret line="77" selection-start-line="77" selection-end-line="77" />
           <folding>
             <element signature="e#0#10#0" expanded="true" />
           </folding>
@@ -492,23 +896,11 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/pytorch/main.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="362">
-          <caret line="1074" column="13" selection-start-line="1074" selection-start-column="13" selection-end-line="1074" selection-end-column="13" />
+        <state relative-caret-position="-1173">
+          <caret line="553" selection-start-line="553" selection-end-line="553" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
-            <element signature="e#24560#31683#0" />
             <element signature="e#49877#51671#0" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="103">
-          <caret line="141" column="29" selection-start-line="141" selection-start-column="29" selection-end-line="141" selection-end-column="29" />
-          <folding>
-            <element signature="e#0#43#0" expanded="true" />
-            <marker date="1550876492000" expanded="true" signature="6288:6297" ph="..." />
           </folding>
         </state>
       </provider>

@@ -118,7 +118,7 @@ def create_data_loaders(LOG,train_transformation,
         LOG.info("evaldir : " + evaldir)
 
         train_input_file = traindir + args.train_input_file
-        word_vocab = {"@UNKNOWN": 1}
+        word_vocab = {"@UNKNOWN": 1,"</s>":2}
         dataset = datasets.RTEDataset(word_vocab,"train",train_input_file, args, LOG,train_transformation)
         print(
             f"after reading training dataset.value of word_vocab.size()={len(dataset.word_vocab.keys())}")
@@ -289,6 +289,7 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
     end = time.time()
 
     # datapoint: List(input_student, student_input teacher, labels)
+    #i.e go through each data point within a mini batch
     for i, datapoint in enumerate(train_loader):
         # print("len(datapoint) = ", len(datapoint))
         # print("datapoint[0] shape: {0}".format(datapoint[0].shape))
@@ -354,6 +355,7 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
         assert labeled_minibatch_size > 0
         meters.update('labeled_minibatch_size', labeled_minibatch_size)
 
+        #the feed forward and prediction part happens here.
         if args.dataset in ['fever'] and args.arch == 'simple_MLP_embed_RTE':
             ema_model_out = ema_model(ema_claims_var, ema_evidences_var, len_claims_this_batch, len_evidences_this_batch)
             model_out = model(claims_var, evidences_var, len_claims_this_batch, len_evidences_this_batch)
@@ -521,6 +523,7 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
 
     LOG.debug(f"inside validate function. value of  eval_loaderis {(eval_loader)}")
     LOG.debug(f"inside validate function. value of  len(eval_loader.dataset.claims) : {len(eval_loader.dataset.claims)}")
+    LOG.debug(f"inside validate function. value of  len(eval_loader.dataset.claims) : {len(eval_loader.dataset.claims)}")
     LOG.debug(f"inside validate function. value of  len(eval_loader.sampler.data_source.claims) : {len(eval_loader.sampler.data_source.claims)}")
     LOG.debug(f"inside validate function. value of  len(eval_loader.sampler.data_source.lbl : {len(eval_loader.sampler.data_source.lbl)}")
     LOG.debug(f"inside validate function. value of  eval_loader.batch_size : {(eval_loader.batch_size)}")
@@ -528,21 +531,42 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
     sum_all_acc=0
     total_no_batches=0
     #enumerate means enumerate through each of the batches.
+    #the __getitem__ in datasets.py is called here
     for i, datapoint in enumerate(eval_loader):
         LOG.debug(f"got inside .i, datapoint in enumerate(eval_loader)")
         meters.update('data_time', time.time() - end)
 
         if args.dataset in ['conll', 'ontonotes','fever']:
             LOG.debug(f"got inside args.dataset in fever")
-            claims_dev = datapoint[0][0]
-            evidence_dev = datapoint[0][1]
-            labels_dev = datapoint[1]
-            len_claims_this_batch = datapoint[2][0]
-            len_evidences_this_batch = datapoint[2][1]
 
-            # LOG.debug(f"value of claims_dev is:{claims_dev}")
-            # LOG.debug(f"value of patterns is:{evidence_dev}")
-            # LOG.debug(f"value of target is:{labels_dev}")
+            # claims_dev = datapoint[0][0]
+            # evidence_dev = datapoint[0][1]
+            # labels_dev = datapoint[1]
+            # len_claims_this_batch = datapoint[2][0]
+            # len_evidences_this_batch = datapoint[2][1]
+
+            # if there is no transformation, the data will be inside datapoint[0] itself
+
+            '''Note: when you get here from devsomewhere in the code it is internally making self. transform=None.
+             So by the time it is reaching here in validate, it will always take the same output. But yeah, good to check
+             . Have updated the code with that from train() nevertheless, Just that it always gets into 
+             Self.Transform=None branch'''
+            if (dataset.transform) is None:
+                student_input = datapoint[0]
+                labels_dev = datapoint[1]
+                len_claims_this_batch = datapoint[2][0]
+                len_evidences_this_batch = datapoint[2][1]
+
+            else:
+                student_input = datapoint[0]
+                labels_dev = datapoint[2]
+                len_claims_this_batch = datapoint[3][0]
+                len_evidences_this_batch = datapoint[3][1]
+
+            ## Input consists of tuple (entity_id, pattern_ids)
+            claims_dev = student_input[0]
+            evidence_dev = student_input[1]
+
 
             if torch.cuda.is_available():
                 claims_var = torch.autograd.Variable(claims_dev, volatile=True).cuda()

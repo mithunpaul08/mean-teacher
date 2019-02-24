@@ -845,7 +845,7 @@ def accuracy_fever(predicted_labels, gold_labels,LOG):
     import itertools
     l1=list(itertools.repeat(2,13))
     # check how many predictions you got right?
-    l2=gold_labels.numpy().tolist()
+    l2=gold_labels.cpu.numpy().tolist()
     l2, correct = l2[:], [e for e in l1 if e in l2 and (l2.pop(l2.index(e)))]
     correct_k_float = float(sum(correct)/2)
 

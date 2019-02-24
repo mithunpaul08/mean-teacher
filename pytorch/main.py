@@ -26,7 +26,7 @@ import random
 #askfan: where is log file stored? Ans: stdout
 #logging.basicConfig(filename='example.log',filemode='w+')
 LOG = logging.getLogger('main')
-LOG.setLevel(logging.DEBUG)
+LOG.setLevel(logging.INFO)
 
 
 ################
@@ -867,7 +867,7 @@ def accuracy_fever(predicted_labels, gold_labels,LOG):
     #old-ajay code
     #result=correct_k.mul_(100.0 / labeled_minibatch_size)
     #LOG.debug(f"value of result is :{result}")
-    sys.exit(1)
+
     return result2
 
 def get_label_from_softmax(output):

@@ -177,11 +177,11 @@ def create_data_loaders(LOG,train_transformation,
             timeout (numeric, optional) – if positive, the timeout value for collecting a batch from workers. Should always be non-negative. (default: 0)
             worker_init_fn (callable, optional) – If not None, this will be called on each worker subprocess with the worker id (an int in [0, num_workers - 1]) as input, after seeding and before data loading. (default: None)'''
 
-        found_not_supports_label1=False
+        found_not_supports_label=False
 
         for lbl in dataset.lbl:
             if not (lbl == 2):
-                found_not_supports_label1=True
+                found_not_supports_label=True
 
 
 
@@ -219,9 +219,7 @@ def create_data_loaders(LOG,train_transformation,
             if not (lbl == 2):
                 found_not_supports_label1_dev=True
 
-        print(f"value of found_not_supports_label1={found_not_supports_label1}")
-        print(f"value of found_not_supports_label2={found_not_supports_label2}")
-        print(f"value of found_not_supports_label1_dev={found_not_supports_label1_dev}")
+
 
 
 
@@ -232,15 +230,31 @@ def create_data_loaders(LOG,train_transformation,
                                                   drop_last=False,
                                                   num_workers=args.workers)
 
+        found_not_supports_label_train3=False
+        found_not_supports_label_dev2 = False
+
+        # debug. exit if gold has any label other than 2.
+        for lbl in dataset.lbl:
+            if not (lbl == 2):
+                found_not_supports_label_train3 = True
+
+        # debug. exit if gold has any label other than 2.
 
 
+        for lbl in dataset_dev.lbl:
+            if not (lbl == 2):
+                found_not_supports_label_dev2 = True
 
-
+        print(f"value of found_not_supports_label1={found_not_supports_label}")
+        print(f"value of found_not_supports_label2={found_not_supports_label2}")
+        print(f"value of found_not_supports_label_train3={found_not_supports_label_train3}")
+        print(f"value of found_not_supports_label_dev2={found_not_supports_label_dev2}")
+        print(f"value of found_not_supports_label1_dev={found_not_supports_label1_dev}")
 
     #mithun: once you have both the train and test data in the DataLoader format that torch understands, return it to the calling function
 
     LOG.debug(f"just before return statement inside create_data_loaders. main.py line 229. value of word_vocab.size()={len(dataset.word_vocab.keys())}")
-   
+
 
 
 

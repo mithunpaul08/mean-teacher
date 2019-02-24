@@ -211,17 +211,19 @@ def create_data_loaders(LOG,train_transformation,
             if not (lbl == 2):
                 found_not_supports_label2=True
 
-        print(f"value of found_not_supports_label1={found_not_supports_label1}")
-        print(f"value of found_not_supports_label={found_not_supports_label2}")
+
         # debug. exit if gold has any label other than 2.
+
+        found_not_supports_label1_dev=False
         for lbl in dataset_dev.lbl:
             if not (lbl == 2):
-                print(f"\n before eval loader after train loader found a new label in DEV other than SUPPORTS. label is {lbl}")
-                import sys
-                sys.exit(1)
+                found_not_supports_label1_dev=True
+
+        print(f"value of found_not_supports_label1={found_not_supports_label1}")
+        print(f"value of found_not_supports_label2={found_not_supports_label2}")
+        print(f"value of found_not_supports_label1_dev={found_not_supports_label1_dev}")
 
 
-        sys.exit(1)
 
         eval_loader = torch.utils.data.DataLoader(dataset_dev,
                                                   batch_size=args.batch_size,
@@ -233,9 +235,13 @@ def create_data_loaders(LOG,train_transformation,
 
 
 
+
+
     #mithun: once you have both the train and test data in the DataLoader format that torch understands, return it to the calling function
 
     LOG.debug(f"just before return statement inside create_data_loaders. main.py line 229. value of word_vocab.size()={len(dataset.word_vocab.keys())}")
+   
+
 
 
 
@@ -834,6 +840,7 @@ def accuracy_fever(predicted_labels, gold_labels,LOG):
     LOG.info(f"value of gold labels is is :{gold_labels}")
 
 
+
     #gold labels and predictions are in transposes (eg:1x15 vs 15x1). so take a transpose to correct it.
     pred_t=pred.t()
 
@@ -844,6 +851,15 @@ def accuracy_fever(predicted_labels, gold_labels,LOG):
     # check how many predictions you got right?
     l2=gold_labels.cpu().numpy().tolist()
 
+    bool_inside_accuracy_all_labels_supports=True
+    for lbl in l2:
+        if not (lbl == 2):
+            bool_inside_accuracy_all_labels_supports=False;
+
+    if(bool_inside_accuracy_all_labels_supports):
+            import sys
+            print("inside accuracy_fever. Found that all labels are category 2. something is wrong")
+            sys.exit(1)
 
 
 

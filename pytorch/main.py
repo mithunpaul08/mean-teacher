@@ -177,11 +177,11 @@ def create_data_loaders(LOG,train_transformation,
             timeout (numeric, optional) – if positive, the timeout value for collecting a batch from workers. Should always be non-negative. (default: 0)
             worker_init_fn (callable, optional) – If not None, this will be called on each worker subprocess with the worker id (an int in [0, num_workers - 1]) as input, after seeding and before data loading. (default: None)'''
 
-        found_not_supports_label=False
+        found_not_supports_label1=False
 
         for lbl in dataset.lbl:
             if not (lbl == 2):
-                found_not_supports_label=True
+                found_not_supports_label1=True
 
 
 
@@ -198,19 +198,18 @@ def create_data_loaders(LOG,train_transformation,
         #do the same for eval data also. i.e read the dev data, and add a sampler..
         dev_input_file = evaldir + args.dev_input_file
         dataset_dev = datasets.RTEDataset(word_vocab,"dev",dev_input_file, args, eval_transformation) ## NOTE: test data is the same as train data
+
+        found_not_supports_label2=False
         print(
             f"after reading dev dataset.value of word_vocab.size()={len(dataset_dev.word_vocab.keys())}")
 
-        print(f"value of found_not_supports_label={found_not_supports_label}")
-        print("exiting just before eval_loader")
+        print(f"value of found_not_supports_label={found_not_supports_label1}")
+
 
         # debug. exit if gold has any label other than 2.
         for lbl in dataset.lbl:
             if not (lbl == 2):
-                print(
-                    f"\n after train loader but before eval loader  found a new label in TRAIN other than SUPPORTS. label is {lbl}")
-                import sys
-                sys.exit(1)
+                found_not_supports_label2=True
 
         # debug. exit if gold has any label other than 2.
         for lbl in dataset_dev.lbl:

@@ -188,12 +188,12 @@ def create_data_loaders(LOG,train_transformation,
                                                   # batch_size=args.batch_size,
                                                   # shuffle=False)
 
-        # # debug. exit if gold has any label other than 2.
-        # for lbl in dataset.lbl:
-        #     if not (lbl == 2):
-        #         print(f"\n just after train loader found a new label other than SUPPORTS. label is {lbl}")
-        #         import sys
-        #         sys.exit(1)
+        # debug. exit if gold has any label other than 2.
+        for lbl in dataset.lbl:
+            if not (lbl == 2):
+                print(f"\n just after train loader found a new label other than SUPPORTS. label is {lbl}")
+                import sys
+                sys.exit(1)
 
         #do the same for eval data also. i.e read the dev data, and add a sampler..
         dev_input_file = evaldir + args.dev_input_file
@@ -215,6 +215,7 @@ def create_data_loaders(LOG,train_transformation,
                 print(f"\n before eval loader after train loader found a new label in DEV other than SUPPORTS. label is {lbl}")
                 import sys
                 sys.exit(1)
+        print("exiting just before eval_loader")
 
         eval_loader = torch.utils.data.DataLoader(dataset_dev,
                                                   batch_size=args.batch_size,

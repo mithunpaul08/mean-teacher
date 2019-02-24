@@ -836,6 +836,7 @@ def accuracy_fever(predicted_labels, gold_labels,LOG):
     #predictions, indices = torch.max(output_sftmax,0)
     _, pred = output_sftmax.topk(1, 1, True, True)
     LOG.debug(f"value of pred is :{pred}")
+    LOG.debug(f"value of gold labels is is :{gold_labels}")
 
     #gold labels and predictions are in transposes (eg:1x15 vs 15x1). so take a transpose to correct it.
     pred_t=pred.t()
@@ -866,7 +867,7 @@ def accuracy_fever(predicted_labels, gold_labels,LOG):
     #old-ajay code
     #result=correct_k.mul_(100.0 / labeled_minibatch_size)
     #LOG.debug(f"value of result is :{result}")
-
+    sys.exit(1)
     return result2
 
 def get_label_from_softmax(output):

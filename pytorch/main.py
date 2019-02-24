@@ -188,25 +188,35 @@ def create_data_loaders(LOG,train_transformation,
                                                   # batch_size=args.batch_size,
                                                   # shuffle=False)
 
-        # debug. exit if gold has any label other than 2.
-        for lbl in dataset.lbl:
-            if not (lbl == 2):
-                print(f"\n just after train loader found a new label other than SUPPORTS. label is {lbl}")
-                import sys
-                sys.exit(1)
+        # # debug. exit if gold has any label other than 2.
+        # for lbl in dataset.lbl:
+        #     if not (lbl == 2):
+        #         print(f"\n just after train loader found a new label other than SUPPORTS. label is {lbl}")
+        #         import sys
+        #         sys.exit(1)
 
         #do the same for eval data also. i.e read the dev data, and add a sampler..
         dev_input_file = evaldir + args.dev_input_file
-        dataset_test = datasets.RTEDataset(word_vocab,"dev",dev_input_file, args, eval_transformation) ## NOTE: test data is the same as train data
+        dataset_dev = datasets.RTEDataset(word_vocab,"dev",dev_input_file, args, eval_transformation) ## NOTE: test data is the same as train data
         print(
-            f"after reading dev dataset.value of word_vocab.size()={len(dataset_test.word_vocab.keys())}")
+            f"after reading dev dataset.value of word_vocab.size()={len(dataset_dev.word_vocab.keys())}")
 
+        # debug. exit if gold has any label other than 2.
+        for lbl in dataset.lbl:
+            if not (lbl == 2):
+                print(
+                    f"\n before eval loader after train loader found a new label in TRAIN other than SUPPORTS. label is {lbl}")
+                import sys
+                sys.exit(1)
 
-        #in dev, there shouldn't be two stream sampler
-        # sampler = SubsetRandomSampler(labeled_idxs)
-        # batch_sampler_local = BatchSampler(sampler, args.batch_size, drop_last=True)
+        # debug. exit if gold has any label other than 2.
+        for lbl in dataset_dev.lbl:
+            if not (lbl == 2):
+                print(f"\n before eval loader after train loader found a new label in DEV other than SUPPORTS. label is {lbl}")
+                import sys
+                sys.exit(1)
 
-        eval_loader = torch.utils.data.DataLoader(dataset_test,
+        eval_loader = torch.utils.data.DataLoader(dataset_dev,
                                                   batch_size=args.batch_size,
                                                   shuffle=False,
                                                   pin_memory=True,
@@ -224,7 +234,7 @@ def create_data_loaders(LOG,train_transformation,
 
 
 
-    return train_loader, eval_loader, dataset, dataset_test
+    return train_loader, eval_loader, dataset, dataset_dev
 
 #mithun: this is whe4re they are doing the average thing -ema=exponential moving average
 def update_ema_variables(model, ema_model, alpha, global_step):

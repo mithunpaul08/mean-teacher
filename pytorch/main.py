@@ -127,7 +127,7 @@ def create_data_loaders(LOG,train_transformation,
 
         train_input_file = traindir + args.train_input_file
         word_vocab = {"@UNKNOWN": 1,"</s>":2}
-        dataset = datasets.RTEDataset(word_vocab,"train",train_input_file, args, LOG,train_transformation)
+        dataset = datasets.RTEDataset(word_vocab,"train",train_input_file, args,train_transformation)
         print(
             f"after reading training dataset.value of word_vocab.size()={len(dataset.word_vocab.keys())}")
 
@@ -199,7 +199,7 @@ def create_data_loaders(LOG,train_transformation,
         for lbl in dataset.lbl:
             if not (lbl == 2):
                 print(
-                    f"\n before eval loader after train loader found a new label in TRAIN other than SUPPORTS. label is {lbl}")
+                    f"\n after train loader but before eval loader  found a new label in TRAIN other than SUPPORTS. label is {lbl}")
                 import sys
                 sys.exit(1)
 
@@ -210,6 +210,7 @@ def create_data_loaders(LOG,train_transformation,
                 import sys
                 sys.exit(1)
         print("exiting just before eval_loader")
+        sys.exit(1)
 
         eval_loader = torch.utils.data.DataLoader(dataset_dev,
                                                   batch_size=args.batch_size,

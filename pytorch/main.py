@@ -24,7 +24,7 @@ import contextlib
 import random
 
 #askfan: where is log file stored? Ans: stdout
-logging.basicConfig(filename='example.log',filemode='w+')
+#logging.basicConfig(filename='example.log',filemode='w+')
 LOG = logging.getLogger('main')
 LOG.setLevel(logging.INFO)
 
@@ -91,6 +91,11 @@ def create_data_loaders(LOG,train_transformation,
     evaldir = os.path.join(args.data_dir , args.eval_subdir)
 
     assert_exactly_one([args.exclude_unlabeled, args.labeled_batch_size])
+
+
+    #feb23rd2019: if  args.exclude_unlabeled: we are dropping/not running teacher model. So make sure consistency is 0.
+    assert_exactly_one([args.exclude_unlabeled, args.consistency])
+
 
 
 
@@ -285,7 +290,10 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
     model.train() ### From the documentation (nn.module,py) :
     # i) Sets the module in training mode.
     # (ii) This has any effect only on modules such as Dropout or BatchNorm. (iii) Returns: Module: self
-    ema_model.train()
+
+    #if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
+    if not args.exclude_unlabeled:
+        ema_model.train()
 
     end = time.time()
 
@@ -335,14 +343,18 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
             if torch.cuda.is_available():
                 claims_var = torch.autograd.Variable(student_input_claim).cuda()
                 evidences_var = torch.autograd.Variable(student_input_evidence).cuda()
-                ema_claims_var = torch.autograd.Variable(teacher_input_claim, volatile=True).cuda()
-                ema_evidences_var = torch.autograd.Variable(teacher_input_evidence, volatile=True).cuda()
+                # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
+                if not args.exclude_unlabeled:
+                    ema_claims_var = torch.autograd.Variable(teacher_input_claim, volatile=True).cuda()
+                    ema_evidences_var = torch.autograd.Variable(teacher_input_evidence, volatile=True).cuda()
 
             else:
                 claims_var = torch.autograd.Variable(student_input_claim).cpu()
                 evidences_var = torch.autograd.Variable(student_input_evidence).cpu()
-                ema_claims_var = torch.autograd.Variable(teacher_input_claim, volatile=True).cpu()
-                ema_evidences_var = torch.autograd.Variable(teacher_input_evidence, volatile=True).cpu()
+                # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
+                if not args.exclude_unlabeled:
+                    ema_claims_var = torch.autograd.Variable(teacher_input_claim, volatile=True).cpu()
+                    ema_evidences_var = torch.autograd.Variable(teacher_input_evidence, volatile=True).cpu()
 
 
 
@@ -358,7 +370,9 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
 
         #the feed forward and prediction part happens here.
         if args.dataset in ['fever'] and args.arch == 'simple_MLP_embed_RTE':
-            ema_model_out = ema_model(ema_claims_var, ema_evidences_var, len_claims_this_batch, len_evidences_this_batch)
+            # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
+            if not args.exclude_unlabeled:
+                ema_model_out = ema_model(ema_claims_var, ema_evidences_var, len_claims_this_batch, len_evidences_this_batch)
             model_out = model(claims_var, evidences_var, len_claims_this_batch, len_evidences_this_batch)
 
 
@@ -367,14 +381,20 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
         if isinstance(model_out, Variable):       # this is default
             assert args.logit_distance_cost < 0
             logit1 = model_out
-            ema_logit = ema_model_out
+            # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
+            if not args.exclude_unlabeled:
+                ema_logit = ema_model_out
         else:
             assert len(model_out) == 2
             assert len(ema_model_out) == 2
             logit1, logit2 = model_out
-            ema_logit, _ = ema_model_out
+            # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
+            if not args.exclude_unlabeled:
+                ema_logit, _ = ema_model_out
 
-        ema_logit = Variable(ema_logit.detach().data, requires_grad=False) ## DO NOT UPDATE THE GRADIENTS THORUGH THE TEACHER (EMA) MODEL
+            # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
+        if not args.exclude_unlabeled:
+                ema_logit = Variable(ema_logit.detach().data, requires_grad=False) ## DO NOT UPDATE THE GRADIENTS THORUGH THE TEACHER (EMA) MODEL
 
         if args.logit_distance_cost >= 0:
             class_logit, cons_logit = logit1, logit2
@@ -399,13 +419,14 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
         # note by mithun: this was originally _.data[0], but changing to  _.data.item()since it was throwing error on
         # [0]. this error occurs because we are right now passing data into student and teavher without any transformation. so this change must be temporary
 
+        # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
+        if not args.exclude_unlabeled:
+            ema_class_loss = class_criterion(ema_logit, target_var) / minibatch_size
 
-        ema_class_loss = class_criterion(ema_logit, target_var) / minibatch_size
 
-
-        ## DONE: AJAY - WHAT IF target_var NOT PRESENT (UNLABELED DATAPOINT) ?
-        # Ans: See  ignore index in  `class_criterion = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cpu()`
-        meters.update('ema_class_loss', ema_class_loss.data.item())    # Do we need this?
+            ## DONE: AJAY - WHAT IF target_var NOT PRESENT (UNLABELED DATAPOINT) ?
+            # Ans: See  ignore index in  `class_criterion = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cpu()`
+            meters.update('ema_class_loss', ema_class_loss.data.item())    # Do we need this?
 
         #mithun askajay: is this where they are doing consistency comparison-but where is the subtRACTION?
         # #askajay: where is the construction cost and consistency cost and back prop only on student etc?
@@ -415,10 +436,13 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
         # consistency has to be a positive value. give =1 they must be equally weighted
         # if you are doing feed forward this can be zero
         if args.consistency:
-            consistency_weight = get_current_consistency_weight(epoch)
-            meters.update('cons_weight', consistency_weight)
-            consistency_loss = consistency_weight * consistency_criterion(cons_logit, ema_logit) / minibatch_size
-            meters.update('cons_loss', consistency_loss.data.item())
+            # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
+            #ideally if we are not doing ema, the args.consistency also must be mutually exclusive
+            if not args.exclude_unlabeled:
+                consistency_weight = get_current_consistency_weight(epoch)
+                meters.update('cons_weight', consistency_weight)
+                consistency_loss = consistency_weight * consistency_criterion(cons_logit, ema_logit) / minibatch_size
+                meters.update('cons_loss', consistency_loss.data.item())
         else:
             consistency_loss = 0
             meters.update('cons_loss', 0)
@@ -440,18 +464,23 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
         #meters.update('top5', prec5[0], labeled_minibatch_size)
         #meters.update('error5', 100. - prec5[0], labeled_minibatch_size)
 
-        ema_prec1 = accuracy_fever(ema_logit.data, target_var.data,LOG) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
-        meters.update('ema_top1', ema_prec1, labeled_minibatch_size)
-        meters.update('ema_error1', 100. - ema_prec1, labeled_minibatch_size)
-        # meters.update('ema_top5', ema_prec5[0], labeled_minibatch_size)
-        # meters.update('ema_error5', 100. - ema_prec5[0], labeled_minibatch_size)
+        # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
+        if not args.exclude_unlabeled:
+            ema_prec1 = accuracy_fever(ema_logit.data, target_var.data,LOG) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
+            meters.update('ema_top1', ema_prec1, labeled_minibatch_size)
+            meters.update('ema_error1', 100. - ema_prec1, labeled_minibatch_size)
+            # meters.update('ema_top5', ema_prec5[0], labeled_minibatch_size)
+            # me   ters.update('ema_error5', 100. - ema_prec5[0], labeled_minibatch_size)
 
         # compute gradient and do SGD step
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
         global_step += 1
-        update_ema_variables(model, ema_model, args.ema_decay, global_step)
+
+        # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
+        if not args.exclude_unlabeled:
+            update_ema_variables(model, ema_model, args.ema_decay, global_step)
 
         # measure elapsed time
         meters.update('batch_time', time.time() - end)
@@ -460,21 +489,8 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
         #args.print_freq= 10
 
         if i % args.print_freq == 0 or i == len(train_loader) - 1:
-            if args.dataset in ['riedel', 'gids']:
-                LOG.info(
-                    'Epoch: [{0}][{1}/{2}]  '
-                    'ClassLoss {meters[class_loss]:.4f}  '
-                    'Loss {meters[loss]:.4f}  '
-                    'Prec {prec:.3f}({accum_prec:.3f})  '
-                    'Rec {rec:.3f}({accum_rec:.3f})  '
-                    'F1 {f1:.3f}({accum_f1:.3f})  '
-                    'EMA_ClassLoss {meters[ema_class_loss]:.4f}  '
-                    'EMA_Prec {ema_prec:.3f}({accum_ema_prec:.3f})  '
-                    'EMA_Rec {ema_rec:.3f}({accum_ema_rec:.3f})  '
-                    'EMA_F1 {ema_f1:.3f}({accum_ema_f1:.3f})'.format(
-                        epoch, i, len(train_loader), prec=prec, accum_prec=accum_prec, rec=rec, accum_rec=accum_rec, f1=f1, accum_f1=accum_f1, ema_prec=ema_prec, accum_ema_prec=accum_ema_prec, ema_rec=ema_rec, accum_ema_rec=accum_ema_rec, ema_f1=ema_f1, accum_ema_f1=accum_ema_f1, meters=meters))
-
-            else:
+            # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
+            if not args.exclude_unlabeled:
                 LOG.info(
                     'Epoch: [{0}][{1}/{2}]\t'
                     'Classification_loss:{meters[class_loss]:.4f}\t'
@@ -485,6 +501,14 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
                     'student_error:{meters[error1]:.3f}\t'
                         .format(
                     epoch, i, len(train_loader), meters=meters))
+            else:
+                LOG.info(
+                    'Epoch: [{0}][{1}/{2}]\t'
+                    'Classification_loss:{meters[class_loss]:.4f}\t'                    
+                    'Prec_student: {meters[top1]:.3f}\t'
+                        .format(
+                        epoch, i, len(train_loader), meters=meters))
+
 
 
 def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, model_type):
@@ -653,6 +677,7 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
     LOG.debug(f"average precision after all the {total_no_batches} batches in epoch {epoch} is :{x}")
     LOG.debug(f"value of  total_no_batches  is :{total_no_batches}")
     LOG.debug(f"value of sum_all_acc after epoch {epoch} is :{sum_all_acc}")
+    #todo: divide by total number of data points.-or keep track of how many true positives, divide by total data point count.
     x2=float(sum_all_acc)/float(total_no_batches)
     LOG.debug(f"value of average precision x2 after epoch {epoch} is :{x2}")
 

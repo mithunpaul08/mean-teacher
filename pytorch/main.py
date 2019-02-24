@@ -840,21 +840,32 @@ def accuracy_fever(predicted_labels, gold_labels,LOG):
     #gold labels and predictions are in transposes (eg:1x15 vs 15x1). so take a transpose to correct it.
     pred_t=pred.t()
 
-    #check how many predictions you got right?
-    correct = pred_t.eq(gold_labels.view(1, -1).expand_as(pred_t))
-    LOG.debug(f"value of correct is :{correct}")
 
-    #take sum because in correct_k all the LABELS that match are now denoted by 1. So the sum means, total number of correct answers
-    correct_k = correct.sum(1)
-    correct_k_float=float(correct_k.data.item())
+    #predicting everything as majority class: for debug purposes
+    import itertools
+    l1=list(itertools.repeat(2,13))
+    # check how many predictions you got right?
+    l2=gold_labels.numpy().tolist()
+    l2, correct = l2[:], [e for e in l1 if e in l2 and (l2.pop(l2.index(e)))]
+    correct_k_float = float(sum(correct)/2)
+
+
+    # correct = pred_t.eq(gold_labels.view(1, -1).expand_as(pred_t))
+    # LOG.debug(f"value of correct is :{correct}")
+    # #take sum because in correct_k all the LABELS that match are now denoted by 1. So the sum means, total number of correct answers
+    # correct_k = correct.sum(1)
+    # correct_k_float=float(correct_k.data.item())
+
     LOG.debug(f"value of correct_k as float is :{correct_k_float}")
     labeled_minibatch_size_f=float(labeled_minibatch_size)
     LOG.debug(f"value of labeled_minibatch_size is :{labeled_minibatch_size_f}")
     result2=(correct_k_float/labeled_minibatch_size_f)*100
     LOG.debug(f"value of result2 is :{result2}")
     #if out of 7 labeled, you got only 2 right, then your accuracy is 2/7*100
-    result=correct_k.mul_(100.0 / labeled_minibatch_size)
-    LOG.debug(f"value of result is :{result}")
+
+    #old-ajay code
+    #result=correct_k.mul_(100.0 / labeled_minibatch_size)
+    #LOG.debug(f"value of result is :{result}")
 
     return result2
 
@@ -1254,6 +1265,8 @@ def main(context):
     # validate(eval_loader, model, validation_log, global_step, 0, dataset, context.result_dir, "student")
     LOG.info("--------Total end to end time %s seconds ----------- " % (time.time() - time_start))
     LOG.info(f"best best_accuracy_across_epochs  is:{best_accuracy_across_epochs} at epoch number:{best_epochs}")
+    import sys
+    sys.exit(1)
 
 
 if __name__ == '__main__':

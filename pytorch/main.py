@@ -1,3 +1,4 @@
+from __future__ import division
 import re
 import os
 import shutil
@@ -15,6 +16,7 @@ from torch.utils.data import DataLoader
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
 import torchvision.datasets
 import torch.cuda
+
 
 from mean_teacher import architectures, datasets, data, losses, ramps, cli
 from mean_teacher.run_context import RunContext
@@ -835,8 +837,8 @@ def accuracy_fever(predicted_labels, gold_labels,LOG):
 
     #predictions, indices = torch.max(output_sftmax,0)
     _, pred = output_sftmax.topk(1, 1, True, True)
-    LOG.debug(f"value of pred is :{pred}")
-    LOG.debug(f"value of gold labels is is :{gold_labels}")
+    LOG.info(f"value of pred is :{pred}")
+    LOG.info(f"value of gold labels is is :{gold_labels}")
 
     #gold labels and predictions are in transposes (eg:1x15 vs 15x1). so take a transpose to correct it.
     pred_t=pred.t()

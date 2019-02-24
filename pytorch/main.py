@@ -844,6 +844,7 @@ def accuracy_fever(predicted_labels, gold_labels,LOG):
     LOG.info(f"value of pred is :{pred}")
     LOG.info(f"value of gold labels is is :{gold_labels}")
 
+
     #gold labels and predictions are in transposes (eg:1x15 vs 15x1). so take a transpose to correct it.
     pred_t=pred.t()
 
@@ -853,6 +854,15 @@ def accuracy_fever(predicted_labels, gold_labels,LOG):
     l1=list(itertools.repeat(2,labeled_minibatch_size))
     # check how many predictions you got right?
     l2=gold_labels.cpu().numpy().tolist()
+
+    #debug. exit if gold has any label other than 2.
+    for lbl in l2:
+        if not (lbl==2):
+            print(f"found a new label other than SUPPORTS. label is {lbl}")
+            sys.exit(1)
+
+
+
     l2, correct = l2[:], [e for e in l1 if e in l2 and (l2.pop(l2.index(e)))]
     correct_k_float = float(sum(correct)/2)
 

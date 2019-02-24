@@ -1,6 +1,6 @@
 from __future__ import division
 import re
-import os
+import os,sys
 import shutil
 import time
 import logging
@@ -510,6 +510,10 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
                     'Prec_student: {meters[top1]:.3f}\t'
                         .format(
                         epoch, i, len(train_loader), meters=meters))
+
+    log.info("end of all batches in training. going toexit")
+    import sys
+    sys.exit(1)
 
 
 

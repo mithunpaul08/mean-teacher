@@ -203,7 +203,7 @@ def create_data_loaders(LOG,train_transformation,
         print(
             f"after reading dev dataset.value of word_vocab.size()={len(dataset_dev.word_vocab.keys())}")
 
-        print(f"value of found_not_supports_label={found_not_supports_label1}")
+
 
 
         # debug. exit if gold has any label other than 2.
@@ -211,6 +211,8 @@ def create_data_loaders(LOG,train_transformation,
             if not (lbl == 2):
                 found_not_supports_label2=True
 
+        print(f"value of found_not_supports_label1={found_not_supports_label1}")
+        print(f"value of found_not_supports_label={found_not_supports_label2}")
         # debug. exit if gold has any label other than 2.
         for lbl in dataset_dev.lbl:
             if not (lbl == 2):

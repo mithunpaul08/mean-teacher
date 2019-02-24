@@ -133,16 +133,10 @@ class RTEDataset(Dataset):
         self.categories = sorted(list({l for l in self.labels_str}))
         self.lbl = [self.categories.index(l) for l in self.labels_str]
 
-        # debug. exit if gold has any label other than 2.
-        for lbl in self.lbl:
-            if not (lbl == 2):
-                print(f"\n found a new label other than SUPPORTS. label is {lbl}")
-                import sys
-                sys.exit(1)
 
-        print(f"inside dataset.py just after Datautils.read_rte_data. size of self.claism is:{len(self.claims)}")
-        import sys
-        sys.exit(1)
+
+        LOG.debug(f"inside dataset.py just after Datautils.read_rte_data. size of self.claism is:{len(self.claims)}")
+
 
         #write the vocab file to disk so that you can load it later
         #update: vocab file for dev is same as train. no need to write it twice.

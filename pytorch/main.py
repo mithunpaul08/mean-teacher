@@ -131,6 +131,13 @@ def create_data_loaders(LOG,train_transformation,
         print(
             f"after reading training dataset.value of word_vocab.size()={len(dataset.word_vocab.keys())}")
 
+        # debug. exit if gold has any label other than 2.
+        for lbl in dataset.lbl:
+            if not (lbl == 2):
+                print(f"\n found a new label other than SUPPORTS. label is {lbl}")
+                import sys
+                sys.exit(1)
+
 
         LOG.info("Type of Noise : "+ dataset.WORD_NOISE_TYPE)
         LOG.info("Size of Noise : "+ str(dataset.NUM_WORDS_TO_REPLACE))

@@ -40,6 +40,13 @@ def assert_exactly_one(lst):
     assert sum(int(bool(el)) for el in lst) == 1, ", ".join(str(el)
                                                             for el in lst)
 
+def assert_mutually_exclusive(a,b):
+    if(a is not None) and (b is not None):
+            assert (2==3), "The given values are mutually exclusive. Error."
+
+
+
+
 
 class AverageMeterSet:
     def __init__(self):

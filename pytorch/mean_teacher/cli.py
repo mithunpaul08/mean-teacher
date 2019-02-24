@@ -57,7 +57,7 @@ def create_parser():
                         metavar='W', help='weight decay (default: 1e-4)')
     parser.add_argument('--ema_decay', default=0.999, type=float, metavar='ALPHA',
                         help='ema variable decay rate (default: 0.999)')
-    parser.add_argument('--consistency', default=0, type=float, metavar='WEIGHT',
+    parser.add_argument('--consistency', default=None, type=float, metavar='WEIGHT',
                         help='use consistency loss with given weight (default: 1) . Turn it to None when using a simple feed forward network')
     parser.add_argument('--consistency-type', default="mse", type=str, metavar='TYPE',
                         choices=['mse', 'kl'],

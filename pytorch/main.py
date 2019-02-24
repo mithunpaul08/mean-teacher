@@ -94,7 +94,7 @@ def create_data_loaders(LOG,train_transformation,
 
 
     #feb23rd2019: if  args.exclude_unlabeled: we are dropping/not running teacher model. So make sure consistency is 0.
-    assert_exactly_one([args.exclude_unlabeled, args.consistency])
+    assert_mutually_exclusive(args.exclude_unlabeled, args.consistency)
 
 
 

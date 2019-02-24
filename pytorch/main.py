@@ -855,11 +855,7 @@ def accuracy_fever(predicted_labels, gold_labels,LOG):
     # check how many predictions you got right?
     l2=gold_labels.cpu().numpy().tolist()
 
-    #debug. exit if gold has any label other than 2.
-    for lbl in l2:
-        if not (lbl==2):
-            print(f"found a new label other than SUPPORTS. label is {lbl}")
-            sys.exit(1)
+
 
 
 

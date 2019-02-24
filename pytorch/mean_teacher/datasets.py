@@ -65,8 +65,13 @@ class RTEDataset(Dataset):
 
         self.claims, self.evidences, self.labels_str = Datautils.read_rte_data(dataset_file,args)
 
-
-
+        if(runName=="dev")
+            # debug. exit if gold has any label other than 2.
+            for lbl in self.labels_str:
+                if not (lbl == 2):
+                    print(f"\n just after train loader found a new label other than SUPPORTS. label is {lbl}")
+                    import sys
+                    sys.exit(1)
 
         assert len(self.claims)== len(self.evidences)==len(self.labels_str), "claims and evidences are not of equal length"
 

@@ -131,12 +131,7 @@ def create_data_loaders(LOG,train_transformation,
         print(
             f"after reading training dataset.value of word_vocab.size()={len(dataset.word_vocab.keys())}")
 
-        # debug. exit if gold has any label other than 2.
-        for lbl in dataset.lbl:
-            if not (lbl == 2):
-                print(f"\n found a new label other than SUPPORTS. label is {lbl}")
-                import sys
-                sys.exit(1)
+
 
 
         LOG.info("Type of Noise : "+ dataset.WORD_NOISE_TYPE)
@@ -155,7 +150,6 @@ def create_data_loaders(LOG,train_transformation,
                                                        args.labeled_batch_size)
         else:
             assert False, "labeled batch size {}".format(args.labeled_batch_size)
-
 
 
 
@@ -203,8 +197,8 @@ def create_data_loaders(LOG,train_transformation,
 
 
         #in dev, there shouldn't be two stream sampler
-        sampler = SubsetRandomSampler(labeled_idxs)
-        batch_sampler_local = BatchSampler(sampler, args.batch_size, drop_last=True)
+        # sampler = SubsetRandomSampler(labeled_idxs)
+        # batch_sampler_local = BatchSampler(sampler, args.batch_size, drop_last=True)
 
         eval_loader = torch.utils.data.DataLoader(dataset_test,
                                                   batch_size=args.batch_size,
@@ -214,51 +208,19 @@ def create_data_loaders(LOG,train_transformation,
                                                   num_workers=args.workers)
 
 
-        # these variables were already there in ajay's code . not sure what they do. need to ask him-mithun
-        # batch_size=args.batch_size,
-        # shuffle=False,
-        # num_workers=2 * args.workers,
-
-
-
-    # else:
-    #
-    #
-    #     dataset = torchvision.datasets.ImageFolder(traindir, train_transformation)
-    #
-    #     if args.labels:
-    #         with open(args.labels) as f:
-    #             labels = dict(line.split(' ') for line in f.read().splitlines())
-    #         labeled_idxs, unlabeled_idxs = data.relabel_dataset(dataset, labels)
-    #
-    #     if args.exclude_unlabeled:
-    #         sampler = SubsetRandomSampler(labeled_idxs)
-    #         batch_sampler_local = BatchSampler(sampler, args.batch_size, drop_last=True)
-    #     elif args.labeled_batch_size:
-    #         batch_sampler_local = data.TwoStreamBatchSampler(
-    #             unlabeled_idxs, labeled_idxs, args.batch_size, args.labeled_batch_size)
-    #     else:
-    #         assert False, "labeled batch size {}".format(args.labeled_batch_size)
-    #
-    #     train_loader = torch.utils.data.DataLoader(dataset,
-    #                                                pin_memory,
-    #                                                batch_sampler=batch_sampler_local,
-    #                                                num_workers=args.workers,
-    #                                                )
-    #
-    #     eval_loader = torch.utils.data.DataLoader(
-    #         torchvision.datasets.ImageFolder(evaldir, eval_transformation),
-    #         pin_memory,
-    #         batch_size=args.batch_size,
-    #         shuffle=False,
-    #         num_workers=2 * args.workers,  # Needs images twice as fast
-    #         drop_last=False)
 
 
     #mithun: once you have both the train and test data in the DataLoader format that torch understands, return it to the calling function
 
     LOG.debug(f"just before return statement inside create_data_loaders. main.py line 229. value of word_vocab.size()={len(dataset.word_vocab.keys())}")
 
+    # debug. exit if gold has any label other than 2.
+    for lbl in dataset.lbl:
+        if not (lbl == 2):
+            print(f"\n found a new label other than SUPPORTS. label is {lbl}")
+            import sys
+            sys.exit(1)
+            
     return train_loader, eval_loader, dataset, dataset_test
 
 #mithun: this is whe4re they are doing the average thing -ema=exponential moving average

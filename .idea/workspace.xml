@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="106d3cb0-0078-4c0d-8f45-f05ca8f31e37" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/pytorch/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pytorch/mean_teacher/datasets.py" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/mean_teacher/datasets.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -36,13 +35,13 @@
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="md" value="54" />
-          <entry key="py" value="2768" />
+          <entry key="py" value="2774" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="Markdown" value="54" />
-          <entry key="Python" value="2768" />
+          <entry key="Python" value="2774" />
         </counts>
       </usages-collector>
     </session>
@@ -52,8 +51,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/pytorch/main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="183">
-              <caret line="133" column="8" selection-start-line="133" selection-start-column="8" selection-end-line="138" selection-end-column="27" />
+            <state relative-caret-position="204">
+              <caret line="222" column="12" selection-start-line="222" selection-start-column="12" selection-end-line="222" selection-end-column="12" />
               <folding>
                 <element signature="e#0#31#0" expanded="true" />
                 <element signature="e#49877#51671#0" />
@@ -204,10 +203,11 @@
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="y" value="23" />
-    <option name="width" value="1280" />
-    <option name="height" value="716" />
+  <component name="ProjectFrameBounds">
+    <option name="x" value="239" />
+    <option name="y" value="1103" />
+    <option name="width" value="1920" />
+    <option name="height" value="777" />
   </component>
   <component name="ProjectView">
     <navigator currentView="Scope" currentSubView="Scope 'Project Files'; set:Project Files; class com.intellij.psi.search.scope.ProjectFilesScope" proportions="" version="1">
@@ -317,7 +317,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="1920" height="1053" extended-state="6" />
+    <frame x="239" y="1103" width="1920" height="777" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.095313326" />
@@ -326,7 +326,7 @@
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.3294509" />
       <window_info anchor="bottom" id="Run" order="2" weight="0.3272921" />
-      <window_info active="true" anchor="bottom" id="Debug" order="3" visible="true" weight="0.37206823" />
+      <window_info active="true" anchor="bottom" id="Debug" order="3" visible="true" weight="0.5271903" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -371,12 +371,12 @@
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>458</line>
+          <line>420</line>
           <option name="timeStamp" value="23" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>336</line>
+          <line>298</line>
           <option name="timeStamp" value="29" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
@@ -391,17 +391,17 @@
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>332</line>
+          <line>294</line>
           <option name="timeStamp" value="40" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>331</line>
+          <line>293</line>
           <option name="timeStamp" value="41" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>335</line>
+          <line>297</line>
           <option name="timeStamp" value="42" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
@@ -431,22 +431,22 @@
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>1206</line>
+          <line>1168</line>
           <option name="timeStamp" value="71" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>791</line>
+          <line>753</line>
           <option name="timeStamp" value="88" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>795</line>
+          <line>757</line>
           <option name="timeStamp" value="89" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>351</line>
+          <line>313</line>
           <option name="timeStamp" value="90" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
@@ -461,127 +461,127 @@
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>389</line>
+          <line>351</line>
           <option name="timeStamp" value="97" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>413</line>
+          <line>375</line>
           <option name="timeStamp" value="98" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>415</line>
+          <line>377</line>
           <option name="timeStamp" value="99" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>418</line>
+          <line>380</line>
           <option name="timeStamp" value="100" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>419</line>
+          <line>381</line>
           <option name="timeStamp" value="101" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>446</line>
+          <line>408</line>
           <option name="timeStamp" value="102" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>432</line>
+          <line>394</line>
           <option name="timeStamp" value="103" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>694</line>
+          <line>656</line>
           <option name="timeStamp" value="104" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>1188</line>
+          <line>1150</line>
           <option name="timeStamp" value="109" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>1203</line>
+          <line>1165</line>
           <option name="timeStamp" value="110" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>1219</line>
+          <line>1181</line>
           <option name="timeStamp" value="111" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>319</line>
+          <line>281</line>
           <option name="timeStamp" value="116" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>272</line>
+          <line>234</line>
           <option name="timeStamp" value="120" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>281</line>
+          <line>243</line>
           <option name="timeStamp" value="121" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>298</line>
+          <line>260</line>
           <option name="timeStamp" value="122" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>1216</line>
+          <line>1178</line>
           <option name="timeStamp" value="124" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>408</line>
+          <line>370</line>
           <option name="timeStamp" value="125" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>1238</line>
+          <line>1200</line>
           <option name="timeStamp" value="132" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>369</line>
+          <line>331</line>
           <option name="timeStamp" value="133" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>469</line>
+          <line>431</line>
           <option name="timeStamp" value="138" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>374</line>
+          <line>336</line>
           <option name="timeStamp" value="139" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>398</line>
+          <line>360</line>
           <option name="timeStamp" value="140" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>397</line>
+          <line>359</line>
           <option name="timeStamp" value="141" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>391</line>
+          <line>353</line>
           <option name="timeStamp" value="142" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>383</line>
+          <line>345</line>
           <option name="timeStamp" value="143" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
@@ -591,32 +591,32 @@
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>1220</line>
+          <line>1182</line>
           <option name="timeStamp" value="147" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>1222</line>
+          <line>1184</line>
           <option name="timeStamp" value="148" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>1252</line>
+          <line>1214</line>
           <option name="timeStamp" value="150" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>529</line>
+          <line>491</line>
           <option name="timeStamp" value="151" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>572</line>
+          <line>534</line>
           <option name="timeStamp" value="156" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>573</line>
+          <line>535</line>
           <option name="timeStamp" value="157" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
@@ -646,17 +646,17 @@
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>198</line>
+          <line>192</line>
           <option name="timeStamp" value="165" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>200</line>
+          <line>194</line>
           <option name="timeStamp" value="166" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>199</line>
+          <line>193</line>
           <option name="timeStamp" value="167" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
@@ -671,92 +671,92 @@
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>530</line>
+          <line>492</line>
           <option name="timeStamp" value="175" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>536</line>
+          <line>498</line>
           <option name="timeStamp" value="176" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>1249</line>
+          <line>1211</line>
           <option name="timeStamp" value="177" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>637</line>
+          <line>599</line>
           <option name="timeStamp" value="178" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>328</line>
+          <line>290</line>
           <option name="timeStamp" value="179" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>327</line>
+          <line>289</line>
           <option name="timeStamp" value="182" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>344</line>
+          <line>306</line>
           <option name="timeStamp" value="183" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>345</line>
+          <line>307</line>
           <option name="timeStamp" value="184" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>599</line>
+          <line>561</line>
           <option name="timeStamp" value="185" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>953</line>
+          <line>915</line>
           <option name="timeStamp" value="204" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>1064</line>
+          <line>1026</line>
           <option name="timeStamp" value="205" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>969</line>
+          <line>931</line>
           <option name="timeStamp" value="206" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>971</line>
+          <line>933</line>
           <option name="timeStamp" value="207" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>1006</line>
+          <line>968</line>
           <option name="timeStamp" value="208" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>1008</line>
+          <line>970</line>
           <option name="timeStamp" value="209" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>1035</line>
+          <line>997</line>
           <option name="timeStamp" value="210" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>1037</line>
+          <line>999</line>
           <option name="timeStamp" value="211" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>1059</line>
+          <line>1021</line>
           <option name="timeStamp" value="212" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
@@ -766,28 +766,23 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>875</line>
+          <line>837</line>
           <option name="timeStamp" value="222" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>653</line>
+          <line>615</line>
           <option name="timeStamp" value="226" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>512</line>
+          <line>474</line>
           <option name="timeStamp" value="229" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>862</line>
+          <line>824</line>
           <option name="timeStamp" value="230" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>134</line>
-          <option name="timeStamp" value="234" />
         </line-breakpoint>
       </breakpoints>
       <breakpoints-dialog>
@@ -934,8 +929,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/pytorch/main.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="183">
-          <caret line="133" column="8" selection-start-line="133" selection-start-column="8" selection-end-line="138" selection-end-column="27" />
+        <state relative-caret-position="204">
+          <caret line="222" column="12" selection-start-line="222" selection-start-column="12" selection-end-line="222" selection-end-column="12" />
           <folding>
             <element signature="e#0#31#0" expanded="true" />
             <element signature="e#49877#51671#0" />

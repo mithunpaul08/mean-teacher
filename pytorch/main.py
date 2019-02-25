@@ -891,16 +891,16 @@ def accuracy_fever(predicted_labels, gold_labels,LOG):
 
     #predict a random class from [0,1,2]. for debugging/getting a baseline.
 
-    l1=[]
-    import random
-    random.seed(3)
-    for i in range(labeled_minibatch_size):
-        x=random.randint(0,2)
-        l1.append(x)
-
-    pred_t = torch.Tensor([l1])
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    pred_t = pred_t.to(device=device, dtype=torch.int64)
+    # l1=[]
+    # import random
+    # random.seed(3)
+    # for i in range(labeled_minibatch_size):
+    #     x=random.randint(0,2)
+    #     l1.append(x)
+    #
+    # pred_t = torch.Tensor([l1])
+    # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    # pred_t = pred_t.to(device=device, dtype=torch.int64)
 
 
 

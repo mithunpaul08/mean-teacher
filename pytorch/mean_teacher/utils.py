@@ -1,4 +1,5 @@
 """Utility functions and classes"""
+from __future__ import division
 
 import sys
 import logging
@@ -97,7 +98,7 @@ class AverageMeter:
         if self.count == 0:
             self.avg = 0
         else:
-            self.avg = self.sum / self.count
+            self.avg = float(self.sum) / float(self.count)
 
     def __format__(self, format):
         return "{self.val:{format}} ({self.avg:{format}})".format(self=self, format=format)

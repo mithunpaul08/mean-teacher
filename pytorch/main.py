@@ -316,6 +316,8 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
 
     bool_inside_accuracy_all_labels_supports = True
 
+    avg_after_each_batch=0
+
     for i, datapoint in enumerate(train_loader):
         # print("len(datapoint) = ", len(datapoint))
         # print("datapoint[0] shape: {0}".format(datapoint[0].shape))
@@ -536,13 +538,14 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
                     'Prec_student: {meters[top1]:.3f}\t'
                         .format(
                         epoch, i, len(train_loader), meters=meters))
-
-    LOG.debug("end of all batches in training. going toexit")
+        avg_after_each_batch=meters['top1'].avg
+    LOG.debug("end of all batches in training.")
     if (bool_inside_accuracy_all_labels_supports):
         import sys
         print("inside accuracy_fever. Found that all labels are category 2. something is wrong")
         sys.exit(1)
 
+    return avg_after_each_batch
 
 
 
@@ -1255,8 +1258,9 @@ def main(context):
     for epoch in range(args.start_epoch, args.epochs):
         start_time = time.time()
         #ask ajay: why are they not returning the trained models explicitly
-        train(train_loader, model, ema_model, optimizer, epoch, dataset, training_log)
-        LOG.info(f"--- done training epoch {epoch} in %s seconds ---" % (time.time() - start_time))
+        avg_precision_this_epoch=train(train_loader, model, ema_model, optimizer, epoch, dataset, training_log)
+        LOG.info(f"--- done training epoch {epoch} in {(time.time() - start_time)} seconds ---avg_precision_this_epoch={avg_precision_this_epoch}" )
+
 
         LOG.debug(f"value of args.evaluation_epochs: {args.evaluation_epochs} ")
         LOG.debug(f"value of args.epoch: {epoch} ")

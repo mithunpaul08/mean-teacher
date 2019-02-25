@@ -307,10 +307,18 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
         ema_model.train()
 
     end = time.time()
-    bool_inside_accuracy_all_labels_supports = True
+
 
     # datapoint: List(input_student, student_input teacher, labels)
     #i.e go through each data point within a mini batch
+
+    for lbl in dataset.lbl:
+        if not (lbl == 2):
+            print("found a class that is not supports before batching")
+            import sys
+            sys.exit(1)
+
+    bool_inside_accuracy_all_labels_supports = True
 
     for i, datapoint in enumerate(train_loader):
         # print("len(datapoint) = ", len(datapoint))
@@ -325,6 +333,8 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
 
         len_claims_this_batch = None
         len_evidences_this_batch= None
+
+
 
         if args.dataset in ['conll', 'ontonotes','fever']:
 
@@ -373,9 +383,7 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
 
 
 
-        for lbl in target:
-            if not (lbl == 2):
-                bool_inside_accuracy_all_labels_supports = False
+
 
 
 

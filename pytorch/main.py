@@ -537,14 +537,12 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
                         .format(
                         epoch, i, len(train_loader), meters=meters))
 
-    print("end of all batches in training. going toexit")
+    LOG.debug("end of all batches in training. going toexit")
     if (bool_inside_accuracy_all_labels_supports):
         import sys
         print("inside accuracy_fever. Found that all labels are category 2. something is wrong")
         sys.exit(1)
 
-    import sys
-    sys.exit(1)
 
 
 

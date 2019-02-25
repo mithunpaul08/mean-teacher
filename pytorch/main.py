@@ -520,7 +520,7 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
                         .format(
                         epoch, i, len(train_loader), meters=meters))
 
-    log.info("end of all batches in training. going toexit")
+    print("end of all batches in training. going toexit")
     import sys
     sys.exit(1)
 
@@ -861,32 +861,34 @@ def accuracy_fever(predicted_labels, gold_labels,LOG):
 
     #predicting everything as majority class: for debug purposes
     import itertools
-    l1=list(itertools.repeat(2,labeled_minibatch_size))
-    # check how many predictions you got right?
-    l2=gold_labels.cpu().numpy().tolist()
+    x=2
+    xf=float(x)
+    l1=list(itertools.repeat(xf,labeled_minibatch_size))
+    # # check how many predictions you got right?
+    # l2=gold_labels.cpu().numpy().tolist()
+    #
+    # bool_inside_accuracy_all_labels_supports=True
+    # for lbl in l2:
+    #     if not (lbl == 2):
+    #         bool_inside_accuracy_all_labels_supports=False;
+    #
+    # if(bool_inside_accuracy_all_labels_supports):
+    #         import sys
+    #         print("inside accuracy_fever. Found that all labels are category 2. something is wrong")
+    #         sys.exit(1)
+    # l2, correct = l2[:], [e for e in l1 if e in l2 and (l2.pop(l2.index(e)))]
+    # correct_k_float = float(sum(correct)/2)
 
-    bool_inside_accuracy_all_labels_supports=True
-    for lbl in l2:
-        if not (lbl == 2):
-            bool_inside_accuracy_all_labels_supports=False;
+    pred_t=torch.Tensor([l1])
 
-    if(bool_inside_accuracy_all_labels_supports):
-            import sys
-            print("inside accuracy_fever. Found that all labels are category 2. something is wrong")
-            sys.exit(1)
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    pred_t = pred_t.to(device=device, dtype=torch.int64)
 
-
-
-
-    l2, correct = l2[:], [e for e in l1 if e in l2 and (l2.pop(l2.index(e)))]
-    correct_k_float = float(sum(correct)/2)
-
-
-    # correct = pred_t.eq(gold_labels.view(1, -1).expand_as(pred_t))
-    # LOG.debug(f"value of correct is :{correct}")
-    # #take sum because in correct_k all the LABELS that match are now denoted by 1. So the sum means, total number of correct answers
-    # correct_k = correct.sum(1)
-    # correct_k_float=float(correct_k.data.item())
+    correct = pred_t.eq(gold_labels.view(1, -1).expand_as(pred_t))
+    LOG.debug(f"value of correct is :{correct}")
+    #take sum because in correct_k all the LABELS that match are now denoted by 1. So the sum means, total number of correct answers
+    correct_k = correct.sum(1)
+    correct_k_float=float(correct_k.data.item())
 
     LOG.debug(f"value of correct_k as float is :{correct_k_float}")
     labeled_minibatch_size_f=float(labeled_minibatch_size)

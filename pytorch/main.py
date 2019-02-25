@@ -26,7 +26,7 @@ import contextlib
 import random
 
 #askfan: where is log file stored? Ans: stdout
-logging.basicConfig(filename='example.log',filemode='w+')
+#logging.basicConfig(filename='example.log',filemode='w+')
 LOG = logging.getLogger('main')
 LOG.setLevel(logging.INFO)
 
@@ -318,6 +318,11 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
 
     avg_after_each_batch=0
 
+    total_predictions=None
+    total_gold=None
+
+
+
     for i, datapoint in enumerate(train_loader):
         # print("len(datapoint) = ", len(datapoint))
         # print("datapoint[0] shape: {0}".format(datapoint[0].shape))
@@ -488,15 +493,25 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
         meters.update('loss', loss.data.item())
 
 
-        prec1 = accuracy_fever(class_logit.data, target_var.data,LOG) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
+
+
+        prec1,pred_labels,gold_labels = accuracy_fever(class_logit.data, target_var.data)
+
+        # accumulate all gold and predicted labels for the entire epochs.
+        # if its first batch, assign the datatype. Else extend
+        if (i == 0):
+            total_predictions = pred_labels[0]
+            total_gold = gold_labels
+        else:
+            total_predictions = torch.cat((total_predictions, pred_labels[0]),0)
+            total_gold=torch.cat((total_gold, gold_labels),0)
+
         meters.update('top1', prec1, labeled_minibatch_size)
         meters.update('error1', 100. - prec1, labeled_minibatch_size)
-        #meters.update('top5', prec5[0], labeled_minibatch_size)
-        #meters.update('error5', 100. - prec5[0], labeled_minibatch_size)
 
         # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
         if not args.exclude_unlabeled:
-            ema_prec1 = accuracy_fever(ema_logit.data, target_var.data,LOG) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
+            ema_prec1 = accuracy_fever(ema_logit.data, target_var.data) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
             meters.update('ema_top1', ema_prec1, labeled_minibatch_size)
             meters.update('ema_error1', 100. - ema_prec1, labeled_minibatch_size)
             # meters.update('ema_top5', ema_prec5[0], labeled_minibatch_size)
@@ -545,6 +560,8 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
         print("inside accuracy_fever. Found that all labels are category 2. something is wrong")
         sys.exit(1)
 
+    assert len(total_predictions) == len(total_gold), "length of predictions and gold labels doesn't match"
+    n=accuracy_given_labels(total_predictions,total_gold,len(total_gold))
     return avg_after_each_batch
 
 
@@ -593,6 +610,9 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
 
     sum_all_acc=0
     total_no_batches=0
+
+    total_predictions=[]
+    total_gold = []
     #enumerate means enumerate through each of the batches.
     #the __getitem__ in datasets.py is called here
     for i, datapoint in enumerate(eval_loader):
@@ -675,8 +695,11 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
         LOG.debug(f"list of predictions are: of class_loss is:{output1.data}")
         LOG.debug(f"list of gold labels are:{target_var.data}")
 
+        total_predictions.append(output1.data)
+        total_gold.append(target_var.data)
+
             # measure accuracy and record loss
-        prec1 = accuracy_fever(output1.data, target_var.data, LOG)
+        prec1 = accuracy_fever(output1.data, target_var.data)
 
         LOG.debug(f"value of prec1 is :{prec1}")
         sum_all_acc=sum_all_acc+prec1
@@ -887,7 +910,7 @@ def accuracy(output, target, topk=(1,)):
     return res
 
 #this accuracy is a simpler version where there are no topk elements. It just picks the element with highest value
-def accuracy_fever(predicted_labels, gold_labels,LOG):
+def accuracy_fever(predicted_labels, gold_labels):
     m = nn.Softmax()
     output_sftmax = m(predicted_labels)
     LOG.debug(f"value of output_sftmax is :{output_sftmax}")
@@ -953,7 +976,24 @@ def accuracy_fever(predicted_labels, gold_labels,LOG):
     #result=correct_k.mul_(100.0 / labeled_minibatch_size)
     #LOG.debug(f"value of result is :{result}")
 
+    return result2,pred_t,gold_labels
+
+
+def accuracy_given_labels(pred_t, gold_labels,labeled_minibatch_size):
+    correct = pred_t.eq(gold_labels)
+    LOG.debug(f"value of correct is :{correct}")
+    #take sum because in correct_k all the LABELS that match are now denoted by 1. So the sum means, total number of correct answers
+    correct_k = torch.sum(correct)
+    correct_k_float=float(correct_k.data.item())
+
+
+    labeled_minibatch_size_f=float(labeled_minibatch_size)
+    LOG.debug(f"value of correct_k as float is :{correct_k_float}")
+    LOG.debug(f"value of labeled_minibatch_size is :{labeled_minibatch_size_f}")
+    result2=(correct_k_float/labeled_minibatch_size_f)*100
+
     return result2
+
 
 def get_label_from_softmax(output):
     list_labels_pred=[]

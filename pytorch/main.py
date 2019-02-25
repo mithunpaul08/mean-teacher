@@ -692,13 +692,33 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
         meters.update('batch_time', time.time() - end)
         end = time.time()
 
+        #pwhen in FFNN mode, don't print teavher details.
+        if not args.exclude_unlabeled:
+                LOG.info(
+                    'Epoch: [{0}][{1}/{2}]\t'
+                    'Classification_loss:{meters[class_loss]:.4f}\t'
+                    'Consistency_loss:{meters[cons_loss]:.4f}\t'
+                    'Prec_student: {meters[top1]:.3f}\t'                    
+                    'Prec_teacher: {meters[ema_top1]:.3f}\t'
+                    'teacher_error: {meters[ema_error1]:.3f}\t'
+                    'student_error:{meters[error1]:.3f}\t'
+                        .format(
+                    epoch, i, len(eval_loader), meters=meters))
+        else:
+                LOG.info(
+                    'Epoch: [{0}][{1}/{2}]\t'
+                    'Classification_loss:{meters[class_loss]:.4f}\t'                    
+                    'Prec_model: {meters[top1]:.3f}\t'
+                        .format(
+                        epoch, i, len(eval_loader), meters=meters))
 
-        LOG.info(
-            'Epoch: [{0}][{1}/{2}]\t'
-            'Prec_model: {meters[top1]:.3f}\t'
-            'error_model:{meters[error1]:.3f}\t'
-                .format(
-                epoch, i, len(eval_loader), meters=meters))
+        avg_after_each_batch=meters['top1'].avg
+
+        # LOG.info(
+        #     'Epoch: [{0}][{1}/{2}]\t'
+        #     'Prec_model: {meters[top1]:.3f}\t'
+        #         .format(
+        #         epoch, i, len(eval_loader), meters=meters))
 
         LOG.debug(f"value of  i after epoch {epoch} is :{i}")
         total_no_batches=i
@@ -711,16 +731,21 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
     if save_custom_embed_condition:
         save_custom_embeddings(custom_embeddings_minibatch, dataset, result_dir, model_type)
 
+    LOG.info(f"avg_after_each_batch={avg_after_each_batch}")
     x=meters['top1'].avg
+
+
+    total_datapoints=len(dataset.claims)
     LOG.debug(f"average precision after all the {total_no_batches} batches in epoch {epoch} is :{x}")
     LOG.debug(f"value of  total_no_batches  is :{total_no_batches}")
     LOG.debug(f"value of sum_all_acc after epoch {epoch} is :{sum_all_acc}")
     #todo: divide by total number of data points.-or keep track of how many true positives, divide by total data point count.
-    x2=float(sum_all_acc)/float(total_no_batches)
+    x2=float(sum_all_acc)/float(total_datapoints)
+
     LOG.debug(f"value of average precision x2 after epoch {epoch} is :{x2}")
 
 
-    return x2
+    return x
 
 #todo: do we need to save custom_embeddings?  - mihai
 def save_custom_embeddings(custom_embeddings_minibatch, dataset, result_dir, model_type):

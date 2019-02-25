@@ -3,10 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="106d3cb0-0078-4c0d-8f45-f05ca8f31e37" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pytorch/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pytorch/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pytorch/mean_teacher/data.py" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/mean_teacher/data.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pytorch/mean_teacher/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/mean_teacher/utils.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -39,24 +37,24 @@
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="md" value="55" />
-          <entry key="py" value="3808" />
+          <entry key="py" value="4102" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="Markdown" value="55" />
-          <entry key="Python" value="3808" />
+          <entry key="Python" value="4102" />
         </counts>
       </usages-collector>
     </session>
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/pytorch/main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="80">
-              <caret line="141" column="53" selection-start-line="141" selection-start-column="32" selection-end-line="141" selection-end-column="53" />
+            <state relative-caret-position="409">
+              <caret line="28" selection-start-line="28" selection-end-line="28" />
               <folding>
                 <element signature="e#0#31#0" expanded="true" />
                 <element signature="e#49877#51671#0" />
@@ -83,11 +81,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/data.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="224">
-              <caret line="235" column="5" selection-start-line="235" selection-start-column="5" selection-end-line="235" selection-end-column="5" />
+            <state relative-caret-position="269">
+              <caret line="239" selection-start-line="239" selection-end-line="239" />
             </state>
           </provider>
         </entry>
@@ -96,8 +94,8 @@
         <entry file="file://$PROJECT_DIR$/pytorch/README.md">
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
             <state split_layout="SPLIT">
-              <first_editor relative-caret-position="97">
-                <caret line="67" column="305" selection-start-line="67" selection-start-column="305" selection-end-line="67" selection-end-column="305" />
+              <first_editor relative-caret-position="157">
+                <caret line="71" column="381" selection-start-line="71" selection-end-line="71" selection-end-column="381" />
               </first_editor>
               <second_editor />
             </state>
@@ -107,11 +105,10 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="102">
-              <caret line="118" selection-start-line="118" selection-end-line="118" />
+            <state relative-caret-position="170">
+              <caret line="287" selection-start-line="287" selection-end-line="287" />
               <folding>
                 <element signature="e#0#43#0" expanded="true" />
-                <element signature="e#10116#16503#0" />
                 <marker date="1551051083000" expanded="true" signature="6667:6676" ph="..." />
               </folding>
             </state>
@@ -147,8 +144,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file:///anaconda3/envs/meanteacher/lib/python3.7/site-packages/torch/utils/data/dataloader.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="133">
-              <caret line="522" selection-start-line="522" selection-end-line="522" />
+            <state relative-caret-position="194">
+              <caret line="520" selection-start-line="520" selection-end-line="520" />
             </state>
           </provider>
         </entry>
@@ -157,11 +154,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>ema_model</find>
-      <find>self.transform=None</find>
-      <find>exclusive</find>
-      <find>consisten</find>
-      <find>ema</find>
       <find>--c</find>
       <find>assert</find>
       <find>validate(</find>
@@ -182,11 +174,16 @@
       <find>.cuda</find>
       <find>.debug</find>
       <find>torch.cuda.is_available()</find>
-      <find>torch.cuda</find>
       <find>bool_inside_accuracy_all_labels_supports</find>
       <find>batchsampler</find>
-      <find>exclude_unlabeled</find>
       <find>assert_mutually_exclusive</find>
+      <find>train_loader</find>
+      <find>enumera</find>
+      <find>torch.cuda</find>
+      <find>args.excl</find>
+      <find>exclude_unlabeled</find>
+      <find>exclude</find>
+      <find>args.</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -198,18 +195,18 @@
         <option value="$PROJECT_DIR$/pytorch/mean_teacher/architectures.py" />
         <option value="$PROJECT_DIR$/pytorch/mean_teacher/cli.py" />
         <option value="$PROJECT_DIR$/pytorch/mean_teacher/datasets.py" />
-        <option value="$PROJECT_DIR$/pytorch/main.py" />
         <option value="$PROJECT_DIR$/pytorch/README.md" />
         <option value="$PROJECT_DIR$/pytorch/mean_teacher/utils.py" />
         <option value="$PROJECT_DIR$/pytorch/mean_teacher/data.py" />
+        <option value="$PROJECT_DIR$/pytorch/main.py" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="95" />
-    <option name="y" value="108" />
+  <component name="ProjectFrameBounds">
+    <option name="x" value="24" />
+    <option name="y" value="23" />
     <option name="width" value="1920" />
-    <option name="height" value="777" />
+    <option name="height" value="1053" />
   </component>
   <component name="ProjectView">
     <navigator currentView="Scope" currentSubView="Scope 'Project Files'; set:Project Files; class com.intellij.psi.search.scope.ProjectFilesScope" proportions="" version="1">
@@ -319,7 +316,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="1920" height="1053" extended-state="6" />
+    <frame x="24" y="23" width="1920" height="1053" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.095313326" />
@@ -613,11 +610,6 @@
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py</url>
-          <line>287</line>
-          <option name="timeStamp" value="158" />
-        </line-breakpoint>
-        <line-breakpoint suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py</url>
           <line>292</line>
           <option name="timeStamp" value="159" />
         </line-breakpoint>
@@ -751,95 +743,95 @@
           <line>141</line>
           <option name="timeStamp" value="213" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
           <line>908</line>
           <option name="timeStamp" value="222" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
           <line>677</line>
           <option name="timeStamp" value="226" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
           <line>531</line>
           <option name="timeStamp" value="229" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
           <line>889</line>
           <option name="timeStamp" value="230" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
           <line>892</line>
           <option name="timeStamp" value="242" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
           <line>905</line>
           <option name="timeStamp" value="243" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
           <line>904</line>
           <option name="timeStamp" value="245" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
           <line>496</line>
           <option name="timeStamp" value="246" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
           <line>488</line>
           <option name="timeStamp" value="250" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
           <line>868</line>
           <option name="timeStamp" value="251" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>318</line>
-          <option name="timeStamp" value="254" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
           <line>324</line>
           <option name="timeStamp" value="255" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file:///anaconda3/envs/meanteacher/lib/python3.7/site-packages/torch/utils/data/dataloader.py</url>
           <line>521</line>
           <option name="timeStamp" value="256" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>143</line>
-          <option name="timeStamp" value="257" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>142</line>
-          <option name="timeStamp" value="258" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/mean_teacher/data.py</url>
-          <line>237</line>
+          <line>245</line>
           <option name="timeStamp" value="259" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>147</line>
+          <option name="timeStamp" value="261" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>140</line>
+          <option name="timeStamp" value="266" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
+          <line>146</line>
+          <option name="timeStamp" value="267" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
           <line>141</line>
-          <option name="timeStamp" value="260" />
+          <option name="timeStamp" value="269" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>147</line>
-          <option name="timeStamp" value="261" />
+          <line>143</line>
+          <option name="timeStamp" value="270" />
         </line-breakpoint>
       </breakpoints>
       <breakpoints-dialog>
@@ -928,13 +920,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/processNLPdata/datautils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="159">
-          <caret line="61" column="8" selection-start-line="61" selection-start-column="8" selection-end-line="61" selection-end-column="8" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file:///anaconda3/envs/meanteacher/lib/python3.7/logging/__init__.py">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
@@ -942,6 +927,20 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="255">
           <caret line="17" selection-start-line="17" selection-end-line="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Library/Caches/PyCharmCE2018.2/python_stubs/-1051390765/builtins.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="187">
+          <caret line="2978" column="8" selection-start-line="2978" selection-start-column="8" selection-end-line="2978" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/utils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="67">
+          <caret line="43" column="16" selection-start-line="43" selection-start-column="16" selection-end-line="43" selection-end-column="16" />
         </state>
       </provider>
     </entry>
@@ -955,64 +954,56 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py">
+    <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/processNLPdata/datautils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="102">
-          <caret line="118" selection-start-line="118" selection-end-line="118" />
-          <folding>
-            <element signature="e#0#43#0" expanded="true" />
-            <element signature="e#10116#16503#0" />
-            <marker date="1551051083000" expanded="true" signature="6667:6676" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/Library/Caches/PyCharmCE2018.2/python_stubs/-1051390765/builtins.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="187">
-          <caret line="2978" column="8" selection-start-line="2978" selection-start-column="8" selection-end-line="2978" selection-end-column="8" />
+        <state relative-caret-position="159">
+          <caret line="61" column="8" selection-start-line="61" selection-start-column="8" selection-end-line="61" selection-end-column="8" />
         </state>
       </provider>
     </entry>
     <entry file="file:///anaconda3/envs/meanteacher/lib/python3.7/site-packages/torch/utils/data/dataloader.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="133">
-          <caret line="522" selection-start-line="522" selection-end-line="522" />
+        <state relative-caret-position="194">
+          <caret line="520" selection-start-line="520" selection-end-line="520" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/pytorch/README.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="SPLIT">
-          <first_editor relative-caret-position="97">
-            <caret line="67" column="305" selection-start-line="67" selection-start-column="305" selection-end-line="67" selection-end-column="305" />
+          <first_editor relative-caret-position="157">
+            <caret line="71" column="381" selection-start-line="71" selection-end-line="71" selection-end-column="381" />
           </first_editor>
           <second_editor />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/utils.py">
+    <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/data.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="67">
-          <caret line="43" column="16" selection-start-line="43" selection-start-column="16" selection-end-line="43" selection-end-column="16" />
+        <state relative-caret-position="269">
+          <caret line="239" selection-start-line="239" selection-end-line="239" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/datasets.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="170">
+          <caret line="287" selection-start-line="287" selection-end-line="287" />
+          <folding>
+            <element signature="e#0#43#0" expanded="true" />
+            <marker date="1551051083000" expanded="true" signature="6667:6676" ph="..." />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/pytorch/main.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="80">
-          <caret line="141" column="53" selection-start-line="141" selection-start-column="32" selection-end-line="141" selection-end-column="53" />
+        <state relative-caret-position="409">
+          <caret line="28" selection-start-line="28" selection-end-line="28" />
           <folding>
             <element signature="e#0#31#0" expanded="true" />
             <element signature="e#49877#51671#0" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/data.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="224">
-          <caret line="235" column="5" selection-start-line="235" selection-start-column="5" selection-end-line="235" selection-end-column="5" />
         </state>
       </provider>
     </entry>

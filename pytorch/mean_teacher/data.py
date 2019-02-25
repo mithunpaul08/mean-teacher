@@ -232,10 +232,18 @@ def relabel_dataset_nlp(dataset, args):
 
 
 def get_all_label_indices(dataset, args):
+
+    #this command returns all the labels and its corresponding indices eg:[198,2]
     all_labels = list(enumerate(dataset.get_labels()))
-    #labeled_ids = list(dataset.get_labels())
-    #random.shuffle(labeled_ids) # randomizing the relabeling ...
-    return all_labels
+
+    #note that even though the labels are shuffled up, we are keeping track/returning only the shuffled indices. so it all works out fine.
+    random.shuffle(all_labels)
+
+    #get all the indices alone
+    all_indices=[]
+    for idx,_  in all_labels:
+        all_indices.append(idx)
+    return all_indices
 
 
 def relabel_dataset(dataset, labels):

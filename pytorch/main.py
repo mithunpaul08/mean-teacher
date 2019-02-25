@@ -26,7 +26,7 @@ import contextlib
 import random
 
 #askfan: where is log file stored? Ans: stdout
-#logging.basicConfig(filename='example.log',filemode='w+')
+logging.basicConfig(filename='example.log',filemode='w+')
 LOG = logging.getLogger('main')
 LOG.setLevel(logging.INFO)
 

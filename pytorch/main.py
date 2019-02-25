@@ -1193,6 +1193,14 @@ def append_as_csv(train_accuracy, dev_accuracy,args,epoch):
         employee_writer = csv.writer(employee_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         for x,y in zip(train_accuracy,dev_accuracy):
             employee_writer.writerow([epoch,x,y])
+
+def write_as_csv(train_accuracy, dev_accuracy,args):
+    import csv
+    epoch=0
+    with open(args.output_folder+'train_dev_per_epoch_accuracy_end_of_all_epochs.csv', mode='w+') as employee_file:
+        employee_writer = csv.writer(employee_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        for x,y in zip(train_accuracy,dev_accuracy):
+            employee_writer.writerow([epoch,x,y])
             epoch=epoch+1
 
 def main(context):
@@ -1414,7 +1422,7 @@ def main(context):
                 }, is_best, checkpoint_path, epoch + 1)
 
                 # write train and dev accuracies to disk as csv
-        append_as_csv(accuracy_per_epoch_training, accuracy_per_epoch_dev, args,epoch)
+        #append_as_csv(accuracy_per_epoch_training, accuracy_per_epoch_dev, args,epoch)
 
 
 
@@ -1424,6 +1432,7 @@ def main(context):
     # validate(eval_loader, model, validation_log, global_step, 0, dataset, context.result_dir, "student")
     LOG.info("--------Total end to end time %s seconds ----------- " % (time.time() - time_start))
     LOG.info(f"best best_accuracy_across_epochs  is:{best_accuracy_across_epochs} at epoch number:{best_epochs}")
+    write_as_csv(accuracy_per_epoch_training, accuracy_per_epoch_dev, args)
 
 
 

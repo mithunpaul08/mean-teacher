@@ -26,7 +26,7 @@ import contextlib
 import random
 
 #askfan: where is log file stored? Ans: stdout
-logging.basicConfig(filename='example.log',filemode='w+')
+#logging.basicConfig(filename='example.log',filemode='w+')
 LOG = logging.getLogger('main')
 LOG.setLevel(logging.INFO)
 
@@ -867,15 +867,8 @@ def accuracy_fever(predicted_labels, gold_labels,LOG):
     # # check how many predictions you got right?
     # l2=gold_labels.cpu().numpy().tolist()
     #
-    # bool_inside_accuracy_all_labels_supports=True
-    # for lbl in l2:
-    #     if not (lbl == 2):
-    #         bool_inside_accuracy_all_labels_supports=False;
     #
-    # if(bool_inside_accuracy_all_labels_supports):
-    #         import sys
-    #         print("inside accuracy_fever. Found that all labels are category 2. something is wrong")
-    #         sys.exit(1)
+    #
     # l2, correct = l2[:], [e for e in l1 if e in l2 and (l2.pop(l2.index(e)))]
     # correct_k_float = float(sum(correct)/2)
 
@@ -883,6 +876,23 @@ def accuracy_fever(predicted_labels, gold_labels,LOG):
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     pred_t = pred_t.to(device=device, dtype=torch.int64)
+
+    if(device=="cpu"):
+        l2 = gold_labels.cpu().numpy().tolist()
+    else:
+        l2 = gold_labels.numpy().tolist()
+
+    bool_inside_accuracy_all_labels_supports = True
+    for lbl in l2:
+        if not (lbl == 2):
+            bool_inside_accuracy_all_labels_supports=False
+
+    if(bool_inside_accuracy_all_labels_supports):
+            import sys
+            print("inside accuracy_fever. Found that all labels are category 2. something is wrong")
+            sys.exit(1)
+
+
 
     correct = pred_t.eq(gold_labels.view(1, -1).expand_as(pred_t))
     LOG.debug(f"value of correct is :{correct}")

@@ -880,22 +880,29 @@ def accuracy_fever(predicted_labels, gold_labels,LOG):
 
 
     #predicting everything as majority class: for debug purposes
-    import itertools
-    x=2
-    xf=float(x)
-    l1=list(itertools.repeat(xf,labeled_minibatch_size))
-    # # check how many predictions you got right?
-    # l2=gold_labels.cpu().numpy().tolist()
-    #
-    #
-    #
-    # l2, correct = l2[:], [e for e in l1 if e in l2 and (l2.pop(l2.index(e)))]
-    # correct_k_float = float(sum(correct)/2)
+    # import itertools
+    # x=2
+    # xf=float(x)
+    # l1=list(itertools.repeat(xf,labeled_minibatch_size))
+    # pred_t = torch.Tensor([l1])
+    # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    # pred_t = pred_t.to(device=device, dtype=torch.int64)
 
-    pred_t=torch.Tensor([l1])
 
+    #predict a random class from [0,1,2]. for debugging/getting a baseline.
+
+    l1=[]
+    import random
+    random.seed(3)
+    for i in range(labeled_minibatch_size):
+        x=random.randint(0,2)
+        l1.append(x)
+
+    pred_t = torch.Tensor([l1])
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     pred_t = pred_t.to(device=device, dtype=torch.int64)
+
+
 
 
 

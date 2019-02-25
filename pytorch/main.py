@@ -878,9 +878,9 @@ def accuracy_fever(predicted_labels, gold_labels,LOG):
     pred_t = pred_t.to(device=device, dtype=torch.int64)
 
     if(device=="cpu"):
-        l2 = gold_labels.cpu().numpy().tolist()
-    else:
         l2 = gold_labels.numpy().tolist()
+    else:
+        l2 = gold_labels.cpu().numpy().tolist()
 
     bool_inside_accuracy_all_labels_supports = True
     for lbl in l2:

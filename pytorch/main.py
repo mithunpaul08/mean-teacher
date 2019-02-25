@@ -307,9 +307,11 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
         ema_model.train()
 
     end = time.time()
+    bool_inside_accuracy_all_labels_supports = True
 
     # datapoint: List(input_student, student_input teacher, labels)
     #i.e go through each data point within a mini batch
+
     for i, datapoint in enumerate(train_loader):
         # print("len(datapoint) = ", len(datapoint))
         # print("datapoint[0] shape: {0}".format(datapoint[0].shape))
@@ -366,6 +368,14 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
                 if not args.exclude_unlabeled:
                     ema_claims_var = torch.autograd.Variable(teacher_input_claim, volatile=True).cpu()
                     ema_evidences_var = torch.autograd.Variable(teacher_input_evidence, volatile=True).cpu()
+
+        #go through all labels in this batch and make sure that there is atleast one data point whose label is not SUPPORTS
+
+
+
+        for lbl in target:
+            if not (lbl == 2):
+                bool_inside_accuracy_all_labels_supports = False
 
 
 
@@ -521,6 +531,11 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
                         epoch, i, len(train_loader), meters=meters))
 
     print("end of all batches in training. going toexit")
+    if (bool_inside_accuracy_all_labels_supports):
+        import sys
+        print("inside accuracy_fever. Found that all labels are category 2. something is wrong")
+        sys.exit(1)
+
     import sys
     sys.exit(1)
 
@@ -850,8 +865,8 @@ def accuracy_fever(predicted_labels, gold_labels,LOG):
 
     #predictions, indices = torch.max(output_sftmax,0)
     _, pred = output_sftmax.topk(1, 1, True, True)
-    LOG.info(f"value of pred is :{pred}")
-    LOG.info(f"value of gold labels is is :{gold_labels}")
+    LOG.debug(f"value of pred is :{pred}")
+    LOG.debug(f"value of gold labels is is :{gold_labels}")
 
 
 
@@ -877,20 +892,7 @@ def accuracy_fever(predicted_labels, gold_labels,LOG):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     pred_t = pred_t.to(device=device, dtype=torch.int64)
 
-    if(device=="cpu"):
-        l2 = gold_labels.numpy().tolist()
-    else:
-        l2 = gold_labels.cpu().numpy().tolist()
 
-    bool_inside_accuracy_all_labels_supports = True
-    for lbl in l2:
-        if not (lbl == 2):
-            bool_inside_accuracy_all_labels_supports=False
-
-    if(bool_inside_accuracy_all_labels_supports):
-            import sys
-            print("inside accuracy_fever. Found that all labels are category 2. something is wrong")
-            sys.exit(1)
 
 
 

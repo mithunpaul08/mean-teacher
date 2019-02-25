@@ -511,7 +511,7 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
 
         # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
         if not args.exclude_unlabeled:
-            ema_prec1 = accuracy_fever(ema_logit.data, target_var.data) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
+            ema_prec1,pred_labels,gold_labels = accuracy_fever(ema_logit.data, target_var.data) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
             meters.update('ema_top1', ema_prec1, labeled_minibatch_size)
             meters.update('ema_error1', 100. - ema_prec1, labeled_minibatch_size)
             # meters.update('ema_top5', ema_prec5[0], labeled_minibatch_size)
@@ -561,8 +561,8 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
         sys.exit(1)
 
     assert len(total_predictions) == len(total_gold), "length of predictions and gold labels doesn't match"
-    n=accuracy_given_labels(total_predictions,total_gold,len(total_gold))
-    return avg_after_each_batch
+    avg_prec_taken_totally=accuracy_given_labels(total_predictions,total_gold,len(total_gold))
+    return avg_after_each_batch,avg_prec_taken_totally
 
 
 
@@ -611,8 +611,8 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
     sum_all_acc=0
     total_no_batches=0
 
-    total_predictions=[]
-    total_gold = []
+    total_predictions=None
+    total_gold = None
     #enumerate means enumerate through each of the batches.
     #the __getitem__ in datasets.py is called here
     for i, datapoint in enumerate(eval_loader):
@@ -695,14 +695,19 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
         LOG.debug(f"list of predictions are: of class_loss is:{output1.data}")
         LOG.debug(f"list of gold labels are:{target_var.data}")
 
-        total_predictions.append(output1.data)
-        total_gold.append(target_var.data)
-
             # measure accuracy and record loss
-        prec1 = accuracy_fever(output1.data, target_var.data)
+        prec1,pred_labels,gold_labels = accuracy_fever(output1.data, target_var.data)
+
+        # accumulate all gold and predicted labels for the entire epochs.
+        # if its first batch, assign the datatype. Else extend
+        if (i == 0):
+            total_predictions = pred_labels[0]
+            total_gold = gold_labels
+        else:
+            total_predictions = torch.cat((total_predictions, pred_labels[0]), 0)
+            total_gold = torch.cat((total_gold, gold_labels), 0)
 
         LOG.debug(f"value of prec1 is :{prec1}")
-        sum_all_acc=sum_all_acc+prec1
 
 
         meters.update('class_loss', class_loss.data.item(), labeled_minibatch_size)
@@ -755,20 +760,19 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
         save_custom_embeddings(custom_embeddings_minibatch, dataset, result_dir, model_type)
 
     LOG.info(f"avg_after_each_batch={avg_after_each_batch}")
-    x=meters['top1'].avg
+    cum_avg=meters['top1'].avg
 
 
     total_datapoints=len(dataset.claims)
-    LOG.debug(f"average precision after all the {total_no_batches} batches in epoch {epoch} is :{x}")
+    LOG.debug(f"average precision after all the {total_no_batches} batches in epoch {epoch} is :{cum_avg}")
     LOG.debug(f"value of  total_no_batches  is :{total_no_batches}")
     LOG.debug(f"value of sum_all_acc after epoch {epoch} is :{sum_all_acc}")
-    #todo: divide by total number of data points.-or keep track of how many true positives, divide by total data point count.
-    x2=float(sum_all_acc)/float(total_datapoints)
 
-    LOG.debug(f"value of average precision x2 after epoch {epoch} is :{x2}")
+    assert len(total_predictions) == len(total_gold), "length of predictions and gold labels doesn't match"
+    avg_prec_taken_totally = accuracy_given_labels(total_predictions, total_gold, len(total_gold))
 
 
-    return x
+    return cum_avg,avg_prec_taken_totally
 
 #todo: do we need to save custom_embeddings?  - mihai
 def save_custom_embeddings(custom_embeddings_minibatch, dataset, result_dir, model_type):
@@ -1323,12 +1327,14 @@ def main(context):
     for epoch in range(args.start_epoch, args.epochs):
         start_time = time.time()
         #ask ajay: why are they not returning the trained models explicitly
-        avg_precision_this_epoch=train(train_loader, model, ema_model, optimizer, epoch, dataset, training_log)
-        LOG.info(f"--- done training epoch {epoch} in {(time.time() - start_time)} seconds ---avg_precision_this_epoch={avg_precision_this_epoch}" )
+        avg_precision_this_epoch,avg_prec_taken_totally=train(train_loader, model, ema_model, optimizer, epoch, dataset, training_log)
+        LOG.info(f"--- done training epoch {epoch} in {(time.time() - start_time)} seconds. avg_precision_this_epoch:{avg_precision_this_epoch}, avg_prec_taken_totally:{avg_prec_taken_totally}" )
 
 
         LOG.debug(f"value of args.evaluation_epochs: {args.evaluation_epochs} ")
         LOG.debug(f"value of args.epoch: {epoch} ")
+
+
 
 
 
@@ -1354,17 +1360,17 @@ def main(context):
             LOG.debug(f"value of dataset_test: {dataset_test} ")
             LOG.debug(f"value of context.result_dir: {context.result_dir} ")
 
-            student_accuracy = validate(eval_loader, model, validation_log, global_step, epoch , dataset_test,
+            student_accuracy,avg_st_prec_taken_totally = validate(eval_loader, model, validation_log, global_step, epoch , dataset_test,
                              context.result_dir, "student")
 
-            teacher_accuracy=0;
+            teacher_accuracy=0
+            avg_teacher_prec_taken_totally=0
             if not args.exclude_unlabeled:
                 LOG.info("Evaluating the EMA model:")
-                teacher_accuracy = validate(eval_loader, ema_model, ema_validation_log, global_step, epoch , dataset_test,
-                                 context.result_dir, "teacher")
+                teacher_accuracy,avg_teacher_prec_taken_totally = validate(eval_loader, ema_model, ema_validation_log, global_step, epoch , dataset_test,context.result_dir, "teacher")
 
             LOG.info("--- validation in %s seconds ---" % (time.time() - start_time))
-            local_best= max(teacher_accuracy, student_accuracy)
+            local_best= max(teacher_accuracy, student_accuracy,avg_st_prec_taken_totally,avg_teacher_prec_taken_totally)
             is_best = teacher_accuracy > best_accuracy_across_epochs
 
             if(local_best>best_accuracy_across_epochs):

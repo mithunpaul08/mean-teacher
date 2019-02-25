@@ -26,7 +26,7 @@ import contextlib
 import random
 
 #askfan: where is log file stored? Ans: stdout
-logging.basicConfig(filename='example.log',filemode='w+')
+#logging.basicConfig(filename='example.log',filemode='w+')
 LOG = logging.getLogger('main')
 LOG.setLevel(logging.INFO)
 
@@ -1287,9 +1287,13 @@ def main(context):
 
             student_accuracy = validate(eval_loader, model, validation_log, global_step, epoch , dataset_test,
                              context.result_dir, "student")
-            LOG.info("Evaluating the EMA model:")
-            teacher_accuracy = validate(eval_loader, ema_model, ema_validation_log, global_step, epoch , dataset_test,
+
+            teacher_accuracy=0;
+            if not args.exclude_unlabeled:
+                LOG.info("Evaluating the EMA model:")
+                teacher_accuracy = validate(eval_loader, ema_model, ema_validation_log, global_step, epoch , dataset_test,
                                  context.result_dir, "teacher")
+
             LOG.info("--- validation in %s seconds ---" % (time.time() - start_time))
             local_best= max(teacher_accuracy, student_accuracy)
             is_best = teacher_accuracy > best_accuracy_across_epochs
@@ -1323,8 +1327,6 @@ def main(context):
     # validate(eval_loader, model, validation_log, global_step, 0, dataset, context.result_dir, "student")
     LOG.info("--------Total end to end time %s seconds ----------- " % (time.time() - time_start))
     LOG.info(f"best best_accuracy_across_epochs  is:{best_accuracy_across_epochs} at epoch number:{best_epochs}")
-    import sys
-    sys.exit(1)
 
 
 if __name__ == '__main__':

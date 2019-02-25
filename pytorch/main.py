@@ -759,7 +759,7 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
     if save_custom_embed_condition:
         save_custom_embeddings(custom_embeddings_minibatch, dataset, result_dir, model_type)
 
-    LOG.info(f"avg_after_each_batch={avg_after_each_batch}")
+    LOG.debug(f"avg_after_each_batch={avg_after_each_batch}")
     cum_avg=meters['top1'].avg
 
 
@@ -1187,7 +1187,13 @@ def dump_result(batch_id, args, output, target, dataset, perm_idx, model_type='t
                 line = target_label + '\t' + pred_label + '\t' + str(match) + '\t' + str(float(score[p])) + '\n'
                 fo.write(line)
 
-
+def append_as_csv(train_accuracy, dev_accuracy,args,epoch):
+    import csv
+    with open(args.output_folder+'train_dev_per_epoch_accuracy.csv', mode='a') as employee_file:
+        employee_writer = csv.writer(employee_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        for x,y in zip(train_accuracy,dev_accuracy):
+            employee_writer.writerow([epoch,x,y])
+            epoch=epoch+1
 
 def main(context):
     global global_step
@@ -1324,11 +1330,23 @@ def main(context):
             validate(eval_loader, ema_model, ema_validation_log, global_step, args.start_epoch, dataset_test, context.result_dir, "teacher")
         return
 
+    accuracy_per_epoch_training=[]
+    accuracy_per_epoch_dev = []
+
+
+    #delete and create teh csv file which stores train and dev accuracies
+    import csv
+    with open(args.output_folder + 'train_dev_per_epoch_accuracy.csv', mode='w+') as employee_file:
+        employee_writer = csv.writer(employee_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        employee_writer.writerow(["Epoch","Train_Acc","Dev_Acc"])
+        employee_file.close()
+
     for epoch in range(args.start_epoch, args.epochs):
         start_time = time.time()
         #ask ajay: why are they not returning the trained models explicitly
         avg_precision_this_epoch,avg_prec_taken_totally=train(train_loader, model, ema_model, optimizer, epoch, dataset, training_log)
-        LOG.info(f"--- done training epoch {epoch} in {(time.time() - start_time)} seconds. avg_precision_this_epoch:{avg_precision_this_epoch}, avg_prec_taken_totally:{avg_prec_taken_totally}" )
+        accuracy_per_epoch_training.append(avg_precision_this_epoch)
+        LOG.info(f"--- done training epoch {epoch} in {(time.time() - start_time)} seconds. avg_precision_cumulative:{avg_precision_this_epoch}, avg_prec_taken_by_total_pred_gold:{avg_prec_taken_totally}" )
 
 
         LOG.debug(f"value of args.evaluation_epochs: {args.evaluation_epochs} ")
@@ -1379,6 +1397,7 @@ def main(context):
             else:
                 is_best = False
 
+            accuracy_per_epoch_dev.append(local_best)
             LOG.info(f"best value of validation accuracy after epoch {epoch} is {local_best}")
             LOG.info(f"best value of best_accuracy_across_epochs so far is {best_accuracy_across_epochs} at epoch number {best_epochs}")
 
@@ -1394,6 +1413,9 @@ def main(context):
                     'dataset' : args.dataset,
                 }, is_best, checkpoint_path, epoch + 1)
 
+                # write train and dev accuracies to disk as csv
+        append_as_csv(accuracy_per_epoch_training, accuracy_per_epoch_dev, args,epoch)
+
 
 
 
@@ -1402,6 +1424,8 @@ def main(context):
     # validate(eval_loader, model, validation_log, global_step, 0, dataset, context.result_dir, "student")
     LOG.info("--------Total end to end time %s seconds ----------- " % (time.time() - time_start))
     LOG.info(f"best best_accuracy_across_epochs  is:{best_accuracy_across_epochs} at epoch number:{best_epochs}")
+
+
 
 
 if __name__ == '__main__':

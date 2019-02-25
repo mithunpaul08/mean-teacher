@@ -3,6 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="106d3cb0-0078-4c0d-8f45-f05ca8f31e37" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pytorch/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pytorch/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/main.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -24,36 +25,36 @@
       <usages-collector id="statistics.file.extensions.open">
         <counts>
           <entry key="md" value="2" />
-          <entry key="py" value="20" />
+          <entry key="py" value="22" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
           <entry key="Markdown" value="2" />
-          <entry key="Python" value="20" />
+          <entry key="Python" value="22" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="md" value="60" />
-          <entry key="py" value="5260" />
+          <entry key="md" value="63" />
+          <entry key="py" value="5750" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Markdown" value="60" />
-          <entry key="Python" value="5260" />
+          <entry key="Markdown" value="63" />
+          <entry key="Python" value="5750" />
         </counts>
       </usages-collector>
     </session>
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/pytorch/main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="316">
-              <caret line="1372" column="12" selection-start-line="1372" selection-start-column="12" selection-end-line="1372" selection-end-column="12" />
+            <state relative-caret-position="211">
+              <caret line="1191" column="76" selection-start-line="1191" selection-start-column="76" selection-end-line="1191" selection-end-column="76" />
               <folding>
                 <element signature="e#0#31#0" expanded="true" />
                 <element signature="e#1846#2275#0" />
@@ -110,14 +111,23 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/pytorch/README.md">
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
             <state split_layout="SPLIT">
-              <first_editor relative-caret-position="141">
-                <caret line="71" column="352" selection-start-line="71" selection-start-column="352" selection-end-line="71" selection-end-column="352" />
+              <first_editor relative-caret-position="103">
+                <caret line="72" selection-start-line="71" selection-end-line="72" />
               </first_editor>
               <second_editor />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file:///anaconda3/envs/meanteacher/lib/python3.7/site-packages/nltk/metrics/__init__.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="360">
+              <caret line="24" selection-start-line="24" selection-end-line="24" />
             </state>
           </provider>
         </entry>
@@ -136,19 +146,13 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/processNLPdata/datautils.py">
+        <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/cli.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="159">
-              <caret line="61" column="8" selection-start-line="61" selection-start-column="8" selection-end-line="61" selection-end-column="8" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file:///anaconda3/envs/meanteacher/lib/python3.7/site-packages/torch/utils/data/dataloader.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="194">
-              <caret line="520" selection-start-line="520" selection-end-line="520" />
+            <state relative-caret-position="199">
+              <caret line="117" column="40" selection-start-line="117" selection-start-column="27" selection-end-line="117" selection-end-column="40" />
+              <folding>
+                <element signature="e#0#9#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -157,11 +161,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>accur</find>
-      <find>accuracy_Fever</find>
-      <find>sys.exi</find>
-      <find>cuda</find>
-      <find>return</find>
       <find>rtedat</find>
       <find>inir</find>
       <find>value of found</find>
@@ -185,8 +184,13 @@
       <find>accuracy_fever</find>
       <find>sum_all_acc</find>
       <find>total_predictions</find>
-      <find>exclude_unlabeled</find>
       <find>validate(</find>
+      <find>avg_after_each_batch</find>
+      <find>done train</find>
+      <find>exclude_unlabeled</find>
+      <find>outputs</find>
+      <find>output</find>
+      <find>employee_writer</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -200,8 +204,8 @@
         <option value="$PROJECT_DIR$/pytorch/mean_teacher/datasets.py" />
         <option value="$PROJECT_DIR$/pytorch/mean_teacher/data.py" />
         <option value="$PROJECT_DIR$/pytorch/mean_teacher/utils.py" />
-        <option value="$PROJECT_DIR$/pytorch/main.py" />
         <option value="$PROJECT_DIR$/pytorch/README.md" />
+        <option value="$PROJECT_DIR$/pytorch/main.py" />
       </list>
     </option>
   </component>
@@ -290,7 +294,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pytorch/main.py" />
-      <option name="PARAMETERS" value="--dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 100 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_small_200_claims_with_evi_sents.jsonl --dev_input_file dev_90_with_evi_sents.jsonl --print-freq 1 --workers 0 --exclude_unlabeled true --batch_size 19 --lr 0.0000001 --ema_decay 8" />
+      <option name="PARAMETERS" value="--dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 2 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_small_200_claims_with_evi_sents.jsonl --dev_input_file dev_90_with_evi_sents.jsonl --print-freq 1 --workers 0 --exclude_unlabeled true --batch_size 90 --lr 0.0000001 --ema_decay 8" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -325,7 +329,7 @@
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
-      <window_info anchor="bottom" id="Find" order="1" weight="0.3294509" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.32837528" />
       <window_info anchor="bottom" id="Run" order="2" weight="0.22425629" />
       <window_info active="true" anchor="bottom" id="Debug" order="3" visible="true" weight="0.2883295" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
@@ -427,7 +431,7 @@
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>1316</line>
+          <line>1322</line>
           <option name="timeStamp" value="71" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
@@ -497,17 +501,17 @@
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>1298</line>
+          <line>1304</line>
           <option name="timeStamp" value="109" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>1313</line>
+          <line>1319</line>
           <option name="timeStamp" value="110" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>1329</line>
+          <line>1346</line>
           <option name="timeStamp" value="111" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
@@ -532,7 +536,7 @@
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>1326</line>
+          <line>1343</line>
           <option name="timeStamp" value="124" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
@@ -542,7 +546,7 @@
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>1351</line>
+          <line>1369</line>
           <option name="timeStamp" value="132" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
@@ -582,7 +586,7 @@
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>1369</line>
+          <line>1387</line>
           <option name="timeStamp" value="150" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
@@ -787,23 +791,13 @@
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>1366</line>
+          <line>1384</line>
           <option name="timeStamp" value="309" />
         </line-breakpoint>
-        <line-breakpoint suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>1362</line>
-          <option name="timeStamp" value="310" />
-        </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>770</line>
-          <option name="timeStamp" value="311" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/pytorch/main.py</url>
-          <line>762</line>
-          <option name="timeStamp" value="312" />
+          <line>1341</line>
+          <option name="timeStamp" value="319" />
         </line-breakpoint>
       </breakpoints>
       <breakpoints-dialog>
@@ -872,16 +866,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="215">
           <caret line="488" selection-start-line="488" selection-end-line="488" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/cli.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="53">
-          <caret line="59" column="53" selection-start-line="59" selection-start-column="53" selection-end-line="59" selection-end-column="53" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -965,10 +949,37 @@
         </state>
       </provider>
     </entry>
+    <entry file="file:///anaconda3/envs/meanteacher/lib/python3.7/site-packages/nltk/metrics/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="360">
+          <caret line="24" selection-start-line="24" selection-end-line="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pytorch/README.md">
+      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+        <state split_layout="SPLIT">
+          <first_editor relative-caret-position="103">
+            <caret line="72" selection-start-line="71" selection-end-line="72" />
+          </first_editor>
+          <second_editor />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pytorch/mean_teacher/cli.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="199">
+          <caret line="117" column="40" selection-start-line="117" selection-start-column="27" selection-end-line="117" selection-end-column="40" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/pytorch/main.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="316">
-          <caret line="1372" column="12" selection-start-line="1372" selection-start-column="12" selection-end-line="1372" selection-end-column="12" />
+        <state relative-caret-position="211">
+          <caret line="1191" column="76" selection-start-line="1191" selection-start-column="76" selection-end-line="1191" selection-end-column="76" />
           <folding>
             <element signature="e#0#31#0" expanded="true" />
             <element signature="e#1846#2275#0" />
@@ -976,16 +987,6 @@
             <element signature="e#11070#11328#0" />
             <element signature="e#49877#51671#0" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pytorch/README.md">
-      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
-        <state split_layout="SPLIT">
-          <first_editor relative-caret-position="141">
-            <caret line="71" column="352" selection-start-line="71" selection-start-column="352" selection-end-line="71" selection-end-column="352" />
-          </first_editor>
-          <second_editor />
         </state>
       </provider>
     </entry>

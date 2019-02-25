@@ -41,7 +41,8 @@ def assert_exactly_one(lst):
                                                             for el in lst)
 
 def assert_mutually_exclusive(a,b):
-    if(a is not None) and (b is not None):
+    if(a is True) and (b is not None):
+            print(f"two values that are being compared are {a} and  {b}")
             assert (2==3), "The given values are mutually exclusive. Error."
 
 

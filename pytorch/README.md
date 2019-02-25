@@ -65,7 +65,7 @@ python -u main.py
 
 Below is a version that runs on mean teacher on a mac command line-but with toy data- best for laptop:
 ```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 6 --consistency=0.3 --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/rte/fever --print-freq 1 --workers 0 --labeled_batch_size 5 --consistency 35.5 --dev_input_file dev_90_with_evi_sents.jsonl --train_input_file train_small_200_claims_with_evi_sents.jsonl
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 6 --consistency=0.3 --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/rte/fever --print-freq 1 --workers 0 --labeled_batch_size 5 --consistency 1 --dev_input_file dev_90_with_evi_sents.jsonl --train_input_file train_small_200_claims_with_evi_sents.jsonl
 ```
 Below is a version that runs the code as a simple FFNN on a mac command line-but with toy data- best for laptop:
 ```

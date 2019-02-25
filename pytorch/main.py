@@ -312,11 +312,7 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
     # datapoint: List(input_student, student_input teacher, labels)
     #i.e go through each data point within a mini batch
 
-    for lbl in dataset.lbl:
-        if not (lbl == 2):
-            print("found a class that is not supports before batching")
-            import sys
-            sys.exit(1)
+
 
     bool_inside_accuracy_all_labels_supports = True
 
@@ -381,6 +377,9 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
 
         #go through all labels in this batch and make sure that there is atleast one data point whose label is not SUPPORTS
 
+        for lbl in dataset.lbl:
+            if not (lbl == 2):
+                bool_inside_accuracy_all_labels_supports=False
 
 
 

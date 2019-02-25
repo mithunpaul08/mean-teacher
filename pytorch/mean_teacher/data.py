@@ -232,10 +232,10 @@ def relabel_dataset_nlp(dataset, args):
 
 
 def get_all_label_indices(dataset, args):
-
-    labeled_ids = list((dataset.get_labels()))
+    all_labels = list(enumerate(dataset.get_labels()))
+    #labeled_ids = list(dataset.get_labels())
     #random.shuffle(labeled_ids) # randomizing the relabeling ...
-    return labeled_ids
+    return all_labels
 
 
 def relabel_dataset(dataset, labels):

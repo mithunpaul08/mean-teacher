@@ -1431,7 +1431,7 @@ def main(context):
         #          f"best_dev_accuracy_across_epochs:{best_dev_accuracy_across_epochs}.best_epoch:{best_epochs}")
 
         if(epoch==0):
-            LOG.info(f"avg_tr_precision_cumulative, "
+            LOG.info(f"epoch, avg_tr_precision_cumulative, "
                      f"avg_tr_prec_taken_by_total_pred_gold, dev_local_best_acc, best_dev_accuracy_across_epochs, best_epoch")
 
         LOG.info(f"{epoch}:{avg_tr_precision_this_epoch},{avg_tr_prec_taken_totally},{dev_local_best_acc},{best_dev_accuracy_across_epochs},{best_epochs}")

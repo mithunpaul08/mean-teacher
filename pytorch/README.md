@@ -85,10 +85,10 @@ python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_worde
 ```
 
 Below is a version that runs on linux command line (server/big memory:120k training 25k dev) but as FFNN-i.e: --exclude_unlabeled true
-``` python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb tru
-e --epochs 100 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file dev_25k_with_evi_sents.jsonl --
-print-freq 1 --workers 4 --exclude_unlabeled true --batch_size 2000 --lr 0.0000001 --ema_decay 8
-
+``` 
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --
+epochs 500 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file dev_25k_with_evi_sents.jsonl --print_fr
+eq 100 --workers 4 --exclude_unlabeled true --batch_size 2000 --lr 0.01 --ema_decay 8      
  
 ```
 #explanation of command line parameters

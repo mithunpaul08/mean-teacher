@@ -72,7 +72,7 @@ def create_parser():
                         metavar='EPOCHS', help='evaluation frequency in epochs, 0 to turn evaluation off (default: 1). Note: this is '
                                                'a way to calculate/find the best epoch. i.e instead of running your training for say 256 epochs, it validates in between say at 20th epoch and 40th epoch to check'
                                                'if any of them give good performance. i.e args.epochs does not mean your training will run non stop from 1 to 256. It will keep evaluating in between')
-    parser.add_argument('--print-freq', '-p', default=50, type=int,
+    parser.add_argument('--print_freq', '-p', default=50, type=int,
                         metavar='N', help='print frequency (default: 10)')
     parser.add_argument('--resume', default=None, type=str, metavar='PATH',
                         help='path to latest checkpoint (default: none)')

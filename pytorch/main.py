@@ -44,7 +44,7 @@ LOG.setLevel(logging.INFO)
 ################
 
 args = None
-best_accuracy_across_epochs = 0
+best_dev_accuracy_across_epochs = 0
 best_epochs = 0
 global_step = 0
 NA_label = -1
@@ -485,10 +485,6 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
         loss = class_loss + consistency_loss + res_loss # NOTE: AJAY - loss is a combination of classification loss and consistency loss (+ residual loss from the 2 outputs of student model fc1 and fc2, see args.logit_distance_cost)
 
         #todo: note by mithun: uncomment this after we have transform turned on.
-        # below line was originally _.data[0], but changing to  _.data.item()since it was throwing error on
-        # [0]. this error occurs because we are right now passing data into student and teavher without any transformation. so this change must be temporary
-        #assert not (np.isnan(loss.data[0]) or loss.data[0] > 1e5), 'Loss explosion: {}'.format(loss.data[0])
-        #meters.update('loss', loss.data[0])
 
         meters.update('loss', loss.data.item())
 
@@ -514,8 +510,6 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
             ema_prec1,pred_labels,gold_labels = accuracy_fever(ema_logit.data, target_var.data) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
             meters.update('ema_top1', ema_prec1, labeled_minibatch_size)
             meters.update('ema_error1', 100. - ema_prec1, labeled_minibatch_size)
-            # meters.update('ema_top5', ema_prec5[0], labeled_minibatch_size)
-            # me   ters.update('ema_error5', 100. - ema_prec5[0], labeled_minibatch_size)
 
         # compute gradient and do SGD step
         optimizer.zero_grad()
@@ -531,9 +525,8 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
         meters.update('batch_time', time.time() - end)
         end = time.time()
 
-        #args.print_freq= 10
 
-        if i % args.print_freq == 0 or i == len(train_loader) - 1:
+        if (i+1) % args.print_freq == 0:
             # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
             if not args.exclude_unlabeled:
                 LOG.info(
@@ -721,24 +714,25 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
         end = time.time()
 
         #pwhen in FFNN mode, don't print teavher details.
-        if not args.exclude_unlabeled:
-                LOG.info(
-                    'Epoch: [{0}][{1}/{2}]\t'
-                    'Classification_loss:{meters[class_loss]:.4f}\t'
-                    'Consistency_loss:{meters[cons_loss]:.4f}\t'
-                    'Prec_student: {meters[top1]:.3f}\t'                    
-                    'Prec_teacher: {meters[ema_top1]:.3f}\t'
-                    'teacher_error: {meters[ema_error1]:.3f}\t'
-                    'student_error:{meters[error1]:.3f}\t'
-                        .format(
-                    epoch, i, len(eval_loader), meters=meters))
-        else:
-                LOG.info(
-                    'Epoch: [{0}][{1}/{2}]\t'
-                    'Classification_loss:{meters[class_loss]:.4f}\t'                    
-                    'Prec_model: {meters[top1]:.3f}\t'
-                        .format(
+        if (i + 1) % args.print_freq == 0:
+            if not args.exclude_unlabeled:
+                    LOG.info(
+                        'Epoch: [{0}][{1}/{2}]\t'
+                        'Classification_loss:{meters[class_loss]:.4f}\t'
+                        'Consistency_loss:{meters[cons_loss]:.4f}\t'
+                        'Prec_student: {meters[top1]:.3f}\t'                    
+                        'Prec_teacher: {meters[ema_top1]:.3f}\t'
+                        'teacher_error: {meters[ema_error1]:.3f}\t'
+                        'student_error:{meters[error1]:.3f}\t'
+                            .format(
                         epoch, i, len(eval_loader), meters=meters))
+            else:
+                    LOG.info(
+                        'Epoch: [{0}][{1}/{2}]\t'
+                        'Classification_loss:{meters[class_loss]:.4f}\t'                    
+                        'Prec_model: {meters[top1]:.3f}\t'
+                            .format(
+                            epoch, i, len(eval_loader), meters=meters))
 
         avg_after_each_batch=meters['top1'].avg
 
@@ -1191,8 +1185,7 @@ def append_as_csv(train_accuracy, dev_accuracy,args,epoch):
     import csv
     with open(args.output_folder+'train_dev_per_epoch_accuracy.csv', mode='a') as employee_file:
         employee_writer = csv.writer(employee_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        for x,y in zip(train_accuracy,dev_accuracy):
-            employee_writer.writerow([epoch,x,y])
+        employee_writer.writerow([epoch,train_accuracy,dev_accuracy])
 
 def write_as_csv(train_accuracy, dev_accuracy,args):
     import csv
@@ -1205,7 +1198,7 @@ def write_as_csv(train_accuracy, dev_accuracy,args):
 
 def main(context):
     global global_step
-    global best_accuracy_across_epochs
+    global best_dev_accuracy_across_epochs
     global best_epochs
 
     time_start = time.time()
@@ -1259,7 +1252,7 @@ def main(context):
         LOG.debug(f"value of word_vocab_size={word_vocab_size}")
 
         model = model_factory(**model_params)
-        LOG.info("--------------------IMPORTANT: REMOVING nn.DataParallel for the moment --------------------")
+        LOG.debug("--------------------IMPORTANT: REMOVING nn.DataParallel for the moment --------------------")
         if torch.cuda.is_available():
             model = model.cuda()    # Note: Disabling data parallelism for now
             LOG.info(f"in line 1067 of main. found thatcUDA is available")
@@ -1316,7 +1309,7 @@ def main(context):
         checkpoint = torch.load(args.resume)
         args.start_epoch = checkpoint['epoch']
         global_step = checkpoint['global_step']
-        best_accuracy_across_epochs = checkpoint['best_prec1']
+        best_dev_accuracy_across_epochs = checkpoint['best_prec1']
         model.load_state_dict(checkpoint['state_dict'])
         ema_model.load_state_dict(checkpoint['ema_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer'])
@@ -1349,12 +1342,16 @@ def main(context):
         employee_writer.writerow(["Epoch","Train_Acc","Dev_Acc"])
         employee_file.close()
 
+
+
+
+
     for epoch in range(args.start_epoch, args.epochs):
         start_time = time.time()
         #ask ajay: why are they not returning the trained models explicitly
-        avg_precision_this_epoch,avg_prec_taken_totally=train(train_loader, model, ema_model, optimizer, epoch, dataset, training_log)
-        accuracy_per_epoch_training.append(avg_precision_this_epoch)
-        LOG.info(f"--- done training epoch {epoch} in {(time.time() - start_time)} seconds. avg_precision_cumulative:{avg_precision_this_epoch}, avg_prec_taken_by_total_pred_gold:{avg_prec_taken_totally}" )
+        avg_tr_precision_this_epoch,avg_tr_prec_taken_totally=train(train_loader, model, ema_model, optimizer, epoch, dataset, training_log)
+        accuracy_per_epoch_training.append(avg_tr_precision_this_epoch)
+        LOG.debug(f"--- done training epoch {epoch} in {(time.time() - start_time)} seconds. avg_precision_cumulative:{avg_tr_precision_this_epoch}, avg_prec_taken_by_total_pred_gold:{avg_tr_prec_taken_totally}" )
 
 
         LOG.debug(f"value of args.evaluation_epochs: {args.evaluation_epochs} ")
@@ -1378,7 +1375,7 @@ def main(context):
         if (epoch) % args.evaluation_epochs == 0:
             LOG.debug("just got inside evaluation_epochs ")
             start_time = time.time()
-            LOG.info("Evaluating the primary model:")
+            LOG.debug("Evaluating the primary model:")
             LOG.debug(f"value of model: {model} ")
             LOG.debug(f"value of eval_loader: {eval_loader} ")
             LOG.debug(f"value of global_step: {global_step} ")
@@ -1392,22 +1389,22 @@ def main(context):
             teacher_accuracy=0
             avg_teacher_prec_taken_totally=0
             if not args.exclude_unlabeled:
-                LOG.info("Evaluating the EMA model:")
+                LOG.debug("Evaluating the EMA model:")
                 teacher_accuracy,avg_teacher_prec_taken_totally = validate(eval_loader, ema_model, ema_validation_log, global_step, epoch , dataset_test,context.result_dir, "teacher")
 
-            LOG.info("--- validation in %s seconds ---" % (time.time() - start_time))
-            local_best= max(teacher_accuracy, student_accuracy,avg_st_prec_taken_totally,avg_teacher_prec_taken_totally)
-            is_best = teacher_accuracy > best_accuracy_across_epochs
+            LOG.debug("--- validation in %s seconds ---" % (time.time() - start_time))
+            dev_local_best_acc= max(teacher_accuracy, student_accuracy,avg_st_prec_taken_totally,avg_teacher_prec_taken_totally)
+            is_best = teacher_accuracy > best_dev_accuracy_across_epochs
 
-            if(local_best>best_accuracy_across_epochs):
-                best_accuracy_across_epochs = local_best
+            if(dev_local_best_acc>best_dev_accuracy_across_epochs):
+                best_dev_accuracy_across_epochs = dev_local_best_acc
                 best_epochs=epoch
             else:
                 is_best = False
 
-            accuracy_per_epoch_dev.append(local_best)
-            LOG.info(f"best value of validation accuracy after epoch {epoch} is {local_best}")
-            LOG.info(f"best value of best_accuracy_across_epochs so far is {best_accuracy_across_epochs} at epoch number {best_epochs}")
+            accuracy_per_epoch_dev.append(dev_local_best_acc)
+            LOG.debug(f"best value of DEV validation accuracy after epoch {epoch} is {dev_local_best_acc}")
+            LOG.debug(f"best value of best_accuracy_across_epochs for DEV so far is {best_dev_accuracy_across_epochs} at epoch number {best_epochs}")
 
             if args.checkpoint_epochs and (epoch + 1) % args.checkpoint_epochs == 0:
                 save_checkpoint({
@@ -1416,14 +1413,28 @@ def main(context):
                     'arch': args.arch,
                     'state_dict': model.state_dict(),
                     'ema_state_dict': ema_model.state_dict(),
-                    'best_prec1': best_accuracy_across_epochs,
+                    'best_prec1': best_dev_accuracy_across_epochs,
                     'optimizer' : optimizer.state_dict(),
                     'dataset' : args.dataset,
                 }, is_best, checkpoint_path, epoch + 1)
 
                 # write train and dev accuracies to disk as csv
-        #append_as_csv(accuracy_per_epoch_training, accuracy_per_epoch_dev, args,epoch)
+        append_as_csv(avg_tr_prec_taken_totally, dev_local_best_acc, args,epoch)
+            # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
+        # if not args.exclude_unlabeled:
+        #         LOG.info(accuracy_per_epoch_training,accuracy_per_epoch_dev)
+        # else:
+        #         #todo print teacher accuracy also
+        #         LOG.info(accuracy_per_epoch_training,accuracy_per_epoch_dev)
+        # LOG.info(f"avg_tr_precision_cumulative:{avg_tr_precision_this_epoch}, avg_tr_prec_taken_by_total_pred_gold:"
+        #          f"{avg_tr_prec_taken_totally},dev_local_best_acc:{dev_local_best_acc},"
+        #          f"best_dev_accuracy_across_epochs:{best_dev_accuracy_across_epochs}.best_epoch:{best_epochs}")
 
+        if(epoch==0):
+            LOG.info(f"avg_tr_precision_cumulative, "
+                     f"avg_tr_prec_taken_by_total_pred_gold, dev_local_best_acc, best_dev_accuracy_across_epochs, best_epoch")
+
+        LOG.info(f"{epoch}:{avg_tr_precision_this_epoch},{avg_tr_prec_taken_totally},{dev_local_best_acc},{best_dev_accuracy_across_epochs},{best_epochs}")
 
 
 
@@ -1431,7 +1442,7 @@ def main(context):
     # LOG.info("For testing only; Comment the following line of code--------------------------------")
     # validate(eval_loader, model, validation_log, global_step, 0, dataset, context.result_dir, "student")
     LOG.info("--------Total end to end time %s seconds ----------- " % (time.time() - time_start))
-    LOG.info(f"best best_accuracy_across_epochs  is:{best_accuracy_across_epochs} at epoch number:{best_epochs}")
+    LOG.info(f"best best_accuracy_across_epochs  is:{best_accuracy_across_epochs} at epoch number:{best_epochs},dev_accuracy{dev_local_best_acc},best_dev_so_far:")
     write_as_csv(accuracy_per_epoch_training, accuracy_per_epoch_dev, args)
 
 

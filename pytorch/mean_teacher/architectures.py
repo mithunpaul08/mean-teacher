@@ -9,297 +9,101 @@ from torch.autograd import Variable, Function
 
 from .utils import export, parameter_count
 
-
 @export
-def cifar_shakeshake26(pretrained=False, **kwargs):
-    assert not pretrained
-    model = ResNet32x32(ShakeShakeBlock,
-                        layers=[4, 4, 4],
-                        channels=96,
-                        downsample='shift_conv', **kwargs)
+def simple_MLP_embed_RTE(word_vocab_size, num_classes, wordemb_size, pretrained=True, word_vocab_embed=None, hidden_size=200, update_pretrained_wordemb=False):
+
+    model = FeedForwardMLPEmbed_RTE(word_vocab_size, wordemb_size, hidden_size, num_classes, word_vocab_embed, update_pretrained_wordemb)
     return model
 
-
-@export
-def resnext152(pretrained=False, **kwargs):
-    assert not pretrained
-    model = ResNet224x224(BottleneckBlock,
-                          layers=[3, 8, 36, 3],
-                          channels=32 * 4,
-                          groups=32,
-                          downsample='basic', **kwargs)
-    return model
-
-
-
-class ResNet224x224(nn.Module):
-    def __init__(self, block, layers, channels, groups=1, num_classes=1000, downsample='basic'):
+class FeedForwardMLPEmbed_RTE(nn.Module):
+    def __init__(self, word_vocab_size, embedding_size, hidden_sz, output_sz, word_vocab_embed, update_pretrained_wordemb):
         super().__init__()
-        assert len(layers) == 4
-        self.downsample_mode = downsample
-        self.inplanes = 64
-        self.conv1 = nn.Conv2d(3, self.inplanes, kernel_size=7, stride=2, padding=3,
-                               bias=False)
-        self.bn1 = nn.BatchNorm2d(self.inplanes)
-        self.relu = nn.ReLU(inplace=True)
-        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        self.layer1 = self._make_layer(block, channels, groups, layers[0])
-        self.layer2 = self._make_layer(
-            block, channels * 2, groups, layers[1], stride=2)
-        self.layer3 = self._make_layer(
-            block, channels * 4, groups, layers[2], stride=2)
-        self.layer4 = self._make_layer(
-            block, channels * 8, groups, layers[3], stride=2)
-        self.avgpool = nn.AvgPool2d(7)
-        self.fc1 = nn.Linear(block.out_channels(
-            channels * 8, groups), num_classes)
-        self.fc2 = nn.Linear(block.out_channels(
-            channels * 8, groups), num_classes)
+        self.embedding_size = embedding_size
+        self.embeddings = nn.Embedding(word_vocab_size, embedding_size)
+        print(f"inside architectures.py line 26 at 1 value of self.embeddings.weight is {self.embeddings.weight.shape} ")
 
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-                m.weight.data.normal_(0, math.sqrt(2. / n))
-            elif isinstance(m, nn.BatchNorm2d):
-                m.weight.data.fill_(1)
-                m.bias.data.zero_()
 
-    def _make_layer(self, block, planes, groups, blocks, stride=1):
-        downsample = None
-        if stride != 1 or self.inplanes != block.out_channels(planes, groups):
-            if self.downsample_mode == 'basic' or stride == 1:
-                downsample = nn.Sequential(
-                    nn.Conv2d(self.inplanes, block.out_channels(planes, groups),
-                              kernel_size=1, stride=stride, bias=False),
-                    nn.BatchNorm2d(block.out_channels(planes, groups)),
-                )
-            elif self.downsample_mode == 'shift_conv':
-                downsample = ShiftConvDownsample(in_channels=self.inplanes,
-                                                 out_channels=block.out_channels(planes, groups))
+        # https://discuss.pytorch.org/t/can-we-use-pre-trained-word-embeddings-for-weight-initialization-in-nn-embedding/1222
+        if word_vocab_embed is not None:  # Pre-initalize the embedding layer from a vector loaded from word2vec/glove/or such
+            print("Using a pre-initialized word-embedding vector .. loaded from disk")
+            self.embeddings.weight = nn.Parameter(torch.from_numpy(word_vocab_embed))
+            print(f"at 2 value of self.embeddings.weight is {self.embeddings.weight} ")
+
+            if update_pretrained_wordemb is False:
+                # NOTE: do not update the emebddings
+                # https://discuss.pytorch.org/t/how-to-exclude-embedding-layer-from-model-parameters/1283
+                print("NOT UPDATING the word embeddings ....")
+                self.embeddings.weight.detach_()
             else:
-                assert False
-
-        layers = []
-        layers.append(block(self.inplanes, planes, groups, stride, downsample))
-        self.inplanes = block.out_channels(planes, groups)
-        for i in range(1, blocks):
-            layers.append(block(self.inplanes, planes, groups))
-
-        return nn.Sequential(*layers)
-
-    def forward(self, x):
-        x = self.conv1(x)
-        x = self.bn1(x)
-        x = self.relu(x)
-        x = self.maxpool(x)
-        x = self.layer1(x)
-        x = self.layer2(x)
-        x = self.layer3(x)
-        x = self.layer4(x)
-        x = self.avgpool(x)
-        x = x.view(x.size(0), -1)
-        return self.fc1(x), self.fc2(x)
+                print("UPDATING the word embeddings ....")
+                print(f"at 2 value of self.embeddings.weight is {self.embeddings.weight} ")
+                sys.exit(1)
 
 
-class ResNet32x32(nn.Module):
-    def __init__(self, block, layers, channels, groups=1, num_classes=1000, downsample='basic'):
-        super().__init__()
-        assert len(layers) == 3
-        self.downsample_mode = downsample
-        self.inplanes = 16
-        self.conv1 = nn.Conv2d(3, 16, kernel_size=3, stride=1,
-                               padding=1, bias=False)
-        self.layer1 = self._make_layer(block, channels, groups, layers[0])
-        self.layer2 = self._make_layer(
-            block, channels * 2, groups, layers[1], stride=2)
-        self.layer3 = self._make_layer(
-            block, channels * 4, groups, layers[2], stride=2)
-        self.avgpool = nn.AvgPool2d(8)
-        self.fc1 = nn.Linear(block.out_channels(
-            channels * 4, groups), num_classes)
-        self.fc2 = nn.Linear(block.out_channels(
-            channels * 4, groups), num_classes)
-
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-                m.weight.data.normal_(0, math.sqrt(2. / n))
-            elif isinstance(m, nn.BatchNorm2d):
-                m.weight.data.fill_(1)
-                m.bias.data.zero_()
-
-    def _make_layer(self, block, planes, groups, blocks, stride=1):
-        downsample = None
-        if stride != 1 or self.inplanes != block.out_channels(planes, groups):
-            if self.downsample_mode == 'basic' or stride == 1:
-                downsample = nn.Sequential(
-                    nn.Conv2d(self.inplanes, block.out_channels(planes, groups),
-                              kernel_size=1, stride=stride, bias=False),
-                    nn.BatchNorm2d(block.out_channels(planes, groups)),
-                )
-            elif self.downsample_mode == 'shift_conv':
-                downsample = ShiftConvDownsample(in_channels=self.inplanes,
-                                                 out_channels=block.out_channels(planes, groups))
-            else:
-                assert False
-
-        layers = []
-        layers.append(block(self.inplanes, planes, groups, stride, downsample))
-        self.inplanes = block.out_channels(planes, groups)
-        for i in range(1, blocks):
-            layers.append(block(self.inplanes, planes, groups))
-
-        return nn.Sequential(*layers)
-
-    def forward(self, x):
-        x = self.conv1(x)
-        x = self.layer1(x)
-        x = self.layer2(x)
-        x = self.layer3(x)
-        x = self.avgpool(x)
-        x = x.view(x.size(0), -1)
-        return self.fc1(x), self.fc2(x)
+        #todo: pass them from somewhere...maybe command line or config file
+        self.NUM_CLASSES = 3
+        self.CODE_PRCT_DROPOUT, self.COMM_PRCT_DROPOUT = 0.1, 0.1
+        self.CODE_HD_SZ, self.COMM_HD_SZ = 50,50
+        self.CODE_NUM_LAYERS, self.COMM_NUM_LAYERS = 2, 2
 
 
-def conv3x3(in_planes, out_planes, stride=1):
-    "3x3 convolution with padding"
-    return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
-                     padding=1, bias=False)
+        # Creates a bidirectional LSTM for the code input
+        self.lstm = nn.LSTM(embedding_size,  # Size of the code embedding
+                                 self.CODE_HD_SZ,  # Size of the hidden layer
+                                 num_layers=self.CODE_NUM_LAYERS,
+                                 dropout=self.CODE_PRCT_DROPOUT,
+                                 batch_first=True,
+                                 bidirectional=True)
+
+        # Size of the concatenated output from the 2 LSTMs
+        self.CONCAT_SIZE = (self.CODE_HD_SZ + self.COMM_HD_SZ) * 2
+
+        # FFNN layer to transform LSTM output into class predictions
+        self.lstm2hidden = nn.Linear(self.CONCAT_SIZE, 50)
+        self.hidden2label = nn.Linear(50, self.NUM_CLASSES)
+
+        #todo: might have to add a softmax. look at what loss function you are using.-CrossEntropyLoss
 
 
-class BottleneckBlock(nn.Module):
-    @classmethod
-    def out_channels(cls, planes, groups):
-        if groups > 1:
-            return 2 * planes
-        else:
-            return 4 * planes
-
-    def __init__(self, inplanes, planes, groups, stride=1, downsample=None):
-        super().__init__()
-        self.relu = nn.ReLU(inplace=True)
-
-        self.conv_a1 = nn.Conv2d(inplanes, planes, kernel_size=1, bias=False)
-        self.bn_a1 = nn.BatchNorm2d(planes)
-        self.conv_a2 = nn.Conv2d(
-            planes, planes, kernel_size=3, stride=stride, padding=1, bias=False, groups=groups)
-        self.bn_a2 = nn.BatchNorm2d(planes)
-        self.conv_a3 = nn.Conv2d(planes, self.out_channels(
-            planes, groups), kernel_size=1, bias=False)
-        self.bn_a3 = nn.BatchNorm2d(self.out_channels(planes, groups))
-
-        self.downsample = downsample
-        self.stride = stride
-
-    def forward(self, x):
-        a, residual = x, x
-
-        a = self.conv_a1(a)
-        a = self.bn_a1(a)
-        a = self.relu(a)
-        a = self.conv_a2(a)
-        a = self.bn_a2(a)
-        a = self.relu(a)
-        a = self.conv_a3(a)
-        a = self.bn_a3(a)
-
-        if self.downsample is not None:
-            residual = self.downsample(residual)
-
-        return self.relu(residual + a)
 
 
-class ShakeShakeBlock(nn.Module):
-    @classmethod
-    def out_channels(cls, planes, groups):
-        assert groups == 1
-        return planes
+    def forward(self, claim, evidence, claim_lengths, evidence_lengths):
 
-    def __init__(self, inplanes, planes, groups, stride=1, downsample=None):
-        super().__init__()
-        assert groups == 1
-        self.conv_a1 = conv3x3(inplanes, planes, stride)
-        self.bn_a1 = nn.BatchNorm2d(planes)
-        self.conv_a2 = conv3x3(planes, planes)
-        self.bn_a2 = nn.BatchNorm2d(planes)
+        # keep track of how code and comm were sorted so that we can unsort them later
+        # because packing requires them to be in descending order
+        claim_lengths, claim_sort_order = claim_lengths.sort(descending=True)
+        evidence_lengths, ev_sort_order = evidence_lengths.sort(descending=True)
+        claim_inv_order = claim_sort_order.sort()[1]
+        ev_inv_order = ev_sort_order.sort()[1]
 
-        self.conv_b1 = conv3x3(inplanes, planes, stride)
-        self.bn_b1 = nn.BatchNorm2d(planes)
-        self.conv_b2 = conv3x3(planes, planes)
-        self.bn_b2 = nn.BatchNorm2d(planes)
+        # Encode the batch input using word embeddings
+        claim_encoding = self.embeddings(claim[claim_sort_order])
+        ev_encoding = self.embeddings(evidence[ev_sort_order])
 
-        self.downsample = downsample
-        self.stride = stride
+        # pack padded input
+        claim_enc_pack = torch.nn.utils.rnn.pack_padded_sequence(claim_encoding, claim_lengths, batch_first=True)
+        evidence_enc_pack = torch.nn.utils.rnn.pack_padded_sequence(ev_encoding, evidence_lengths, batch_first=True)
 
-    def forward(self, x):
-        a, b, residual = x, x, x
+        # Run the LSTMs over the packed input
+        #:claim_h_n hidden states at each word- will be used later when we have to get output of bilstm.
 
-        a = F.relu(a, inplace=False)
-        a = self.conv_a1(a)
-        a = self.bn_a1(a)
-        a = F.relu(a, inplace=True)
-        a = self.conv_a2(a)
-        a = self.bn_a2(a)
+        #claim_c_n = context states at each word
+        claim_enc_pad, (claim_h_n, claim_c_n) = self.lstm(claim_enc_pack)
+        ev_enc_pad, (ev_h_n, ev_c_n) = self.lstm(evidence_enc_pack)
 
-        b = F.relu(b, inplace=False)
-        b = self.conv_b1(b)
-        b = self.bn_b1(b)
-        b = F.relu(b, inplace=True)
-        b = self.conv_b2(b)
-        b = self.bn_b2(b)
+        # back to padding
+        code_vecs, _ = torch.nn.utils.rnn.pad_packed_sequence(claim_enc_pad, batch_first=True)
+        comm_vecs, _ = torch.nn.utils.rnn.pad_packed_sequence(ev_enc_pad, batch_first=True)
 
-        ab = shake(a, b, training=self.training)
+        # Concatenate the final output from both LSTMs
+        # therefore claim_h_n[0]= hidden states at the end of forward lstm pass.
+        # therefore claim_h_n[1]= hidden states at the end of backward lstm pass.
+        recurrent_vecs = torch.cat((claim_h_n[0, claim_inv_order], claim_h_n[1, claim_inv_order],
+                                    ev_h_n[0, ev_inv_order], ev_h_n[1, ev_inv_order]), 1)
 
-        if self.downsample is not None:
-            residual = self.downsample(x)
+        # Transform recurrent output vector into a class prediction vector
+        y = F.relu(self.lstm2hidden(recurrent_vecs))
+        y = self.hidden2label(y)
 
-        return residual + ab
+        return y
 
-
-class Shake(Function):
-    @classmethod
-    def forward(cls, ctx, inp1, inp2, training):
-        assert inp1.size() == inp2.size()
-        gate_size = [inp1.size()[0], *itertools.repeat(1, inp1.dim() - 1)]
-        gate = inp1.new(*gate_size)
-        if training:
-            gate.uniform_(0, 1)
-        else:
-            gate.fill_(0.5)
-        return inp1 * gate + inp2 * (1. - gate)
-
-    @classmethod
-    def backward(cls, ctx, grad_output):
-        grad_inp1 = grad_inp2 = grad_training = None
-        gate_size = [grad_output.size()[0], *itertools.repeat(1,
-                                                              grad_output.dim() - 1)]
-        gate = Variable(grad_output.data.new(*gate_size).uniform_(0, 1))
-        if ctx.needs_input_grad[0]:
-            grad_inp1 = grad_output * gate
-        if ctx.needs_input_grad[1]:
-            grad_inp2 = grad_output * (1 - gate)
-        assert not ctx.needs_input_grad[2]
-        return grad_inp1, grad_inp2, grad_training
-
-
-def shake(inp1, inp2, training=False):
-    return Shake.apply(inp1, inp2, training)
-
-
-class ShiftConvDownsample(nn.Module):
-    def __init__(self, in_channels, out_channels):
-        super().__init__()
-        self.relu = nn.ReLU(inplace=True)
-        self.conv = nn.Conv2d(in_channels=2 * in_channels,
-                              out_channels=out_channels,
-                              kernel_size=1,
-                              groups=2)
-        self.bn = nn.BatchNorm2d(out_channels)
-
-    def forward(self, x):
-        x = torch.cat((x[:, :, 0::2, 0::2],
-                       x[:, :, 1::2, 1::2]), dim=1)
-        x = self.relu(x)
-        x = self.conv(x)
-        x = self.bn(x)
-        return x

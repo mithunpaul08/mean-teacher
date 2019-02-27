@@ -15,9 +15,12 @@ class Gigaword:
         delimiter = " "
         time_start_loading = time.clock()
         with open(path_to_file, "r") as f:
-            first_line = next(f).rstrip().split(delimiter)
+            if 'glove.6B.100d.txt' in path_to_file:
+                embedding_size = 100
+            else:
+                first_line = next(f).rstrip().split(delimiter)
+                embedding_size = int(first_line[1])
             embedding_vectors = list()
-            embedding_size = int(first_line[1])
             for line in f:
                 if (take and c <= take) or not take:
                     # split line

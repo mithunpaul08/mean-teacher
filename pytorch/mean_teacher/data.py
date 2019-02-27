@@ -72,6 +72,112 @@ class TransformTwice:
         return out1, out2
 
 
+#randomly choose propotional labeled samples per class
+def relabel_dataset_RE(dataset, args):
+    unlabeled_idxs = []
+    labeled_ids = []
+    all_labels = list(enumerate(dataset.get_labels()))   # notice enumerate also keep the indexes
+    random.shuffle(all_labels)  # randomizing the relabeling
+    num_classes = dataset.get_num_classes()
+    num_per_classes = dataset.get_num_per_classes()
+    num_labels_per_class = []
+
+    if args.labels.isdigit():   #integer --> number of labeled datapoints
+        LOG.info("[relabel dataset] Choosing " + args.labels + " NUMBER OF EXAMPLES randomly as supervision")
+        num_labels = int(args.labels)
+        for i in range(num_classes):
+            num_c = num_per_classes[i]
+            num_labels_c = int(num_labels * num_c / len(all_labels))
+            num_labels_per_class.append(num_labels_c)
+
+    else:    #float number between 0 and 100 --> percentage
+        LOG.info("[relabel dataset] Choosing " + args.labels + "% OF EXAMPLES randomly as supervision")
+        percent_labels = float(args.labels)
+        for i in range(num_classes):
+            num_c = num_per_classes[i]
+            num_labels_c = int(num_c * percent_labels / 100.0)
+            num_labels_per_class.append(num_labels_c)
+
+    for idx, l in all_labels:
+        if num_labels_per_class[l] > 0:
+            labeled_ids.append(idx)
+            num_labels_per_class[l] -= 1
+        else:
+            unlabeled_idxs.append(idx)
+            dataset.lbl[idx] = NO_LABEL
+
+    LOG.info("[relabel dataset] Number of LABELED examples : " + str(len(labeled_ids)))
+    LOG.info("[relabel dataset] Number of UNLABELED examples : " + str(len(unlabeled_idxs)))
+    LOG.info("[relabel dataset] TOTAL : " + str(len(labeled_ids)+len(unlabeled_idxs)))
+    return labeled_ids, unlabeled_idxs
+
+
+#randomly choose propotional labeled samples per class
+def relabel_dataset_nlp(dataset, args):
+    unlabeled_idxs = []
+    labeled_ids = []
+
+    all_labels = list(enumerate(dataset.get_labels()))
+    random.shuffle(all_labels) # randomizing the relabeling ...
+    num_classes = dataset.get_num_classes()
+
+    if args.labels.isdigit():
+        # NOTE: if it contains whole numbers --> number of labeled datapoints
+        LOG.info("[relabel dataset] Choosing " + args.labels + " NUMBER OF EXAMPLES randomly as supervision")
+        num_labels = int(args.labels)
+    else:
+        # NOTE: if it contains a float (remember even xx.00) then it is a percentage ..
+        #       give a float number between 0 and 100 .. indicating percentage
+        LOG.info("[relabel dataset] Choosing " + args.labels + "% OF EXAMPLES randomly as supervision")
+        percent_labels = float(args.labels)
+        num_labels = int(percent_labels * len(all_labels) / 100.0)
+
+    #to make sure that the labels are evenly distributed, from each class mark x number of labels as labeled,.
+    num_labels_per_cat = int(num_labels / num_classes)
+
+    labels_hist = {}
+    for _, lbl in all_labels:
+        if lbl in labels_hist:
+            labels_hist[lbl] += 1
+        else:
+            labels_hist[lbl] = 1
+
+    num_labels_per_cat_dict = {}
+    for lbl, cnt in labels_hist.items():
+        num_labels_per_cat_dict[lbl] = min(labels_hist[lbl], num_labels_per_cat)
+
+    for idx, l in all_labels:
+        if num_labels_per_cat_dict[l] > 0:
+            labeled_ids.append(idx)
+
+            #reduce the count of label/category which was stored in num_labels_per_cat_dict, by 1, every time you move a label as indexed.
+            num_labels_per_cat_dict[l] -= 1
+        else:
+            #once you run out of all the count of labels that you had earmarked for labeling in a given category, mark the rest all as unlabeled.
+            unlabeled_idxs.append(idx)
+            dataset.lbl[idx] = NO_LABEL
+
+    LOG.info("[relabel dataset] Number of LABELED examples : " + str(len(labeled_ids)))
+    LOG.info("[relabel dataset] Number of UNLABELED examples : " + str(len(unlabeled_idxs)))
+    LOG.info("[relabel dataset] TOTAL : " + str(len(labeled_ids)+len(unlabeled_idxs)))
+    return labeled_ids, unlabeled_idxs
+
+
+def get_all_label_indices(dataset, args):
+
+    #this command returns all the labels and its corresponding indices eg:[198,2]
+    all_labels = list(enumerate(dataset.get_labels()))
+
+    #note that even though the labels are shuffled up, we are keeping track/returning only the shuffled indices. so it all works out fine.
+    random.shuffle(all_labels)
+
+    #get all the indices alone
+    all_indices=[]
+    for idx,_  in all_labels:
+        all_indices.append(idx)
+    return all_indices
+
+
 def relabel_dataset(dataset, labels):
     unlabeled_idxs = []
     for idx in range(len(dataset.imgs)):

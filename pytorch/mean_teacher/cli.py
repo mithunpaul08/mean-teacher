@@ -16,28 +16,30 @@ def create_parser():
                         choices=datasets.__all__,
                         help='dataset: ' +
                             ' | '.join(datasets.__all__) +
-                            ' (default: imagenet)')
-    parser.add_argument('--train-subdir', type=str, default='train',
+                            ' (default: conll)')
+    parser.add_argument('--train-subdir', type=str, default='train/',
                         help='the subdirectory inside the data directory that contains the training data')
-    parser.add_argument('--eval-subdir', type=str, default='val',
+    parser.add_argument('--results_subdir', type=str, default='results/',
+                        help='the subdirectory where the output will be stored under run_name')
+    parser.add_argument('--eval-subdir', type=str, default='dev/',
                         help='the subdirectory inside the data directory that contains the evaluation data')
-    parser.add_argument('--labels', default=None, type=str, metavar='FILE',
-                        help='list of image labels (default: based on directory structure)')
-    parser.add_argument('--exclude-unlabeled', default=False, type=str2bool, metavar='BOOL',
+    parser.add_argument('--labels', default=None, type=str, #metavar='FILE',
+                        help='% of labeled data to be used for the NLP task (randomly selected)')
+    parser.add_argument('--exclude_unlabeled', default=False, type=str2bool, metavar='BOOL',
                         help='exclude unlabeled examples from the training set')
     parser.add_argument('--arch', '-a', metavar='ARCH', default='resnet18',
                         choices=architectures.__all__,
                         help='model architecture: ' +
                             ' | '.join(architectures.__all__))
-    parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
+    parser.add_argument('--workers', default=4, type=int, metavar='N',
                         help='number of data loading workers (default: 4)')
     parser.add_argument('--epochs', default=90, type=int, metavar='N',
                         help='number of total epochs to run')
     parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                         help='manual epoch number (useful on restarts)')
-    parser.add_argument('-b', '--batch-size', default=256, type=int,
+    parser.add_argument('-b', '--batch_size', default=256, type=int,
                         metavar='N', help='mini-batch size (default: 256)')
-    parser.add_argument('--labeled-batch-size', default=None, type=int,
+    parser.add_argument('--labeled_batch_size', default=None, type=int,
                         metavar='N', help="labeled examples per minibatch (default: no constrain)")
     parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
                         metavar='LR', help='max learning rate')
@@ -53,10 +55,10 @@ def create_parser():
                         help='use nesterov momentum', metavar='BOOL')
     parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float,
                         metavar='W', help='weight decay (default: 1e-4)')
-    parser.add_argument('--ema-decay', default=0.999, type=float, metavar='ALPHA',
+    parser.add_argument('--ema_decay', default=0.999, type=float, metavar='ALPHA',
                         help='ema variable decay rate (default: 0.999)')
     parser.add_argument('--consistency', default=None, type=float, metavar='WEIGHT',
-                        help='use consistency loss with given weight (default: None)')
+                        help='use consistency loss with given weight (default: 1) . Turn it to None when using a simple feed forward network')
     parser.add_argument('--consistency-type', default="mse", type=str, metavar='TYPE',
                         choices=['mse', 'kl'],
                         help='consistency loss type to use')
@@ -67,15 +69,18 @@ def create_parser():
     parser.add_argument('--checkpoint-epochs', default=1, type=int,
                         metavar='EPOCHS', help='checkpoint frequency in epochs, 0 to turn checkpointing off (default: 1)')
     parser.add_argument('--evaluation-epochs', default=1, type=int,
-                        metavar='EPOCHS', help='evaluation frequency in epochs, 0 to turn evaluation off (default: 1)')
-    parser.add_argument('--print-freq', '-p', default=10, type=int,
+                        metavar='EPOCHS', help='evaluation frequency in epochs, 0 to turn evaluation off (default: 1). Note: this is '
+                                               'a way to calculate/find the best epoch. i.e instead of running your training for say 256 epochs, it validates in between say at 20th epoch and 40th epoch to check'
+                                               'if any of them give good performance. i.e args.epochs does not mean your training will run non stop from 1 to 256. It will keep evaluating in between')
+    parser.add_argument('--print_freq', '-p', default=50, type=int,
                         metavar='N', help='print frequency (default: 10)')
-    parser.add_argument('--resume', default='', type=str, metavar='PATH',
+    parser.add_argument('--resume', default=None, type=str, metavar='PATH',
                         help='path to latest checkpoint (default: none)')
-    parser.add_argument('-e', '--evaluate', type=str2bool,
-                        help='evaluate model on evaluation set')
+    parser.add_argument('-e', '--evaluate', type=str2bool,default=False,
+                        help='if you want to do evaluation i think using a loaded checkpoint from disk=.')
     parser.add_argument('--pretrained', dest='pretrained', action='store_true',
                         help='use pre-trained model')
+
     return parser
 
 

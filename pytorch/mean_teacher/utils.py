@@ -1,7 +1,11 @@
 """Utility functions and classes"""
+from __future__ import division
 
 import sys
+import logging
 
+
+LOG = logging.getLogger('utils.py')
 
 def parameters_string(module):
     lines = [
@@ -12,6 +16,11 @@ def parameters_string(module):
 
     row_format = "{name:<40} {shape:>20} ={total_size:>12,d}"
     params = list(module.named_parameters())
+    LOG.debug(f"first value of parameters is:{params[0][0]}")
+    LOG.debug(f"first value of parameters is:{len(params[1][0])}")
+
+
+
     for name, param in params:
         lines.append(row_format.format(
             name=name,
@@ -31,6 +40,14 @@ def parameters_string(module):
 def assert_exactly_one(lst):
     assert sum(int(bool(el)) for el in lst) == 1, ", ".join(str(el)
                                                             for el in lst)
+
+def assert_mutually_exclusive(a,b):
+    if(a is True) and (b is not None):
+            print(f"two values that are being compared are {a} and  {b}")
+            assert (2==3), "The given values are mutually exclusive. Error."
+
+
+
 
 
 class AverageMeterSet:
@@ -78,7 +95,10 @@ class AverageMeter:
         self.val = val
         self.sum += val * n
         self.count += n
-        self.avg = self.sum / self.count
+        if self.count == 0:
+            self.avg = 0
+        else:
+            self.avg = float(self.sum) / float(self.count)
 
     def __format__(self, format):
         return "{self.val:{format}} ({self.avg:{format}})".format(self=self, format=format)

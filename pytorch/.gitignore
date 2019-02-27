@@ -1,6 +1,15 @@
+../.idea/workspace.xml 
+*.xml
+../.DS_Store
+.DS_Store
+.idea/*
+../.idea/*
+../.idea/*.xml
+*.iml
 data
 data-local/workdir
 data-local/images
 *.pyc
 results
 transient
+data-local/*

@@ -1442,7 +1442,7 @@ def main(context):
     # LOG.info("For testing only; Comment the following line of code--------------------------------")
     # validate(eval_loader, model, validation_log, global_step, 0, dataset, context.result_dir, "student")
     LOG.info("--------Total end to end time %s seconds ----------- " % (time.time() - time_start))
-    LOG.info(f"best best_accuracy_across_epochs  is:{best_accuracy_across_epochs} at epoch number:{best_epochs},dev_accuracy{dev_local_best_acc},best_dev_so_far:")
+    LOG.info(f"best best_accuracy_across_epochs  is:{best_dev_accuracy_across_epochs} at epoch number:{best_epochs},dev_accuracy{dev_local_best_acc},best_dev_so_far:")
     write_as_csv(accuracy_per_epoch_training, accuracy_per_epoch_dev, args)
 
 

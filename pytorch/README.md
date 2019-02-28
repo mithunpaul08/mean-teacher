@@ -8,11 +8,11 @@ pip install numpy scipy pandas sklearn nltk tqdm
 pip install git+ssh://git@github.com/pytorch/vision@c31c3d7e0e68e871d2128c8b731698ed3b11b119
 conda install pytorch-cpu torchvision-cpu -c pytorch 
 
-*note: for conda install get the right command from the pytorch home page based on your OS and configs.*
 
 ```
+*note: for conda install get the right command from the pytorch home page based on your OS and configs.*
 
-*PS: I personally like/trust `pip install *` instead of `conda install`*
+**PS: I personally like/trust `pip install *` instead of `conda install`**
 
 
 The code expects to find the data in specific directories inside the data-local directory. So do remember to 
@@ -65,11 +65,11 @@ python -u main.py
 
 Below is a version that runs on mean teacher on a mac command line-but with toy data- best for laptop:
 ```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 6 --consistency=0.3 --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/rte/fever --print-freq 1 --workers 0 --labeled_batch_size 5 --consistency 1 --dev_input_file dev_90_with_evi_sents.jsonl --train_input_file train_small_200_claims_with_evi_sents.jsonl
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/rte/fever --print_freq 1 --workers 0 --labeled_batch_size 5 --consistency 1 --dev_input_file dev_90_with_evi_sents.jsonl --train_input_file train_small_200_claims_with_evi_sents.jsonl
 ```
 Below is a version that runs the code as a simple FFNN on a mac command line-but with toy data- best for laptop:
 ```
---dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 6 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_small_200_claims_with_evi_sents.jsonl --dev_input_file dev_90_with_evi_sents.jsonl --workers 0 --exclude_unlabeled true --batch_size 20 --lr 0.0000001 --ema_decay 8 --print_freq 100
+--dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 1 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_small_200_claims_with_evi_sents.jsonl --dev_input_file dev_90_with_evi_sents.jsonl --workers 0 --exclude_unlabeled true --batch_size 20 --lr 0.0000001 --ema_decay 8 --print_freq 1
 
 ```
 

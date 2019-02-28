@@ -717,13 +717,9 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
         if (i + 1) % args.print_freq == 0:
             if not args.exclude_unlabeled:
                     LOG.info(
-                        'Epoch: [{0}][{1}/{2}]\t'
+                        'Dev Epoch/Batch: [{0}][{1}/{2}]\t'
                         'Classification_loss:{meters[class_loss]:.4f}\t'
-                        'Consistency_loss:{meters[cons_loss]:.4f}\t'
-                        'Prec_student: {meters[top1]:.3f}\t'                    
-                        'Prec_teacher: {meters[ema_top1]:.3f}\t'
-                        'teacher_error: {meters[ema_error1]:.3f}\t'
-                        'student_error:{meters[error1]:.3f}\t'
+                        'Precision: {meters[top1]:.3f}\t'
                             .format(
                         epoch, i, len(eval_loader), meters=meters))
             else:

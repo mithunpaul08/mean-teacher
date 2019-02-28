@@ -81,7 +81,7 @@ python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_worde
 ```
 Below is a version that runs on linux command line (server/big memory:120k training 25k dev):
 ```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 100 --consistency 1 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file dev_25k_with_evi_sents.jsonl --print_freq 1 --workers 4 --consistency 8 --exclude_unlabeled false --batch_size 2000 --labeled_batch_size 1000 --labels 20.0 --lr=0.01 --ema_decay 0.999  
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 100 --consistency 1 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file dev_25k_with_evi_sents.jsonl --print_freq 1 --workers 4 --consistency 8 --exclude_unlabeled false --batch_size 2000 --labeled_batch_size 1000 --labels 20.0 --lr=0.1 --ema_decay 0.999  
 ```
 
 Below is a version that runs on linux command line (server/big memory:120k training 25k dev) but as FFNN-i.e: --exclude_unlabeled true

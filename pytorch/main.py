@@ -535,8 +535,8 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
                     'Consistency_loss:{meters[cons_loss]:.4f}\t'
                     'Prec_student: {meters[top1]:.3f}\t'                    
                     'Prec_teacher: {meters[ema_top1]:.3f}\t'
-                    'teacher_error: {meters[ema_error1]:.3f}\t'
-                    'student_error:{meters[error1]:.3f}\t'
+                    #'teacher_error: {meters[ema_error1]:.3f}\t'
+                    #'student_error:{meters[error1]:.3f}\t'
                         .format(
                     epoch, i, len(train_loader), meters=meters))
             else:

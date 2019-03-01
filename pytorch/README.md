@@ -69,7 +69,7 @@ python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_worde
 ```
 Below is a version that runs the code as a simple FFNN on a mac command line-but with toy data- best for laptop:
 ```
---dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 1 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_small_200_claims_with_evi_sents.jsonl --dev_input_file dev_90_with_evi_sents.jsonl --workers 0 --exclude_unlabeled true --batch_size 20 --lr 0.0000001 --ema_decay 8 --print_freq 1
+--dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 1 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_small_200_claims_with_evi_sents.jsonl --dev_input_file dev_100_from_fever_actual_dev.jsonl --workers 0 --exclude_unlabeled true --batch_size 20 --lr 0.0000001 --ema_decay 8 --print_freq 1
 
 ```
 
@@ -79,14 +79,14 @@ Below is a version that runs on linux command line (server/big memory-but with 1
 ```
 python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 100 --consistency 1 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_12k_with_evi_sents.jsonl --dev_input_file dev_2k_with_evi_sents.jsonl --print-freq 1 --workers 4 --consistency 1 --exclude_unlabeled false --batch_size 1000 --labeled_batch_size 100 --labels 20.0 
 ```
-Below is a version that runs on linux command line (server/big memory:120k training 25k dev):
+Below is a version that runs mean teacher on a linux command line (server/big memory:145k training 10k dev):
 ```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 100 --consistency 1 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file dev_25k_with_evi_sents.jsonl --print_freq 1 --workers 4 --consistency 8 --exclude_unlabeled false --batch_size 2000 --labeled_batch_size 1000 --labels 20.0 --lr=0.1 --ema_decay 0.999  
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 100 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_full_with_evi_sents.jsonl --dev_input_file actual_fever_dev_with_9k.jsonl --print_freq 1 --workers 4 --consistency 8 --exclude_unlabeled false --batch_size 2000 --labeled_batch_size 1000 --labels 20.0 --lr=0.1 --ema_decay 0.999  
 ```
 
 Below is a version that runs on linux command line (server/big memory:120k training 25k dev) but as FFNN-i.e: --exclude_unlabeled true
 ``` 
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 500 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_full_with_evi_sents.jsonl --dev_input_file actual_fever_dev_with_9k.jsonl --print_freq 100 --workers 4 --exclude_unlabeled true --batch_size 2000 --lr 0.1      
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 500 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_full_with_evi_sents.jsonl --dev_input_file actual_fever_dev_with_9k.jsonl --print_freq 1 --workers 4 --exclude_unlabeled true --batch_size 2000 --lr 0.1      
  
 ```
 #explanation of command line parameters

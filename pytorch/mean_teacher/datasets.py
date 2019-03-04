@@ -26,7 +26,8 @@ def fever():
         assert False, "Unknown type of noise {}".format(RTEDataset.WORD_NOISE_TYPE)
 
     return {
-        'train_transformation': data.TransformTwiceNEC(addNoise),
+        #'train_transformation': data.TransformTwiceNEC(addNoise),
+        'train_transformation': None,
         'eval_transformation': None,
         #'datadir': 'data-local/rte/fever'
         #ask ajay what does this do? why comment out?
@@ -168,7 +169,6 @@ class RTEDataset(Dataset):
                 f.write(lbl + '\n')
 
         self.transform = transform
-        #self.transform = None
         print("4self.word_vocab.size=", len(self.word_vocab.keys()))
 
 

@@ -489,8 +489,8 @@ def train(train_loader, model, ema_model, optimizer, epoch, log):
                     'Consistency_loss:{meters[cons_loss]:.4f}\t'
                     'Prec_student: {meters[top1]:.3f}\t'                    
                     'Prec_teacher: {meters[ema_top1]:.3f}\t'
-                    'teacher_error: {meters[ema_error1]:.3f}\t'
-                    'student_error:{meters[error1]:.3f}\t'
+                    #'teacher_error: {meters[ema_error1]:.3f}\t'
+                    #'student_error:{meters[error1]:.3f}\t'
                         .format(
                     epoch, i, len(train_loader), meters=meters))
             else:
@@ -663,13 +663,9 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
         if (i + 1) % args.print_freq == 0:
             if not args.exclude_unlabeled:
                     LOG.info(
-                        'Epoch: [{0}][{1}/{2}]\t'
+                        'Dev Epoch/Batch: [{0}][{1}/{2}]\t'
                         'Classification_loss:{meters[class_loss]:.4f}\t'
-                        'Consistency_loss:{meters[cons_loss]:.4f}\t'
-                        'Prec_student: {meters[top1]:.3f}\t'                    
-                        'Prec_teacher: {meters[ema_top1]:.3f}\t'
-                        'teacher_error: {meters[ema_error1]:.3f}\t'
-                        'student_error:{meters[error1]:.3f}\t'
+                        'Precision: {meters[top1]:.3f}\t'
                             .format(
                         epoch, i, len(eval_loader), meters=meters))
             else:
@@ -1281,7 +1277,7 @@ def main(context):
         employee_file.close()
 
 
-
+  
 
 
     for epoch in range(args.start_epoch, args.epochs):
@@ -1380,7 +1376,7 @@ def main(context):
     # LOG.info("For testing only; Comment the following line of code--------------------------------")
     # validate(eval_loader, model, validation_log, global_step, 0, dataset, context.result_dir, "student")
     LOG.info("--------Total end to end time %s seconds ----------- " % (time.time() - time_start))
-    LOG.info(f"best best_accuracy_across_epochs  is:{best_accuracy_across_epochs} at epoch number:{best_epochs},dev_accuracy{dev_local_best_acc},best_dev_so_far:")
+    LOG.info(f"best best_accuracy_across_epochs  is:{best_dev_accuracy_across_epochs} at epoch number:{best_epochs},dev_accuracy{dev_local_best_acc},best_dev_so_far:")
     write_as_csv(accuracy_per_epoch_training, accuracy_per_epoch_dev, args)
 
 

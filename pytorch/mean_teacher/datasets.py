@@ -203,7 +203,7 @@ class RTEDataset(Dataset):
         max_num_evidences = 0
 
         max_claim = ""
-        longest_evidence_words = ""
+        longest_evidence_words = ""   
 
         list_of_longest_ev_lengths=[]
         list_of_longest_evidences=[]

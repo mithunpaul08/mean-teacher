@@ -82,7 +82,7 @@ def create_parser():
                         help='use pre-trained model')
     parser.add_argument('--wordemb_size', default=100, type=int,
                         help='size of the word-embeddings to be used in the simple_MLP_embed model (default: 300)')
-    parser.add_argument('--hidden_size', default=100, type=int, #was 200
+    parser.add_argument('--hidden_size', default=100, type=int,  # was 200
                         help='size of the hidden layer to be used in the simple_MLP_embed model (default: 50)')
     parser.add_argument('--pretrained_wordemb', default=True, type=str2bool, metavar='BOOL',
                         help='Use pre-trained word embeddings to be loaded from disk, if True; else random initialization of word-emb (default: True)')
@@ -108,7 +108,8 @@ def create_parser():
                         help='maximum number of words in between of two entities, extra words would be truncated')
     parser.add_argument('--ckpt-file', type=str, default='best.ckpt', help='best checkpoint file')
     parser.add_argument('--ckpt-path', type=str, default='', help='path where best checkpoint file locates')
-    parser.add_argument('--subset-labels', type=str, default='None', help='if not \'None\', only datpoints with the specified subset of test labels are considered, for both train/dev/test; currently only implemented for fullyLex and headLex of Riedel')
+    parser.add_argument('--subset-labels', type=str, default='None',
+                        help='if not \'None\', only datpoints with the specified subset of test labels are considered, for both train/dev/test; currently only implemented for fullyLex and headLex of Riedel')
     parser.add_argument('--data_dir', type=str, default='None',
                         help='link to the folder where training and dev data is kept')
     parser.add_argument('--train_input_file', type=str, default='None',

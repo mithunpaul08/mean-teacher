@@ -1,29 +1,27 @@
 from __future__ import division
 import re
+import argparse
 import os,sys
 import shutil
 import time
+import math
 import logging
-import parser
+
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.nn.utils.rnn import pack_padded_sequence
 import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
 import torchvision.datasets
-import torch.cuda
 
 
 from mean_teacher import architectures, datasets, data, losses, ramps, cli
 from mean_teacher.run_context import RunContext
 from mean_teacher.data import NO_LABEL
 from mean_teacher.utils import *
-import contextlib
-import random
 
 #askfan: where is log file stored? Ans: stdout
 #logging.basicConfig(filename='example.log',filemode='w+')
@@ -31,40 +29,10 @@ LOG = logging.getLogger('main')
 LOG.setLevel(logging.INFO)
 
 
-################
-# NOTE: To enable logging on IPythonConsole output or IPyNoteBook
-# LOG = logging.getLogger()
-# LOG.setLevel(logging.DEBUG)
-# LOG.debug("test")
-
-# NOTE: To init args to Mean Teacher :
-# parser = cli.create_parser()
-# parser.set_defaults(dataset='cifar10') # OR any other param
-# args = parser.parse_known_args()[0]
-################
-
 args = None
 best_dev_accuracy_across_epochs = 0
 best_epochs = 0
 global_step = 0
-NA_label = -1
-test_student_pred_match_noNA = 0.0
-test_student_pred_noNA = 0.0
-test_student_true_noNA = 0.0
-test_teacher_pred_match_noNA = 0.0
-test_teacher_pred_noNA = 0.0
-test_teacher_true_noNA = 0.0
-
-train_student_pred_match_noNA = 0.0
-train_student_pred_noNA = 0.0
-train_student_true_noNA = 0.0
-train_teacher_pred_match_noNA = 0.0
-train_teacher_pred_noNA = 0.0
-train_teacher_true_noNA = 0.0
-###########
-# NOTE: To change to a new NEC dataset .. currently some params are hardcoded
-# 1. Change args.dataset in the command line
-###########
 
 def parse_dict_args(**kwargs):
     global args
@@ -82,9 +50,11 @@ def parse_dict_args(**kwargs):
     cmdline_args = list(sum(kwargs_pairs, ()))
     args = parser.parse_args(cmdline_args)
 
+
 def create_data_loaders(LOG,train_transformation,
                         eval_transformation,
                         args):
+
     print(f"got inside create_data_loaders.")
     LOG.debug(f"from log.info inside create_data_loaders.")
 
@@ -258,9 +228,6 @@ def create_data_loaders(LOG,train_transformation,
 
 
 
-
-
-
     return train_loader, eval_loader, dataset, dataset_dev
 
 #mithun: this is whe4re they are doing the average thing -ema=exponential moving average
@@ -271,21 +238,10 @@ def update_ema_variables(model, ema_model, alpha, global_step):
         ema_param.data.mul_(alpha).add_(1 - alpha, param.data)
 
 
-def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
+def train(train_loader, model, ema_model, optimizer, epoch, log):
     global global_step
-    global NA_label
-    global train_student_pred_match_noNA
-    global train_student_pred_noNA
-    global train_student_true_noNA
-    global train_teacher_pred_match_noNA
-    global train_teacher_pred_noNA
-    global train_teacher_true_noNA
 
-    if torch.cuda.is_available():
-        class_criterion = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cuda()
-    else:
-        class_criterion = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cpu()
-
+    class_criterion = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cuda()
     if args.consistency_type == 'mse':
         consistency_criterion = losses.softmax_mse_loss
     elif args.consistency_type == 'kl':
@@ -333,6 +289,7 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
 
         adjust_learning_rate(optimizer, epoch, i, len(train_loader))
         meters.update('lr', optimizer.param_groups[0]['lr'])
+
 
         len_claims_this_batch = None
         len_evidences_this_batch= None
@@ -397,7 +354,6 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
             target_var = torch.autograd.Variable(target.cuda())
         else:
             target_var = torch.autograd.Variable(target.cpu())  # todo: not passing the async=True (as above) .. going along with it now .. to check if this is a problem
-
         minibatch_size = len(target_var)
         labeled_minibatch_size = target_var.data.ne(NO_LABEL).sum()
         assert labeled_minibatch_size > 0
@@ -410,10 +366,7 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
                 ema_model_out = ema_model(ema_claims_var, ema_evidences_var, len_claims_this_batch, len_evidences_this_batch)
             model_out = model(claims_var, evidences_var, len_claims_this_batch, len_evidences_this_batch)
 
-
-
-        ## DONE: AJAY - WHAT IS THIS CODE BLK ACHIEVING ? Ans: THIS IS RELATED TO --logit-distance-cost .. (fc1 and fc2 in model) ...
-        if isinstance(model_out, Variable):       # this is default
+        if isinstance(model_out, Variable):
             assert args.logit_distance_cost < 0
             logit1 = model_out
             # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
@@ -435,9 +388,10 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
             class_logit, cons_logit = logit1, logit2
             res_loss = args.logit_distance_cost * residual_logit_criterion(class_logit, cons_logit) / minibatch_size
             meters.update('res_loss', res_loss.data[0])
-        else:                                 # this is the default
-            class_logit, cons_logit = logit1, logit1    # class_logit.data.size(): torch.Size([256, 56])
+        else:
+            class_logit, cons_logit = logit1, logit1
             res_loss = 0
+
 
         loss_output=class_criterion(class_logit, target_var)
 
@@ -656,14 +610,7 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
 
         minibatch_size = len(target_var)
         labeled_minibatch_size = target_var.data.ne(NO_LABEL).sum()
-        ############## NOTE: AJAY -- changing this piece of code to make sure evaluation does not
-        ############## thrown exception when the minibatch consists of only NAs. Skip the batch
-        ############## TODO: AJAY -- To remove this later
-        # assert labeled_minibatch_size > 0
-        if labeled_minibatch_size == 0:
-            print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%AJAY: Labeled_minibatch_size == 0 ....%%%%%%%%%%%%%%%%%%%%%%%")
-            continue
-        ###################################################
+        assert labeled_minibatch_size > 0
         meters.update('labeled_minibatch_size', labeled_minibatch_size)
 
         LOG.debug(f"value of args.arch is:{args.arch}")
@@ -706,12 +653,11 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
         meters.update('class_loss', class_loss.data.item(), labeled_minibatch_size)
         meters.update('top1', prec1, labeled_minibatch_size)
         meters.update('error1', 100.0 - prec1, labeled_minibatch_size)
-        # meters.update('top5', prec5[0], labeled_minibatch_size)
-        # meters.update('error5', 100.0 - prec5[0], labeled_minibatch_size)
 
         # measure elapsed time
         meters.update('batch_time', time.time() - end)
         end = time.time()
+
 
         #pwhen in FFNN mode, don't print teavher details.
         if (i + 1) % args.print_freq == 0:
@@ -850,9 +796,6 @@ def save_checkpoint(state, is_best, dirpath, epoch):
     if is_best:
         shutil.copyfile(checkpoint_path, best_path)   #new copy
         LOG.info("--- checkpoint copied to %s ---" % best_path)
-        if args.epochs != epoch: # Note: Save the last checkpoint
-            os.remove(checkpoint_path)
-            LOG.info("--- removing original checkpoint %s ---" % checkpoint_path) # Note: I can as well not save the original file and only save the best config. But not changing the functionality too much, if need to revert later
 
 
 def adjust_learning_rate(optimizer, epoch, step_in_epoch, total_steps_in_epoch):
@@ -891,11 +834,6 @@ def accuracy(output, target, topk=(1,)):
     #if your max k is 1, target will almost always be the same size as pred (maybe after transfpose, but yes)
     correct = pred.eq(target.view(1, -1).expand_as(pred))
 
-
-    # target.size(): torch.Size([256])
-    # target.view(1, -1): 1 * 256
-    # expand_as(pred): copy the first row to be the second row to get 2*256
-    # correct: 2*256
 
     res = []
     for k in topk:
@@ -1339,7 +1277,7 @@ def main(context):
         employee_file.close()
 
 
-
+  
 
 
     for epoch in range(args.start_epoch, args.epochs):
@@ -1443,25 +1381,7 @@ def main(context):
 
 
 
-
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     args = cli.parse_commandline_args()
-    random_seed = args.random_seed
-    random.seed(random_seed)
-    np.random.seed(random_seed)
-
-    torch.backends.cudnn.deterministic = True
-    if torch.cuda.is_available():
-        torch.manual_seed(args.random_seed)
-        torch.cuda.manual_seed(args.random_seed)
-        # torch.cuda.manual_seed_all(args.random_seed)
-    else:
-        torch.manual_seed(args.random_seed)
-
-    print('----------------')
-    print("Running mean teacher experiment with args:")
-    print('----------------')
-    print(args)
-    print('----------------')
-    main(RunContext(__file__, 0, args.run_name))
+    main(RunContext(__file__, 0))

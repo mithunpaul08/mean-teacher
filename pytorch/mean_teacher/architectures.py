@@ -6,11 +6,8 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 from torch.autograd import Variable, Function
-from torch.nn.utils.rnn import pack_padded_sequence
 
 from .utils import export, parameter_count
-
-
 
 @export
 def simple_MLP_embed_RTE(word_vocab_size, num_classes, wordemb_size, pretrained=True, word_vocab_embed=None, hidden_size=200, update_pretrained_wordemb=False):
@@ -109,29 +106,4 @@ class FeedForwardMLPEmbed_RTE(nn.Module):
         y = self.hidden2label(y)
 
         return y
-
-        #ask becky: entity in my case is claim. why does it have a max of 18719: i thought max of evidence was 18719. Max of claim was some 20 something
-        #claim_embed = torch.mean(self.claim_embeddings(claim), 1)             # Note: Average the word-embeddings
-
-        #ajay's code was like this, but was giving me dimension erorr while concatenation. I think he used this pattern_flattened, since his pattern has
-        #two parts, via the student and teacher part...right now am going to just directly use pattern. mithun
-        # pattern_flattened = evidence.view(evidence.size()[0], -1)                  # Note: Flatten the list of list of words into a list of words
-        # evidence_embed = torch.mean((self.evidence_embeddings(pattern_flattened)), 1)  # Note: Average the words in every pattern in the list of patterns
-       # evidence_embed = torch.mean(self.evidence_embeddings(evidence), 1)
-
-        # print("claim_embed.size()")
-        # print (claim_embed.size())
-        # print (evidence_embed.size())
-        # print(claim_embed.shape)
-        # print(evidence_embed.shape)
-        ## concatenate entity and pattern embeddings
-        # concatenated = torch.cat([claim_embed, evidence_embed], 1)
-        # res = self.layer1(concatenated)
-        # res = self.activation(res)
-        # res = self.layer2(res)
-        # print (res)
-        # print (res.shape)
-        # res = self.softmax(res) ## IMPT NOTE: Removing the softmax from here as it is done in the loss function
-        # print ("After softmax : " + str(res))
-        #return res
 

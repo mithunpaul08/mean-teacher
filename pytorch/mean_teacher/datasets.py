@@ -1,5 +1,5 @@
 import torchvision.transforms as transforms
-
+from torch.utils.data import Dataset
 from . import data
 from .utils import export
 import sys

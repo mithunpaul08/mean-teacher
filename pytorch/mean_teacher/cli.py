@@ -11,8 +11,8 @@ __all__ = ['parse_cmd_args', 'parse_dict_args']
 
 
 def create_parser():
-    parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
-    parser.add_argument('--dataset', metavar='DATASET', default='imagenet',
+    parser = argparse.ArgumentParser(description='PyTorch Mean-Teacher Training')
+    parser.add_argument('--dataset', metavar='DATASET', default='conll',
                         choices=datasets.__all__,
                         help='dataset: ' +
                             ' | '.join(datasets.__all__) +
@@ -27,7 +27,7 @@ def create_parser():
                         help='% of labeled data to be used for the NLP task (randomly selected)')
     parser.add_argument('--exclude_unlabeled', default=False, type=str2bool, metavar='BOOL',
                         help='exclude unlabeled examples from the training set')
-    parser.add_argument('--arch', '-a', metavar='ARCH', default='resnet18',
+    parser.add_argument('--arch', '-a', metavar='ARCH', default='simple_MLP_embed',
                         choices=architectures.__all__,
                         help='model architecture: ' +
                             ' | '.join(architectures.__all__))
@@ -66,7 +66,7 @@ def create_parser():
                         help='length of the consistency loss ramp-up')
     parser.add_argument('--logit-distance-cost', default=-1, type=float, metavar='WEIGHT',
                         help='let the student model have two outputs and use an MSE loss between the logits with the given weight (default: only have one output)')
-    parser.add_argument('--checkpoint-epochs', default=1, type=int,
+    parser.add_argument('--checkpoint-epochs', default=10, type=int,
                         metavar='EPOCHS', help='checkpoint frequency in epochs, 0 to turn checkpointing off (default: 1)')
     parser.add_argument('--evaluation-epochs', default=1, type=int,
                         metavar='EPOCHS', help='evaluation frequency in epochs, 0 to turn evaluation off (default: 1). Note: this is '
@@ -80,6 +80,47 @@ def create_parser():
                         help='if you want to do evaluation i think using a loaded checkpoint from disk=.')
     parser.add_argument('--pretrained', dest='pretrained', action='store_true',
                         help='use pre-trained model')
+    parser.add_argument('--wordemb_size', default=100, type=int,
+                        help='size of the word-embeddings to be used in the simple_MLP_embed model (default: 300)')
+    parser.add_argument('--hidden_size', default=100, type=int, #was 200
+                        help='size of the hidden layer to be used in the simple_MLP_embed model (default: 50)')
+    parser.add_argument('--pretrained_wordemb', default=True, type=str2bool, metavar='BOOL',
+                        help='Use pre-trained word embeddings to be loaded from disk, if True; else random initialization of word-emb (default: True)')
+    parser.add_argument('--pretrained-wordemb-file', type=str, default='glove.6B.100d.txt',
+                        help='pre-trained word embeddings file')
+    parser.add_argument('--update_pretrained_wordemb', default=False, type=str2bool, metavar='BOOL',
+                        help='Update the pre-trained word embeddings during training, if True; else keep them fixed (default: False)')
+    parser.add_argument('--random-initial-unkown', default=False, type=str2bool, metavar='BOOL',
+                        help='Randomly initialize unkown words embedding. It only works when --pretrained-wordemb is True')
+    parser.add_argument('--word-frequency', default='2', type=int,
+                        help='only the word with higher frequency than this number will be added to vocabulary')
+    parser.add_argument('--random-seed', default='20', type=int,
+                        help='random seed')
+    parser.add_argument('--run-name', default='', type=str, metavar='PATH',
+                        help='Name of the run used in storing the results for post-precessing (default: none)')
+    parser.add_argument('--word-noise', default='drop:1', type=str,
+                        help='What type of noise should be added to the input (NLP) and how much; format= [(drop|replace):X], where replace=replace a random word with a wordnet synonym, drop=random word dropout, X=number of words (default: drop:1) ')
+    parser.add_argument('--save-custom-embedding', default=True, type=str2bool, metavar='BOOL',
+                        help='Save the custom embedding generated from the LSTM-based custom_embed model (default: True)')
+    parser.add_argument('--max-entity-len', default='8', type=int,
+                        help='maximum number of words in entity, extra words would be truncated')
+    parser.add_argument('--max-inbetween-len', default='50', type=int,
+                        help='maximum number of words in between of two entities, extra words would be truncated')
+    parser.add_argument('--ckpt-file', type=str, default='best.ckpt', help='best checkpoint file')
+    parser.add_argument('--ckpt-path', type=str, default='', help='path where best checkpoint file locates')
+    parser.add_argument('--subset-labels', type=str, default='None', help='if not \'None\', only datpoints with the specified subset of test labels are considered, for both train/dev/test; currently only implemented for fullyLex and headLex of Riedel')
+    parser.add_argument('--data_dir', type=str, default='None',
+                        help='link to the folder where training and dev data is kept')
+    parser.add_argument('--train_input_file', type=str, default='None',
+                        help='path to the training data file.folder path is hard coded via:data-local/rte/fever/train')
+    parser.add_argument('--dev_input_file', type=str, default='None',
+                        help='path to the dev data file. folder path is hard coded via:data-local/rte/fever/dev')
+    parser.add_argument('--output_folder', type=str, default='outputs/',
+                        help='path to the dev data file. folder path is hard coded via:data-local/rte/fever/dev')
+
+    parser.add_argument('--truncate_words_length', type=int, default=1000,
+                        help='if claim or evidence goes beyond.')
+
 
     return parser
 

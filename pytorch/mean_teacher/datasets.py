@@ -1,5 +1,7 @@
 import torchvision.transforms as transforms
 from torch.utils.data import Dataset
+import torch
+import io
 from . import data
 from .utils import export
 import sys
@@ -11,6 +13,7 @@ import logging
 
 words_in_glove =0
 DEFAULT_ENCODING = 'utf8'
+
 
 
 
@@ -200,7 +203,7 @@ class RTEDataset(Dataset):
         max_num_evidences = 0
 
         max_claim = ""
-        longest_evidence_words = ""
+        longest_evidence_words = ""   
 
         list_of_longest_ev_lengths=[]
         list_of_longest_evidences=[]
@@ -408,4 +411,6 @@ class RTEDataset(Dataset):
             return (claims_datum[0], evidence_datum[0]), (claims_datum[1], evidence_datum[1]), label, (len_claims_words,len_evidence_words)
         else:
             return (claims_datum, evidence_datum), label,(len_claims_words,len_evidence_words)
+
+
 

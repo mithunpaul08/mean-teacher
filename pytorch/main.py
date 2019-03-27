@@ -620,19 +620,13 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
         if args.dataset in ['conll', 'ontonotes','fever']:
             LOG.debug(f"got inside args.dataset in fever")
 
-            # claims_dev = datapoint[0][0]
-            # evidence_dev = datapoint[0][1]
-            # labels_dev = datapoint[1]
-            # len_claims_this_batch = datapoint[2][0]
-            # len_evidences_this_batch = datapoint[2][1]
-
-            # if there is no transformation, the data will be inside datapoint[0] itself
 
             '''Note: when you get here from devsomewhere in the code it is internally making self. transform=None.
              So by the time it is reaching here in validate, it will always take the same output. But yeah, good to check
              . Have updated the code with that from train() nevertheless, Just that it always gets into 
              Self.Transform=None branch'''
             if (dataset.transform) is None:
+                # if there is no transformation, the data will be inside datapoint[0] itself
                 student_input = datapoint[0]
                 labels_dev = datapoint[1]
                 len_claims_this_batch = datapoint[2][0]
@@ -682,7 +676,6 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
 
         elif args.dataset in ['fever'] and args.arch == 'simple_MLP_embed_RTE':
             output1 = model(claims_var, evidence_var,len_claims_this_batch,len_evidences_this_batch)
-
 
 
         class_loss = class_criterion(output1, target_var) / minibatch_size

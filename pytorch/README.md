@@ -95,8 +95,14 @@ python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_worde
 ```
 Below is a version that runs **FFNN** on linux command line (server/big memory:145k training 10k dev) -i.e: --exclude_unlabeled true
 ``` 
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 500 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_full_with_evi_sents.jsonl --dev_input_file actual_fever_dev_with_9k.jsonl --print_freq 1 --workers 4 --exclude_unlabeled true --batch_size 2000 --lr 0.1      
- 
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 500 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_full_with_evi_sents.jsonl --dev_input_file actual_fever_dev_with_9k.jsonl --print_freq 1 --workers 4 --exclude_unlabeled true --batch_size 2000 --lr 0.1 
+```     
+
+Below is a version that runs **Decomposable Attention** on linux command line (server/big memory:120k training 25k dev) student only -i.e: --exclude_unlabeled true
+use conda environment: meanteacher in clara
+
+``` 
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 500 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file actual_fever_dev_with_9k.jsonl --print_freq 1 --workers 4 --exclude_unlabeled true --batch_size 1000 --lr 0.1   --arch da_RTE --exclude_unlabeled true --log_level INFO --use_gpu True 
 ```
 
 
@@ -295,6 +301,8 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
   of dataloader class
 
 # Todo:
+- turn glove on/load embeddings and not just randomly initialize them
+- update embeddings
 - replace SGD with adam
 - go to allennlp +fever's [json file](https://github.com/mithunpaul08/decomp_attn_fever/blob/master/experiments/decomp_attn.json) and try to replicate the parameters here
 - accuracy across batches vs average accuracy

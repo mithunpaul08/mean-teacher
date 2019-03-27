@@ -104,12 +104,9 @@ def create_data_loaders(LOG,train_transformation,
     if torch.cuda.is_available():
         pin_memory = True
         LOG.info(f"found torch.cuda is true.")
-        print(f"found torch.cuda is true.")
-        LOG.info(torch.cuda.device_count())
+        LOG.info(f"total number of availalbe gpus are:{torch.cuda.device_count()}")
         cuda0 = torch.cuda.set_device(0)
-        LOG.info(torch.cuda.current_device())
-        #LOG.info(torch.cuda.get_device_name(0))
-        LOG.info(torch.cuda.device_count())
+        LOG.info(f"GPU that will be used in this run is:{torch.cuda.current_device()}")
     else:
         pin_memory = False
         LOG.info(f"found torch.cuda is false. giong to exit")

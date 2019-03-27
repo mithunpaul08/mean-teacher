@@ -125,7 +125,8 @@ def create_parser():
                         type=float, default=0.01)
     parser.add_argument('--use_gpu', help="use or don't use CPU",
                         type=bool, default=False)
-
+    parser.add_argument('--log_level', type=str, default='DEBUG',
+                        help='AT WHAT LEVEL do you want your logger to be. INFO, DEBUG, ERROR WARNING.')
 
     return parser
 

@@ -16,7 +16,7 @@ from torch.utils.data import DataLoader
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
 import torchvision.datasets
 import torch.cuda
-
+import unittest
 
 from mean_teacher import architectures, datasets, data, losses, ramps, cli
 from mean_teacher.run_context import RunContext
@@ -668,15 +668,21 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
         LOG.debug(f"value of args.arch is:{args.arch}")
         LOG.debug(f"value of args.dataset is:{args.dataset}")
 
+        output1=None
         # compute output
         if args.dataset in ['conll', 'ontonotes'] and args.arch == 'custom_embed':
             output1, entity_custom_embed, pattern_custom_embed = model(claims_var, evidence_var)
             if save_custom_embed_condition:
                 custom_embeddings_minibatch.append((entity_custom_embed, pattern_custom_embed))  # , minibatch_size))
 
-        elif args.dataset in ['fever'] and args.arch == 'simple_MLP_embed_RTE':
+        elif args.dataset in ['fever']:
             output1 = model(claims_var, evidence_var,len_claims_this_batch,len_evidences_this_batch)
 
+        if(output1 is None):
+            LOG.error("Error: output of the neural network pass is empty. check.")
+            sys.exit(1)
+        else:
+            assert output1.__len__() > 0, "Tensor is empty"
 
         class_loss = class_criterion(output1, target_var) / minibatch_size
         LOG.debug(f"value of class_loss is:{class_loss}")
@@ -1204,6 +1210,9 @@ def main(context):
 
     dataset_config = datasets.__dict__[args.dataset]()
 
+    #by default, it prints to STDOUT. else set a file also here
+    LOG.setLevel(args.log_level)
+
     num_classes=3
     if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids','fever']:
         train_loader, eval_loader, dataset, dataset_test = create_data_loaders(LOG,**dataset_config, args=args)
@@ -1289,7 +1298,7 @@ def main(context):
         os.remove(test_teacher_pred_file)
 
 
-    #todo mithun: ask becky or fan if we need thi adam optimizer...also why are they using only when pretrained is false? damned tuning.
+    #todo mithun: ask becky or fan if we need this adam optimizer...also why are they using only when pretrained is false? damned tuning.
     if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids'] and args.update_pretrained_wordemb is False:
         ## Note: removing the parameters of embeddings as they are not updated
         # https://discuss.pytorch.org/t/freeze-the-learnable-parameters-of-resnet-and-attach-it-to-a-new-network/949/9
@@ -1322,16 +1331,16 @@ def main(context):
 
     #EVALUATE - ithink is for loading a trained model
     if args.evaluate:
-        if args.dataset in ['conll', 'ontonotes','fever']:
-            LOG.info("Evaluating the primary model:")
-            validate(eval_loader, model, validation_log, global_step, args.start_epoch, dataset, context.result_dir, "student")
-            LOG.info("Evaluating the EMA model:")
-            validate(eval_loader, ema_model, ema_validation_log, global_step, args.start_epoch, dataset, context.result_dir, "teacher")
-        elif args.dataset in ['riedel', 'gids']:
-            LOG.info("Evaluating the primary model:")
-            validate(eval_loader, model, validation_log, global_step, args.start_epoch, dataset_test, context.result_dir, "student")
-            LOG.info("Evaluating the EMA model:")
-            validate(eval_loader, ema_model, ema_validation_log, global_step, args.start_epoch, dataset_test, context.result_dir, "teacher")
+        # if args.dataset in ['conll', 'ontonotes','fever']:
+        LOG.info("Evaluating the primary model:")
+        validate(eval_loader, model, validation_log, global_step, args.start_epoch, dataset, context.result_dir, "student")
+        LOG.info("Evaluating the EMA model:")
+        validate(eval_loader, ema_model, ema_validation_log, global_step, args.start_epoch, dataset, context.result_dir, "teacher")
+        # elif args.dataset in ['riedel', 'gids']:
+        #     LOG.info("Evaluating the primary model:")
+        #     validate(eval_loader, model, validation_log, global_step, args.start_epoch, dataset_test, context.result_dir, "student")
+        #     LOG.info("Evaluating the EMA model:")
+        #     validate(eval_loader, ema_model, ema_validation_log, global_step, args.start_epoch, dataset_test, context.result_dir, "teacher")
         return
 
     accuracy_per_epoch_training=[]

@@ -123,6 +123,8 @@ def create_parser():
                         help='if claim or evidence goes beyond.')
     parser.add_argument('--para_init', help='parameter initialization gaussian',
                         type=float, default=0.01)
+    parser.add_argument('--use_gpu', help="use or don't use CPU",
+                        type=bool, default=False)
 
 
     return parser

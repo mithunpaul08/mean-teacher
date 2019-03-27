@@ -1249,6 +1249,7 @@ def main(context):
         model_params['hidden_size'] = args.hidden_size
         model_params['update_pretrained_wordemb'] = args.update_pretrained_wordemb
         model_params['para_init'] = args.para_init
+        model_params['use_gpu'] = args.use_gpu
 
 
         LOG.debug(f"value of word_vocab_embed={word_vocab_embed}")
@@ -1256,12 +1257,18 @@ def main(context):
 
         model = model_factory(**model_params)
         LOG.debug("--------------------IMPORTANT: REMOVING nn.DataParallel for the moment --------------------")
-        if torch.cuda.is_available():
-            model = model.cuda()    # Note: Disabling data parallelism for now
-            LOG.info(f"in line 1067 of main. found thatcUDA is available")
 
+        args.device=None
+        if(args.use_gpu) and torch.cuda.is_available():
+            args.device = torch.device('cuda')
         else:
-            model = model.cpu()
+            args.device = torch.device('cpu')
+
+        model = model.to(device=args.device)
+        # # Note: Disabling data parallelism for now
+        #     LOG.info(f"in line 1067 of main. found thatcUDA is available")
+        # else:
+        #     model = model.cpu()
 
         #here if ema (e mean teacher)=True, they don't do back propagation. that is what param.detach does.
         if ema:

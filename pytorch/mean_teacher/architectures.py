@@ -111,16 +111,16 @@ class FeedForwardMLPEmbed_RTE(nn.Module):
         return y
 
 @export
-def da_RTE(word_vocab_size, num_classes, wordemb_size, pretrained=True, word_vocab_embed=None, hidden_size=200, update_pretrained_wordemb=False,para_init=0.1):
+def da_RTE(word_vocab_size, num_classes, wordemb_size, pretrained=True, word_vocab_embed=None, hidden_size=200, update_pretrained_wordemb=False,para_init=0.1,use_gpu=False):
 
-    model = DecompAttnLibowenCode(word_vocab_size, wordemb_size, hidden_size, num_classes, word_vocab_embed, update_pretrained_wordemb,para_init,num_classes)
+    model = DecompAttnLibowenCode(word_vocab_size, wordemb_size, hidden_size, num_classes, word_vocab_embed, update_pretrained_wordemb,para_init,num_classes,use_gpu)
     return model
 
 class DecompAttnLibowenCode(nn.Module):
     # num_embeddings, embedding_size, hidden_size, para_init):
 
     def __init__(self, word_vocab_size, embedding_size, hidden_sz, output_sz, word_vocab_embed,
-                 update_pretrained_wordemb,para_init,num_classes):
+                 update_pretrained_wordemb,para_init,num_classes,use_gpu):
         # build the model
         input_encoder = encoder(word_vocab_size, embedding_size, hidden_sz,para_init)
         #this is for copying pretrained weights. commenting this out on 25th march, since we dont have glove in MT code yet. Should eventually open up
@@ -129,12 +129,25 @@ class DecompAttnLibowenCode(nn.Module):
         input_encoder.embedding.weight.requires_grad = update_pretrained_wordemb
         inter_atten = atten(hidden_sz, num_classes, para_init)
 
-        if (torch.cuda.is_available()):
-            input_encoder.cuda()
-            inter_atten.cuda()
+        #torch.cuda.set_device(args.gpu_id)
+        # input_encoder.cuda()
+        # inter_atten.cuda()
+
+        device = None
+        if (use_gpu) and torch.cuda.is_available():
+            device = torch.device('cuda')
         else:
-            input_encoder.cpu()
-            inter_atten.cpu()
+            device = torch.device('cpu')
+
+        input_encoder.to(device)
+        inter_atten.to(device)
+        #
+        # if (torch.cuda.is_available()):
+        #     .cuda()
+        #
+        # else:
+        #     input_encoder.cpu()
+        #     inter_atten.cpu()
 
     def forward(self, claim, evidence, claim_lengths, evidence_lengths):
         train_src_linear, train_tgt_linear = input_encoder(

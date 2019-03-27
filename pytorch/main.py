@@ -443,8 +443,10 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
 
         loss_output=class_criterion(class_logit, target_var)
 
-        LOG.info(f"type of loss_output={type(loss_output)}")
+        LOG.debug(f"type of loss_output={type(loss_output)}")
         LOG.info(f"value of minibatch_size={minibatch_size} ")
+        LOG.info(f"value of class_logit={class_logit} ")
+        LOG.info(f"value of target_var={target_var} ")
         class_loss = class_criterion(class_logit, target_var) / minibatch_size
         LOG.info(f"value of class_loss={class_loss} ")
 

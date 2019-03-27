@@ -72,9 +72,11 @@ Below is a version that runs the code as a simple FFNN on a mac command line-but
 python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 1 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_small_200_claims_with_evi_sents.jsonl --dev_input_file dev_90_with_evi_sents.jsonl --workers 0 --exclude_unlabeled true --batch_size 20 --lr 0.0000001 --ema_decay 8 --print_freq 1
 
 ```
-Below is a version that runs the code as a decomposable attention as given [here](https://github.com/mithunpaul08/SNLI-decomposable-attention) on a mac command line-but with toy data- best for laptop:
+Below is a version that runs the code as a decomposable attention given [here](https://github.com/mithunpaul08/SNLI-decomposable-attention) 
+inside the student only on a mac command line-but with toy data- best for laptop:
 ```
---dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/rte/fever --print_freq 1 --workers 0 --labeled_batch_size 5 --consistency 1 --dev_input_file dev_90_from_train_big145k.jsonl --train_input_file train_small_200_claims_with_evi_sents.jsonl --arch da_RTE --gpu_ids -1```
+--dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/rte/fever --print_freq 1 --workers 0 --dev_input_file dev_90_from_train_big145k.jsonl --train_input_file train_small_200_claims_with_evi_sents.jsonl --arch da_RTE --exclude_unlabeled true 
+```
 
 Below is a version that runs on linux command line (server/big memory-but with 12k training and 2.5k dev):
 

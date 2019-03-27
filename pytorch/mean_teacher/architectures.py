@@ -121,13 +121,15 @@ class DecompAttnLibowenCode(nn.Module):
 
     def __init__(self, word_vocab_size, embedding_size, hidden_sz, output_sz, word_vocab_embed,
                  update_pretrained_wordemb,para_init,num_classes,use_gpu):
+
+        super(DecompAttnLibowenCode, self).__init__()
         # build the model
-        input_encoder = encoder(word_vocab_size, embedding_size, hidden_sz,para_init)
+        self.input_encoder = encoder(word_vocab_size, embedding_size, hidden_sz,para_init)
         #this is for copying pretrained weights. commenting this out on 25th march, since we dont have glove in MT code yet. Should eventually open up
         #input_encoder.embedding.weight.data.copy_(word_vecs)
 
-        input_encoder.embedding.weight.requires_grad = update_pretrained_wordemb
-        inter_atten = atten(hidden_sz, num_classes, para_init)
+        self.input_encoder.embedding.weight.requires_grad = update_pretrained_wordemb
+        self.inter_atten = atten(hidden_sz, num_classes, para_init)
 
         #torch.cuda.set_device(args.gpu_id)
         # input_encoder.cuda()
@@ -139,8 +141,8 @@ class DecompAttnLibowenCode(nn.Module):
         else:
             device = torch.device('cpu')
 
-        input_encoder.to(device)
-        inter_atten.to(device)
+        self.input_encoder.to(device)
+        self.inter_atten.to(device)
         #
         # if (torch.cuda.is_available()):
         #     .cuda()
@@ -150,9 +152,10 @@ class DecompAttnLibowenCode(nn.Module):
         #     inter_atten.cpu()
 
     def forward(self, claim, evidence, claim_lengths, evidence_lengths):
-        train_src_linear, train_tgt_linear = input_encoder(
+        train_src_linear, train_tgt_linear = self.input_encoder(
             claim, evidence)
-        log_prob = inter_atten(train_src_linear, train_tgt_linear)
+        log_prob = self.inter_atten(train_src_linear, train_tgt_linear)
+        return log_prob
 
 
 class encoder(nn.Module):

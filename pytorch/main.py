@@ -448,9 +448,9 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
         LOG.info(f"value of minibatch_size={minibatch_size} ")
         LOG.info(f"value of class_logit={class_logit} ")
         LOG.info(f"value of target_var={target_var} ")
-        LOG.info(f"value of class_logit_soft_max={class_logit_soft_max} ")
+        #LOG.info(f"value of class_logit_soft_max={class_logit_soft_max} ")
 
-        class_loss = class_criterion(class_logit_soft_max, target_var) / minibatch_size
+        class_loss = class_criterion(class_logit, target_var) / minibatch_size
         LOG.info(f"value of class_loss={class_loss} ")
 
 

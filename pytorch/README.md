@@ -102,7 +102,7 @@ Below is a version that runs **Decomposable Attention** on linux command line (s
 use conda environment: meanteacher in clara
 
 ``` 
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 500 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file actual_fever_dev_with_9k.jsonl --print_freq 1 --workers 4 --exclude_unlabeled true --batch_size 1000 --lr 0.1   --arch da_RTE --exclude_unlabeled true --log_level INFO --use_gpu True 
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 500 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file actual_fever_dev_with_9k.jsonl --print_freq 1 --workers 4 --exclude_unlabeled true --batch_size 500 --lr 0.1 --arch da_RTE --exclude_unlabeled true --log_level INFO --use_gpu True 
 ```
 
 

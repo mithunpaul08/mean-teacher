@@ -410,6 +410,11 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
                 ema_model_out = ema_model(ema_claims_var, ema_evidences_var, len_claims_this_batch, len_evidences_this_batch)
             model_out = model(claims_var, evidences_var, len_claims_this_batch, len_evidences_this_batch)
 
+        if args.dataset in ['fever'] and args.arch == 'da_RTE':
+            # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
+            if not args.exclude_unlabeled:
+                ema_model_out = ema_model(ema_claims_var, ema_evidences_var, len_claims_this_batch, len_evidences_this_batch)
+            model_out = model(claims_var, evidences_var, len_claims_this_batch, len_evidences_this_batch)
 
 
         ## DONE: AJAY - WHAT IS THIS CODE BLK ACHIEVING ? Ans: THIS IS RELATED TO --logit-distance-cost .. (fc1 and fc2 in model) ...
@@ -1235,14 +1240,16 @@ def main(context):
         model_factory = architectures.__dict__[args.arch]
         model_params = dict(pretrained=args.pretrained, num_classes=num_classes)
 
-        if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids','fever']:
+        #if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids','fever']:
 
             #first two (word_vocab_embed,word_vocab_size) needs to be provided from command line
-            model_params['word_vocab_embed'] = word_vocab_embed
-            model_params['word_vocab_size'] = word_vocab_size
-            model_params['wordemb_size'] = args.wordemb_size
-            model_params['hidden_size'] = args.hidden_size
-            model_params['update_pretrained_wordemb'] = args.update_pretrained_wordemb
+        model_params['word_vocab_embed'] = word_vocab_embed
+        model_params['word_vocab_size'] = word_vocab_size
+        model_params['wordemb_size'] = args.wordemb_size
+        model_params['hidden_size'] = args.hidden_size
+        model_params['update_pretrained_wordemb'] = args.update_pretrained_wordemb
+        model_params['para_init'] = args.para_init
+
 
         LOG.debug(f"value of word_vocab_embed={word_vocab_embed}")
         LOG.debug(f"value of word_vocab_size={word_vocab_size}")

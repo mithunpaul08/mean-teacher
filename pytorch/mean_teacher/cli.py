@@ -121,6 +121,8 @@ def create_parser():
 
     parser.add_argument('--truncate_words_length', type=int, default=1000,
                         help='if claim or evidence goes beyond.')
+    parser.add_argument('--para_init', help='parameter initialization gaussian',
+                        type=float, default=0.01)
 
 
     return parser

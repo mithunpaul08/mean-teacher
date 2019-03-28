@@ -102,7 +102,7 @@ Below is a version that runs **Decomposable Attention** on linux command line (s
 use conda environment: meanteacher in clara
 
 ``` 
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 500 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file actual_fever_dev_with_9k.jsonl --print_freq 1 --workers 4 --exclude_unlabeled true --batch_size 500 --lr 0.1 --arch da_RTE --exclude_unlabeled true --log_level INFO --use_gpu True 
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 500 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file dev_24K_no_train_120k_overlap.jsonl --print_freq 1 --workers 4 --exclude_unlabeled true --batch_size 500 --lr 0.005 --arch da_RTE --exclude_unlabeled true --log_level INFO --use_gpu True 
 ```
 
 
@@ -308,9 +308,13 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
     - yeah looks like we are already doing self.log_prob = nn.LogSoftmax()
 - replace optimizer with the one used in libowen
     -done using adagrad
-    - classification loss started at 1230 and dipped up till 0.0019. accuracy hit 61% after first epoch
+    - classification loss started at 1230 and dipped up till 0.0019. good.
+    - training accuracy hit 61% after first epoch
+    - dev accuracy is around 39% though
+    - update after 254 epochs. training accuray:72% dev:35%
 - match learning rate to that in libowen
     - changed to 0.005
+    - no change from above
 - max_grad_norm
 - weight_decay
 - para_init

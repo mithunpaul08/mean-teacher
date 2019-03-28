@@ -724,15 +724,15 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
             if not args.exclude_unlabeled:
                     LOG.info(
                         'Dev Epoch/Batch: [{0}][{1}/{2}]\t'
-                        'Classification_loss:{meters[class_loss]:.4f}\t'
+                        'Dev Classification_loss:{meters[class_loss]:.4f}\t'
                         'Precision: {meters[top1]:.3f}\t'
                             .format(
                         epoch, i, len(eval_loader), meters=meters))
             else:
                     LOG.info(
-                        'Epoch: [{0}][{1}/{2}]\t'
-                        'Classification_loss:{meters[class_loss]:.4f}\t'                    
-                        'Prec_model: {meters[top1]:.3f}\t'
+                        'Dev Epoch: [{0}][{1}/{2}]\t'
+                        'Dev Classification_loss:{meters[class_loss]:.4f}\t'                    
+                        'Dev Prec_model: {meters[top1]:.3f}\t'
                             .format(
                             epoch, i, len(eval_loader), meters=meters))
 

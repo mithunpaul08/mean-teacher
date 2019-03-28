@@ -315,6 +315,8 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
 - match learning rate to that in libowen
     - changed to 0.005
     - no change from above
+- is it the right dev file?
+    -no ..dev file was the corrupted dump. now i get 71.69% as dev accuracy also 
 - max_grad_norm
 - weight_decay
 - para_init

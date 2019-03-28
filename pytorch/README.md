@@ -302,10 +302,24 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
 
 # Todo:
 - check loss function in libowen-make it same as libowen
-
+    - removed the things inside teh constructor of crossentropy. now atleast its not hitting nan in logit values
+    -precision is increasing (i can see 54%) but classification loss is stuck on 0.0022. weird.
+- check if libowen is passing softmax into the loss function   
+    - yeah looks like we are already doing self.log_prob = nn.LogSoftmax()
+- replace optimizer with the one used in libowen
+    -done using adagrad
 - turn glove on/load embeddings and not just randomly initialize them
 - update embeddings
-- replace SGD with adam
+
 - go to allennlp +fever's [json file](https://github.com/mithunpaul08/decomp_attn_fever/blob/master/experiments/decomp_attn.json) and try to replicate the parameters here
 - accuracy across batches vs average accuracy
 - match learning rate to that in libowen
+    - changed to 0.005
+- max_grad_norm
+- weight_decay
+- para_init
+-   Adagrad_init
+- momentum
+
+#ask marco
+- how do we know model() is trained, vs model_out. atleast forward, explicitly returns stuff...line 408- same pass by reference thing?

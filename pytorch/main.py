@@ -1300,8 +1300,9 @@ def main(context):
         os.remove(test_teacher_pred_file)
 
 
-    #todo mithun: ask becky or fan if we need this adam optimizer...also why are they using only when pretrained is false? damned tuning.
-    if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids'] and args.update_pretrained_wordemb is False:
+
+    optimizer=None
+    if args.optimizer == "adam" :
         ## Note: removing the parameters of embeddings as they are not updated
         # https://discuss.pytorch.org/t/freeze-the-learnable-parameters-of-resnet-and-attach-it-to-a-new-network/949/9
         filtered_parameters = list(filter(lambda p: p.requires_grad, model.parameters()))
@@ -1311,10 +1312,18 @@ def main(context):
         #                             weight_decay=args.weight_decay,
         #                             nesterov=args.nesterov)
     else:
-        optimizer = torch.optim.SGD(model.parameters(), args.lr,
+        if args.optimizer == "sgd":
+            optimizer = torch.optim.SGD(model.parameters(), args.lr,
                                 momentum=args.momentum,
                                 weight_decay=args.weight_decay,
                                 nesterov=args.nesterov)
+        else:
+            if args.optimizer is "adagrad":
+                 optimizer = torch.optim.Adagrad(model.parameters(), args.lr,
+                                        weight_decay=args.weight_decay)
+
+    assert optimizer != None
+
 
     # optionally resume from a checkpoint
     if args.resume:

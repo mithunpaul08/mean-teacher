@@ -127,6 +127,11 @@ def create_parser():
                         type=bool, default=False)
     parser.add_argument('--log_level', type=str, default='DEBUG',
                         help='AT WHAT LEVEL do you want your logger to be. INFO, DEBUG, ERROR WARNING.')
+    parser.add_argument('--optimizer', help='optimizer',
+                        type=str, default='adagrad')
+
+    parser.add_argument('--Adagrad_init', help='initial accumulating values for gradients',
+                        type=float, default=0.)
 
     return parser
 

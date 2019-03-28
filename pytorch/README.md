@@ -308,3 +308,4 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
 - replace SGD with adam
 - go to allennlp +fever's [json file](https://github.com/mithunpaul08/decomp_attn_fever/blob/master/experiments/decomp_attn.json) and try to replicate the parameters here
 - accuracy across batches vs average accuracy
+- match learning rate to that in libowen

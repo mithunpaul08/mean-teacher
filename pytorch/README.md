@@ -317,6 +317,9 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
     - no change from above
 - is it the right dev file?
     -no ..dev file was the corrupted dump. now i get 71.69% as dev accuracy also 
+- try two optimizer stepping
+    - tried. accuracy reduced. gave up.
+- try two optimizer plus shrinking and grad clipping
 - max_grad_norm
 - weight_decay
 - para_init

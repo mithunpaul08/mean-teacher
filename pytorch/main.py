@@ -1301,7 +1301,7 @@ def main(context):
 
 
 
-    optimizer=None  
+    optimizer=None
     if args.optimizer == "adam" :
         ## Note: removing the parameters of embeddings as they are not updated
         # https://discuss.pytorch.org/t/freeze-the-learnable-parameters-of-resnet-and-attach-it-to-a-new-network/949/9

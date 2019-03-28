@@ -308,11 +308,7 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
     - yeah looks like we are already doing self.log_prob = nn.LogSoftmax()
 - replace optimizer with the one used in libowen
     -done using adagrad
-- turn glove on/load embeddings and not just randomly initialize them
-- update embeddings
-
-- go to allennlp +fever's [json file](https://github.com/mithunpaul08/decomp_attn_fever/blob/master/experiments/decomp_attn.json) and try to replicate the parameters here
-- accuracy across batches vs average accuracy
+    - classification loss started at 1230 and dipped up till 0.0019. accuracy hit 61% after first epoch
 - match learning rate to that in libowen
     - changed to 0.005
 - max_grad_norm
@@ -320,6 +316,14 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
 - para_init
 -   Adagrad_init
 - momentum
+    
+    
+- turn glove on/load embeddings and not just randomly initialize them
+- update embeddings
+
+- go to allennlp +fever's [json file](https://github.com/mithunpaul08/decomp_attn_fever/blob/master/experiments/decomp_attn.json) and try to replicate the parameters here
+- accuracy across batches vs average accuracy
 
 #ask marco
+- batch average- which one to take...sum all individual per point average/divided by- refer my code 
 - how do we know model() is trained, vs model_out. atleast forward, explicitly returns stuff...line 408- same pass by reference thing?

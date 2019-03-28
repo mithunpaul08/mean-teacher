@@ -279,9 +279,9 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
     global train_teacher_true_noNA
 
     if torch.cuda.is_available():
-        class_criterion = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cuda()
+        class_criterion = nn.CrossEntropyLoss().cuda()
     else:
-        class_criterion = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cpu()
+        class_criterion = nn.CrossEntropyLoss().cpu()
 
     if args.consistency_type == 'mse':
         consistency_criterion = losses.softmax_mse_loss

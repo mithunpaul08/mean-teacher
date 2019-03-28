@@ -301,6 +301,8 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
   of dataloader class
 
 # Todo:
+- check loss function in libowen-make it same as libowen
+
 - turn glove on/load embeddings and not just randomly initialize them
 - update embeddings
 - replace SGD with adam

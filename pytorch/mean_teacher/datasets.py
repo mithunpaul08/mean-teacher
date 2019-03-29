@@ -36,8 +36,8 @@ def fever():
 
 class RTEDataset(Dataset):
 
-    PAD = "@PADDING"
-    UNKNOWN = "@UNKNOWN"
+    PAD = "<pad>"
+    UNKNOWN = "<unk>"
     OOV = "</s>"
     ENTITY = "@ENTITY"
     OOV_ID = 0
@@ -45,15 +45,21 @@ class RTEDataset(Dataset):
     NUM_WORDS_TO_REPLACE = 1
     WORD_NOISE_TYPE = "drop"
 
+    def sanitise_and_lookup_embedding(self, word):
+        if word.lower() in self.lookupGiga:
+            word_embed = Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga[word.lower()]])
+        else:
+            word_embed = Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga["<unk>"]])
 
+        return word_embed
 
     def create_word_vocab_embed(self, args):
 
         word_vocab_embed = list()
 
         # leave last word = "@PADDING"
-        for word_id in range(0, self.word_vocab.size() - 1):
-            word_embed = self.sanitise_and_lookup_embedding(word_id, args)
+        for word in self.word_vocab.keys():
+            word_embed = self.sanitise_and_lookup_embedding(word)
             word_vocab_embed.append(word_embed)
 
         # NOTE: adding the embed for @PADDING
@@ -61,7 +67,7 @@ class RTEDataset(Dataset):
         return np.array(word_vocab_embed).astype('float32')
 
     #mithun this is called using:#dataset = datasets.NECDataset(traindir, args, train_transformation)
-    def __init__(self, word_vocab,runName,dataset_file, args,transform=None):
+    def __init__(self, word_vocab,runName,dataset_file, args,emb_file_path,transform=None):
         LOG = logging.getLogger('datasets')
         LOG.setLevel(logging.INFO)
 
@@ -76,7 +82,8 @@ class RTEDataset(Dataset):
         #         if not (lbl == 2):
         #             print(f"\n just after train loader found a new label other than SUPPORTS. label is {lbl}")
         #             import sys
-        #             sys.exit(1)
+        #             sys.exit
+
 
         assert len(self.claims)== len(self.evidences)==len(self.labels_str), "claims and evidences are not of equal length"
 
@@ -121,16 +128,13 @@ class RTEDataset(Dataset):
         #todo: load pretrained wordemb
 
         if args.pretrained_wordemb:
-            if args.eval_subdir not in dir:  # do not load the word embeddings again in eval
-
-                #todo for mithun: should come up with a saner test than checking in dir.
-                # Right now , jan 28th2019, i have removed dir..should pass a flag from command line explicitly when doing dev or something. this check in dir is realy stupid
-
-                self.gigaW2vEmbed, self.lookupGiga = Gigaword.load_pretrained_embeddings(w2vfile)
-                self.word_vocab_embed = self.create_word_vocab_embed()
+            if not runName == "dev": # do not load the word embeddings again in eval
+                LOG.info("Loading the pretrained embeddings ... ")
+                self.gigaW2vEmbed, self.lookupGiga, self.embedding_size = Gigaword.load_pretrained_embeddings(emb_file_path)
+                self.word_vocab_embed = self.create_word_vocab_embed(args)
 
         else:
-            print("Not loading the pretrained embeddings ... ")
+            LOG.info("Not loading the pretrained embeddings ... ")
             assert args.update_pretrained_wordemb, "Pretrained embeddings should be updated but " \
                                                    "--update-pretrained-wordemb = {}".format(args.update_pretrained_wordemb)
             self.word_vocab_embed = None

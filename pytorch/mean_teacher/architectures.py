@@ -126,7 +126,8 @@ class DecompAttnLibowenCode(nn.Module):
         # build the model
         self.input_encoder = encoder(word_vocab_size, embedding_size, hidden_sz,para_init)
         #this is for copying pretrained weights. commenting this out on 25th march, since we dont have glove in MT code yet. Should eventually open up
-        #input_encoder.embedding.weight.data.copy_(word_vecs)
+
+        self.input_encoder.embedding.weight.data.copy_(torch.from_numpy(word_vocab_embed))
 
         self.input_encoder.embedding.weight.requires_grad = update_pretrained_wordemb
         self.inter_atten = atten(hidden_sz, num_classes, para_init)

@@ -123,8 +123,10 @@ def create_data_loaders(LOG,train_transformation,
         LOG.info("evaldir : " + evaldir)
 
         train_input_file = traindir + args.train_input_file
-        word_vocab = {"@UNKNOWN": 1,"</s>":2}
-        dataset = datasets.RTEDataset(word_vocab,"train",train_input_file, args,train_transformation)
+        word_vocab = {"<unk>": 1,"</s>":2}
+        embdir = os.path.join(args.data_dir, args.glove_subdir)
+        emb_file_path=embdir+args.pretrained_wordemb_file
+        dataset = datasets.RTEDataset(word_vocab,"train",train_input_file, args,emb_file_path,train_transformation)
         print(
             f"after reading training dataset.value of word_vocab.size()={len(dataset.word_vocab.keys())}")
 
@@ -1221,6 +1223,7 @@ def main(context):
         LOG.debug(f"after create_data_loaders. main.py line 1031. value of word_vocab.size()={len(dataset.word_vocab.keys())}")
         num_classes = len(dataset.categories)
         word_vocab_embed = dataset.word_vocab_embed
+        wordemb_size= dataset.embedding_size
         LOG.debug(f"inside if arg.s dataset in fever value of word_vocab.size()={len(dataset.word_vocab.keys())}")
         word_vocab_size = len(dataset.word_vocab.keys())
 
@@ -1249,7 +1252,7 @@ def main(context):
             #first two (word_vocab_embed,word_vocab_size) needs to be provided from command line
         model_params['word_vocab_embed'] = word_vocab_embed
         model_params['word_vocab_size'] = word_vocab_size
-        model_params['wordemb_size'] = args.wordemb_size
+        model_params['wordemb_size'] = wordemb_size
         model_params['hidden_size'] = args.hidden_size
         model_params['update_pretrained_wordemb'] = args.update_pretrained_wordemb
         model_params['para_init'] = args.para_init

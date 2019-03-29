@@ -13,46 +13,49 @@ class Gigaword:
         lookup = {}
         c = 0
         delimiter = " "
+        embedding_size=0
         time_start_loading = time.clock()
         with open(path_to_file, "r") as f:
-            if 'glove.6B.100d.txt' in path_to_file:
-                embedding_size = 100
-            else:
-                first_line = next(f).rstrip().split(delimiter)
-                embedding_size = int(first_line[1])
-            embedding_vectors = list()
-            for line in f:
-                if (take and c <= take) or not take:
-                    # split line
-                    line_split = line.rstrip().split(delimiter)
-                    # extract word and vector
-                    word = line_split[0]
-                    vector = np.array([float(i) for i in line_split[1:]])
-                    # get dimension of vector
-                    # add to lookup
-                    lookup[word] = c
-                    # add to embedding vectors
-                    embedding_vectors.append(vector)
-                    c += 1
+            # if '100d' in path_to_file:
+            #     embedding_size = 100
+            # else:
+            #     if '300d' in path_to_file:
+            #         embedding_size = 300
+            #     else:
+                    embedding_vectors = list()
+                    for line in f:
+                        if (take and c <= take) or not take:
+                            # split line
+                            line_split = line.rstrip().split(delimiter)
+                            embedding_size = len(line_split)-1
+                            # extract word and vector
+                            word = line_split[0]
+                            vector = np.array([float(i) for i in line_split[1:]])
+                            # get dimension of vector
+                            # add to lookup
+                            lookup[word] = c
+                            # add to embedding vectors
+                            embedding_vectors.append(vector)
+                            c += 1
 
-                if c % 100000 == 0:
-                    sys.stdout.write("Completed loading %d lines \r" % (c))
-                    sys.stdout.flush()
-            sys.stdout.write("Writing the <unk> at " + str(c) + "\n")
-            embedding_vectors.append(np.zeros((embedding_size)))
-            lookup["<unk>"] = c
+                        if c % 100000 == 0:
+                            sys.stdout.write("Completed loading %d lines \r" % (c))
+                            sys.stdout.flush()
+                    sys.stdout.write("Writing the <unk> at " + str(c) + "\n")
+                    embedding_vectors.append(np.zeros((embedding_size)))
+                    lookup["<unk>"] = c
 
-            sys.stdout.write("Writing the <pad> at " + str(c+1) + "\n")
-            embedding_vectors.append(np.ones((embedding_size))*(-1))
-            lookup["<pad>"] = c + 1
+                    sys.stdout.write("Writing the <pad> at " + str(c+1) + "\n")
+                    embedding_vectors.append(np.ones((embedding_size))*(-1))
+                    lookup["<pad>"] = c + 1
 
-            sys.stdout.write("Writing the entityone at " + str(c + 2) + "\n")
-            embedding_vectors.append(np.ones((embedding_size))*(-2))
-            lookup["entityone"] = c + 2
+                    sys.stdout.write("Writing the entityone at " + str(c + 2) + "\n")
+                    embedding_vectors.append(np.ones((embedding_size))*(-2))
+                    lookup["entityone"] = c + 2
 
-            sys.stdout.write("Writing the entitytwo at " + str(c + 3) + "\n")
-            embedding_vectors.append(np.ones((embedding_size)) * (-3))
-            lookup["entitytwo"] = c + 3
+                    sys.stdout.write("Writing the entitytwo at " + str(c + 3) + "\n")
+                    embedding_vectors.append(np.ones((embedding_size)) * (-3))
+                    lookup["entitytwo"] = c + 3
 
         sys.stdout.write("[done] Completed loading " + str(c) + " lines\n")
         # sys.stdout.write("Time taken : " + str((time.clock() - time_start_loading)) + "\n")
@@ -65,7 +68,7 @@ class Gigaword:
         sys.stdout.write("Total time taken : " + str((time.clock()-time_start_loading)) + "\n")
         sys.stdout.flush()
 
-        return embedding_matrix, lookup
+        return embedding_matrix, lookup,embedding_size
 
     @classmethod
     def load_pretrained_dep_embeddings(cls, path_to_file, take=None):

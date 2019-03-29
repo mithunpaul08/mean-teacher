@@ -17,11 +17,13 @@ def create_parser():
                         help='dataset: ' +
                             ' | '.join(datasets.__all__) +
                             ' (default: conll)')
-    parser.add_argument('--train-subdir', type=str, default='train/',
+    parser.add_argument('--train-subdir', type=str, default='rte/fever/train/',
                         help='the subdirectory inside the data directory that contains the training data')
     parser.add_argument('--results_subdir', type=str, default='results/',
                         help='the subdirectory where the output will be stored under run_name')
-    parser.add_argument('--eval-subdir', type=str, default='dev/',
+    parser.add_argument('--eval-subdir', type=str, default='rte/fever/dev/',
+                        help='the subdirectory inside the data directory that contains the evaluation data')
+    parser.add_argument('--glove_subdir', type=str, default='glove/',
                         help='the subdirectory inside the data directory that contains the evaluation data')
     parser.add_argument('--labels', default=None, type=str, #metavar='FILE',
                         help='% of labeled data to be used for the NLP task (randomly selected)')
@@ -86,7 +88,7 @@ def create_parser():
                         help='size of the hidden layer to be used in the simple_MLP_embed model (default: 50)')
     parser.add_argument('--pretrained_wordemb', default=True, type=str2bool, metavar='BOOL',
                         help='Use pre-trained word embeddings to be loaded from disk, if True; else random initialization of word-emb (default: True)')
-    parser.add_argument('--pretrained-wordemb-file', type=str, default='glove.6B.100d.txt',
+    parser.add_argument('--pretrained_wordemb_file', type=str, default='glove.6B.100d.txt',
                         help='pre-trained word embeddings file')
     parser.add_argument('--update_pretrained_wordemb', default=False, type=str2bool, metavar='BOOL',
                         help='Update the pre-trained word embeddings during training, if True; else keep them fixed (default: False)')
@@ -132,6 +134,8 @@ def create_parser():
 
     parser.add_argument('--Adagrad_init', help='initial accumulating values for gradients',
                         type=float, default=0.)
+
+
 
     return parser
 

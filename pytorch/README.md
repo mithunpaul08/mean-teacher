@@ -72,10 +72,10 @@ Below is a version that runs the code as a simple FFNN on a mac command line-but
 python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 1 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_small_200_claims_with_evi_sents.jsonl --dev_input_file dev_90_with_evi_sents.jsonl --workers 0 --exclude_unlabeled true --batch_size 20 --lr 0.0000001 --ema_decay 8 --print_freq 1
 
 ```
-Below is a version that runs the code as a decomposable attention given [here](https://github.com/mithunpaul08/SNLI-decomposable-attention) 
+Below is a version that runs the code as a **decomposable attention** given [here](https://github.com/mithunpaul08/SNLI-decomposable-attention) 
 inside the student only on a mac command line-but with toy data- best for laptop:
 ```
---dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/rte/fever --print_freq 1 --workers 0 --dev_input_file dev_90_from_train_big145k.jsonl --train_input_file train_small_200_claims_with_evi_sents.jsonl --arch da_RTE --exclude_unlabeled true --log_level INFO 
+--dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file dev_90_from_train_big145k.jsonl --train_input_file train_small_200_claims_with_evi_sents.jsonl --arch da_RTE --exclude_unlabeled true --log_level INFO --pretrained_wordemb_file glove.840B.300d.txt  
 ```
 
 Below is a version that runs on linux command line (server/big memory-but with 12k training and 2.5k dev):
@@ -102,7 +102,7 @@ Below is a version that runs **Decomposable Attention** on linux command line (s
 use conda environment: meanteacher in clara
 
 ``` 
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 500 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file dev_24K_no_train_120k_overlap.jsonl --print_freq 1 --workers 4 --exclude_unlabeled true --batch_size 500 --lr 0.005 --arch da_RTE --exclude_unlabeled true --log_level INFO --use_gpu True 
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb true --epochs 500 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file dev_24K_no_train_120k_overlap.jsonl --print_freq 1 --workers 4 --exclude_unlabeled true --batch_size 500 --lr 0.005 --arch da_RTE --exclude_unlabeled true --log_level INFO --use_gpu True 
 ```
 
 
@@ -319,7 +319,10 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
     -no ..dev file was the corrupted dump. now i get 71.69% as dev accuracy also 
 - try two optimizer stepping
     - tried. accuracy reduced. gave up.
-- try two optimizer plus shrinking and grad clipping
+
+- turn glove on/load embeddings and not just randomly initialize them
+- try two optimizer stepping after loading glove embeddings
+- try two optimizer stepping plus shrinking and grad clipping after
 - max_grad_norm
 - weight_decay
 - para_init
@@ -327,7 +330,6 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
 - momentum
     
     
-- turn glove on/load embeddings and not just randomly initialize them
 - update embeddings
 
 - go to allennlp +fever's [json file](https://github.com/mithunpaul08/decomp_attn_fever/blob/master/experiments/decomp_attn.json) and try to replicate the parameters here

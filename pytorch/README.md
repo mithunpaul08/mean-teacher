@@ -326,7 +326,12 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
     - do need to confirm/recheck the embeddings are passing correctly (take a word, copy its embedding from actual glove on server, try printing locally)
     - current train accuracy:55
     - current dev accuracy:54
-    
+- make sure that both libowen and my code are both loading embeddings of vocab only and not the whole thing
+    - yes. found it to be true
+- print and make sure the embeddings of `is` is loaded correctly.
+    - it wasn't. i need to load embeddings based on word id like ajay was doing. i was just loading it by lemma.
+- why is there gigaword.norm- ask ajay or remove for the time being    
+- why are there only words from claims in teh word vocabulary?
 - try two optimizer stepping after loading glove embeddings
 - try two optimizer stepping plus shrinking and grad clipping after
 - max_grad_norm
@@ -340,6 +345,7 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
 
 - go to allennlp +fever's [json file](https://github.com/mithunpaul08/decomp_attn_fever/blob/master/experiments/decomp_attn.json) and try to replicate the parameters here
 - accuracy across batches vs average accuracy
+- add/hardcode/randomly initialize an embedding for `</s>` also after you enable transform. right now it is taking that of <unk>
 
 #ask marco
 - batch average- which one to take...sum all individual per point average/divided by- refer my code 

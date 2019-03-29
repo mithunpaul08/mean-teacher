@@ -45,24 +45,38 @@ class RTEDataset(Dataset):
     NUM_WORDS_TO_REPLACE = 1
     WORD_NOISE_TYPE = "drop"
 
-    def sanitise_and_lookup_embedding(self, word):
-        w_small = word.lower()
-        if w_small in self.lookupGiga:
-            word_embed = Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga[w_small]])
-        else:
-            word_embed = Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga["<unk>"]])
+    # def sanitise_and_lookup_embedding(self, word):
+    #     w_small = word.lower()
+    #     if w_small in self.lookupGiga:
+    #         word_embed = Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga[w_small]])
+    #     else:
+    #         word_embed = Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga["<unk>"]])
+    #
+    #     return word_embed
+    def get_word_from_vocab_dict_given_word_id(self, word_id):
+        for key,value in self.word_vocab.items():
+            if(value==word_id):
+                return key
 
+    def sanitise_and_lookup_embedding(self, word_id):
+        word_original = Gigaword.sanitiseWord(self.get_word_from_vocab_dict_given_word_id(word_id))
+        word_lowercase=word_original.lower()
+
+        if word_lowercase in self.lookupGiga:
+            #todo : not sure what Gigaword.norm is doing. commenting it out and loading glove vectors directly on march 29th2019 until i find out what it does and if we need it.
+            #word_embed = Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga[word_lowercase]])
+            word_embed = self.gigaW2vEmbed[self.lookupGiga[word_lowercase]]
+        else:
+            #word_embed = Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga["<unk>"]])
+            word_embed = self.gigaW2vEmbed[self.lookupGiga["<unk>"]]
         return word_embed
 
-    def create_word_vocab_embed(self, args):
-
+    def create_word_vocab_embed(self):
         word_vocab_embed = list()
-
         # leave last word = "@PADDING"
-        for word in self.word_vocab.keys():
-            word_embed = self.sanitise_and_lookup_embedding(word)
+        for word_id in range(0, len(self.word_vocab)):
+            word_embed = self.sanitise_and_lookup_embedding(word_id)
             word_vocab_embed.append(word_embed)
-
         # NOTE: adding the embed for @PADDING
         #word_vocab_embed.append(Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga["<pad>"]]))
         return np.array(word_vocab_embed).astype('float32')
@@ -132,7 +146,7 @@ class RTEDataset(Dataset):
             if not runName == "dev": # do not load the word embeddings again in eval
                 LOG.info("Loading the pretrained embeddings ... ")
                 self.gigaW2vEmbed, self.lookupGiga, self.embedding_size = Gigaword.load_pretrained_embeddings(emb_file_path)
-                self.word_vocab_embed = self.create_word_vocab_embed(args)
+                self.word_vocab_embed = self.create_word_vocab_embed()
 
         else:
             LOG.info("Not loading the pretrained embeddings ... ")

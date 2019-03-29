@@ -75,7 +75,7 @@ python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_worde
 Below is a version that runs the code as a **decomposable attention** given [here](https://github.com/mithunpaul08/SNLI-decomposable-attention) 
 inside the student only on a mac command line-but with toy data- best for laptop:
 ```
---dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file dev_90_from_train_big145k.jsonl --train_input_file train_small_200_claims_with_evi_sents.jsonl --arch da_RTE --exclude_unlabeled true --log_level INFO --pretrained_wordemb_file glove.840B.300d.txt  
+--dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file dev_90_from_train_big145k.jsonl --train_input_file train_small_200_claims_with_evi_sents.jsonl --arch da_RTE --exclude_unlabeled true --log_level INFO --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true  
 ```
 
 Below is a version that runs on linux command line (server/big memory-but with 12k training and 2.5k dev):
@@ -102,7 +102,7 @@ Below is a version that runs **Decomposable Attention** on linux command line (s
 use conda environment: meanteacher in clara
 
 ``` 
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 500 --run-name fever_transform --batch_size 500 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file dev_24K_no_train_120k_overlap.jsonl --arch da_RTE --exclude_unlabeled true  --exclude_unlabeled true --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 500 --run-name fever_transform --batch_size 500 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file dev_24K_no_train_120k_overlap.jsonl --arch da_RTE --exclude_unlabeled true  --exclude_unlabeled true --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true
        
 ```
 
@@ -312,26 +312,35 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
     - classification loss started at 1230 and dipped up till 0.0019. good.
     - training accuracy hit 61% after first epoch
     - dev accuracy is around 39% though
-    - update after 254 epochs. training accuray:72% dev:35%
+    - update after 254 epochs. 
+    - **training accuray:72%** 
+    - **dev**:35%
+    
 - match learning rate to that in libowen
     - changed to 0.005
     - no change from above
 - is it the right dev file?
-    -no ..dev file was the corrupted dump. now i get 71.69% as dev accuracy also 
+    -no ..dev file was the corrupted dump. 
+    - now i get **71.69% as dev accuracy** also 
 - try two optimizer stepping
     - tried. accuracy reduced. gave up.
-
 - turn glove on/load embeddings and not just randomly initialize them
     - pushed one version up to clara at 830pm on march 28th.
     - do need to confirm/recheck the embeddings are passing correctly (take a word, copy its embedding from actual glove on server, try printing locally)
-    - current train accuracy:55
-    - current dev accuracy:54
+    - **current train accuracy:55**
+    - **current dev accuracy:54**
 - make sure that both libowen and my code are both loading embeddings of vocab only and not the whole thing
     - yes. found it to be true
 - print and make sure the embeddings of `is` is loaded correctly.
     - it wasn't. i need to load embeddings based on word id like ajay was doing. i was just loading it by lemma.
-- why is there gigaword.norm- ask ajay or remove for the time being    
+    - ok found the bug. the order of embeddings vs vocab words was changing
+    - started run at 2.45pm
+    - got back 
+    - **train:73% dev:74%**
+- why is there gigaword.norm- ask ajay or remove for the time being  
+    - removed for the time being. i think this is probably l2 regularization?     
 - why are there only words from claims in teh word vocabulary?
+    - checked on local machine. looks ok. i can see words from both claims and evidences.
 - try two optimizer stepping after loading glove embeddings
 - try two optimizer stepping plus shrinking and grad clipping after
 - max_grad_norm
@@ -341,8 +350,11 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
 - momentum
 - remove tolower at two places and check if that makes any diff. at vocab dictionary creation and embedding sanitize lookup function    
     
-- update embeddings
-
+- update embeddings = true
+- to make the run faster
+    - currently i look up the word given id, by iterating through the dict every time. maybe try the index method they mention [here](https://www.geeksforgeeks.org/python-get-key-from-value-in-dictionary/)
+        - test it thoroughly for id and embedding of `is` again
+        - pushing this to later
 - go to allennlp +fever's [json file](https://github.com/mithunpaul08/decomp_attn_fever/blob/master/experiments/decomp_attn.json) and try to replicate the parameters here
 - accuracy across batches vs average accuracy
 - add/hardcode/randomly initialize an embedding for `</s>` also after you enable transform. right now it is taking that of <unk>

@@ -132,9 +132,7 @@ class DecompAttnLibowenCode(nn.Module):
         self.input_encoder.embedding.weight.requires_grad = update_pretrained_wordemb
         self.inter_atten = atten(hidden_sz, num_classes, para_init)
 
-        #torch.cuda.set_device(args.gpu_id)
-        # input_encoder.cuda()
-        # inter_atten.cuda()
+
 
         device = None
         if (use_gpu) and torch.cuda.is_available():
@@ -144,13 +142,10 @@ class DecompAttnLibowenCode(nn.Module):
 
         self.input_encoder.to(device)
         self.inter_atten.to(device)
-        #
-        # if (torch.cuda.is_available()):
-        #     .cuda()
-        #
-        # else:
-        #     input_encoder.cpu()
-        #     inter_atten.cpu()
+
+        self.para1 = filter(lambda p: p.requires_grad, self.input_encoder.parameters())
+        self.para2 = self.inter_atten.parameters()
+
 
     def forward(self, claim, evidence, claim_lengths, evidence_lengths):
         train_src_linear, train_tgt_linear = self.input_encoder(

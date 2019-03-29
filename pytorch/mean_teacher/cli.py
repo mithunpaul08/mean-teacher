@@ -131,9 +131,10 @@ def create_parser():
                         help='AT WHAT LEVEL do you want your logger to be. INFO, DEBUG, ERROR WARNING.')
     parser.add_argument('--optimizer', help='optimizer',
                         type=str, default='adagrad')
-
     parser.add_argument('--Adagrad_init', help='initial accumulating values for gradients',
                         type=float, default=0.)
+    parser.add_argument('--use_double_optimizers', help='libowen code has 2 optimizers and doesnt propagate through one',
+                        type=bool, default=False)
 
 
 

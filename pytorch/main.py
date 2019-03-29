@@ -270,7 +270,7 @@ def update_ema_variables(model, ema_model, alpha, global_step):
         ema_param.data.mul_(alpha).add_(1 - alpha, param.data)
 
 
-def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
+def train(train_loader, model, ema_model, optimizer,inter_atten_optimizer, epoch, dataset, log):
     global global_step
     global NA_label
     global train_student_pred_match_noNA
@@ -521,9 +521,19 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
             meters.update('ema_error1', 100. - ema_prec1, labeled_minibatch_size)
 
         # compute gradient and do SGD step
-        optimizer.zero_grad()
+
+        if(args.use_double_optimizers):
+            optimizer.step()
+            optimizer.zero_grad()
+            inter_atten_optimizer.zero_grad()
+            inter_atten_optimizer.step()
+
+        else:
+            optimizer.zero_grad()
+            optimizer.step()
+
+
         loss.backward()
-        optimizer.step()
         global_step += 1
 
         # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
@@ -1302,30 +1312,43 @@ def main(context):
         os.remove(test_student_pred_file)
         os.remove(test_teacher_pred_file)
 
+    input_optimizer=None
+    inter_atten_optimizer=None
 
+    if(args.use_double_optimizers):
+        para1 = model.para1
+        para2 = model.para2
 
-    optimizer=None
-    if args.optimizer == "adam" :
-        ## Note: removing the parameters of embeddings as they are not updated
-        # https://discuss.pytorch.org/t/freeze-the-learnable-parameters-of-resnet-and-attach-it-to-a-new-network/949/9
-        filtered_parameters = list(filter(lambda p: p.requires_grad, model.parameters()))
-        optimizer = torch.optim.Adam(filtered_parameters)
-        # optimizer = torch.optim.SGD(filtered_parameters, args.lr,
-        #                             momentum=args.momentum,
-        #                             weight_decay=args.weight_decay,
-        #                             nesterov=args.nesterov)
-    else:
-        if args.optimizer == "sgd":
-            optimizer = torch.optim.SGD(model.parameters(), args.lr,
-                                momentum=args.momentum,
-                                weight_decay=args.weight_decay,
-                                nesterov=args.nesterov)
+        if args.optimizer == 'adagrad':
+            input_optimizer = torch.optim.Adagrad(para1, lr=args.lr, weight_decay=args.weight_decay)
+            inter_atten_optimizer = torch.optim.Adagrad(para2, lr=args.lr, weight_decay=args.weight_decay)
+        elif args.optimizer == 'Adadelta':
+            input_optimizer = torch.optim.Adadelta(para1, lr=args.lr)
+            inter_atten_optimizer = torch.optim.Adadelta(para2, lr=args.lr)
         else:
-            if args.optimizer is "adagrad":
-                 optimizer = torch.optim.Adagrad(model.parameters(), args.lr,
-                                        weight_decay=args.weight_decay)
+            LOG.info('No Optimizer.')
+            sys.exit()
+        assert input_optimizer != None
+        assert inter_atten_optimizer != None
+    else:
+        if args.optimizer == "adam" :
+            ## Note: removing the parameters of embeddings as they are not updated
+            # https://discuss.pytorch.org/t/freeze-the-learnable-parameters-of-resnet-and-attach-it-to-a-new-network/949/9
+            filtered_parameters = list(filter(lambda p: p.requires_grad, model.parameters()))
+            input_optimizer = torch.optim.Adam(filtered_parameters)
+        else:
+            if args.optimizer == "sgd":
+                input_optimizer = torch.optim.SGD(model.parameters(), args.lr,
+                                    momentum=args.momentum,
+                                    weight_decay=args.weight_decay,
+                                    nesterov=args.nesterov)
+            else:
+                if args.optimizer is "adagrad":
+                     input_optimizer = torch.optim.Adagrad(model.parameters(), args.lr,
+                                            weight_decay=args.weight_decay)
 
-    assert optimizer != None
+
+        assert input_optimizer != None
 
 
     # optionally resume from a checkpoint
@@ -1338,7 +1361,7 @@ def main(context):
         best_dev_accuracy_across_epochs = checkpoint['best_prec1']
         model.load_state_dict(checkpoint['state_dict'])
         ema_model.load_state_dict(checkpoint['ema_state_dict'])
-        optimizer.load_state_dict(checkpoint['optimizer'])
+        input_optimizer.load_state_dict(checkpoint['input_optimizer'])
         LOG.info("=> loaded checkpoint '{}' (epoch {})".format(args.resume, checkpoint['epoch']))
 
     cudnn.benchmark = True
@@ -1375,7 +1398,7 @@ def main(context):
     for epoch in range(args.start_epoch, args.epochs):
         start_time = time.time()
         #ask ajay: why are they not returning the trained models explicitly
-        avg_tr_precision_this_epoch,avg_tr_prec_taken_totally=train(train_loader, model, ema_model, optimizer, epoch, dataset, training_log)
+        avg_tr_precision_this_epoch,avg_tr_prec_taken_totally=train(train_loader, model, ema_model, input_optimizer,inter_atten_optimizer, epoch, dataset, training_log)
         accuracy_per_epoch_training.append(avg_tr_precision_this_epoch)
         LOG.debug(f"--- done training epoch {epoch} in {(time.time() - start_time)} seconds. avg_precision_cumulative:{avg_tr_precision_this_epoch}, avg_prec_taken_by_total_pred_gold:{avg_tr_prec_taken_totally}" )
 
@@ -1440,7 +1463,7 @@ def main(context):
                     'state_dict': model.state_dict(),
                     'ema_state_dict': ema_model.state_dict(),
                     'best_prec1': best_dev_accuracy_across_epochs,
-                    'optimizer' : optimizer.state_dict(),
+                    'input_optimizer' : input_optimizer.state_dict(),
                     'dataset' : args.dataset,
                 }, is_best, checkpoint_path, epoch + 1)
 

@@ -328,7 +328,7 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
 - para_init
 -   Adagrad_init
 - momentum
-    
+- remove tolower at two places and check if that makes any diff. at vocab dictionary creation and embedding sanitize lookup function    
     
 - update embeddings
 

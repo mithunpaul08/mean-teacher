@@ -46,8 +46,9 @@ class RTEDataset(Dataset):
     WORD_NOISE_TYPE = "drop"
 
     def sanitise_and_lookup_embedding(self, word):
-        if word.lower() in self.lookupGiga:
-            word_embed = Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga[word.lower()]])
+        w_small = word.lower()
+        if w_small in self.lookupGiga:
+            word_embed = Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga[w_small]])
         else:
             word_embed = Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga["<unk>"]])
 
@@ -63,7 +64,7 @@ class RTEDataset(Dataset):
             word_vocab_embed.append(word_embed)
 
         # NOTE: adding the embed for @PADDING
-        word_vocab_embed.append(Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga["<pad>"]]))
+        #word_vocab_embed.append(Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga["<pad>"]]))
         return np.array(word_vocab_embed).astype('float32')
 
     #mithun this is called using:#dataset = datasets.NECDataset(traindir, args, train_transformation)
@@ -189,9 +190,10 @@ class RTEDataset(Dataset):
 
     def build_word_vocabulary(self,w,word_vocab):
         # if the word is new, get the last id and add it
-        if(w not in word_vocab ):
+        w_small=w.lower()
+        if(w.lower() not in word_vocab ):
             len_dict=len(word_vocab.keys())
-            word_vocab[w]=len_dict+1
+            word_vocab[w_small]=len_dict+1
         return word_vocab
 
 

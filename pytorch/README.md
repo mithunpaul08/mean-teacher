@@ -102,7 +102,8 @@ Below is a version that runs **Decomposable Attention** on linux command line (s
 use conda environment: meanteacher in clara
 
 ``` 
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb true --epochs 500 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file dev_24K_no_train_120k_overlap.jsonl --print_freq 1 --workers 4 --exclude_unlabeled true --batch_size 500 --lr 0.005 --arch da_RTE --exclude_unlabeled true --log_level INFO --use_gpu True 
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 500 --run-name fever_transform --batch_size 500 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file dev_24K_no_train_120k_overlap.jsonl --arch da_RTE --exclude_unlabeled true  --exclude_unlabeled true --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt
+       
 ```
 
 
@@ -321,6 +322,11 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
     - tried. accuracy reduced. gave up.
 
 - turn glove on/load embeddings and not just randomly initialize them
+    - pushed one version up to clara at 830pm on march 28th.
+    - do need to confirm/recheck the embeddings are passing correctly (take a word, copy its embedding from actual glove on server, try printing locally)
+    - current train accuracy:55
+    - current dev accuracy:54
+    
 - try two optimizer stepping after loading glove embeddings
 - try two optimizer stepping plus shrinking and grad clipping after
 - max_grad_norm

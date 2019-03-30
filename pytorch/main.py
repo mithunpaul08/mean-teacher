@@ -1315,7 +1315,7 @@ def main(context):
     input_optimizer=None
     inter_atten_optimizer=None
 
-    if(args.use_double_optimizers):
+    if ( args.use_double_optimizers==True ):
         para1 = model.para1
         para2 = model.para2
 

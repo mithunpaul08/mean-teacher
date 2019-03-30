@@ -133,11 +133,11 @@ def create_parser():
                         type=str, default='adagrad')
     parser.add_argument('--Adagrad_init', help='initial accumulating values for gradients',
                         type=float, default=0.)
-    parser.add_argument('--use_double_optimizers', help='libowen code has 2 optimizers and doesnt propagate through one',
-                        type=bool, default=False)
+    parser.add_argument('--use_double_optimizers', default=False, type=str2bool, metavar='BOOL',
+                        help='libowen code has 2 optimizers and doesnt propagate through one')
 
 
-
+    print(parser.parse_args())
     return parser
 
 

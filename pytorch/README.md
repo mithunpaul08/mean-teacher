@@ -336,13 +336,15 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
     - ok found the bug. the order of embeddings vs vocab words was changing
     - started run at 2.45pm
     - got back 
-    - **train:73% dev:74%**
+    - **train:72.25% dev:72.1%** after epoch 26
 - why is there gigaword.norm- ask ajay or remove for the time being  
     - removed for the time being. i think this is probably l2 regularization?     
 - why are there only words from claims in teh word vocabulary?
     - checked on local machine. looks ok. i can see words from both claims and evidences.
-- try two optimizer stepping after loading glove embeddings
-- try two optimizer stepping plus shrinking and grad clipping after
+- try two optimizer stepping after loading glove embeddings.
+    -done. have also added a new flag --use_double_optimizers
+    - update: getting 24% again. weird.
+- try two optimizer stepping plus shrinking and grad clipping after loading glove embeddings
 - max_grad_norm
 - weight_decay
 - para_init

@@ -345,13 +345,17 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
     -done. have also added a new flag --use_double_optimizers
     - update: getting 24% again. weird.
 - try two optimizer stepping plus shrinking and grad clipping after loading glove embeddings
-- max_grad_norm
-- weight_decay
-- para_init
+    - done. still getting `25%`
+- check if `--use_gpu` is getting true from str2bools
+    - done. works fine. tested for both true and false 
+- match the order of zero grad and stepping as in libowen
+    - have pushed it to test on gpu
+- add max_grad_norm
+- add weight_decay
+- add para_init
 -   Adagrad_init
-- momentum
+- does libowen have momentum? 
 - remove tolower at two places and check if that makes any diff. at vocab dictionary creation and embedding sanitize lookup function    
-    
 - update embeddings = true
 - to make the run faster
     - currently i look up the word given id, by iterating through the dict every time. maybe try the index method they mention [here](https://www.geeksforgeeks.org/python-get-key-from-value-in-dictionary/)

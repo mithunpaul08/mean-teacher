@@ -350,10 +350,11 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
     - done. works fine. tested for both true and false 
 - match the order of zero grad and stepping as in libowen
     - have pushed it to test on gpu
+    - got back **72%** on both dev and training accuracy
 - add max_grad_norm
 - add weight_decay
 - add para_init
--   Adagrad_init
+- turn on epoch0 initialiation and Adagrad_init
 - does libowen have momentum? 
 - remove tolower at two places and check if that makes any diff. at vocab dictionary creation and embedding sanitize lookup function    
 - update embeddings = true

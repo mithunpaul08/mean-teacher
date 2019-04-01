@@ -367,15 +367,15 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
             input_optimizer.zero_grad()
             inter_atten_optimizer.zero_grad()
             # initialize the optimizer
-            # if epoch == 0 and args.optimizer == 'adagrad':
-            #     for group in input_optimizer.param_groups:
-            #         for p in group['params']:
-            #             state = input_optimizer.state[p]
-            #             state['sum'] += args.Adagrad_init
-            #     for group in inter_atten_optimizer.param_groups:
-            #         for p in group['params']:
-            #             state = inter_atten_optimizer.state[p]
-            #             state['sum'] += args.Adagrad_init
+            if epoch == 0 and args.optimizer == 'adagrad':
+                for group in input_optimizer.param_groups:
+                    for p in group['params']:
+                        state = input_optimizer.state[p]
+                        state['sum'] += args.Adagrad_init
+                for group in inter_atten_optimizer.param_groups:
+                    for p in group['params']:
+                        state = inter_atten_optimizer.state[p]
+                        state['sum'] += args.Adagrad_init
 
             if torch.cuda.is_available():
                 claims_var = torch.autograd.Variable(student_input_claim).cuda()

@@ -536,6 +536,42 @@ def train(train_loader, model, ema_model, optimizer,inter_atten_optimizer, epoch
         loss.backward()
         global_step += 1
 
+        if (args.use_double_optimizers):
+
+            grad_norm = 0.
+            para_norm = 0.
+
+            for m in model.input_encoder.modules():
+                if isinstance(m, nn.Linear):
+                    grad_norm += m.weight.grad.data.norm() ** 2
+                    para_norm += m.weight.data.norm() ** 2
+                    if m.bias:
+                        grad_norm += m.bias.grad.data.norm() ** 2
+                        para_norm += m.bias.data.norm() ** 2
+
+            for m in model.inter_atten.modules():
+                if isinstance(m, nn.Linear):
+                    grad_norm += m.weight.grad.data.norm() ** 2
+                    para_norm += m.weight.data.norm() ** 2
+                    if m.bias is not None:
+                        grad_norm += m.bias.grad.data.norm() ** 2
+                        para_norm += m.bias.data.norm() ** 2
+
+            #             grad_norm ** 0.5
+            #             para_norm ** 0.5
+
+            shrinkage = args.max_grad_norm / grad_norm
+            if shrinkage < 1:
+                for m in model.input_encoder.modules():
+                    # print m
+                    if isinstance(m, nn.Linear):
+                        m.weight.grad.data = m.weight.grad.data * shrinkage
+                for m in model.inter_atten.modules():
+                    # print m
+                    if isinstance(m, nn.Linear):
+                        m.weight.grad.data = m.weight.grad.data * shrinkage
+                        m.bias.grad.data = m.bias.grad.data * shrinkage
+
         # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
         if not args.exclude_unlabeled:
             update_ema_variables(model, ema_model, args.ema_decay, global_step)

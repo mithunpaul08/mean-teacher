@@ -135,6 +135,9 @@ def create_parser():
                         type=float, default=0.)
     parser.add_argument('--use_double_optimizers', default=False, type=str2bool, metavar='BOOL',
                         help='libowen code has 2 optimizers and doesnt propagate through one')
+    parser.add_argument('--max_grad_norm', help='If the norm of the gradient vector exceeds this renormalize it\
+                                   to have the norm equal to max_grad_norm',
+                        type=float, default=5)
 
 
     print(parser.parse_args())

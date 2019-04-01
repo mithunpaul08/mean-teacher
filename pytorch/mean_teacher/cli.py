@@ -55,8 +55,8 @@ def create_parser():
                         help='momentum')
     parser.add_argument('--nesterov', default=False, type=str2bool,
                         help='use nesterov momentum', metavar='BOOL')
-    parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float,
-                        metavar='W', help='weight decay (default: 1e-4)')
+    parser.add_argument('--weight_decay', help='l2 regularization',
+                        type=float, default=5e-5)
     parser.add_argument('--ema_decay', default=0.999, type=float, metavar='ALPHA',
                         help='ema variable decay rate (default: 0.999)')
     parser.add_argument('--consistency', default=None, type=float, metavar='WEIGHT',

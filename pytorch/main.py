@@ -270,7 +270,7 @@ def update_ema_variables(model, ema_model, alpha, global_step):
         ema_param.data.mul_(alpha).add_(1 - alpha, param.data)
 
 
-def train(train_loader, model, ema_model, optimizer,inter_atten_optimizer, epoch, dataset, log):
+def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer, epoch, dataset, log):
     global global_step
     global NA_label
     global train_student_pred_match_noNA
@@ -330,8 +330,8 @@ def train(train_loader, model, ema_model, optimizer,inter_atten_optimizer, epoch
         # measure data loading time()
         meters.update('data_time', time.time() - end)
 
-        adjust_learning_rate(optimizer, epoch, i, len(train_loader))
-        meters.update('lr', optimizer.param_groups[0]['lr'])
+        adjust_learning_rate(input_optimizer, epoch, i, len(train_loader))
+        meters.update('lr', input_optimizer.param_groups[0]['lr'])
 
         len_claims_this_batch = None
         len_evidences_this_batch= None
@@ -364,6 +364,18 @@ def train(train_loader, model, ema_model, optimizer,inter_atten_optimizer, epoch
             teacher_input_claim = teacher_input[0]
             teacher_input_evidence = teacher_input[1]
 
+            input_optimizer.zero_grad()
+            inter_atten_optimizer.zero_grad()
+            # initialize the optimizer
+            # if epoch == 0 and args.optimizer == 'adagrad':
+            #     for group in input_optimizer.param_groups:
+            #         for p in group['params']:
+            #             state = input_optimizer.state[p]
+            #             state['sum'] += args.Adagrad_init
+            #     for group in inter_atten_optimizer.param_groups:
+            #         for p in group['params']:
+            #             state = inter_atten_optimizer.state[p]
+            #             state['sum'] += args.Adagrad_init
 
             if torch.cuda.is_available():
                 claims_var = torch.autograd.Variable(student_input_claim).cuda()
@@ -520,20 +532,11 @@ def train(train_loader, model, ema_model, optimizer,inter_atten_optimizer, epoch
             meters.update('ema_top1', ema_prec1, labeled_minibatch_size)
             meters.update('ema_error1', 100. - ema_prec1, labeled_minibatch_size)
 
-        # compute gradient and do SGD step
-
-        if(args.use_double_optimizers):
-            optimizer.step()
-            optimizer.zero_grad()
-            inter_atten_optimizer.zero_grad()
-            inter_atten_optimizer.step()
-
-        else:
-            optimizer.zero_grad()
-            optimizer.step()
-
-
         loss.backward()
+
+
+
+
         global_step += 1
 
         if (args.use_double_optimizers):
@@ -571,6 +574,14 @@ def train(train_loader, model, ema_model, optimizer,inter_atten_optimizer, epoch
                     if isinstance(m, nn.Linear):
                         m.weight.grad.data = m.weight.grad.data * shrinkage
                         m.bias.grad.data = m.bias.grad.data * shrinkage
+
+                # compute gradient and do SGD step
+        if (args.use_double_optimizers):
+            input_optimizer.step()
+            inter_atten_optimizer.step()
+
+        else:
+            input_optimizer.step()
 
         # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
         if not args.exclude_unlabeled:

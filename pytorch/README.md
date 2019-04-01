@@ -348,15 +348,19 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
     - done. still getting `25%`
 - check if `--use_gpu` is getting true from str2bools
     - done. works fine. tested for both true and false 
-- match the order of zero grad and stepping as in libowen
-    - have pushed it to test on gpu
-    - got back **72%** on both dev and training accuracy
 - add max_grad_norm
+    - done
 - add weight_decay
+    - done
 - add para_init
+    - done
+- match the order of zero grad and stepping as in libowen
+    - update: got back **72%** on both dev and training accuracy
 - turn on epoch0 initialiation and Adagrad_init
+    - done. no change. still hangs out around 72%. maybe i should run let it run across couple of epochs
 - does libowen have momentum? 
-- remove tolower at two places and check if that makes any diff. at vocab dictionary creation and embedding sanitize lookup function    
+    - no
+- remove to_lower() at two places and check if that makes any diff. at vocab dictionary creation and embedding sanitize lookup function    
 - update embeddings = true
 - to make the run faster
     - currently i look up the word given id, by iterating through the dict every time. maybe try the index method they mention [here](https://www.geeksforgeeks.org/python-get-key-from-value-in-dictionary/)
@@ -364,7 +368,7 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
         - pushing this to later
 - go to allennlp +fever's [json file](https://github.com/mithunpaul08/decomp_attn_fever/blob/master/experiments/decomp_attn.json) and try to replicate the parameters here
 - accuracy across batches vs average accuracy
-- add/hardcode/randomly initialize an embedding for `</s>` also after you enable transform. right now it is taking that of <unk>
+- add/hardcode/randomly initialize an embedding for `</s>` also after you enable transform. right now it is taking that of `<unk>`
 
 #ask marco
 - batch average- which one to take...sum all individual per point average/divided by- refer my code 

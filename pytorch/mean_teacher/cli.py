@@ -126,7 +126,7 @@ def create_parser():
     parser.add_argument('--para_init', help='parameter initialization gaussian',
                         type=float, default=0.01)
     parser.add_argument('--use_gpu', help="use or don't use CPU",
-                        type=bool, default=False)
+                        type=str2bool, default=False)
     parser.add_argument('--log_level', type=str, default='DEBUG',
                         help='AT WHAT LEVEL do you want your logger to be. INFO, DEBUG, ERROR WARNING.')
     parser.add_argument('--optimizer', help='optimizer',

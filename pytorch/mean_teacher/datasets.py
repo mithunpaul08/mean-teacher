@@ -206,8 +206,9 @@ class RTEDataset(Dataset):
     def build_word_vocabulary(self,w,word_vocab):
         # if the word is new, get the last id and add it
         w_small=w
-            #commenting out to test if that affects performance.lower()
-        if(w.lower() not in word_vocab ):
+            #commenting out .lower() test if that affects performance.lower()
+        #if(w.lower() not in word_vocab ):
+        if (w not in word_vocab):
             len_dict=len(word_vocab.keys())
             word_vocab[w_small]=len_dict+1
         return word_vocab

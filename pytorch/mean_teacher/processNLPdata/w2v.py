@@ -121,7 +121,9 @@ class Gigaword:
     #############################################################
     @classmethod
     def sanitiseWord(cls, word):
-        w = word.lower()
+        w = word
+
+        #    .lower()
 
         if w == "-lrb-" or w == "-rrb-" or w == "-lsb-" or w == "-rsb-" :
             return ""

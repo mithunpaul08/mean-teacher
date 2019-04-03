@@ -321,7 +321,7 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
     total_gold=None
 
 
-
+    #this is where batching happens. i.e for each batch
     for i, datapoint in enumerate(train_loader):
         # print("len(datapoint) = ", len(datapoint))
         # print("datapoint[0] shape: {0}".format(datapoint[0].shape))
@@ -505,7 +505,6 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
 
         loss = class_loss + consistency_loss + res_loss # NOTE: AJAY - loss is a combination of classification loss and consistency loss (+ residual loss from the 2 outputs of student model fc1 and fc2, see args.logit_distance_cost)
 
-        #todo: note by mithun: uncomment this after we have transform turned on.
 
         meters.update('loss', loss.data.item())
 
@@ -621,6 +620,13 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
 
     assert len(total_predictions) == len(total_gold), "length of predictions and gold labels doesn't match"
     avg_prec_taken_totally=accuracy_given_labels(total_predictions,total_gold,len(total_gold))
+
+    # #take the trained model at the end of this epoch, and predict on all training data in this epoch together.
+    # if not args.exclude_unlabeled:
+    #     ema_model_out = ema_model(ema_claims_var, ema_evidences_var, len_claims_this_batch, len_evidences_this_batch)
+    # model_out = model(claims_var, evidences_var, len_claims_this_batch, len_evidences_this_batch)
+    # prec1, pred_labels, gold_labels = accuracy_fever(class_logit.data, target_var.data)
+
     return avg_after_each_batch,avg_prec_taken_totally
 
 
@@ -674,6 +680,7 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
     total_gold = None
     #enumerate means enumerate through each of the batches.
     #the __getitem__ in datasets.py is called here
+    # also not sure why there is batching in dev (this is how valpola/ajay was doing it). at the end of all batches
     for i, datapoint in enumerate(eval_loader):
         LOG.debug(f"got inside .i, datapoint in enumerate(eval_loader)")
         meters.update('data_time', time.time() - end)
@@ -808,25 +815,30 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
 
 
 
-    # LOG.info(' * Prec@1 {top1.avg:.3f}\tClassLoss {class_loss.avg:.3f}'
-    #          .format(top1=meters['top1'], class_loss=meters['class_loss']))
+
 
     if save_custom_embed_condition:
         save_custom_embeddings(custom_embeddings_minibatch, dataset, result_dir, model_type)
 
+    #I don't like that they are doing an average of predictions across batches, hence I am trying to do 3 types of accuracy calculation and make sure that all are same.
+
+    #accuracy calculation 1: valpola method of takign cumulative average
     LOG.debug(f"avg_after_each_batch={avg_after_each_batch}")
     cum_avg=meters['top1'].avg
 
 
     total_datapoints=len(dataset.claims)
-    LOG.debug(f"average precision after all the {total_no_batches} batches in epoch {epoch} is :{cum_avg}")
+    LOG.debug(f" precision after all the {total_no_batches} batches (when done cumulative way) in epoch {epoch} is :{cum_avg}")
     LOG.debug(f"value of  total_no_batches  is :{total_no_batches}")
     LOG.debug(f"value of sum_all_acc after epoch {epoch} is :{sum_all_acc}")
 
     assert len(total_predictions) == len(total_gold), "length of predictions and gold labels doesn't match"
+
+    # accuracy calculation 2: accumulate predictions and gold labels per batch, then predict together.
     avg_prec_taken_totally = accuracy_given_labels(total_predictions, total_gold, len(total_gold))
 
-
+    # accuracy calculation 3: accumulate claims, evidences, predict all together, then calculate accuracy_fever
+    prec1, pred_labels, gold_labels = accuracy_fever(output1.data, target_var.data)
     return cum_avg,avg_prec_taken_totally
 
 #todo: do we need to save custom_embeddings?  - mihai

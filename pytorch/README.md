@@ -363,8 +363,11 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
 - does libowen have momentum? 
     - no
 - remove to_lower() at two places and check if that makes any diff. at vocab dictionary creation and embedding sanitize lookup function
+    - done. accuracy on both training and dev is around **77%** after 250 epochs. will stick to this.
 - check if sentences in claim and evidnece are getting cut at 1000    
 - update embeddings = true
+- why is there batching in dev?
+- also confirm if the accuracy is being done at the end of all batches, not cumulative
 - to make the run faster
     - currently i look up the word given id, by iterating through the dict every time. maybe try the index method they mention [here](https://www.geeksforgeeks.org/python-get-key-from-value-in-dictionary/)
         - test it thoroughly for id and embedding of `is` again
@@ -372,7 +375,7 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
 - go to allennlp +fever's [json file](https://github.com/mithunpaul08/decomp_attn_fever/blob/master/experiments/decomp_attn.json) and try to replicate the parameters here
 - accuracy across batches vs average accuracy
 - add/hardcode/randomly initialize an embedding for `</s>` also after you enable transform. right now it is taking that of `<unk>`
-
+- why are we doing prediction before loss.backward? -confirm if libowen does it
 #ask marco
 - batch average- which one to take...sum all individual per point average/divided by- refer my code 
 - how do we know model() is trained, vs model_out. atleast forward, explicitly returns stuff...line 408- same pass by reference thing?

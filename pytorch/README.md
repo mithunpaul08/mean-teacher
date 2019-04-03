@@ -102,7 +102,7 @@ Below is a version that runs **Decomposable Attention** on linux command line (s
 use conda environment: meanteacher in clara
 
 ``` 
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 500 --run-name fever_transform --batch_size 500 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file dev_24K_no_train_120k_overlap.jsonl --arch da_RTE --exclude_unlabeled true  --exclude_unlabeled true --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 500 --run-name fever_transform --batch_size 100 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file dev_24K_no_train_120k_overlap.jsonl --arch da_RTE --exclude_unlabeled true  --exclude_unlabeled true --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true
        
 ```
 
@@ -362,7 +362,8 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
     - `268,77.19166666666666,76.95814338997099`
 - does libowen have momentum? 
     - no
-- remove to_lower() at two places and check if that makes any diff. at vocab dictionary creation and embedding sanitize lookup function    
+- remove to_lower() at two places and check if that makes any diff. at vocab dictionary creation and embedding sanitize lookup function
+- check if sentences in claim and evidnece are getting cut at 1000    
 - update embeddings = true
 - to make the run faster
     - currently i look up the word given id, by iterating through the dict every time. maybe try the index method they mention [here](https://www.geeksforgeeks.org/python-get-key-from-value-in-dictionary/)

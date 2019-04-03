@@ -60,7 +60,8 @@ class RTEDataset(Dataset):
 
     def sanitise_and_lookup_embedding(self, word_id):
         word_original = Gigaword.sanitiseWord(self.get_word_from_vocab_dict_given_word_id(word_id))
-        word_lowercase=word_original.lower()
+        word_lowercase=word_original
+            #commenting out to check if that makes a difference.lower()
 
         if word_lowercase in self.lookupGiga:
             #todo : not sure what Gigaword.norm is doing. commenting it out and loading glove vectors directly on march 29th2019 until i find out what it does and if we need it.
@@ -204,7 +205,8 @@ class RTEDataset(Dataset):
 
     def build_word_vocabulary(self,w,word_vocab):
         # if the word is new, get the last id and add it
-        w_small=w.lower()
+        w_small=w
+            #commenting out to test if that affects performance.lower()
         if(w.lower() not in word_vocab ):
             len_dict=len(word_vocab.keys())
             word_vocab[w_small]=len_dict+1

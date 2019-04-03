@@ -358,6 +358,8 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
     - update: got back **72%** on both dev and training accuracy
 - turn on epoch0 initialiation and Adagrad_init
     - done. no change. still hangs out around 72%. maybe i should run let it run across couple of epochs
+    - update this is the train and dev accuracy after 250+ epochs
+    - `268,77.19166666666666,76.95814338997099`
 - does libowen have momentum? 
     - no
 - remove to_lower() at two places and check if that makes any diff. at vocab dictionary creation and embedding sanitize lookup function    

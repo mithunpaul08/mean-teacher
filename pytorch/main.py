@@ -630,6 +630,18 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
     return avg_after_each_batch,avg_prec_taken_totally
 
 
+def predict_total_ie_not_by_batches(model, total_claims, evidence_dev, labels_dev, length_of_each_claim_global, length_of_each_ev_global):
+    if torch.cuda.is_available():
+        claims_var = torch.autograd.Variable(torch.LongTensor(total_claims), volatile=True).cuda()
+        evidence_var = torch.autograd.Variable(torch.LongTensor(evidence_dev), volatile=True).cuda()
+        target_var = torch.autograd.Variable(torch.LongTensor(labels_dev.cuda()), volatile=True)
+    else:
+        claims_var = torch.autograd.Variable(torch.LongTensor(total_claims), volatile=True).cpu()
+        evidence_var = torch.autograd.Variable(torch.LongTensor(evidence_dev), volatile=True).cpu()
+        target_var = torch.autograd.Variable(torch.LongTensor(labels_dev).cpu(),volatile=True)
+    output1 = model(claims_var, evidence_var, length_of_each_claim_global, length_of_each_ev_global)
+    prec1, pred_labels, gold_labels = accuracy_fever(output1.data, target_var.data)
+
 
 def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, model_type):
     LOG.debug(f"got here inside validate")
@@ -675,9 +687,15 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
 
     sum_all_acc=0
     total_no_batches=0
-
+    all_target_var=[]
     total_predictions=None
     total_gold = None
+
+    length_of_each_claim_global=[]
+    length_of_each_ev_global = []
+    all_claims_global=[]
+    all_evidences_global=[]
+    all_labels_global=[]
     #enumerate means enumerate through each of the batches.
     #the __getitem__ in datasets.py is called here
     # also not sure why there is batching in dev (this is how valpola/ajay was doing it). at the end of all batches
@@ -697,19 +715,26 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
                 # if there is no transformation, the data will be inside datapoint[0] itself
                 student_input = datapoint[0]
                 labels_dev = datapoint[1]
-                len_claims_this_batch = datapoint[2][0]
-                len_evidences_this_batch = datapoint[2][1]
+                length_of_each_claim_in_this_batch = datapoint[2][0]
+                length_of_each_evidence_in_this_batch = datapoint[2][1]
 
             else:
                 student_input = datapoint[0]
                 labels_dev = datapoint[2]
-                len_claims_this_batch = datapoint[3][0]
-                len_evidences_this_batch = datapoint[3][1]
+                length_of_each_claim_in_this_batch = datapoint[3][0]
+                length_of_each_evidence_in_this_batch = datapoint[3][1]
+
 
             ## Input consists of tuple (entity_id, pattern_ids)
             claims_dev = student_input[0]
             evidence_dev = student_input[1]
 
+            # for accuracy calculation 3, i.e predict all claims and evidences together
+            all_claims_global.extend(claims_dev.numpy())
+            all_evidences_global.extend(evidence_dev.numpy().astype(int))
+            all_labels_global.extend(labels_dev.numpy())
+            length_of_each_claim_global.append(length_of_each_claim_in_this_batch)
+            length_of_each_ev_global.append(length_of_each_evidence_in_this_batch)
 
             if torch.cuda.is_available():
                 claims_var = torch.autograd.Variable(claims_dev, volatile=True).cuda()
@@ -720,6 +745,7 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
                 evidence_var = torch.autograd.Variable(evidence_dev, volatile=True).cpu()
                 target_var = torch.autograd.Variable(labels_dev.cpu(),
                                                      volatile=True)  ## NOTE: AJAY - volatile: Boolean indicating that the Variable should be used in inference mode,
+
 
         minibatch_size = len(target_var)
         labeled_minibatch_size = target_var.data.ne(NO_LABEL).sum()
@@ -744,7 +770,7 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
                 custom_embeddings_minibatch.append((entity_custom_embed, pattern_custom_embed))  # , minibatch_size))
 
         elif args.dataset in ['fever']:
-            output1 = model(claims_var, evidence_var,len_claims_this_batch,len_evidences_this_batch)
+            output1 = model(claims_var, evidence_var,length_of_each_claim_in_this_batch,length_of_each_evidence_in_this_batch)
 
         if(output1 is None):
             LOG.error("Error: output of the neural network pass is empty. check.")
@@ -768,6 +794,7 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
         if (i == 0):
             total_predictions = pred_labels[0]
             total_gold = gold_labels
+
         else:
             total_predictions = torch.cat((total_predictions, pred_labels[0]), 0)
             total_gold = torch.cat((total_gold, gold_labels), 0)
@@ -838,7 +865,8 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
     avg_prec_taken_totally = accuracy_given_labels(total_predictions, total_gold, len(total_gold))
 
     # accuracy calculation 3: accumulate claims, evidences, predict all together, then calculate accuracy_fever
-    prec1, pred_labels, gold_labels = accuracy_fever(output1.data, target_var.data)
+    predict_total_ie_not_by_batches(model, all_claims_global, all_evidences_global, all_labels_global,length_of_each_claim_global,length_of_each_ev_global)
+
     return cum_avg,avg_prec_taken_totally
 
 #todo: do we need to save custom_embeddings?  - mihai

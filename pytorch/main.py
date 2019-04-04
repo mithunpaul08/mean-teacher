@@ -867,7 +867,7 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
     # accuracy calculation 3: accumulate claims, evidences, predict all together, then calculate accuracy_fever
     predict_total_ie_not_by_batches(model, all_claims_global, all_evidences_global, all_labels_global,length_of_each_claim_global,length_of_each_ev_global)
 
-    return cum_avg,avg_prec_taken_totally
+    return cum_avg,avg_prec_taken_totally 
 
 #todo: do we need to save custom_embeddings?  - mihai
 def save_custom_embeddings(custom_embeddings_minibatch, dataset, result_dir, model_type):

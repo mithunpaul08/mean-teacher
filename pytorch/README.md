@@ -376,6 +376,7 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
 - accuracy across batches vs average accuracy
 - add/hardcode/randomly initialize an embedding for `</s>` also after you enable transform. right now it is taking that of `<unk>`
 - why are we doing prediction before loss.backward? -confirm if libowen does it
+- implement early stopping +prediction
 #ask marco
 - batch average- which one to take...sum all individual per point average/divided by- refer my code 
 - how do we know model() is trained, vs model_out. atleast forward, explicitly returns stuff...line 408- same pass by reference thing?

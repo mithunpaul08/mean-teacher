@@ -634,7 +634,7 @@ def predict_total_ie_not_by_batches(model, total_claims, evidence_dev, labels_de
     if torch.cuda.is_available():
         claims_var = torch.autograd.Variable(torch.LongTensor(total_claims), volatile=True).cuda()
         evidence_var = torch.autograd.Variable(torch.LongTensor(evidence_dev), volatile=True).cuda()
-        target_var = torch.autograd.Variable(torch.LongTensor(labels_dev.cuda()), volatile=True)
+        target_var = torch.autograd.Variable(torch.LongTensor(labels_dev), volatile=True).cuda()
     else:
         claims_var = torch.autograd.Variable(torch.LongTensor(total_claims), volatile=True).cpu()
         evidence_var = torch.autograd.Variable(torch.LongTensor(evidence_dev), volatile=True).cpu()

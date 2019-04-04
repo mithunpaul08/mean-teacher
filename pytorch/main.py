@@ -44,7 +44,7 @@ LOG.setLevel(logging.INFO)
 ################
 
 args = None
-best_dev_accuracy_across_epochs = 0
+best_dev_accuracy_so_far = 0
 best_epochs = 0
 global_step = 0
 NA_label = -1
@@ -641,6 +641,7 @@ def predict_total_ie_not_by_batches(model, total_claims, evidence_dev, labels_de
         target_var = torch.autograd.Variable(torch.LongTensor(labels_dev).cpu(),volatile=True)
     output1 = model(claims_var, evidence_var, length_of_each_claim_global, length_of_each_ev_global)
     prec1, pred_labels, gold_labels = accuracy_fever(output1.data, target_var.data)
+    return prec1
 
 
 def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, model_type):
@@ -865,9 +866,9 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
     avg_prec_taken_totally = accuracy_given_labels(total_predictions, total_gold, len(total_gold))
 
     # accuracy calculation 3: accumulate claims, evidences, predict all together, then calculate accuracy_fever
-    predict_total_ie_not_by_batches(model, all_claims_global, all_evidences_global, all_labels_global,length_of_each_claim_global,length_of_each_ev_global)
+    prec_after_all_batches=predict_total_ie_not_by_batches(model, all_claims_global, all_evidences_global, all_labels_global,length_of_each_claim_global,length_of_each_ev_global)
 
-    return cum_avg,avg_prec_taken_totally 
+    return cum_avg,avg_prec_taken_totally,prec_after_all_batches
 
 #todo: do we need to save custom_embeddings?  - mihai
 def save_custom_embeddings(custom_embeddings_minibatch, dataset, result_dir, model_type):
@@ -1299,7 +1300,7 @@ def write_as_csv(train_accuracy, dev_accuracy,args):
 
 def main(context):
     global global_step
-    global best_dev_accuracy_across_epochs
+    global best_dev_accuracy_so_far
     global best_epochs
 
     time_start = time.time()
@@ -1445,7 +1446,7 @@ def main(context):
         checkpoint = torch.load(args.resume)
         args.start_epoch = checkpoint['epoch']
         global_step = checkpoint['global_step']
-        best_dev_accuracy_across_epochs = checkpoint['best_prec1']
+        best_dev_accuracy_so_far = checkpoint['best_prec1']
         model.load_state_dict(checkpoint['state_dict'])
         ema_model.load_state_dict(checkpoint['ema_state_dict'])
         input_optimizer.load_state_dict(checkpoint['input_optimizer'])
@@ -1519,7 +1520,7 @@ def main(context):
             LOG.debug(f"value of dataset_test: {dataset_test} ")
             LOG.debug(f"value of context.result_dir: {context.result_dir} ")
 
-            student_accuracy,avg_st_prec_taken_totally = validate(eval_loader, model, validation_log, global_step, epoch , dataset_test,
+            dev_prec_cum_avg_method, dev_prec_accumulate_pred_method, dev_prec_accumulate_claim_evidence_method = validate(eval_loader, model, validation_log, global_step, epoch , dataset_test,
                              context.result_dir, "student")
 
             teacher_accuracy=0
@@ -1528,19 +1529,21 @@ def main(context):
                 LOG.debug("Evaluating the EMA model:")
                 teacher_accuracy,avg_teacher_prec_taken_totally = validate(eval_loader, ema_model, ema_validation_log, global_step, epoch , dataset_test,context.result_dir, "teacher")
 
-            LOG.debug("--- validation in %s seconds ---" % (time.time() - start_time))
-            dev_local_best_acc= max(teacher_accuracy, student_accuracy,avg_st_prec_taken_totally,avg_teacher_prec_taken_totally)
-            is_best = teacher_accuracy > best_dev_accuracy_across_epochs
+            LOG.debug("--- validation done in %s seconds ---" % (time.time() - start_time))
+            #get the best of all various types of accuracy including comparison between student and teacher. Note that this is a temporary thing being used only during feed forward network to
+            # asses which method of calculating accuracy is the best. Ideally student and teacher accuracies must be kept different and not compared with each other.
+            dev_local_best_acc= max(teacher_accuracy, dev_prec_cum_avg_method,dev_prec_accumulate_pred_method,dev_prec_accumulate_claim_evidence_method,avg_teacher_prec_taken_totally)
+            is_best = teacher_accuracy > best_dev_accuracy_so_far
 
-            if(dev_local_best_acc>best_dev_accuracy_across_epochs):
-                best_dev_accuracy_across_epochs = dev_local_best_acc
+            if(dev_local_best_acc>best_dev_accuracy_so_far):
+                best_dev_accuracy_so_far = dev_local_best_acc
                 best_epochs=epoch
             else:
                 is_best = False
 
             accuracy_per_epoch_dev.append(dev_local_best_acc)
             LOG.debug(f"best value of DEV validation accuracy after epoch {epoch} is {dev_local_best_acc}")
-            LOG.debug(f"best value of best_accuracy_across_epochs for DEV so far is {best_dev_accuracy_across_epochs} at epoch number {best_epochs}")
+            LOG.debug(f"best value of best_accuracy_across_epochs for DEV so far is {best_dev_accuracy_so_far} at epoch number {best_epochs}")
 
             if args.checkpoint_epochs and (epoch + 1) % args.checkpoint_epochs == 0:
                 save_checkpoint({
@@ -1549,7 +1552,7 @@ def main(context):
                     'arch': args.arch,
                     'state_dict': model.state_dict(),
                     'ema_state_dict': ema_model.state_dict(),
-                    'best_prec1': best_dev_accuracy_across_epochs,
+                    'best_prec1': best_dev_accuracy_so_far,
                     'input_optimizer' : input_optimizer.state_dict(),
                     'dataset' : args.dataset,
                 }, is_best, checkpoint_path, epoch + 1)
@@ -1564,21 +1567,24 @@ def main(context):
         #         LOG.info(accuracy_per_epoch_training,accuracy_per_epoch_dev)
         # LOG.info(f"avg_tr_precision_cumulative:{avg_tr_precision_this_epoch}, avg_tr_prec_taken_by_total_pred_gold:"
         #          f"{avg_tr_prec_taken_totally},dev_local_best_acc:{dev_local_best_acc},"
-        #          f"best_dev_accuracy_across_epochs:{best_dev_accuracy_across_epochs}.best_epoch:{best_epochs}")
-
-        if(epoch==0):
-            LOG.info(f"epoch, avg_tr_precision_cumulative, "
-                     f"avg_tr_prec_taken_by_total_pred_gold, dev_local_best_acc, best_dev_accuracy_across_epochs, best_epoch")
-
-        LOG.info(f"{epoch}:{avg_tr_precision_this_epoch},{avg_tr_prec_taken_totally},{dev_local_best_acc},{best_dev_accuracy_across_epochs},{best_epochs}")
+        #          f"best_dev_accuracy_so_far:{best_dev_accuracy_so_far}.best_epoch:{best_epochs}")
 
 
+        LOG.info(
+                 f"*************************\n"
+                 f"dev_prec_cum_avg_method:{dev_prec_cum_avg_method},\n"
+                 f"dev_prec_accumulate_pred_method :{dev_prec_accumulate_pred_method}\n"
+                 f"dev_prec_accumulate_claim_evidence_method:{dev_prec_accumulate_claim_evidence_method}\n"
+                 f"best_dev_accuracy_so_far:{best_dev_accuracy_so_far},\n"
+                 f"best_epoch_so_far:{best_epochs}\n"
+                 f"*************************\n")
+        time.sleep(10)
 
     # for testing only .. commented
     # LOG.info("For testing only; Comment the following line of code--------------------------------")
     # validate(eval_loader, model, validation_log, global_step, 0, dataset, context.result_dir, "student")
     LOG.info("--------Total end to end time %s seconds ----------- " % (time.time() - time_start))
-    LOG.info(f"best best_accuracy_across_epochs  is:{best_dev_accuracy_across_epochs} at epoch number:{best_epochs},dev_accuracy{dev_local_best_acc},best_dev_so_far:")
+    LOG.info(f"best best_dev_accuracy_so_far  is:{best_dev_accuracy_so_far} was at epoch number:{best_epochs},dev_accuracy{dev_local_best_acc},best_dev_so_far:")
     write_as_csv(accuracy_per_epoch_training, accuracy_per_epoch_dev, args)
 
 

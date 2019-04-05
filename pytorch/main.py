@@ -297,13 +297,14 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
     meters = AverageMeterSet()
 
     # switch to train mode
-    model.train() ### From the documentation (nn.module,py) :
+     ### From the documentation (nn.module,py) :
     # i) Sets the module in training mode.
     # (ii) This has any effect only on modules such as Dropout or BatchNorm. (iii) Returns: Module: self
+    model=model.train()
 
     #if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
     if not args.exclude_unlabeled:
-        ema_model.train()
+        ema_model=ema_model.train()
 
     end = time.time()
 
@@ -546,7 +547,6 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
         prec1, pred_labels, gold_labels = accuracy_fever(class_logit.data, target_var.data)
 
         # accumulate all gold and predicted labels for the entire epochs.- this is for second method of calculation of accuracy,. refer below
-
         # if its first batch, assign the datatype. Else extend
         if (i == 0):
             total_predictions = pred_labels[0]
@@ -605,11 +605,6 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
     assert len(total_predictions) == len(total_gold), "length of predictions and gold labels doesn't match"
     avg_prec_taken_totally=accuracy_given_labels(total_predictions,total_gold,len(total_gold))
 
-    # #take the trained model at the end of this epoch, and predict on all training data in this epoch together.
-    # if not args.exclude_unlabeled:
-    #     ema_model_out = ema_model(ema_claims_var, ema_evidences_var, len_claims_this_batch, len_evidences_this_batch)
-    # model_out = model(claims_var, evidences_var, len_claims_this_batch, len_evidences_this_batch)
-    # prec1, pred_labels, gold_labels = accuracy_fever(class_logit.data, target_var.data)
 
     return avg_after_each_batch,avg_prec_taken_totally
 
@@ -646,7 +641,7 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
     meters = AverageMeterSet()
 
     # switch to evaluate mode
-    model.eval() ### From the documentation (nn.module,py) : i) Sets the module in evaluation mode. (ii) This has any effect only on modules such as Dropout or BatchNorm. (iii) Returns: Module: self
+    model=model.eval() ### From the documentation (nn.module,py) : i) Sets the module in evaluation mode. (ii) This has any effect only on modules such as Dropout or BatchNorm. (iii) Returns: Module: self
     LOG.debug(f"got here after model.eval()")
     end = time.time()
 
@@ -687,49 +682,47 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
     for i, datapoint in enumerate(eval_loader):
         LOG.debug(f"got inside .i, datapoint in enumerate(eval_loader)")
         meters.update('data_time', time.time() - end)
-
-        if args.dataset in ['conll', 'ontonotes','fever']:
-            LOG.debug(f"got inside args.dataset in fever")
+        LOG.debug(f"got inside args.dataset in fever")
 
 
-            '''Note: when you get here from devsomewhere in the code it is internally making self. transform=None.
-             So by the time it is reaching here in validate, it will always take the same output. But yeah, good to check
-             . Have updated the code with that from train() nevertheless, Just that it always gets into 
-             Self.Transform=None branch'''
-            if (dataset.transform) is None:
-                # if there is no transformation, the data will be inside datapoint[0] itself
-                student_input = datapoint[0]
-                labels_dev = datapoint[1]
-                length_of_each_claim_in_this_batch = datapoint[2][0]
-                length_of_each_evidence_in_this_batch = datapoint[2][1]
+        '''Note: when you get here from devsomewhere in the code it is internally making self. transform=None.
+         So by the time it is reaching here in validate, it will always take the same output. But yeah, good to check
+         . Have updated the code with that from train() nevertheless, Just that it always gets into 
+         Self.Transform=None branch'''
+        if (dataset.transform) is None:
+            # if there is no transformation, the data will be inside datapoint[0] itself
+            student_input = datapoint[0]
+            labels_dev = datapoint[1]
+            length_of_each_claim_in_this_batch = datapoint[2][0]
+            length_of_each_evidence_in_this_batch = datapoint[2][1]
 
-            else:
-                student_input = datapoint[0]
-                labels_dev = datapoint[2]
-                length_of_each_claim_in_this_batch = datapoint[3][0]
-                length_of_each_evidence_in_this_batch = datapoint[3][1]
+        else:
+            student_input = datapoint[0]
+            labels_dev = datapoint[2]
+            length_of_each_claim_in_this_batch = datapoint[3][0]
+            length_of_each_evidence_in_this_batch = datapoint[3][1]
 
 
-            ## Input consists of tuple (entity_id, pattern_ids)
-            claims_dev = student_input[0]
-            evidence_dev = student_input[1]
+        ## Input consists of tuple (entity_id, pattern_ids)
+        claims_dev = student_input[0]
+        evidence_dev = student_input[1]
 
-            # for accuracy calculation 3, i.e predict all claims and evidences together
-            all_claims_global.extend(claims_dev.numpy())
-            all_evidences_global.extend(evidence_dev.numpy().astype(int))
-            all_labels_global.extend(labels_dev.numpy())
-            length_of_each_claim_global.append(length_of_each_claim_in_this_batch)
-            length_of_each_ev_global.append(length_of_each_evidence_in_this_batch)
+        # for accuracy calculation 3, i.e predict all claims and evidences together
+        all_claims_global.extend(claims_dev.numpy())
+        all_evidences_global.extend(evidence_dev.numpy().astype(int))
+        all_labels_global.extend(labels_dev.numpy())
+        length_of_each_claim_global.append(length_of_each_claim_in_this_batch)
+        length_of_each_ev_global.append(length_of_each_evidence_in_this_batch)
 
-            if torch.cuda.is_available():
-                claims_var = torch.autograd.Variable(claims_dev, volatile=True).cuda()
-                evidence_var = torch.autograd.Variable(evidence_dev, volatile=True).cuda()
-                target_var = torch.autograd.Variable(labels_dev.cuda(), volatile=True)
-            else:
-                claims_var = torch.autograd.Variable(claims_dev, volatile=True).cpu()
-                evidence_var = torch.autograd.Variable(evidence_dev, volatile=True).cpu()
-                target_var = torch.autograd.Variable(labels_dev.cpu(),
-                                                     volatile=True)  ## NOTE: AJAY - volatile: Boolean indicating that the Variable should be used in inference mode,
+        if torch.cuda.is_available():
+            claims_var = torch.autograd.Variable(claims_dev, volatile=True).cuda()
+            evidence_var = torch.autograd.Variable(evidence_dev, volatile=True).cuda()
+            target_var = torch.autograd.Variable(labels_dev.cuda(), volatile=True)
+        else:
+            claims_var = torch.autograd.Variable(claims_dev, volatile=True).cpu()
+            evidence_var = torch.autograd.Variable(evidence_dev, volatile=True).cpu()
+            target_var = torch.autograd.Variable(labels_dev.cpu(),
+                                                 volatile=True)  ## NOTE: AJAY - volatile: Boolean indicating that the Variable should be used in inference mode,
 
 
         minibatch_size = len(target_var)
@@ -1544,15 +1537,8 @@ def main(context):
 
                 # write train and dev accuracies to disk as csv
         append_as_csv(avg_tr_prec_taken_totally, dev_local_best_acc, args,epoch)
-            # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
-        # if not args.exclude_unlabeled:
-        #         LOG.info(accuracy_per_epoch_training,accuracy_per_epoch_dev)
-        # else:
-        #         #todo print teacher accuracy also
-        #         LOG.info(accuracy_per_epoch_training,accuracy_per_epoch_dev)
-        # LOG.info(f"avg_tr_precision_cumulative:{avg_tr_precision_this_epoch}, avg_tr_prec_taken_by_total_pred_gold:"
-        #          f"{avg_tr_prec_taken_totally},dev_local_best_acc:{dev_local_best_acc},"
-        #          f"best_dev_accuracy_so_far:{best_dev_accuracy_so_far}.best_epoch:{best_epochs}")
+
+        #todo print teacher accuracy also
 
 
         LOG.info(

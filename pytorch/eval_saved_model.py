@@ -24,6 +24,7 @@ test_teacher_pred_match_noNA = 0.0
 test_teacher_pred_noNA = 0.0
 test_teacher_true_noNA = 0.0
 
+
 def main():
     start_time = time.time()
     logging.basicConfig(level=logging.INFO, format='%(message)s')
@@ -60,6 +61,9 @@ def main():
 
     evaldir = os.path.join(dataset_config['datadir'], args.eval_subdir)
     w2vfile = evaldir + "/../../" + args.pretrained_wordemb_file
+
+
+
     if args.pretrained_wordemb:
         dataset.gigaW2vEmbed, dataset.lookupGiga = Gigaword.load_pretrained_embeddings(w2vfile)
         dataset.word_vocab_embed = dataset.create_word_vocab_embed(args)
@@ -72,6 +76,7 @@ def main():
 
     word_vocab_embed = dataset.word_vocab_embed
     word_vocab_size = dataset.word_vocab.size()
+
 
     def create_model(ema=False):
         LOG.info("=> creating {pretrained}{ema}model '{arch}'".format(

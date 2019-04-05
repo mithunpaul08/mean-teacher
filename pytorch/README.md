@@ -369,11 +369,11 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
 - does libowen have momentum? 
     - no
 - remove to_lower() at two places and check if that makes any diff. at vocab dictionary creation and embedding sanitize lookup function
-    - done. accuracy on both training and dev is around **77%** after 250 epochs. will stick to this.
+    - done. accuracy on both training and dev is around **77.39%** after 250 epochs. will stick to this.
 - to make the run faster
     - currently i look up the word given id, by iterating through the dict every time. maybe try the index method they mention [here](https://www.geeksforgeeks.org/python-get-key-from-value-in-dictionary/)
-        - test it thoroughly for id and embedding of `is` again
-        - pushing this to later
+        - test it thoroughly for id and embedding of `is` again --done
+        - inside function `sanitise_and_lookup_embedding`
 - changed embedding_size to 300k like in libowen
 - check if sentences in claim and evidnece are getting cut at 1000    
 - update embeddings = true

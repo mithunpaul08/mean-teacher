@@ -45,26 +45,17 @@ class RTEDataset(Dataset):
     NUM_WORDS_TO_REPLACE = 1
     WORD_NOISE_TYPE = "drop"
 
-    # def sanitise_and_lookup_embedding(self, word):
-    #     w_small = word.lower()
-    #     if w_small in self.lookupGiga:
-    #         word_embed = Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga[w_small]])
-    #     else:
-    #         word_embed = Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga["<unk>"]])
-    #
-    #     return word_embed
     def get_word_from_vocab_dict_given_word_id(self, word_id):
-        for key,value in self.word_vocab.items():
-            if(value==word_id):
-                return key
+        return self.word_vocab_id_to_word[word_id]
 
     def sanitise_and_lookup_embedding(self, word_id):
         word_original = Gigaword.sanitiseWord(self.get_word_from_vocab_dict_given_word_id(word_id))
         word_lowercase=word_original
-            #commenting out to check if that makes a difference.lower()
+            #used to have .lower()- performance was less. so commented it out
 
         if word_lowercase in self.lookupGiga:
-            #todo : not sure what Gigaword.norm is doing. commenting it out and loading glove vectors directly on march 29th2019 until i find out what it does and if we need it.
+            #todo : not sure what Gigaword.norm is doing. This is from ajay/valpola code.
+            #  commenting it out and loading glove vectors directly on march 29th2019 until i find out what it does and if we need it.
             #word_embed = Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga[word_lowercase]])
             word_embed = self.gigaW2vEmbed[self.lookupGiga[word_lowercase]]
         else:
@@ -81,6 +72,15 @@ class RTEDataset(Dataset):
         # NOTE: adding the embed for @PADDING
         #word_vocab_embed.append(Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga["<pad>"]]))
         return np.array(word_vocab_embed).astype('float32')
+
+
+    # create a mapping from word to id from id to word
+    def map_id_to_word(self,word_vocab):
+        word_vocab_id_to_word_maping={}
+        for word,id in word_vocab.items():
+            word_vocab_id_to_word_maping[id]=word
+
+        return word_vocab_id_to_word_maping
 
     #mithun this is called using:#dataset = datasets.NECDataset(traindir, args, train_transformation)
     def __init__(self, word_vocab,runName,dataset_file, args,emb_file_path,transform=None):
@@ -122,6 +122,7 @@ class RTEDataset(Dataset):
 
 
         self.word_vocab, self.max_claims_len, self.max_ev_len, self.word_count= self.get_max_lengths_add_to_vocab(word_vocab,runName)
+        self.word_vocab_id_to_word={}
 
         print(f"inside datasets.py . just after  build_word_vocabulary.value of word_vocab.size()={len(self.word_vocab.keys())}")
 
@@ -141,7 +142,10 @@ class RTEDataset(Dataset):
 
         self.pad_id = self.word_vocab[RTEDataset.PAD]
 
-        #todo: load pretrained wordemb
+        # create a mapping from word to id from id to word
+
+        self.word_vocab_id_to_word=self.map_id_to_word(self.word_vocab)
+
 
         if args.pretrained_wordemb:
             if not runName == "dev": # do not load the word embeddings again in eval

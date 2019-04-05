@@ -389,11 +389,13 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
 - compare line by line libowen vs my code
     - done until line 77 in libowen's `train_baseline_snli.py` 
 - debug line by line and make sure all sizes and lengths especially w2v match
+- compare command line input with libowen cli command line
+
 - go to allennlp +fever's [json file](https://github.com/mithunpaul08/decomp_attn_fever/blob/master/experiments/decomp_attn.json) and try to replicate the parameters here
 - add/hardcode/randomly initialize an embedding for `</s>` also after you enable transform. right now it is taking that of `<unk>`
 - why are we doing prediction before loss.backward? -confirm if libowen does it
 - implement early stopping +prediction
-#ask marco
+#  marco
 - batch average- which one to take...sum all individual per point average/divided by- refer my code
     - done. marco said for dev doesn't matter. infact i verified using both methods, i.e amassing claims and evidences vs amassing predictions. both gave same results 
 - how do we know model() is trained, vs model_out. atleast forward, explicitly returns stuff...line 408- same pass by reference thing?

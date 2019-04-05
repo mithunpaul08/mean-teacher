@@ -337,78 +337,72 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
         len_claims_this_batch = None
         len_evidences_this_batch= None
 
+        #if there is no transformation, the data will be inside datapoint[0]
+        if(dataset.transform) is None:
+            student_input = datapoint[0]
+            teacher_input = datapoint[0]
+            target = datapoint[1]
+            len_claims_this_batch = datapoint[2][0]
+            len_evidences_this_batch = datapoint[2][1]
 
-
-        if args.dataset in ['conll', 'ontonotes','fever']:
-
-            #if there is no transformation, the data will be inside datapoint[0] itself
-            if(dataset.transform) is None:
-                student_input = datapoint[0]
-                teacher_input = datapoint[0]
-                target = datapoint[1]
-                len_claims_this_batch = datapoint[2][0]
-                len_evidences_this_batch = datapoint[2][1]
-
-            else:
-                student_input = datapoint[0]
-                teacher_input = datapoint[1]
-                target = datapoint[2]
-                len_claims_this_batch       = datapoint[3][0]
-                len_evidences_this_batch    = datapoint[3][1]
+        else:
+            student_input = datapoint[0]
+            teacher_input = datapoint[1]
+            target = datapoint[2]
+            len_claims_this_batch       = datapoint[3][0]
+            len_evidences_this_batch    = datapoint[3][1]
 
 
 
-            ## Input consists of tuple (entity_id, pattern_ids)
-            student_input_claim = student_input[0]
-            student_input_evidence = student_input[1]
+        ## Input consists of tuple (entity_id, pattern_ids)
+        student_input_claim = student_input[0]
+        student_input_evidence = student_input[1]
 
-            teacher_input_claim = teacher_input[0]
-            teacher_input_evidence = teacher_input[1]
-
-            input_optimizer.zero_grad()
-            inter_atten_optimizer.zero_grad()
-            # initialize the optimizer
-            if epoch == 0 and args.optimizer == 'adagrad':
-                for group in input_optimizer.param_groups:
-                    for p in group['params']:
-                        state = input_optimizer.state[p]
-                        state['sum'] += args.Adagrad_init
-                for group in inter_atten_optimizer.param_groups:
-                    for p in group['params']:
-                        state = inter_atten_optimizer.state[p]
-                        state['sum'] += args.Adagrad_init
-
-            if torch.cuda.is_available():
-                claims_var = torch.autograd.Variable(student_input_claim).cuda()
-                evidences_var = torch.autograd.Variable(student_input_evidence).cuda()
-                # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
-                if not args.exclude_unlabeled:
-                    ema_claims_var = torch.autograd.Variable(teacher_input_claim, volatile=True).cuda()
-                    ema_evidences_var = torch.autograd.Variable(teacher_input_evidence, volatile=True).cuda()
-
-            else:
-                claims_var = torch.autograd.Variable(student_input_claim).cpu()
-                evidences_var = torch.autograd.Variable(student_input_evidence).cpu()
-                # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
-                if not args.exclude_unlabeled:
-                    ema_claims_var = torch.autograd.Variable(teacher_input_claim, volatile=True).cpu()
-                    ema_evidences_var = torch.autograd.Variable(teacher_input_evidence, volatile=True).cpu()
-
-        #go through all labels in this batch and make sure that there is atleast one data point whose label is not SUPPORTS
-
-        for lbl in dataset.lbl:
-            if not (lbl == 2):
-                bool_inside_accuracy_all_labels_supports=False
+        teacher_input_claim = teacher_input[0]
+        teacher_input_evidence = teacher_input[1]
 
 
 
+        if torch.cuda.is_available():
+            claims_var = torch.autograd.Variable(student_input_claim).cuda()
+            evidences_var = torch.autograd.Variable(student_input_evidence).cuda()
+            # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
+            if not args.exclude_unlabeled:
+                ema_claims_var = torch.autograd.Variable(teacher_input_claim, volatile=True).cuda()
+                ema_evidences_var = torch.autograd.Variable(teacher_input_evidence, volatile=True).cuda()
 
+        else:
+            claims_var = torch.autograd.Variable(student_input_claim).cpu()
+            evidences_var = torch.autograd.Variable(student_input_evidence).cpu()
+            # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
+            if not args.exclude_unlabeled:
+                ema_claims_var = torch.autograd.Variable(teacher_input_claim, volatile=True).cpu()
+                ema_evidences_var = torch.autograd.Variable(teacher_input_evidence, volatile=True).cpu()
 
 
         if torch.cuda.is_available():
             target_var = torch.autograd.Variable(target.cuda())
         else:
             target_var = torch.autograd.Variable(target.cpu())  # todo: not passing the async=True (as above) .. going along with it now .. to check if this is a problem
+
+        input_optimizer.zero_grad()
+        inter_atten_optimizer.zero_grad()
+
+        # initialize the optimizer
+        if epoch == 0 and args.optimizer == 'adagrad':
+            for group in input_optimizer.param_groups:
+                for p in group['params']:
+                    state = input_optimizer.state[p]
+                    state['sum'] += args.Adagrad_init
+            for group in inter_atten_optimizer.param_groups:
+                for p in group['params']:
+                    state = inter_atten_optimizer.state[p]
+                    state['sum'] += args.Adagrad_init
+
+        # for debug/double checking: go through all labels in this batch and make sure that there is atleast one data point whose label is not SUPPORTS
+        for lbl in dataset.lbl:
+            if not (lbl == 2):
+                bool_inside_accuracy_all_labels_supports = False
 
         minibatch_size = len(target_var)
         labeled_minibatch_size = target_var.data.ne(NO_LABEL).sum()

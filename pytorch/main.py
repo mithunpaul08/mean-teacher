@@ -409,18 +409,14 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
         assert labeled_minibatch_size > 0
         meters.update('labeled_minibatch_size', labeled_minibatch_size)
 
-        #the feed forward and prediction part happens here.
-        if args.dataset in ['fever'] and args.arch == 'simple_MLP_embed_RTE':
-            # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
-            if not args.exclude_unlabeled:
-                ema_model_out = ema_model(ema_claims_var, ema_evidences_var, len_claims_this_batch, len_evidences_this_batch)
-            model_out = model(claims_var, evidences_var, len_claims_this_batch, len_evidences_this_batch)
+        #the feed forward and prediction part happens here.- if you put a breakpoint in the forward
+        # of architecture you will see that it goes there now
 
-        if args.dataset in ['fever'] and args.arch == 'da_RTE':
-            # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
-            if not args.exclude_unlabeled:
-                ema_model_out = ema_model(ema_claims_var, ema_evidences_var, len_claims_this_batch, len_evidences_this_batch)
-            model_out = model(claims_var, evidences_var, len_claims_this_batch, len_evidences_this_batch)
+        # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
+        if not args.exclude_unlabeled:
+            ema_model_out = ema_model(ema_claims_var, ema_evidences_var, len_claims_this_batch, len_evidences_this_batch)
+        model_out = model(claims_var, evidences_var, len_claims_this_batch, len_evidences_this_batch)
+
 
 
         ## DONE: AJAY - WHAT IS THIS CODE BLK ACHIEVING ? Ans: THIS IS RELATED TO --logit-distance-cost .. (fc1 and fc2 in model) ...
@@ -451,6 +447,8 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
             res_loss = 0
 
         loss_output=class_criterion(class_logit, target_var)
+
+        #note: if you are using cross entryopy NLL in pytorch, you don't need to use softmax
         class_logit_soft_max=F.softmax(class_logit,dim=0)
 
         LOG.debug(f"type of loss_output={type(loss_output)}")
@@ -467,10 +465,7 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
         #note by mithun: this was originally class_loss.data[0], but changing to class_loss.data.item() since it was throwing error on [0]
         meters.update('class_loss', class_loss.data.item())
 
-        # note by mithun: this was originally _.data[0], but changing to  _.data.item()since it was throwing error on
-        # [0]. this error occurs because we are right now passing data into student and teavher without any transformation. so this change must be temporary
-
-        # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
+        # if you want to do student alone (initially) and not teacher
         if not args.exclude_unlabeled:
             ema_class_loss = class_criterion(ema_logit, target_var) / minibatch_size
 
@@ -498,46 +493,18 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
             consistency_loss = 0
             meters.update('cons_loss', 0)
 
+        #if using just student, this will be class_loss + 0+ 0
         loss = class_loss + consistency_loss + res_loss # NOTE: AJAY - loss is a combination of classification loss and consistency loss (+ residual loss from the 2 outputs of student model fc1 and fc2, see args.logit_distance_cost)
-
+        loss.backward()
 
         meters.update('loss', loss.data.item())
 
 
 
 
-        prec1,pred_labels,gold_labels = accuracy_fever(class_logit.data, target_var.data)
-
-        # accumulate all gold and predicted labels for the entire epochs.
-        # if its first batch, assign the datatype. Else extend
-        if (i == 0):
-            total_predictions = pred_labels[0]
-            total_gold = gold_labels
-        else:
-            total_predictions = torch.cat((total_predictions, pred_labels[0]),0)
-            total_gold=torch.cat((total_gold, gold_labels),0)
-
-        meters.update('top1', prec1, labeled_minibatch_size)
-        meters.update('error1', 100. - prec1, labeled_minibatch_size)
-
-        # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
-        if not args.exclude_unlabeled:
-            ema_prec1,pred_labels,gold_labels = accuracy_fever(ema_logit.data, target_var.data) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
-            meters.update('ema_top1', ema_prec1, labeled_minibatch_size)
-            meters.update('ema_error1', 100. - ema_prec1, labeled_minibatch_size)
-
-        loss.backward()
-
-
-
-
-        global_step += 1
-
         if (args.use_double_optimizers):
-
             grad_norm = 0.
             para_norm = 0.
-
             for m in model.input_encoder.modules():
                 if isinstance(m, nn.Linear):
                     grad_norm += m.weight.grad.data.norm() ** 2
@@ -553,9 +520,6 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
                     if m.bias is not None:
                         grad_norm += m.bias.grad.data.norm() ** 2
                         para_norm += m.bias.data.norm() ** 2
-
-            #             grad_norm ** 0.5
-            #             para_norm ** 0.5
 
             shrinkage = args.max_grad_norm / grad_norm
             if shrinkage < 1:
@@ -576,6 +540,31 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
 
         else:
             input_optimizer.step()
+
+        global_step += 1
+
+        prec1, pred_labels, gold_labels = accuracy_fever(class_logit.data, target_var.data)
+
+        # accumulate all gold and predicted labels for the entire epochs.- this is for second method of calculation of accuracy,. refer below
+
+        # if its first batch, assign the datatype. Else extend
+        if (i == 0):
+            total_predictions = pred_labels[0]
+            total_gold = gold_labels
+        else:
+            total_predictions = torch.cat((total_predictions, pred_labels[0]), 0)
+            total_gold = torch.cat((total_gold, gold_labels), 0)
+
+        meters.update('top1', prec1, labeled_minibatch_size)
+        meters.update('error1', 100. - prec1, labeled_minibatch_size)
+
+        # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
+        if not args.exclude_unlabeled:
+            ema_prec1, pred_labels, gold_labels = accuracy_fever(ema_logit.data,
+                                                                 target_var.data)  # Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
+            meters.update('ema_top1', ema_prec1, labeled_minibatch_size)
+            meters.update('ema_error1', 100. - ema_prec1, labeled_minibatch_size)
+
 
         # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
         if not args.exclude_unlabeled:

@@ -98,14 +98,20 @@ Below is a version that runs **FFNN** on linux command line (server/big memory:1
 python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 500 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_full_with_evi_sents.jsonl --dev_input_file actual_fever_dev_with_9k.jsonl --print_freq 1 --workers 4 --exclude_unlabeled true --batch_size 2000 --lr 0.1 
 ```     
 
-Below is a version that runs **Decomposable Attention** on linux command line (server/big memory:120k training 25k dev) student only -i.e: --exclude_unlabeled true
+Below is a version that runs **Decomposable Attention** on linux command line (server/big memory:12k training 2k dev) student only -i.e: --exclude_unlabeled true
 use conda environment: meanteacher in clara
 
 ``` 
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 500 --run-name fever_transform --batch_size 100 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file dev_24K_no_train_120k_overlap.jsonl --arch da_RTE --exclude_unlabeled true  --exclude_unlabeled true --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 50 --run-name fever_transform --batch_size 10 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  train_12k_with_evi_sents.jsonl --dev_input_file dev_2k_with_evi_sents.jsonl --arch da_RTE --exclude_unlabeled true  --exclude_unlabeled true --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true
        
 ```
+Below is a version that runs **Decomposable Attention** on linux command line (server/big memory-but with 120k training and 2.5k dev) student only -i.e: --exclude_unlabeled true
+use conda environment: meanteacher in clara
 
+``` 
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 50 --run-name fever_transform --batch_size 10 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file dev_24K_no_train_120k_overlap.jsonl --arch da_RTE --exclude_unlabeled true  --exclude_unlabeled true --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true
+       
+```
 
 #explanation of command line parameters
 

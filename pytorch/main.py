@@ -866,9 +866,9 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
     avg_prec_taken_totally = accuracy_given_labels(total_predictions, total_gold, len(total_gold))
 
     # accuracy calculation 3: accumulate claims, evidences, predict all together, then calculate accuracy_fever
-    prec_after_all_batches=predict_total_ie_not_by_batches(model, all_claims_global, all_evidences_global, all_labels_global,length_of_each_claim_global,length_of_each_ev_global)
+    #prec_after_all_batches=predict_total_ie_not_by_batches(model, all_claims_global, all_evidences_global, all_labels_global,length_of_each_claim_global,length_of_each_ev_global)
 
-    return cum_avg,avg_prec_taken_totally,prec_after_all_batches
+    return cum_avg,avg_prec_taken_totally
 
 #todo: do we need to save custom_embeddings?  - mihai
 def save_custom_embeddings(custom_embeddings_minibatch, dataset, result_dir, model_type):
@@ -1520,7 +1520,7 @@ def main(context):
             LOG.debug(f"value of dataset_test: {dataset_test} ")
             LOG.debug(f"value of context.result_dir: {context.result_dir} ")
 
-            dev_prec_cum_avg_method, dev_prec_accumulate_pred_method, dev_prec_accumulate_claim_evidence_method = validate(eval_loader, model, validation_log, global_step, epoch , dataset_test,
+            dev_prec_cum_avg_method, dev_prec_accumulate_pred_method = validate(eval_loader, model, validation_log, global_step, epoch , dataset_test,
                              context.result_dir, "student")
 
             teacher_accuracy=0
@@ -1532,7 +1532,7 @@ def main(context):
             LOG.debug("--- validation done in %s seconds ---" % (time.time() - start_time))
             #get the best of all various types of accuracy including comparison between student and teacher. Note that this is a temporary thing being used only during feed forward network to
             # asses which method of calculating accuracy is the best. Ideally student and teacher accuracies must be kept different and not compared with each other.
-            dev_local_best_acc= max(teacher_accuracy, dev_prec_cum_avg_method,dev_prec_accumulate_pred_method,dev_prec_accumulate_claim_evidence_method,avg_teacher_prec_taken_totally)
+            dev_local_best_acc= max(teacher_accuracy, dev_prec_cum_avg_method,dev_prec_accumulate_pred_method,avg_teacher_prec_taken_totally)
             is_best = teacher_accuracy > best_dev_accuracy_so_far
 
             if(dev_local_best_acc>best_dev_accuracy_so_far):
@@ -1574,7 +1574,6 @@ def main(context):
                  f"*************************\n"
                  f"dev_prec_cum_avg_method:{dev_prec_cum_avg_method},\n"
                  f"dev_prec_accumulate_pred_method :{dev_prec_accumulate_pred_method}\n"
-                 f"dev_prec_accumulate_claim_evidence_method:{dev_prec_accumulate_claim_evidence_method}\n"
                  f"best_dev_accuracy_so_far:{best_dev_accuracy_so_far},\n"
                  f"best_epoch_so_far:{best_epochs}\n"
                  f"*************************\n")

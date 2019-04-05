@@ -43,7 +43,7 @@ def create_parser():
                         metavar='N', help='mini-batch size (default: 256)')
     parser.add_argument('--labeled_batch_size', default=None, type=int,
                         metavar='N', help="labeled examples per minibatch (default: no constrain)")
-    parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
+    parser.add_argument('--lr', '--learning-rate', default=0.005, type=float,
                         metavar='LR', help='max learning rate')
     parser.add_argument('--initial-lr', default=0.0, type=float,
                         metavar='LR', help='initial learning rate when using linear rampup')
@@ -84,7 +84,7 @@ def create_parser():
                         help='use pre-trained model')
     parser.add_argument('--wordemb_size', default=300, type=int,
                         help='size of the word-embeddings to be used in the simple_MLP_embed model (default: 300)')
-    parser.add_argument('--hidden_size', default=200, type=int,  # was 200
+    parser.add_argument('--hidden_size', default=200, type=int,
                         help='size of the hidden layer to be used in the simple_MLP_embed model (default: 50)')
     parser.add_argument('--pretrained_wordemb', default=True, type=str2bool, metavar='BOOL',
                         help='Use pre-trained word embeddings to be loaded from disk, if True; else random initialization of word-emb (default: True)')
@@ -104,8 +104,8 @@ def create_parser():
                         help='What type of noise should be added to the input (NLP) and how much; format= [(drop|replace):X], where replace=replace a random word with a wordnet synonym, drop=random word dropout, X=number of words (default: drop:1) ')
     parser.add_argument('--save-custom-embedding', default=True, type=str2bool, metavar='BOOL',
                         help='Save the custom embedding generated from the LSTM-based custom_embed model (default: True)')
-    parser.add_argument('--max-entity-len', default='8', type=int,
-                        help='maximum number of words in entity, extra words would be truncated')
+    parser.add_argument('--max-entity-len', default=1000, type=int,
+                        help='maximum number of words in entity, extra words would be truncated. update, mithun uses this as --truncate_words_length')
     parser.add_argument('--max-inbetween-len', default='50', type=int,
                         help='maximum number of words in between of two entities, extra words would be truncated')
     parser.add_argument('--ckpt-file', type=str, default='best.ckpt', help='best checkpoint file')

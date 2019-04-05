@@ -373,8 +373,9 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
 - to make the run faster
     - currently i look up the word given id, by iterating through the dict every time. maybe try the index method they mention [here](https://www.geeksforgeeks.org/python-get-key-from-value-in-dictionary/)
         - test it thoroughly for id and embedding of `is` again --done
-        - inside function `sanitise_and_lookup_embedding`
-- changed embedding_size to 300k like in libowen
+        - inside function `sanitise_and_lookup_embedding
+    - done`
+- change embedding_size to 300k like in libowen
 - check if sentences in claim and evidnece are getting cut at 1000    
 - update embeddings = true
 - why is there batching in dev?

@@ -307,7 +307,7 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
  and [documentation](https://pytorch.org/docs/0.4.0/data.html#torch.utils.data.DataLoader)
   of dataloader class
 
-# Todo:
+# Todo -done ones:
 - check loss function in libowen-make it same as libowen
     - removed the things inside teh constructor of crossentropy. now atleast its not hitting nan in logit values
     -precision is increasing (i can see 54%) but classification loss is stuck on 0.0022. weird.
@@ -375,15 +375,21 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
         - test it thoroughly for id and embedding of `is` again --done
         - inside function `sanitise_and_lookup_embedding
     - done`
-- change embedding_size to 300k like in libowen
+- change embedding_size to 300 like in libowen
+    - done. in any case i was loading up 80b300d glove
 - check if sentences in claim and evidnece are getting cut at 1000    
 - update embeddings = true
 - why is there batching in dev?
     - checked. it is to save overloading memory. accuracy doesn't change either ways.
 - also confirm if the accuracy is being done at the end of all batches, not cumulative
     - works either way for dev. for training it doesn't matter as long as the ball park figure is same.
+- compare all command line arguments between libowen and my code
+    - done
+# Todo :
+- compare line by line libowen vs my code
+    - done until line 77 in libowen's `train_baseline_snli.py` 
+- debug line by line and make sure all sizes and lengths especially w2v match
 - go to allennlp +fever's [json file](https://github.com/mithunpaul08/decomp_attn_fever/blob/master/experiments/decomp_attn.json) and try to replicate the parameters here
-- accuracy across batches vs average accuracy
 - add/hardcode/randomly initialize an embedding for `</s>` also after you enable transform. right now it is taking that of `<unk>`
 - why are we doing prediction before loss.backward? -confirm if libowen does it
 - implement early stopping +prediction

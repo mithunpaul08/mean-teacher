@@ -330,7 +330,8 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
         # measure data loading time()
         meters.update('data_time', time.time() - end)
 
-        adjust_learning_rate(input_optimizer, epoch, i, len(train_loader))
+        # this was part of the original valpola code. commenting it out to check if that makes a difference in libowen code.
+        #adjust_learning_rate(input_optimizer, epoch, i, len(train_loader))
         meters.update('lr', input_optimizer.param_groups[0]['lr'])
 
         len_claims_this_batch = None
@@ -1365,6 +1366,7 @@ def main(context):
 
         args.device=None
         if(args.use_gpu) and torch.cuda.is_available():
+            torch.cuda.set_device(0)
             args.device = torch.device('cuda')
         else:
             args.device = torch.device('cpu')
@@ -1485,7 +1487,7 @@ def main(context):
 
     for epoch in range(args.start_epoch, args.epochs):
         start_time = time.time()
-        #ask ajay: why are they not returning the trained models explicitly
+        #ask ajay: why are they not returning the trained models explicitly. Ans : python is pass by reference by default
         avg_tr_precision_this_epoch,avg_tr_prec_taken_totally=train(train_loader, model, ema_model, input_optimizer,inter_atten_optimizer, epoch, dataset, training_log)
         accuracy_per_epoch_training.append(avg_tr_precision_this_epoch)
         LOG.debug(f"--- done training epoch {epoch} in {(time.time() - start_time)} seconds. avg_precision_cumulative:{avg_tr_precision_this_epoch}, avg_prec_taken_by_total_pred_gold:{avg_tr_prec_taken_totally}" )

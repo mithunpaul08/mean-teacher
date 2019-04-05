@@ -50,14 +50,14 @@ class RTEDataset(Dataset):
 
     def sanitise_and_lookup_embedding(self, word_id):
         word_original = Gigaword.sanitiseWord(self.get_word_from_vocab_dict_given_word_id(word_id))
-        word_lowercase=word_original
+
             #used to have .lower()- performance was less. so commented it out
 
-        if word_lowercase in self.lookupGiga:
+        if word_original in self.lookupGiga:
             #todo : not sure what Gigaword.norm is doing. This is from ajay/valpola code.
             #  commenting it out and loading glove vectors directly on march 29th2019 until i find out what it does and if we need it.
-            #word_embed = Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga[word_lowercase]])
-            word_embed = self.gigaW2vEmbed[self.lookupGiga[word_lowercase]]
+            #word_embed = Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga[word_original]])
+            word_embed = self.gigaW2vEmbed[self.lookupGiga[word_original]]
         else:
             #word_embed = Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga["<unk>"]])
             word_embed = self.gigaW2vEmbed[self.lookupGiga["<unk>"]]

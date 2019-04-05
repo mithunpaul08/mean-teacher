@@ -324,9 +324,6 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
 
     #this is where batching happens. i.e for each batch
     for i, datapoint in enumerate(train_loader):
-        # print("len(datapoint) = ", len(datapoint))
-        # print("datapoint[0] shape: {0}".format(datapoint[0].shape))
-        # sys.exit(1)
 
         # measure data loading time()
         meters.update('data_time', time.time() - end)

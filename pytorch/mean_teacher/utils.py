@@ -19,9 +19,10 @@ def parameters_string(module):
     LOG.debug(f"first value of parameters is:{params[0][0]}")
     LOG.debug(f"first value of parameters is:{len(params[1][0])}")
 
-
+    counter=0
 
     for name, param in params:
+        counter=counter+1
         lines.append(row_format.format(
             name=name,
             shape=" * ".join(str(p) for p in param.size()),
@@ -29,9 +30,10 @@ def parameters_string(module):
         ))
     lines.append("=" * 75)
     lines.append(row_format.format(
-        name="all parameters",
+        name="all parameters count="+str(counter),
         shape="sum of above",
         total_size=sum(int(param.numel()) for name, param in params)
+
     ))
     lines.append("")
     return "\n".join(lines)

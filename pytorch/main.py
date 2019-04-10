@@ -593,6 +593,9 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
                         .format(
                         epoch, i, len(train_loader), meters=meters))
         avg_after_each_batch=meters['top1'].avg
+
+
+
     LOG.debug("end of all batches in training.")
     if (bool_inside_accuracy_all_labels_supports):
         import sys
@@ -1362,7 +1365,20 @@ def main(context):
     model = create_model()
     ema_model = create_model(ema=True)
 
-    LOG.info(parameters_string(model))
+    total_parameters_count=0
+    gradabale_params=0
+    for  name,param in model.named_parameters():
+        total_parameters_count=total_parameters_count+1
+        print(name)
+        if param.requires_grad:
+            gradabale_params=gradabale_params+1
+
+    LOG.info(f"total number of parameters={total_parameters_count}")
+    LOG.info(f"total number of gradabale_params parameters={gradabale_params}")
+    LOG.info(parameters_string(model.input_encoder))
+    LOG.info(parameters_string(model.inter_atten))
+    sys.exit(1)
+
 
     evaldir = os.path.join(args.data_dir, args.eval_subdir)
     train_student_pred_file = evaldir  + args.run_name + '_train_student_pred.tsv'

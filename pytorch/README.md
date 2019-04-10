@@ -385,10 +385,23 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
     - works either way for dev. for training it doesn't matter as long as the ball park figure is same.
 - compare all command line arguments between libowen and my code
     - done
+- check what glove he is loading
+    - found that he was loading w2v where as i was loading glove. smh
+    - update: never mind. he is also using glove. he just names it function w2v. however, i checked the
+    harvard code. they use glove only to create hdf5
+
 # Todo :
+- print parameters
+- find embedding value of same word in both libowen and your code
 - compare line by line libowen vs my code
     - done until line 77 in libowen's `train_baseline_snli.py` 
-- debug line by line and make sure all sizes and lengths especially w2v match
+- where is he using the glove embedding size? w
+    - ideally specifying embedding size must be done in hdf5 file creation
+- is he doing gigaword normalization in harvard code for hdfs?
+- are you updating he is not
+	- is he doing drop out
+	- is he handling low frequency words
+	- debug line by line and make sure all sizes and lengths especially w2v match
 - compare command line input with libowen cli command line
 
 - go to allennlp +fever's [json file](https://github.com/mithunpaul08/decomp_attn_fever/blob/master/experiments/decomp_attn.json) and try to replicate the parameters here

@@ -40,7 +40,7 @@ class FeedForwardMLPEmbed_RTE(nn.Module):
             else:
                 print("UPDATING the word embeddings ....")
                 print(f"at 2 value of self.embeddings.weight is {self.embeddings.weight} ")
-                sys.exit(1)
+
 
 
         #todo: pass them from somewhere...maybe command line or config file
@@ -173,9 +173,12 @@ class encoder(nn.Module):
         '''
                sent: batch_size x length (Long tensor)
         '''
+        print("value of sent1" + str(sent1))
         batch_size = sent1.size(0)
         sent1 = self.embedding(sent1)
         sent2 = self.embedding(sent2)
+
+        print("value of sent1 embedding is" + str(sent1))
 
         sent1 = sent1.view(-1, self.embedding_size)
         sent2 = sent2.view(-1, self.embedding_size)

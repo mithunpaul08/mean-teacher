@@ -65,7 +65,7 @@ class RTEDataset(Dataset):
             #word_embed = Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga["<unk>"]])
             word_embed = self.gigaW2vEmbed[self.lookupGiga["<unk>"]]
 
-        self.LOG.info(f"word:[{word_original} \t embedding:{word_embed}")
+        self.LOG.debug(f"word:[{word_original} \t embedding:{word_embed}")
         return word_embed
 
     def create_word_vocab_embed(self):
@@ -76,8 +76,7 @@ class RTEDataset(Dataset):
             word_embed = self.sanitise_and_lookup_embedding(word_id)
             word_vocab_embed.append(word_embed)
             counter=counter+1
-            if(counter==10):
-                sys.exit()
+
         # NOTE: adding the embed for @PADDING
         #word_vocab_embed.append(Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga["<pad>"]]))
         return np.array(word_vocab_embed).astype('float32')

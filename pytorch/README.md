@@ -398,6 +398,8 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
 
 - find embedding value of same word in both libowen and your code
     - tried printing the embedding of first value after loading glove. it was -1. i thought it was -1 because our local machine couldnt' find it. but its all -1s in server also. that is a problem.
+    - words are ok. firs t10 words after pad emb etc had embeddings.
+    - print the first sentences inside forward() of inter_Attention code in both valpola and libowen
 - compare line by line libowen vs my code
     - done until line 77 in libowen's `train_baseline_snli.py` 
 - where is he using the glove embedding size?
@@ -409,7 +411,7 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
 	- is he handling low frequency words
 	- debug line by line and make sure all sizes and lengths especially w2v match
 - compare command line input with libowen cli command line
-
+- replace batch size as 32 which libowen uses
 - go to allennlp +fever's [json file](https://github.com/mithunpaul08/decomp_attn_fever/blob/master/experiments/decomp_attn.json) and try to replicate the parameters here
 - add/hardcode/randomly initialize an embedding for `</s>` also after you enable transform. right now it is taking that of `<unk>`
 - why are we doing prediction before loss.backward? -confirm if libowen does it

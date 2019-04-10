@@ -1377,7 +1377,7 @@ def main(context):
     LOG.info(f"total number of gradabale_param]s parameters={gradabale_params}")
     LOG.info(parameters_string(model.input_encoder))
     LOG.info(parameters_string(model.inter_atten))
-    sys.exit(1)
+
 
 
     evaldir = os.path.join(args.data_dir, args.eval_subdir)

@@ -75,7 +75,9 @@ python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_worde
 Below is a version that runs the code as a **decomposable attention** given [here](https://github.com/mithunpaul08/SNLI-decomposable-attention) 
 inside the student only on a mac command line-but with toy data- best for laptop:
 ```
---dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file dev_90_from_train_big145k.jsonl --train_input_file train_small_200_claims_with_evi_sents.jsonl --arch da_RTE --exclude_unlabeled true --log_level INFO --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true  
+--dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file dev_90_from_train_big145k.jsonl --train_input_file train_small_200_claims_with_evi_sents.jsonl --arch da_RTE --exclude_unlabeled true --log_level INFO --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true
+--dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file dev_with_50_evi_sents.jsonl --train_input_file train_with_100_evi_sents.jsonl --arch da_RTE --exclude_unlabeled true --log_level INFO --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true
+  
 ```
 
 Below is a version that runs on linux command line (server/big memory-but with 12k training and 2.5k dev):
@@ -105,7 +107,7 @@ use conda environment: meanteacher in clara
 python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 50 --run-name fever_transform --batch_size 10 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  train_12k_with_evi_sents.jsonl --dev_input_file dev_2k_with_evi_sents.jsonl --arch da_RTE --exclude_unlabeled true  --exclude_unlabeled true --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true
        
 ```
-Below is a version that runs **Decomposable Attention** on linux command line (server/big memory-but with 120k training and 2.5k dev) student only -i.e: --exclude_unlabeled true
+Below is a version that runs **Decomposable Attention** on linux command line (server/big memory-but with 120k training and 24k dev) student only -i.e: --exclude_unlabeled true
 use conda environment: meanteacher in clara
 
 ``` 
@@ -389,15 +391,18 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
     - found that he was loading w2v where as i was loading glove. smh
     - update: never mind. he is also using glove. he just names it function w2v. however, i checked the
     harvard code. they use glove only to create hdf5
-
+- print parameters in both libowen and meanteacher arch
+    - done. both of them have 14+2=16 parameters
+    
 # Todo :
-- print parameters
+
 - find embedding value of same word in both libowen and your code
 - compare line by line libowen vs my code
     - done until line 77 in libowen's `train_baseline_snli.py` 
-- where is he using the glove embedding size? w
+- where is he using the glove embedding size?
     - ideally specifying embedding size must be done in hdf5 file creation
 - is he doing gigaword normalization in harvard code for hdfs?
+- will doing normalization change accuracy value?
 - are you updating he is not
 	- is he doing drop out
 	- is he handling low frequency words

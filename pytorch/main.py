@@ -1374,7 +1374,7 @@ def main(context):
             gradabale_params=gradabale_params+1
 
     LOG.info(f"total number of parameters={total_parameters_count}")
-    LOG.info(f"total number of gradabale_params parameters={gradabale_params}")
+    LOG.info(f"total number of gradabale_param]s parameters={gradabale_params}")
     LOG.info(parameters_string(model.input_encoder))
     LOG.info(parameters_string(model.inter_atten))
     sys.exit(1)

@@ -397,6 +397,7 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
 # Todo :
 
 - find embedding value of same word in both libowen and your code
+    - tried printing the embedding of first value after loading glove. it was -1. i thought it was -1 because our local machine couldnt' find it. but its all -1s in server also. that is a problem.
 - compare line by line libowen vs my code
     - done until line 77 in libowen's `train_baseline_snli.py` 
 - where is he using the glove embedding size?

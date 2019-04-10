@@ -45,6 +45,9 @@ class RTEDataset(Dataset):
     NUM_WORDS_TO_REPLACE = 1
     WORD_NOISE_TYPE = "drop"
 
+    LOG = logging.getLogger('main')
+    LOG.setLevel(logging.INFO)
+
     def get_word_from_vocab_dict_given_word_id(self, word_id):
         return self.word_vocab_id_to_word[word_id]
 
@@ -61,14 +64,20 @@ class RTEDataset(Dataset):
         else:
             #word_embed = Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga["<unk>"]])
             word_embed = self.gigaW2vEmbed[self.lookupGiga["<unk>"]]
+
+        self.LOG.info(f"word:[{word_original} \t embedding:{word_embed}")
         return word_embed
 
     def create_word_vocab_embed(self):
         word_vocab_embed = list()
         # leave last word = "@PADDING"
+        counter=0
         for word_id in range(0, len(self.word_vocab)):
             word_embed = self.sanitise_and_lookup_embedding(word_id)
             word_vocab_embed.append(word_embed)
+            counter=counter+1
+            if(counter==10):
+                sys.exit()
         # NOTE: adding the embed for @PADDING
         #word_vocab_embed.append(Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga["<pad>"]]))
         return np.array(word_vocab_embed).astype('float32')

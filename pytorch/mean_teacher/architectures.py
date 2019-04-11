@@ -126,8 +126,6 @@ class DecompAttnLibowenCode(nn.Module):
 
         self.input_encoder = encoder(word_vocab_size, embedding_size, hidden_sz,para_init)
         self.input_encoder.embedding.weight.data.copy_(torch.from_numpy(word_vocab_embed))
-        print(torch.from_numpy(word_vocab_embed[0]))
-        sys.exit(1)
         self.input_encoder.embedding.weight.requires_grad = update_pretrained_wordemb
         self.inter_atten = atten(hidden_sz, num_classes, para_init)
 
@@ -179,6 +177,7 @@ class encoder(nn.Module):
         sent2 = self.embedding(sent2)
 
         print("value of sent1 embedding is" + str(sent1))
+        sys.exit(1)
 
         sent1 = sent1.view(-1, self.embedding_size)
         sent2 = sent2.view(-1, self.embedding_size)

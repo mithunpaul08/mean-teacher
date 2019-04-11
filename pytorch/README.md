@@ -395,10 +395,9 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
     - done. both of them have 14+2=16 parameters
     
 # Todo :
-
 - find embedding value of same word in both libowen and your code
     - tried printing the embedding of first value after loading glove. it was -1. i thought it was -1 because our local machine couldnt' find it. but its all -1s in server also. that is a problem.
-    - words are ok. firs t10 words after pad emb etc had embeddings.
+    - words are ok. first 10 words after pad emb etc had embeddings.
     - print the first sentences inside forward() of inter_Attention code in both valpola and libowen
 - compare line by line libowen vs my code
     - done until line 77 in libowen's `train_baseline_snli.py` 

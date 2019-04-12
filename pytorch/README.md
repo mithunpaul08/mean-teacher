@@ -419,3 +419,32 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
 - batch average- which one to take...sum all individual per point average/divided by- refer my code
     - done. marco said for dev doesn't matter. infact i verified using both methods, i.e amassing claims and evidences vs amassing predictions. both gave same results 
 - how do we know model() is trained, vs model_out. atleast forward, explicitly returns stuff...line 408- same pass by reference thing?
+
+
+# parameters in the two layers
+
+=========================
+embedding.weight                                   5656 * 300 =   1,696,800
+input_linear.weight                                 200 * 300 =      60,000
+===========================================================================
+all parameters count=2                           sum of above =   1,756,800
+
+INFO:main:
+List of model parameters:
+=========================
+mlp_f.1.weight                                      200 * 200 =      40,000
+mlp_f.1.bias                                              200 =         200
+mlp_f.4.weight                                      200 * 200 =      40,000
+mlp_f.4.bias                                              200 =         200
+mlp_g.1.weight                                      200 * 400 =      80,000
+mlp_g.1.bias                                              200 =         200
+mlp_g.4.weight                                      200 * 200 =      40,000
+mlp_g.4.bias                                              200 =         200
+mlp_h.1.weight                                      200 * 400 =      80,000
+mlp_h.1.bias                                              200 =         200
+mlp_h.4.weight                                      200 * 200 =      40,000
+mlp_h.4.bias                                              200 =         200
+final_linear.weight                                   3 * 200 =         600
+final_linear.bias                                           3 =           3
+===========================================================================
+all parameters count=14                          sum of above =     321,803

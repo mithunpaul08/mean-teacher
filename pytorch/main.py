@@ -492,7 +492,8 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
             meters.update('cons_loss', 0)
 
         #if using just student, this will be class_loss + 0+ 0
-        loss = class_loss + consistency_loss + res_loss # NOTE: AJAY - loss is a combination of classification loss and consistency loss (+ residual loss from the 2 outputs of student model fc1 and fc2, see args.logit_distance_cost)
+        loss = class_loss \
+               #+ consistency_loss + res_loss # NOTE: AJAY - loss is a combination of classification loss and consistency loss (+ residual loss from the 2 outputs of student model fc1 and fc2, see args.logit_distance_cost)
         loss.backward()
 
         meters.update('loss', loss.data.item())

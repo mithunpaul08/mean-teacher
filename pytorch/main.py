@@ -196,7 +196,7 @@ def create_data_loaders(LOG,train_transformation,
 
         #do the same for eval data also. i.e read the dev data, and add a sampler..
         dev_input_file = evaldir + args.dev_input_file
-        dataset_dev = datasets.RTEDataset(word_vocab,"dev",dev_input_file, args, eval_transformation) ## NOTE: test data is the same as train data
+        dataset_dev = datasets.RTEDataset(word_vocab,"dev",dev_input_file, args, eval_transformation) ## NOTE: test data is the same as dev data
 
         found_not_supports_label2=False
         print(

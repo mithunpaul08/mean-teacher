@@ -73,6 +73,7 @@ class Datautils:
                 claim = x["claim"]
                 evidences = x["sents"]
                 label = x["label"]
+                label = label.upper()
                 evidences_this_list=[]
                 evidences_this_str = ""
                 if (len(evidences) > 1):

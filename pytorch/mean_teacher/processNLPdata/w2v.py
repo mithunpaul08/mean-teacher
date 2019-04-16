@@ -46,17 +46,20 @@ class Gigaword:
                     embedding_vectors.append(np.zeros((embedding_size)))
                     lookup["<unk>"] = c
 
+
                     sys.stdout.write("Writing the <pad> at " + str(c+1) + "\n")
                     embedding_vectors.append(np.ones((embedding_size))*(-1))
                     lookup["<pad>"] = c + 1
 
-                    sys.stdout.write("create a random embedding for each of the NER neutered tags. PERSONC1 " + str(c + 2) + "\n")
-                    embedding_vectors.append(np.random.rand(embedding_size))
-                    lookup["PERSONc1"] = c + 2
+                    # assign random embeddings to tags like SETe1, PERSONc1 etc
+                    all_ner_neutered_tags = cls.create_random_embedding_for_NER_c1_kind_of_tags()
+                    counter=c+2
+                    for nert in all_ner_neutered_tags:
+                        embedding_vectors.append(np.random.rand(embedding_size))
+                        lookup[nert] = counter
+                        counter=counter+1
 
-                    sys.stdout.write("Writing the entitytwo at " + str(c + 3) + "\n")
-                    embedding_vectors.append(np.random.rand(embedding_size))
-                    lookup["LOCATIONc1"] = c + 3
+
 
         sys.stdout.write("[done] Completed loading " + str(c) + " lines\n")
         # sys.stdout.write("Time taken : " + str((time.clock() - time_start_loading)) + "\n")
@@ -140,6 +143,21 @@ class Gigaword:
 
         # return w.translate(translator)
         return w
+
+    @classmethod
+    def create_random_embedding_for_NER_c1_kind_of_tags(cls):
+        all_NER_replacements=[]
+        NER_tags=["PERSON","LOCATION","PERSON","MISC","MONEY","NUMBER","DATE","PERCENT","TIME","ORGANIZATION","ORDINAL"
+        , "DURATION","SET"]
+        claim_evidence=["c","e"]
+        nums=range(1,20)
+
+        for ner in NER_tags:
+            for ce in claim_evidence:
+                for num in nums:
+                    rep=ner+ce+str(num)
+                    all_NER_replacements.append(rep)
+        return all_NER_replacements
 
     @classmethod
     def norm(cls, embeddings):

@@ -10,7 +10,7 @@ import os
 import contextlib
 import json
 import logging
-
+import re
 words_in_glove =0
 DEFAULT_ENCODING = 'utf8'
 
@@ -97,8 +97,11 @@ class RTEDataset(Dataset):
 
         print("got inside init of RTE data set")
 
-
-        self.claims, self.evidences, self.labels_str = Datautils.read_rte_data(dataset_file,args)
+        if(args.type_of_data=="plain"):
+            self.claims, self.evidences, self.labels_str = Datautils.read_rte_data(dataset_file,args)
+        else:
+            if (args.type_of_data == "ner_replaced"):
+                self.claims, self.evidences, self.labels_str = Datautils.read_ner_neutered_data(dataset_file,args )
 
         # if(runName=="dev"):
         #     # debug. exit if gold has any label other than 2.
@@ -129,7 +132,7 @@ class RTEDataset(Dataset):
                '''
 
 
-        self.word_vocab, self.max_claims_len, self.max_ev_len, self.word_count= self.get_max_lengths_add_to_vocab(word_vocab,runName)
+        self.word_vocab, self.max_claims_len, self.max_ev_len, self.word_count= self.get_max_lengths_add_to_vocab(word_vocab,runName,args)
         self.word_vocab_id_to_word={}
 
         print(f"inside datasets.py . just after  build_word_vocabulary.value of word_vocab.size()={len(self.word_vocab.keys())}")
@@ -225,9 +228,18 @@ class RTEDataset(Dataset):
             word_vocab[w_small]=len_dict+1
         return word_vocab
 
+    def replace_if_PERSON_C1_format(self,word,args):
+        word_replaced = ""
+        # if the input data is NER neutered, replace PERSON-c1 with PERSONC1. This is vestigial. My code does fine, but sandeep said his code splits the tokens based on dashes.
+        # so doing this to avoid that.
+        regex = re.compile('([A-Z]+)(-)([ce])([0-99])')
+        if (args.type_of_data == "ner_replaced" and regex.search(word)):
+            word_replaced = regex.sub(r'\1\3\4', word)
+        else:
+            word_replaced = word
+        return word_replaced
 
-
-    def get_max_lengths_add_to_vocab(self,word_vocab,runName):
+    def get_max_lengths_add_to_vocab(self,word_vocab,runName,args):
         #their vocabulary function was giving issues (including having duplicates). creating my own dictionary.
         #word_vocab = Vocabulary()
 
@@ -248,14 +260,18 @@ class RTEDataset(Dataset):
 
         for each_claim in self.claims:
             words = [w for w in each_claim.split(" ")]
-            for w in words:
+            for word in words:
                 #build vocabulary only from training data. In dev, a new word it sees must be returned @UNKNOWN
                 if(runName=='train'):
-                    word_vocab=self.build_word_vocabulary(w,word_vocab)
+
+                    #if the input data is NER neutered, replace PERSON-c1 with PERSONC1. This is vestigial. My code does fine, but sandeep said his code splits the tokens based on dashes.
+                    #so doing this to avoid that.
+                    word_replaced = self.replace_if_PERSON_C1_format(word, args)
+                    word_vocab=self.build_word_vocabulary(word_replaced,word_vocab)
 
 
                 #increase word frequency count
-                self.update_word_count(word_count,w)
+                self.update_word_count(word_count,word)
 
             if len(words) > max_claim_len:
                 max_claim_len = len(words)
@@ -265,11 +281,16 @@ class RTEDataset(Dataset):
 
         for each_ev in self.evidences:
             words = [w for w in each_ev.split(" ")]
-            for w in words:
+            for word in words:
                 if (runName == 'train'):
-                    word_vocab=self.build_word_vocabulary(w,word_vocab)
+
+                    # if the input data is NER neutered, replace PERSON-c1 with PERSONC1. This is vestigial. My code does fine, but sandeep said his code splits the tokens based on dashes.
+                    # so doing this to avoid that.
+                    word_replaced = self.replace_if_PERSON_C1_format(word, args)
+                    word_vocab = self.build_word_vocabulary(word_replaced, word_vocab)
+
                 # increase word frequency count
-                self.update_word_count(word_count, w)
+                self.update_word_count(word_count, word)
             if len(words) > max_evidence_len:
                 max_evidence_len = len(words)
                 longest_evidence_words = words

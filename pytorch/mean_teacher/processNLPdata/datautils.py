@@ -105,6 +105,40 @@ class Datautils:
         return all_claims, all_evidences, all_labels
 
     @classmethod
+    def read_ner_neutered_data(cls, filename, args):
+        tr_len=args.truncate_words_length
+        all_labels = []
+        all_claims = []
+        all_evidences = []
+
+        with open(filename) as f:
+            for index,line in enumerate(tqdm(f, total=cls.get_num_lines(filename))):
+                multiple_ev = False
+                x = json.loads(line)
+                claim = x["claim"]
+                evidences_this_str = x["evidence"]
+                label = x["label"]
+
+                ## truncate at n words. irrespective of claim or evidence truncate it at n...
+                # Else it was overloading memory due to the packing/padding of all sentences into the longest size..
+                # which was like 180k words or something
+                claim_split=claim.split(" ")
+                if(len(claim_split) > tr_len):
+                    claim_tr=claim_split[:1000]
+                    claim = " ".join(claim_tr)
+
+                evidences_split = evidences_this_str.split(" ")
+                if (len(evidences_split) > tr_len):
+                    evidences_tr = evidences_split[:1000]
+                    evidences_this_str=" ".join(evidences_tr)
+
+                all_claims.append(claim)
+                all_evidences.append(evidences_this_str)
+                all_labels.append(label)
+
+        return all_claims, all_evidences, all_labels
+
+    @classmethod
     def read_re_data(cls, filename, type, max_entity_len, max_inbetween_len, train_labels):
         labels = []
         entities1 = []

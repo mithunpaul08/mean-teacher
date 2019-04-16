@@ -138,6 +138,8 @@ def create_parser():
     parser.add_argument('--max_grad_norm', help='If the norm of the gradient vector exceeds this renormalize it\
                                    to have the norm equal to max_grad_norm',
                         type=float, default=5)
+    parser.add_argument('--type_of_data', help='in this project we will be feeding in lexicalized and delexicalized data (NER replaced, for example. Options can be plain, ner_replaced etc',
+                        type=str, default='plain')
 
 
 

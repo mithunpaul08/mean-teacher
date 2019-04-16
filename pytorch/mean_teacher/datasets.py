@@ -228,16 +228,6 @@ class RTEDataset(Dataset):
             word_vocab[w_small]=len_dict+1
         return word_vocab
 
-    def replace_if_PERSON_C1_format(self,word,args):
-        word_replaced = ""
-        # if the input data is NER neutered, replace PERSON-c1 with PERSONC1. This is vestigial. My code does fine, but sandeep said his code splits the tokens based on dashes.
-        # so doing this to avoid that.
-        regex = re.compile('([A-Z]+)(-)([ce])([0-99])')
-        if (args.type_of_data == "ner_replaced" and regex.search(word)):
-            word_replaced = regex.sub(r'\1\3\4', word)
-        else:
-            word_replaced = word
-        return word_replaced
 
     def get_max_lengths_add_to_vocab(self,word_vocab,runName,args):
         #their vocabulary function was giving issues (including having duplicates). creating my own dictionary.
@@ -263,12 +253,7 @@ class RTEDataset(Dataset):
             for word in words:
                 #build vocabulary only from training data. In dev, a new word it sees must be returned @UNKNOWN
                 if(runName=='train'):
-
-                    #if the input data is NER neutered, replace PERSON-c1 with PERSONC1. This is vestigial. My code does fine, but sandeep said his code splits the tokens based on dashes.
-                    #so doing this to avoid that.
-                    word_replaced = self.replace_if_PERSON_C1_format(word, args)
-                    word_vocab=self.build_word_vocabulary(word_replaced,word_vocab)
-
+                    word_vocab=self.build_word_vocabulary(word,word_vocab)
 
                 #increase word frequency count
                 self.update_word_count(word_count,word)
@@ -283,11 +268,7 @@ class RTEDataset(Dataset):
             words = [w for w in each_ev.split(" ")]
             for word in words:
                 if (runName == 'train'):
-
-                    # if the input data is NER neutered, replace PERSON-c1 with PERSONC1. This is vestigial. My code does fine, but sandeep said his code splits the tokens based on dashes.
-                    # so doing this to avoid that.
-                    word_replaced = self.replace_if_PERSON_C1_format(word, args)
-                    word_vocab = self.build_word_vocabulary(word_replaced, word_vocab)
+                    word_vocab = self.build_word_vocabulary(word, word_vocab)
 
                 # increase word frequency count
                 self.update_word_count(word_count, word)

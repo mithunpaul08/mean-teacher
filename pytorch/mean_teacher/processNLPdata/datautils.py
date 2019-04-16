@@ -14,6 +14,7 @@ class Datautils:
 
 
     def get_num_lines(file_path):
+
         fp = open(file_path, "r+")
         buf = mmap.mmap(fp.fileno(), 0)
         lines = 0
@@ -104,6 +105,19 @@ class Datautils:
 
         return all_claims, all_evidences, all_labels
 
+
+       # if the input data is NER neutered, replace PERSON-c1 with PERSONC1. This is vestigial. My code does fine, but sandeep said his code splits the tokens based on dashes.
+    # so doing this to avoid that.
+
+    def replace_if_PERSON_C1_format(sent, args):
+        sent_replaced = ""
+        regex = re.compile('([A-Z]+)(-)([ce])([0-99])')
+        if (args.type_of_data == "ner_replaced" and regex.search(sent)):
+            sent_replaced = regex.sub(r'\1\3\4', sent)
+        else:
+            sent_replaced = sent
+        return sent_replaced
+
     @classmethod
     def read_ner_neutered_data(cls, filename, args):
         tr_len=args.truncate_words_length
@@ -118,6 +132,11 @@ class Datautils:
                 claim = x["claim"]
                 evidences_this_str = x["evidence"]
                 label = x["label"]
+
+
+                #if reading NER neutered data replace PERSON-C1 with PERSONC1 etc- this is to avoid splitting based on - during tokenization
+                claim = cls.replace_if_PERSON_C1_format(claim, args)
+                evidences_this_str = cls.replace_if_PERSON_C1_format(evidences_this_str, args)
 
                 ## truncate at n words. irrespective of claim or evidence truncate it at n...
                 # Else it was overloading memory due to the packing/padding of all sentences into the longest size..

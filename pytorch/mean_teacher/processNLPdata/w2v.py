@@ -6,9 +6,10 @@ from sklearn import preprocessing as sklearnpreprocessing
 
 class Gigaword:
     @classmethod
-    def load_pretrained_embeddings(cls, path_to_file, take=None):
+    def load_pretrained_embeddings(cls, path_to_file, args,take=None):
         sys.stdout.write("Loading the gigaword embeddings from file : " + path_to_file + "\n")
 
+        np.random.seed(args.np_rand_seed)
         sys.stdout.flush()
         lookup = {}
         c = 0
@@ -49,13 +50,13 @@ class Gigaword:
                     embedding_vectors.append(np.ones((embedding_size))*(-1))
                     lookup["<pad>"] = c + 1
 
-                    sys.stdout.write("Writing the entityone at " + str(c + 2) + "\n")
-                    embedding_vectors.append(np.ones((embedding_size))*(-2))
-                    lookup["entityone"] = c + 2
+                    sys.stdout.write("create a random embedding for each of the NER neutered tags. PERSONC1 " + str(c + 2) + "\n")
+                    embedding_vectors.append(np.random.rand(embedding_size))
+                    lookup["PERSONc1"] = c + 2
 
                     sys.stdout.write("Writing the entitytwo at " + str(c + 3) + "\n")
-                    embedding_vectors.append(np.ones((embedding_size)) * (-3))
-                    lookup["entitytwo"] = c + 3
+                    embedding_vectors.append(np.random.rand(embedding_size))
+                    lookup["LOCATIONc1"] = c + 3
 
         sys.stdout.write("[done] Completed loading " + str(c) + " lines\n")
         # sys.stdout.write("Time taken : " + str((time.clock() - time_start_loading)) + "\n")
@@ -131,8 +132,8 @@ class Gigaword:
         if w.startswith("http") or ".com" in w or ".org" in w:
             return ""
 
-        if any(char.isdigit() for char in w):
-            return "xnumx"
+        # if any(char.isdigit() for char in w):
+        #     return "xnumx"
 
         # ## remove punctuations from a string: https://stackoverflow.com/questions/34293875/how-to-remove-punctuation-marks-from-a-string-in-python-3-x-using-translate
         # translator = str.maketrans('', '', string.punctuation)

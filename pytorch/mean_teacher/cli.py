@@ -140,6 +140,8 @@ def create_parser():
                         type=float, default=5)
     parser.add_argument('--type_of_data', help='in this project we will be feeding in lexicalized and delexicalized data (NER replaced, for example. Options can be plain, ner_replaced etc',
                         type=str, default='plain')
+    parser.add_argument('--np_rand_seed', type=int, default=256,
+                        help='seed used for all numpy.rand calculations. reproducability.')
 
 
 

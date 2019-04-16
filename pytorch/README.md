@@ -83,7 +83,7 @@ inside the student only on a mac command line-but with toy data- best for laptop
 Below is a version that runs the code as a **decomposable attention** given [here](https://github.com/mithunpaul08/SNLI-decomposable-attention) 
 inside the student only on a mac command line-but with data that is NER neutered 
 ```
---dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file fever_dev_NER_replaced.jsonl --train_input_file fever_training_NER_replaced_100.jsonl --arch da_RTE --exclude_unlabeled true --log_level INFO --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --type_of_data ner_replaced
+--dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file fever_dev_NER_replaced_10.jsonl --train_input_file fever_training_NER_replaced_100.jsonl --arch da_RTE --exclude_unlabeled true --log_level INFO --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --type_of_data ner_replaced
 ```
 
 Below is a version that runs on linux command line (server/big memory-but with 12k training and 2.5k dev):

@@ -131,8 +131,7 @@ python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_worde
 
 also, here is the same one as above, instead does training on fnc, and dev on fever. Also glove will be loaded from a hardcoded path
 ```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  fever_training_smartner_converted.jsonl --dev_input_file fever_dev_smartner_converted.jsonl --arch da_RTE --exclude_unlabeled true  --exclude_unlabeled true --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --type_of_data ner_replaced
-
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  fnc_train_mithun_modified_with_ner_replacement.jsonl --dev_input_file fever_dev_smartner_converted.jsonl --arch da_RTE --exclude_unlabeled true  --exclude_unlabeled true --log_level INFO --use_gpu True --pretrained_wordemb_file /work/mithunpaul/meanteacher/pytorch/data-local/glove/glove.840B.300d.txt --use_double_optimizers true --type_of_data ner_replaced --use_local_glove False
 ```
 
 #explanation of command line parameters

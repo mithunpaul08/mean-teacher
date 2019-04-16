@@ -142,8 +142,8 @@ def create_parser():
                         type=str, default='plain')
     parser.add_argument('--np_rand_seed', type=int, default=256,
                         help='seed used for all numpy.rand calculations. reproducability.')
-
-
+    parser.add_argument('--use_local_glove', default=True, type=str2bool,
+                        help="you dont want to copy the 5gig size of glove always. if this is false, use it from another hardcoded path", metavar='BOOL')
 
     print(parser.parse_args())
     return parser

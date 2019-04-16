@@ -124,8 +124,13 @@ def create_data_loaders(LOG,train_transformation,
 
         train_input_file = traindir + args.train_input_file
         word_vocab = {"<unk>": 1,"</s>":2}
-        embdir = os.path.join(args.data_dir, args.glove_subdir)
-        emb_file_path=embdir+args.pretrained_wordemb_file
+
+        if(args.use_local_glove):
+            embdir = os.path.join(args.data_dir, args.glove_subdir)
+            emb_file_path=embdir+args.pretrained_wordemb_file
+        else:
+            emb_file_path = args.pretrained_wordemb_file
+
         dataset = datasets.RTEDataset(word_vocab,"train",train_input_file, args,emb_file_path,train_transformation)
         print(
             f"after reading training dataset.value of word_vocab.size()={len(dataset.word_vocab.keys())}")

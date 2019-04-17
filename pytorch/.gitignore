@@ -1,3 +1,4 @@
+custom_emb.txt
 outputs/*
 pytorch/outputs/train_dev_per_epoch_accuracy.csv
 pytorch/outputs/vocabulary_train.txt

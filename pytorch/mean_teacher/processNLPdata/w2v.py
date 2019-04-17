@@ -58,7 +58,7 @@ class Gigaword:
                             embedding_vectors.append(v)
                             lookup[k] = counter
                             counter=counter+1
-                            str_v = "".join(format(x, "10.7f") for x in v)
+                            str_v = " ".join(format(x, "1.7f") for x in v)
                             fp.write(k+" "+str(str_v)+"\n")
 
                             #

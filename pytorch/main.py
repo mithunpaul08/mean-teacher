@@ -249,11 +249,7 @@ def create_data_loaders(LOG,train_transformation,
             if not (lbl == 2):
                 found_not_supports_label_dev2 = True
 
-        print(f"value of found_not_supports_label1={found_not_supports_label}")
-        print(f"value of found_not_supports_label2={found_not_supports_label2}")
-        print(f"value of found_not_supports_label_train3={found_not_supports_label_train3}")
-        print(f"value of found_not_supports_label_dev2={found_not_supports_label_dev2}")
-        print(f"value of found_not_supports_label1_dev={found_not_supports_label1_dev}")
+
 
     #mithun: once you have both the train and test data in the DataLoader format that torch understands, return it to the calling function
 
@@ -600,8 +596,7 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
                         epoch, i, len(train_loader), meters=meters))
         avg_after_each_batch=meters['top1'].avg
 
-
-
+    store_model_to_disk(args,epoch,model.state_dict())
     LOG.debug("end of all batches in training.")
     if (bool_inside_accuracy_all_labels_supports):
         import sys
@@ -614,6 +609,10 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
 
     return avg_after_each_batch,avg_prec_taken_totally
 
+def store_model_to_disk(args,epoch,model_state):
+    if args.output_folder is not None:
+        model_path = os.path.join(args.output_folder, "model_state_epoch_{}.th".format(epoch))
+        torch.save(model_state, model_path)
 
 def predict_total_ie_not_by_batches(model, total_claims, evidence_dev, labels_dev, length_of_each_claim_global, length_of_each_ev_global):
     if torch.cuda.is_available():

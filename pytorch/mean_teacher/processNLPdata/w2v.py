@@ -51,15 +51,13 @@ class Gigaword:
                     embedding_vectors.append(np.ones((embedding_size))*(-1))
                     lookup["<pad>"] = c + 1
 
-                    # assign random embeddings to tags like SETe1, PERSONc1 etc
-                    all_ner_neutered_tags = cls.create_random_embedding_for_NER_c1_kind_of_tags()
+                    # assign embeddings to tags like SETe1, PERSONc1 etc: take PERSON as mean+add perturbation
+                    emb_of_all_ner_neutered_tags = cls.create_perturbed_embeddings(lookup,embedding_size,embedding_vectors)
                     counter=c+2
-                    for nert in all_ner_neutered_tags:
-                        embedding_vectors.append(np.random.rand(embedding_size))
-                        lookup[nert] = counter
+                    for k,v in emb_of_all_ner_neutered_tags.items():
+                        embedding_vectors.append(v)
+                        lookup[k] = counter
                         counter=counter+1
-
-
 
         sys.stdout.write("[done] Completed loading " + str(c) + " lines\n")
         # sys.stdout.write("Time taken : " + str((time.clock() - time_start_loading)) + "\n")
@@ -126,14 +124,11 @@ class Gigaword:
     @classmethod
     def sanitiseWord(cls, word):
         w = word
-
-        #    .lower()
-
-        if w == "-lrb-" or w == "-rrb-" or w == "-lsb-" or w == "-rsb-" :
-            return ""
-
-        if w.startswith("http") or ".com" in w or ".org" in w:
-            return ""
+        # if w == "-lrb-" or w == "-rrb-" or w == "-lsb-" or w == "-rsb-" :
+        #     return ""
+        #
+        # if w.startswith("http") or ".com" in w or ".org" in w:
+        #     return ""
 
         # if any(char.isdigit() for char in w):
         #     return "xnumx"
@@ -158,6 +153,32 @@ class Gigaword:
                     rep=ner+ce+str(num)
                     all_NER_replacements.append(rep)
         return all_NER_replacements
+
+
+
+    #get the embedding value of PERSON and perturb it based on a guassian mean and variance for PERSONc1, PERSONc2 etc
+    @classmethod
+    def create_perturbed_embeddings(cls,lookup,embedding_size,embedding_vectors):
+        tags_emb = {}
+        NER_tags = ["PERSON", "LOCATION", "PERSON", "MISC", "MONEY", "NUMBER", "DATE", "PERCENT", "TIME",
+                    "ORGANIZATION", "ORDINAL", "DURATION", "SET"]
+        claim_evidence = ["c", "e"]
+        nums = range(1, 20)
+        for ner in NER_tags:
+            if(ner in lookup.keys()):
+                word_index=lookup[ner]
+            else:
+                word_index = lookup["<unk>"]
+            ner_emb=embedding_vectors[word_index]
+            for ce in claim_evidence:
+                for num in nums:
+                    ner_tag_claim_ev_count = ner + ce + str(num)
+                    emb_normal=np.random.normal(0,0.1,embedding_size)
+                    emb_tag=ner_emb+emb_normal
+                    tags_emb[ner_tag_claim_ev_count]=emb_tag
+        return tags_emb
+
+
 
     @classmethod
     def norm(cls, embeddings):

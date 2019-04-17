@@ -1569,6 +1569,9 @@ def main(context):
                  f"*************************\n")
         time.sleep(10)
 
+        # from allennlp.models import Model, archive_model
+        # archive_model(args.output_folder)
+
     # for testing only .. commented
     # LOG.info("For testing only; Comment the following line of code--------------------------------")
     # validate(eval_loader, model, validation_log, global_step, 0, dataset, context.result_dir, "student")

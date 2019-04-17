@@ -73,13 +73,21 @@ python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_worde
 
 ```
 Below is a version that runs the code as a **decomposable attention** given [here](https://github.com/mithunpaul08/SNLI-decomposable-attention) 
-inside the student only on a mac command line-but with toy data- best for laptop:
+inside the student only on a **mac command** line-but with toy data- best for laptop:
 
 ```
 --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file dev_90_from_train_big145k.jsonl --train_input_file train_small_200_claims_with_evi_sents.jsonl --arch da_RTE --exclude_unlabeled true --log_level INFO --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true
---dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file dev_with_50_evi_sents.jsonl --train_input_file train_with_100_evi_sents.jsonl --arch da_RTE --exclude_unlabeled true --log_level INFO --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true
 ```
-  
+
+```--dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file fn_dev_ner_neutered_10.jsonl --train_input_file train_with_100_evi_sents.jsonl --arch da_RTE --exclude_unlabeled true --log_level INFO --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true
+```
+
+same, on mac, but train on fever, test on fnc dev
+```
+--dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file fn_dev_ner_neutered_10.jsonl --train_input_file fever_training_NER_replaced_100.jsonl --arch da_RTE --exclude_unlabeled true --log_level INFO --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --type_of_data ner_replaced
+```
+
+
 Below is a version that runs the code as a **decomposable attention** given [here](https://github.com/mithunpaul08/SNLI-decomposable-attention) 
 inside the student only on a mac command line-but with data that is NER neutered 
 ```

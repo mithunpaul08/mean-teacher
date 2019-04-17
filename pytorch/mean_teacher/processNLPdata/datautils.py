@@ -133,7 +133,7 @@ class Datautils:
                 claim = x["claim"]
                 evidences_this_str = x["evidence"]
                 label = x["label"]
-
+                label=label.upper()
 
                 #if reading NER neutered data replace PERSON-C1 with PERSONC1 etc- this is to avoid splitting based on - during tokenization
                 claim = cls.replace_if_PERSON_C1_format(claim, args)

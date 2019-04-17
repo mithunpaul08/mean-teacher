@@ -17,12 +17,6 @@ class Gigaword:
         embedding_size=0
         time_start_loading = time.clock()
         with open(path_to_file, "r") as f:
-            # if '100d' in path_to_file:
-            #     embedding_size = 100
-            # else:
-            #     if '300d' in path_to_file:
-            #         embedding_size = 300
-            #     else:
                     embedding_vectors = list()
                     for line in f:
                         if (take and c <= take) or not take:

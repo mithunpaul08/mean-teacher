@@ -47,13 +47,28 @@ class Gigaword:
 
                     # assign embeddings to tags like SETe1, PERSONc1 etc: take PERSON as mean+add perturbation
                     emb_of_all_ner_neutered_tags = cls.create_perturbed_embeddings(lookup,embedding_size,embedding_vectors)
-                    counter=c+2
-                    for k,v in emb_of_all_ner_neutered_tags.items():
-                        embedding_vectors.append(v)
-                        lookup[k] = counter
-                        counter=counter+1
+                    # import jsonlines
+                    # with open('custom_emb.jsonl', 'w') as writer:
+                    #     writer.write(emb_of_all_ner_neutered_tags)
 
+                    import csv
+                    with open('custom_emb.txt', 'w+') as fp:
+                        counter=c+2
+                        for k,v in emb_of_all_ner_neutered_tags.items():
+                            embedding_vectors.append(v)
+                            lookup[k] = counter
+                            counter=counter+1
+                            str_v = "".join(format(x, "10.7f") for x in v)
+                            fp.write(k+" "+str(str_v)+"\n")
+
+                            #
+                            # str_json=k+""+str_v+"\n"
+                            # fp.write(str_json)
+
+                    # with io.open(vocab_file, 'w+', encoding=DEFAULT_ENCODING) as f:
+                    #     f.write(json.dumps(self.word_vocab))
         sys.stdout.write("[done] Completed loading " + str(c) + " lines\n")
+        sys.exit(1)
         # sys.stdout.write("Time taken : " + str((time.clock() - time_start_loading)) + "\n")
         sys.stdout.flush()
 
@@ -169,7 +184,7 @@ class Gigaword:
                     ner_tag_claim_ev_count = ner + ce + str(num)
                     emb_normal=np.random.normal(0,0.1,embedding_size)
                     emb_tag=ner_emb+emb_normal
-                    tags_emb[ner_tag_claim_ev_count]=emb_tag
+                    tags_emb[ner_tag_claim_ev_count]=emb_tag.tolist()
         return tags_emb
 
 

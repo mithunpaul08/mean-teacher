@@ -45,7 +45,7 @@ python -u main.py
 --print-freq 1
 --workers 0
 --consistency 1
---exclude_unlabeled false
+--run_as_plain_ffnn false
 --batch_size 100
 --labeled_batch_size 25
 --labels 20.0
@@ -53,7 +53,7 @@ python -u main.py
 
 ```
 **removed labels**\
-`--exclude_unlabeled true`\ (refer below)
+`--run_as_plain_ffnn true`\ (refer below)
 
 `-- dev_input_file dev_90_with_evi_sents.jsonl` (use this when testing on a local machine/laptop with small ram)
 
@@ -69,111 +69,115 @@ python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_worde
 ```
 Below is a version that runs the code as a simple FFNN on a mac command line-but with toy data- best for laptop:
 ```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 1 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_small_200_claims_with_evi_sents.jsonl --dev_input_file dev_90_with_evi_sents.jsonl --workers 0 --exclude_unlabeled true --batch_size 20 --lr 0.0000001 --ema_decay 8 --print_freq 1
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 1 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_small_200_claims_with_evi_sents.jsonl --dev_input_file dev_90_with_evi_sents.jsonl --workers 0 --run_as_plain_ffnn true --batch_size 20 --lr 0.0000001 --ema_decay 8 --print_freq 1
 
 ```
 Below is a version that runs the code as a **decomposable attention** given [here](https://github.com/mithunpaul08/SNLI-decomposable-attention) 
 inside the student only on a **mac command** line-but with toy data- best for laptop:
 
 ```
---dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file dev_90_from_train_big145k.jsonl --train_input_file train_small_200_claims_with_evi_sents.jsonl --arch da_RTE --exclude_unlabeled true --log_level INFO --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true
+--dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file dev_90_from_train_big145k.jsonl --train_input_file train_small_200_claims_with_evi_sents.jsonl --arch da_RTE --run_as_plain_ffnn true --log_level INFO --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true
 ```
 
-```--dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file fn_dev_ner_neutered_10.jsonl --train_input_file train_with_100_evi_sents.jsonl --arch da_RTE --exclude_unlabeled true --log_level INFO --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true
+```--dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file fn_dev_ner_neutered_10.jsonl --train_input_file train_with_100_evi_sents.jsonl --arch da_RTE --run_as_plain_ffnn true --log_level INFO --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true
 ```
 
+same (lexicalized data.) on mac, but with teacher trained on.
+```
+--dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6  --run-name fever_transform --batch_size 20 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file fn_dev_ner_neutered_10.jsonl --train_input_file train_with_100_evi_sents.jsonl --arch da_RTE --run_as_plain_ffnn false --log_level INFO --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true
+```
 same, on mac, but train on fever, test on fnc dev
 ```
---dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file fn_dev_ner_neutered_10.jsonl --train_input_file fever_training_NER_replaced_100.jsonl --arch da_RTE --exclude_unlabeled true --log_level INFO --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --type_of_data ner_replaced
+--dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file fn_dev_ner_neutered_10.jsonl --train_input_file fever_training_NER_replaced_100.jsonl --arch da_RTE --run_as_plain_ffnn true --log_level INFO --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --type_of_data ner_replaced
 ```
 
 
 Below is a version that runs the code as a **decomposable attention** given [here](https://github.com/mithunpaul08/SNLI-decomposable-attention) 
 inside the student only on a mac command line-but with data that is NER neutered 
 ```
---dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file fever_dev_NER_replaced_10.jsonl --train_input_file fever_training_NER_replaced_100.jsonl --arch da_RTE --exclude_unlabeled true --log_level INFO --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --type_of_data ner_replaced
+--dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file fever_dev_NER_replaced_10.jsonl --train_input_file fever_training_NER_replaced_100.jsonl --arch da_RTE --run_as_plain_ffnn true --log_level INFO --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --type_of_data ner_replaced
 ```
-
+# from here on every command is for a server machine, i.e huge memory/huge gpu/huge disk space
 Below is a version that runs on linux command line (server/big memory-but with 12k training and 2.5k dev):
 
 ```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 100 --consistency 1 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_12k_with_evi_sents.jsonl --dev_input_file dev_2k_with_evi_sents.jsonl --print-freq 1 --workers 4 --consistency 1 --exclude_unlabeled false --batch_size 1000 --labeled_batch_size 100 --labels 20.0 
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 100 --consistency 1 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_12k_with_evi_sents.jsonl --dev_input_file dev_2k_with_evi_sents.jsonl --print-freq 1 --workers 4 --consistency 1 --run_as_plain_ffnn false --batch_size 1000 --labeled_batch_size 100 --labels 20.0 
 ```
 Below is a version that runs **mean teacher** on a linux command line (server/big memory:145k training 10k dev- ACTUAL fever competition data):
 ```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 100 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_full_with_evi_sents.jsonl --dev_input_file actual_fever_dev_with_9k.jsonl --print_freq 1 --workers 4 --consistency 8 --exclude_unlabeled false --batch_size 2000 --labeled_batch_size 1000 --labels 20.0 --lr=0.1 --ema_decay 0.999  
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 100 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_full_with_evi_sents.jsonl --dev_input_file actual_fever_dev_with_9k.jsonl --print_freq 1 --workers 4 --consistency 8 --run_as_plain_ffnn false --batch_size 2000 --labeled_batch_size 1000 --labels 20.0 --lr=0.1 --ema_decay 0.999  
 ```
 
-Below is a version that runs **FFNN** on linux command line (server/big memory:120k training 25k dev) -i.e: --exclude_unlabeled true
+Below is a version that runs **FFNN** on linux command line (server/big memory:120k training 25k dev) -i.e: --run_as_plain_ffnn true
 ``` 
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 500 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file actual_fever_dev_with_9k.jsonl --print_freq 1 --workers 4 --exclude_unlabeled true --batch_size 2000 --lr 0.1      
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 500 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file actual_fever_dev_with_9k.jsonl --print_freq 1 --workers 4 --run_as_plain_ffnn true --batch_size 2000 --lr 0.1      
  
 ```
-Below is a version that runs **FFNN** on linux command line (server/big memory:145k training 10k dev) -i.e: --exclude_unlabeled true
+Below is a version that runs **FFNN** on linux command line (server/big memory:145k training 10k dev) -i.e: --run_as_plain_ffnn true
 ``` 
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 500 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_full_with_evi_sents.jsonl --dev_input_file actual_fever_dev_with_9k.jsonl --print_freq 1 --workers 4 --exclude_unlabeled true --batch_size 2000 --lr 0.1 
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 500 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_full_with_evi_sents.jsonl --dev_input_file actual_fever_dev_with_9k.jsonl --print_freq 1 --workers 4 --run_as_plain_ffnn true --batch_size 2000 --lr 0.1 
 ```     
 
-Below is a version that runs **Decomposable Attention** on linux command line (server/big memory:12k training 2k dev) student only -i.e: --exclude_unlabeled true
+Below is a version that runs **Decomposable Attention** on linux command line (server/big memory:12k training 2k dev) student only -i.e: --run_as_plain_ffnn true
 use conda environment: meanteacher in clara
 
 ``` 
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 50 --run-name fever_transform --batch_size 10 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  train_12k_with_evi_sents.jsonl --dev_input_file dev_2k_with_evi_sents.jsonl --arch da_RTE --exclude_unlabeled true  --exclude_unlabeled true --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 50 --run-name fever_transform --batch_size 10 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  train_12k_with_evi_sents.jsonl --dev_input_file dev_2k_with_evi_sents.jsonl --arch da_RTE --run_as_plain_ffnn true  --run_as_plain_ffnn true --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true
        
 ```
-Below is a version that runs **Decomposable Attention** on linux command line (server/big memory-but with 120k training and 24k dev) student only -i.e: --exclude_unlabeled true
+Below is a version that runs **Decomposable Attention** on linux command line (server/big memory-but with 120k training and 24k dev) student only -i.e: --run_as_plain_ffnn true
 use conda environment: meanteacher in clara **and gave 82% accuracy, highest so far**
 
 ``` 
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file dev_24K_no_train_120k_overlap.jsonl --arch da_RTE --exclude_unlabeled true  --exclude_unlabeled true --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true
-
-       
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file dev_24K_no_train_120k_overlap.jsonl --arch da_RTE --run_as_plain_ffnn true  --run_as_plain_ffnn true --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true  
 ```
 
 Below is a version that runs the code as a **decomposable attention** as the student only version of a mean teacher on a linux
 machine with 119197 lines in training data and 26252 lines in dev data-but with data that is NER neutered 
 ```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  fever_training_smartner_converted.jsonl --dev_input_file fever_dev_smartner_converted.jsonl --arch da_RTE --exclude_unlabeled true  --exclude_unlabeled true --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --type_of_data ner_replaced
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  fever_training_smartner_converted.jsonl --dev_input_file fever_dev_smartner_converted.jsonl --arch da_RTE --run_as_plain_ffnn true  --run_as_plain_ffnn true --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --type_of_data ner_replaced
 
 ```
 
 also, here is the same one as above, instead does training on fnc, and dev on fever. Also glove will be loaded from a hardcoded path
 ```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  fnc_train_mithun_modified_with_ner_replacement.jsonl --dev_input_file fever_dev_smartner_converted.jsonl --arch da_RTE --exclude_unlabeled true  --exclude_unlabeled true --log_level INFO --use_gpu True --pretrained_wordemb_file /work/mithunpaul/meanteacher/pytorch/data-local/glove/glove.840B.300d.txt --use_double_optimizers true --type_of_data ner_replaced --use_local_glove False
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  fnc_train_mithun_modified_with_ner_replacement.jsonl --dev_input_file fever_dev_smartner_converted.jsonl --arch da_RTE --run_as_plain_ffnn true  --run_as_plain_ffnn true --log_level INFO --use_gpu True --pretrained_wordemb_file /work/mithunpaul/meanteacher/pytorch/data-local/glove/glove.840B.300d.txt --use_double_optimizers true --type_of_data ner_replaced --use_local_glove False
 
 ```
+
 same as above but training on fever and testing on fnc dev
 
 ```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  fever_training_smartner_converted.jsonl --dev_input_file fn_dev_smartner_neutered.jsonl --arch da_RTE --exclude_unlabeled true  --exclude_unlabeled true --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --type_of_data ner_replaced
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  fever_training_smartner_converted.jsonl --dev_input_file fn_dev_smartner_neutered.jsonl --arch da_RTE --run_as_plain_ffnn true  --run_as_plain_ffnn true --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --type_of_data ner_replaced
 ```
 
 #explanation of command line parameters
 
 `--workers`: if you dont want multiprocessing make workers=0
 
-`--exclude_unlabeled true` means : first dataset is divided into labeled and unlabeled based on the percentage you mentioned in `--labels`.
+`--run_as_plain_ffnn true` means : first dataset is divided into labeled and unlabeled based on the percentage you mentioned in `--labels`.
 now instead if you just want to work with labeled data: i.e supervised training. i.e you don't want to run mean teacher for some reason: then you turn this on/true.
 
-
- If you are doing --exclude_unlabeled true i.e to run mean teacher as a simple feed forward supervised network with all data points having labels, you shouldn't pass any of these argument parameters which are meant for mean teacher.
+ If you are doing `--run_as_plain_ffnn true` i.e to run mean teacher as a simple feed forward supervised network with all data points having labels, you shouldn't pass any of these argument parameters which are meant for mean teacher.
 
 ```
 --labeled_batch_size
 --labels
 --consistency
-#feb23rd2019: if  args.exclude_unlabeled: we are dropping/not running teacher model. So make sure consistency is 0 or is not passed.
+```
+
+#feb23rd2019: if  `args.run_as_plain_ffnn ==true`: we are dropping/not running teacher model. So make sure consistency is 0 or is not passed.
 
 ```
 also, make sure the value of `--labels` is removed.
 
-also note that due to the below code whenever `exclude_unlabeled=true`, 
+also note that due to the below code whenever `run_as_plain_ffnn=true`, 
 the sampler becomes a simple `BatchSampler`, and not a `TwoStreamBatchSampler` (which is
 the name of the sampler used in mean teacher).
 
 ```
 
-if args.exclude_unlabeled:
+if args.run_as_plain_ffnn:
             sampler = SubsetRandomSampler(labeled_idxs)
             batch_sampler = BatchSampler(sampler, args.batch_size, drop_last=True)
 
@@ -277,12 +281,12 @@ Ans: They do it in this code below in main.py
 ```
 
 #### Qn) what does the below code in main.py do?
-```if args.exclude_unlabeled:```
+```if args.run_as_plain_ffnn:```
 
 Ans: If you want to use the mean teacher as a simple feed forward network. Note that the
 main contribution of valpola et al is actually the noise they add. However if you just want
 to run the mean teacher as two parallel feed forward networks, without noise, but still with 
-consistency cost, just turn this on: `args.exclude_unlabeled`
+consistency cost, just turn this on: `args.run_as_plain_ffnn`
     
  
 #### Qn) what models can the student/teacher contain? LSTM?
@@ -321,9 +325,9 @@ LOG.info('Epoch: [{0}][{1}/{2}]\t'
 
 Ans: Whenever the code removes a label  (for the mean teacher purposes) it assigns a label of -1
 
-**Qn) Why do I get an error at `assert_exactly_one([args.exclude_unlabeled, args.labeled_batch_size])` ?**
+**Qn) Why do I get an error at `assert_exactly_one([args.run_as_plain_ffnn, args.labeled_batch_size])` ?**
 
-Ans: If you are doing `--exclude_unlabeled true` i.e to run mean teacher as a simple feed forward supervised network
+Ans: If you are doing `--run_as_plain_ffnn true` i.e to run mean teacher as a simple feed forward supervised network
 with all data points having labels, you shouldn't pass any of these argument parameters which are meant for mean teacher.
 ```
 

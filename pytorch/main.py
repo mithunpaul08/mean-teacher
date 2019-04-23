@@ -92,11 +92,11 @@ def create_data_loaders(LOG,train_transformation,
     traindir = os.path.join(args.data_dir , args.train_subdir)
     evaldir = os.path.join(args.data_dir , args.eval_subdir)
 
-    assert_exactly_one([args.exclude_unlabeled, args.labeled_batch_size])
+    assert_exactly_one([args.run_as_plain_ffnn, args.labeled_batch_size])
 
 
-    #feb23rd2019: if  args.exclude_unlabeled: we are dropping/not running teacher model. So make sure consistency is 0.
-    assert_mutually_exclusive(args.exclude_unlabeled, args.consistency)
+    #feb23rd2019: if  args.run_as_plain_ffnn: we are dropping/not running teacher model. So make sure consistency is 0.
+    assert_mutually_exclusive(args.run_as_plain_ffnn, args.consistency)
 
 
 
@@ -142,7 +142,7 @@ def create_data_loaders(LOG,train_transformation,
         LOG.info("Size of Noise : "+ str(dataset.NUM_WORDS_TO_REPLACE))
 
         # ans: if you want to do a simple feed forward - i.e ignore all labeled.=args.x_unlabeled=true
-        if args.exclude_unlabeled:
+        if args.run_as_plain_ffnn:
             labeled_idxs = data.get_all_label_indices(dataset, args)
             sampler = SubsetRandomSampler(labeled_idxs)
             batch_sampler_local = BatchSampler(sampler, args.batch_size, drop_last=True)
@@ -304,7 +304,7 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
     model=model.train()
 
     #if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
-    if not args.exclude_unlabeled:
+    if not args.run_as_plain_ffnn:
         ema_model=ema_model.train()
 
     end = time.time()
@@ -366,7 +366,7 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
             claims_var = torch.autograd.Variable(student_input_claim).cuda()
             evidences_var = torch.autograd.Variable(student_input_evidence).cuda()
             # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
-            if not args.exclude_unlabeled:
+            if not args.run_as_plain_ffnn:
                 ema_claims_var = torch.autograd.Variable(teacher_input_claim, volatile=True).cuda()
                 ema_evidences_var = torch.autograd.Variable(teacher_input_evidence, volatile=True).cuda()
 
@@ -374,7 +374,7 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
             claims_var = torch.autograd.Variable(student_input_claim).cpu()
             evidences_var = torch.autograd.Variable(student_input_evidence).cpu()
             # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
-            if not args.exclude_unlabeled:
+            if not args.run_as_plain_ffnn:
                 ema_claims_var = torch.autograd.Variable(teacher_input_claim, volatile=True).cpu()
                 ema_evidences_var = torch.autograd.Variable(teacher_input_evidence, volatile=True).cpu()
 
@@ -412,7 +412,7 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
         # of architecture you will see that it goes there now
 
         # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
-        if not args.exclude_unlabeled:
+        if not args.run_as_plain_ffnn:
             ema_model_out = ema_model(ema_claims_var, ema_evidences_var, len_claims_this_batch, len_evidences_this_batch)
         model_out = model(claims_var, evidences_var, len_claims_this_batch, len_evidences_this_batch)
 
@@ -423,18 +423,18 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
             assert args.logit_distance_cost < 0
             logit1 = model_out
             # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
-            if not args.exclude_unlabeled:
+            if not args.run_as_plain_ffnn:
                 ema_logit = ema_model_out
         else:
             assert len(model_out) == 2
             assert len(ema_model_out) == 2
             logit1, logit2 = model_out
             # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
-            if not args.exclude_unlabeled:
+            if not args.run_as_plain_ffnn:
                 ema_logit, _ = ema_model_out
 
             # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
-        if not args.exclude_unlabeled:
+        if not args.run_as_plain_ffnn:
                 ema_logit = Variable(ema_logit.detach().data, requires_grad=False) ## DO NOT UPDATE THE GRADIENTS THORUGH THE TEACHER (EMA) MODEL
 
         if args.logit_distance_cost >= 0:
@@ -465,7 +465,7 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
         meters.update('class_loss', class_loss.data.item())
 
         # if you want to do student alone (initially) and not teacher
-        if not args.exclude_unlabeled:
+        if not args.run_as_plain_ffnn:
             ema_class_loss = class_criterion(ema_logit, target_var) / minibatch_size
 
 
@@ -483,7 +483,7 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
         if args.consistency:
             # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
             #ideally if we are not doing ema, the args.consistency also must be mutually exclusive
-            if not args.exclude_unlabeled:
+            if not args.run_as_plain_ffnn:
                 consistency_weight = get_current_consistency_weight(epoch)
                 meters.update('cons_weight', consistency_weight)
                 consistency_loss = consistency_weight * consistency_criterion(cons_logit, ema_logit) / minibatch_size
@@ -558,7 +558,7 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
         meters.update('error1', 100. - prec1, labeled_minibatch_size)
 
         # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
-        if not args.exclude_unlabeled:
+        if not args.run_as_plain_ffnn:
             ema_prec1, pred_labels, gold_labels = accuracy_fever(ema_logit.data,
                                                                  target_var.data)  # Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
             meters.update('ema_top1', ema_prec1, labeled_minibatch_size)
@@ -566,7 +566,7 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
 
 
         # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
-        if not args.exclude_unlabeled:
+        if not args.run_as_plain_ffnn:
             update_ema_variables(model, ema_model, args.ema_decay, global_step)
 
         # measure elapsed time
@@ -576,7 +576,7 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
 
         if (i+1) % args.print_freq == 0:
             # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
-            if not args.exclude_unlabeled:
+            if not args.run_as_plain_ffnn:
                 LOG.info(
                     'Epoch: [{0}][{1}/{2}]\t'
                     'Classification_loss:{meters[class_loss]:.4f}\t'
@@ -797,7 +797,7 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
 
         #pwhen in FFNN mode, don't print teavher details.
         if (i + 1) % args.print_freq == 0:
-            if not args.exclude_unlabeled:
+            if not args.run_as_plain_ffnn:
                     LOG.info(
                         'Dev Epoch/Batch: [{0}][{1}/{2}]\t'
                         'Dev Classification_loss:{meters[class_loss]:.4f}\t'
@@ -1521,7 +1521,7 @@ def main(context):
 
             teacher_accuracy=0
             avg_teacher_prec_taken_totally=0
-            if not args.exclude_unlabeled:
+            if not args.run_as_plain_ffnn:
                 LOG.debug("Evaluating the EMA model:")
                 teacher_accuracy,avg_teacher_prec_taken_totally = validate(eval_loader, ema_model, ema_validation_log, global_step, epoch , dataset_test,context.result_dir, "teacher")
 

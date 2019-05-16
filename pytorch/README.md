@@ -65,7 +65,7 @@ python -u main.py
 `--train_input_file  train_12k_with_evi_sents.jsonl -- dev_input_file dev_2k_with_evi_sents.jsonl`
 
 
-#explanation of command line parameters
+# explanation of command line parameters
 
 `--workers`: if you dont want multiprocessing make workers=0
 
@@ -80,12 +80,24 @@ now instead if you just want to work with labeled data: i.e supervised training.
 --consistency
 ```
 
-#feb23rd2019: if  `args.run_as_plain_ffnn ==true`: we are dropping/not running teacher model. So make sure consistency is 0 or is not passed.
 
-```
-also, make sure the value of `--labels` is removed.
 
-also note that due to the below code whenever `run_as_plain_ffnn=true`, 
+
+`--labels`: is the percentage or number of labels indicating the number of labeled data points amongst the entire training data. If its int, the code assumes that you are
+passing the actual number of data points you want to be labeled. Else
+if its float, the code assumes it is a percentage value.
+
+
+Further details of other command line parameters can be found in `pytorch/mean_teacher/tests/cli.py`
+
+
+# feb23rd2019: if  `args.run_as_plain_ffnn ==true`:
+- we are dropping/not running teacher model. So make sure consistency is 0 or is not passed.
+
+
+- also, make sure the value of `--labels` is removed.
+
+- also note that due to the below code whenever `run_as_plain_ffnn=true`, 
 the sampler becomes a simple `BatchSampler`, and not a `TwoStreamBatchSampler` (which is
 the name of the sampler used in mean teacher).
 
@@ -101,17 +113,7 @@ elif args.labeled_batch_size:
 
 ```
 
-
-
-`--labels`: is the percentage or number of labels indicating the number of labeled data points amongst the entire training data. If its int, the code assumes that you are
-passing the actual number of data points you want to be labeled. Else
-if its float, the code assumes it is a percentage value.
-
-
-Further details of other command line parameters can be found in `pytorch/mean_teacher/tests/cli.py`
-
-
-#Testing
+# Testing
 To do testing (on dev or test partition), you need to run the code again with `--evaluate` set to `true`. i.e training and testing uses same code but are mutually exclusive. You cannot run testing immediately after training.
 You need to finish training and use the saved model to do testing.
 
@@ -123,12 +125,13 @@ To reproduce the ImageNet results of the paper run `python -m experiments.imagen
 
 Note to anyone testing from clulab (including myself, mithun). Run on 
 server:clara.
+- cd meanteacher
 - tmux
 - git pull
 - source activate meanteacher
-- one of the linux commands above    
+- one of the linux commands [here](#FAQ)    
 
-# FAQ :
+#FAQ :
 *These are questions I had when i was trying to load the mean teacher project. Noting it down for myself and for the sake of others who might end up using this code.*
 
 #### Qn) What does transform() do?
@@ -417,7 +420,7 @@ training accuracy @epoch 30: 84.57166666666667,dev: 82.65230004144219
 
 
 
-**Some linux versions of the start up command**
+#Some linux versions of the start up command*
 
 Below is a version that runs on mean teacher on a mac command line-but with toy data- best for laptop:
 ```

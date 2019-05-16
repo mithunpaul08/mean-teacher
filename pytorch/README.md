@@ -129,7 +129,7 @@ server:clara.
 - tmux
 - git pull
 - source activate meanteacher
-- one of the linux commands [here](#FAQ)    
+- one of the linux commands [here](#Testing)    
 
 #FAQ :
 *These are questions I had when i was trying to load the mean teacher project. Noting it down for myself and for the sake of others who might end up using this code.*

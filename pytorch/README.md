@@ -47,11 +47,11 @@ python -u main.py
 --dev_input_file dev_90_with_evi_sents.jsonl
 --print-freq 1
 --workers 0
---consistency 1
 --run_as_plain_ffnn false
 --batch_size 100
 --labeled_batch_size 25
 --labels 20.0
+--consistency 1
 
 
 ```
@@ -69,7 +69,7 @@ python -u main.py
 
 `--workers`: if you dont want multiprocessing make workers=0
 
-`--run_as_plain_ffnn true` means : first dataset is divided into labeled and unlabeled based on the percentage you mentioned in `--labels`.
+`--run_as_plain_ffnn false` means : first dataset is divided into labeled and unlabeled based on the percentage you mentioned in `--labels`.
 now instead if you just want to work with labeled data: i.e supervised training. i.e you don't want to run mean teacher for some reason: then you turn this on/true.
 
  If you are doing `--run_as_plain_ffnn true` i.e to run mean teacher as a simple feed forward supervised network with all data points having labels, you shouldn't pass any of these argument parameters which are meant for mean teacher.
@@ -420,7 +420,7 @@ training accuracy @epoch 30: 84.57166666666667,dev: 82.65230004144219
 
 
 
-#Some linux versions of the start up command*
+# Some linux versions of the start up command*
 
 Below is a version that runs on mean teacher on a mac command line-but with toy data- best for laptop:
 ```
@@ -509,3 +509,9 @@ same as above but training on fever and testing on fnc dev
 ```
 python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  fever_training_smartner_converted.jsonl --dev_input_file fn_dev_smartner_neutered.jsonl --arch da_RTE --run_as_plain_ffnn true  --run_as_plain_ffnn true --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --type_of_data ner_replaced
 ```
+Below is a version that runs the code as a **decomposable attention** as both student and teacher.
+
+```python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file dev_24K_no_train_120k_overlap.jsonl --arch da_RTE --run_as_plain_ffnn false --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --batch_size 100 --labeled_batch_size 25 --labels 20.0 --consistency 1
+```
+
+status as of 6pm may 15th: still getting assert errors on this command above. started on tmux 19 on clara.

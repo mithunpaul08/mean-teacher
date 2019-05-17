@@ -68,7 +68,7 @@ class Gigaword:
                     # with io.open(vocab_file, 'w+', encoding=DEFAULT_ENCODING) as f:
                     #     f.write(json.dumps(self.word_vocab))
         sys.stdout.write("[done] Completed loading " + str(c) + " lines\n")
-        
+
         # sys.stdout.write("Time taken : " + str((time.clock() - time_start_loading)) + "\n")
         sys.stdout.flush()
 

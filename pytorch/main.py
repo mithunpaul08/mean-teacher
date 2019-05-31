@@ -435,33 +435,32 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
             class_logit, cons_logit = logit1, logit1    # class_logit.data.size(): torch.Size([256, 56])
             res_loss = 0
 
-        loss_output=class_criterion(class_logit, target_var)
-
-        #note: if you are using cross entryopy NLL in pytorch, you don't need to use softmax
-        class_logit_soft_max=F.softmax(class_logit,dim=0)
-
-        LOG.debug(f"type of loss_output={type(loss_output)}")
-        LOG.debug(f"value of minibatch_size={minibatch_size} ")
-        LOG.debug(f"value of class_logit={class_logit} ")
-        LOG.debug(f"value of target_var={target_var} ")
-        #LOG.info(f"value of class_logit_soft_max={class_logit_soft_max} ")
-
-        class_loss = class_criterion(class_logit, target_var) / minibatch_size
-        LOG.debug(f"value of class_loss={class_loss} ")
-
-
-
-        #note by mithun: this was originally class_loss.data[0], but changing to class_loss.data.item() since it was throwing error on [0]
-        meters.update('class_loss', class_loss.data.item())
-
-        # if you want to do student alone (initially) and not teacher
         if not args.run_student_only:
             ema_class_loss = class_criterion(ema_logit, target_var) / minibatch_size
-
-
             ## DONE: AJAY - WHAT IF target_var NOT PRESENT (UNLABELED DATAPOINT) ?
             # Ans: See  ignore index in  `class_criterion = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cpu()`
-            meters.update('ema_class_loss', ema_class_loss.data.item())    # Do we need this?
+            meters.update('ema_class_loss', ema_class_loss.data.item())  # Do we need this?
+        else:
+            loss_output=class_criterion(class_logit, target_var)
+
+            #note: if you are using cross entryopy NLL in pytorch, you don't need to use softmax
+            class_logit_soft_max=F.softmax(class_logit,dim=0)
+
+            LOG.debug(f"type of loss_output={type(loss_output)}")
+            LOG.debug(f"value of minibatch_size={minibatch_size} ")
+            LOG.debug(f"value of class_logit={class_logit} ")
+            LOG.debug(f"value of target_var={target_var} ")
+            class_loss = class_criterion(class_logit, target_var) / minibatch_size
+            LOG.debug(f"value of class_loss={class_loss} ")
+
+
+
+            #note: this was originally class_loss.data[0], but changing to class_loss.data.item() since it was throwing error on [0]
+            meters.update('class_loss', class_loss.data.item())
+
+
+
+
 
         #mithun askajay: is this where they are doing consistency comparison-but where is the subtRACTION?
         # #askajay: where is the construction cost and consistency cost and back prop only on student etc?

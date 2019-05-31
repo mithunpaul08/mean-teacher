@@ -156,9 +156,13 @@ class RTEDataset(Dataset):
 
         if args.pretrained_wordemb:
             if not runName == "dev": # do not load the word embeddings again in eval
-                LOG.info("Loading the pretrained embeddings ... ")
+                sys.stdout.write("going to Loading the pretrained embeddings ... ")
+                LOG.info("going to Loading the pretrained embeddings ... ")
+                sys.stdout.flush()
                 self.gigaW2vEmbed, self.lookupGiga, self.embedding_size = Gigaword.load_pretrained_embeddings(emb_file_path,args)
                 LOG.info("Done loading embeddings. going to create vocabulary ... ")
+                sys.stdout.write("Done loading embeddings. going to create vocabulary ... " )
+                sys.stdout.flush()
                 self.word_vocab_embed = self.create_word_vocab_embed()
 
         else:

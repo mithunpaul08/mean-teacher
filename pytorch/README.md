@@ -129,8 +129,14 @@ server:clara.
 - tmux
 - git pull
 - source activate meanteacher
-- run one of the linux commands given [here](#commands_to_run)    
+- run one of the linux commands given [here](#commands_to_run)   
 
+Note:
+ 
+- the commands must be run at the folder level which has main.py eg:`mean-teacher/pytorch/main.py`
+- from the same level you can keep track of the logs by doing `tail -f meanteacher.log`
+- there will be a time delay of around 3 minutes while the vocabulary is created. The log file will have an entry just before that saying : `INFO:datasets:Done loading embeddings. going to create vocabulary ...`
+    
 #FAQ :
 *These are questions I had when i was trying to load the mean teacher project. Noting it down for myself and for the sake of others who might end up using this code.*
 
@@ -263,90 +269,13 @@ also look at the  [source code](https://pytorch.org/docs/stable/_modules/torch/u
  and [documentation](https://pytorch.org/docs/0.4.0/data.html#torch.utils.data.DataLoader)
   of dataloader class
 
-# Todo -done ones:
-- check loss function in libowen-make it same as libowen
-    - removed the things inside teh constructor of crossentropy. now atleast its not hitting nan in logit values
-    -precision is increasing (i can see 54%) but classification loss is stuck on 0.0022. weird.
-- check if libowen is passing softmax into the loss function   
-    - yeah looks like we are already doing self.log_prob = nn.LogSoftmax()
-- replace optimizer with the one used in libowen
-    -done using adagrad
-    - classification loss started at 1230 and dipped up till 0.0019. good.
-    - training accuracy hit 61% after first epoch
-    - dev accuracy is around 39% though
-    - update after 254 epochs. 
-    - **training accuray:72%** 
-    - **dev**:35%
+Qn) check what embedding is the libowen code (the code for decomposable attention) loading?
+
+Ans: he is  using glove. he just names it function w2v. i  also checked the
+    harvard code (the one which generates the hdf5 files which are inturn used by libowen). they use glove only to create hdf5
     
-- match learning rate to that in libowen
-    - changed to 0.005
-    - no change from above
-- is it the right dev file?
-    -no ..dev file was the corrupted dump. 
-    - now i get **71.69% as dev accuracy** also 
-- try two optimizer stepping
-    - tried. accuracy reduced. gave up.
-- turn glove on/load embeddings and not just randomly initialize them
-    - pushed one version up to clara at 830pm on march 28th.
-    - do need to confirm/recheck the embeddings are passing correctly (take a word, copy its embedding from actual glove on server, try printing locally)
-    - **current train accuracy:55**
-    - **current dev accuracy:54**
-- make sure that both libowen and my code are both loading embeddings of vocab only and not the whole thing
-    - yes. found it to be true
-- print and make sure the embeddings of `is` is loaded correctly.
-    - it wasn't. i need to load embeddings based on word id like ajay was doing. i was just loading it by lemma.
-    - ok found the bug. the order of embeddings vs vocab words was changing
-    - started run at 2.45pm
-    - got back 
-    - **train:72.25% dev:72.1%** after epoch 26
-- why is there gigaword.norm- ask ajay or remove for the time being  
-    - removed for the time being. i think this is probably l2 regularization?     
-- why are there only words from claims in teh word vocabulary?
-    - checked on local machine. looks ok. i can see words from both claims and evidences.
-- try two optimizer stepping after loading glove embeddings.
-    -done. have also added a new flag --use_double_optimizers
-    - update: getting 24% again. weird.
-- try two optimizer stepping plus shrinking and grad clipping after loading glove embeddings
-    - done. still getting `25%`
-- check if `--use_gpu` is getting true from str2bools
-    - done. works fine. tested for both true and false 
-- add max_grad_norm
-    - done
-- add weight_decay
-    - done
-- add para_init
-    - done
-- match the order of zero grad and stepping as in libowen
-    - update: got back **72%** on both dev and training accuracy
-- turn on epoch0 initialiation and Adagrad_init
-    - done. no change. still hangs out around 72%. maybe i should run let it run across couple of epochs
-    - update this is the train and dev accuracy after 250+ epochs
-    - `268,77.19166666666666,76.95814338997099`
-- does libowen have momentum? 
-    - no
-- remove to_lower() at two places and check if that makes any diff. at vocab dictionary creation and embedding sanitize lookup function
-    - done. accuracy on both training and dev is around **77.39%** after 250 epochs. will stick to this.
-- to make the run faster
-    - currently i look up the word given id, by iterating through the dict every time. maybe try the index method they mention [here](https://www.geeksforgeeks.org/python-get-key-from-value-in-dictionary/)
-        - test it thoroughly for id and embedding of `is` again --done
-        - inside function `sanitise_and_lookup_embedding
-    - done`
-- change embedding_size to 300 like in libowen
-    - done. in any case i was loading up 80b300d glove
-- check if sentences in claim and evidnece are getting cut at 1000    
-- update embeddings = true
-- why is there batching in dev?
-    - checked. it is to save overloading memory. accuracy doesn't change either ways.
-- also confirm if the accuracy is being done at the end of all batches, not cumulative
-    - works either way for dev. for training it doesn't matter as long as the ball park figure is same.
-- compare all command line arguments between libowen and my code
-    - done
-- check what glove he is loading
-    - found that he was loading w2v where as i was loading glove. smh
-    - update: never mind. he is also using glove. he just names it function w2v. however, i checked the
-    harvard code. they use glove only to create hdf5
-- print parameters in both libowen and meanteacher arch
-    - done. both of them have 14+2=16 parameters
+Qn)does libowen code have momentum? 
+  Ans: no
     
     
 # Todo :
@@ -463,9 +392,9 @@ inside the student only on a mac command line-but with data that is NER neutered
 Below is a version that runs the code as a **decomposable attention**  as **mean teacher** 
  on a mac command line- using this on may16th 2019.
 
-```python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6 --run-name fever_transform --batch_size 10 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file dev_with_50_evi_sents.jsonl --train_input_file train_with_100_evi_sents.jsonl --arch da_RTE --run_as_plain_ffnn false --log_level INFO --use_gpu false --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --labeled_batch_size 5 --labels 20.0 --consistency 1```
+```python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6 --run-name fever_transform --batch_size 10 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file dev_with_50_evi_sents.jsonl --train_input_file train_with_100_evi_sents.jsonl --arch da_RTE --run_student_only false --log_level INFO --use_gpu false --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --labeled_batch_size 5 --labels 20.0 --consistency 1```
 
-# from here on every command is for a server machine, i.e huge memory/huge gpu/huge disk space
+#### from here on every command is for a server machine (defined as a computer that has huge memory/huge gpu/huge disk space)
 Below is a version that runs on linux command line (server/big memory-but with 12k training and 2.5k dev):
 
 ```
@@ -520,7 +449,12 @@ python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_worde
 Below is a version that runs the code as a **decomposable attention** as both student and teacher.
 
 ```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file dev_24K_no_train_120k_overlap.jsonl --arch da_RTE --run_as_plain_ffnn false --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --batch_size 100 --labeled_batch_size 25 --labels 20.0 --consistency 1
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file dev_24K_no_train_120k_overlap.jsonl --arch da_RTE --run_student_only false --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --batch_size 100 --labeled_batch_size 25 --labels 20.0 --consistency 1
 ```
 
-status as of 6pm may 15th: still getting assert errors on this command immediately above. started on tmux 19 on clara.
+status as of may 31st: 
+testing on laptop. getting the below error at line 438 of main.py (while trying to do training and calculating nnloss). I think its got something to do with the fact that we have 4 classes now. 
+update: exact point it is throwing error is line 1789 in `/anaconda3/envs/meanteacher/lib/python3.7/site-packages/torch/nn/functional.py`
+
+`RuntimeError: Assertion cur_target >= 0 && cur_target < n_classes failed.  at /Users/soumith/mc3build/conda-bld/pytorch_1549597882250/work/aten/src/THNN/generic/ClassNLLCriterion.c:93
+`

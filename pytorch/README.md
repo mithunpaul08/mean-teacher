@@ -129,7 +129,7 @@ server:clara.
 - tmux
 - git pull
 - source activate meanteacher
-- one of the linux commands [here](#Testing)    
+- run one of the linux commands given [here](#commands_to_run)    
 
 #FAQ :
 *These are questions I had when i was trying to load the mean teacher project. Noting it down for myself and for the sake of others who might end up using this code.*
@@ -419,7 +419,7 @@ training accuracy @epoch 30: 84.57166666666667,dev: 82.65230004144219
 ```
 
 
-
+#commands_to_run
 # Some linux versions of the start up command*
 
 Below is a version that runs on mean teacher on a mac command line-but with toy data- best for laptop:
@@ -463,7 +463,7 @@ inside the student only on a mac command line-but with data that is NER neutered
 Below is a version that runs the code as a **decomposable attention**  as **mean teacher** 
  on a mac command line- using this on may16th 2019.
 
-```python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6 --run-name fever_transform --batch_size 10 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file fn_dev_ner_neutered_10.jsonl --train_input_file train_with_100_evi_sents.jsonl --arch da_RTE --run_as_plain_ffnn false --log_level INFO --use_gpu false --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --labeled_batch_size 5 --labels 20.0 --consistency 1```
+```python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6 --run-name fever_transform --batch_size 10 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file dev_with_50_evi_sents.jsonl --train_input_file train_with_100_evi_sents.jsonl --arch da_RTE --run_as_plain_ffnn false --log_level INFO --use_gpu false --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --labeled_batch_size 5 --labels 20.0 --consistency 1```
 
 # from here on every command is for a server machine, i.e huge memory/huge gpu/huge disk space
 Below is a version that runs on linux command line (server/big memory-but with 12k training and 2.5k dev):
@@ -519,7 +519,8 @@ python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_worde
 ```
 Below is a version that runs the code as a **decomposable attention** as both student and teacher.
 
-```python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file dev_24K_no_train_120k_overlap.jsonl --arch da_RTE --run_as_plain_ffnn false --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --batch_size 100 --labeled_batch_size 25 --labels 20.0 --consistency 1
+```
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file dev_24K_no_train_120k_overlap.jsonl --arch da_RTE --run_as_plain_ffnn false --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --batch_size 100 --labeled_batch_size 25 --labels 20.0 --consistency 1
 ```
 
-status as of 6pm may 15th: still getting assert errors on this command above. started on tmux 19 on clara.
+status as of 6pm may 15th: still getting assert errors on this command immediately above. started on tmux 19 on clara.

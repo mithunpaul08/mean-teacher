@@ -25,23 +25,11 @@ from mean_teacher.utils import *
 import contextlib
 import random
 
-#askfan: where is log file stored? Ans: stdout
-#logging.basicConfig(filename='example.log',filemode='w+')
+
+logging.basicConfig(filename='meanteacher.log',filemode='w+')
 LOG = logging.getLogger('main')
 LOG.setLevel(logging.INFO)
 
-
-################
-# NOTE: To enable logging on IPythonConsole output or IPyNoteBook
-# LOG = logging.getLogger()
-# LOG.setLevel(logging.DEBUG)
-# LOG.debug("test")
-
-# NOTE: To init args to Mean Teacher :
-# parser = cli.create_parser()
-# parser.set_defaults(dataset='cifar10') # OR any other param
-# args = parser.parse_known_args()[0]
-################
 
 args = None
 best_dev_accuracy_so_far = 0
@@ -114,140 +102,142 @@ def create_data_loaders(LOG,train_transformation,
     print(f"found value of args.dataset is {args.dataset}.")
 
 
-    if args.dataset in ['conll', 'ontonotes','fever']:
-        print(f"got inside args.dataset in fever.")
+
+    print(f"got inside args.dataset in fever.")
 
 
 
-        LOG.info("traindir : " + traindir)
-        LOG.info("evaldir : " + evaldir)
+    LOG.info("traindir : " + traindir)
+    LOG.info("evaldir : " + evaldir)
 
-        train_input_file = traindir + args.train_input_file
-        word_vocab = {"<unk>": 1,"</s>":2}
+    train_input_file = traindir + args.train_input_file
+    word_vocab = {"<unk>": 1,"</s>":2}
 
-        if(args.use_local_glove):
-            embdir = os.path.join(args.data_dir, args.glove_subdir)
-            emb_file_path=embdir+args.pretrained_wordemb_file
-        else:
-            emb_file_path = args.pretrained_wordemb_file
+    if(args.use_local_glove):
+        embdir = os.path.join(args.data_dir, args.glove_subdir)
+        emb_file_path=embdir+args.pretrained_wordemb_file
+    else:
+        emb_file_path = args.pretrained_wordemb_file
 
-        dataset = datasets.RTEDataset(word_vocab,"train",train_input_file, args,emb_file_path,train_transformation)
-        print(
-            f"after reading training dataset.value of word_vocab.size()={len(dataset.word_vocab.keys())}")
-
-
-
-
-        LOG.info("Type of Noise : "+ dataset.WORD_NOISE_TYPE)
-        LOG.info("Size of Noise : "+ str(dataset.NUM_WORDS_TO_REPLACE))
-
-        # ans: if you want to do a simple feed forward - i.e ignore all labeled.=args.x_unlabeled=true
-        if args.run_as_plain_ffnn:
-            labeled_idxs = data.get_all_label_indices(dataset, args)
-            sampler = SubsetRandomSampler(labeled_idxs)
-            batch_sampler_local = BatchSampler(sampler, args.batch_size, drop_last=True)
-        elif args.labeled_batch_size:
-            # askfan what does this relabel_dataset do? Ans: taking the training set and dividing a part of it as labeled and rest as unlabeled (label =-1)
-            if args.labels:
-                labeled_idxs, unlabeled_idxs = data.relabel_dataset_nlp(dataset, args)
-                batch_sampler_local = data.TwoStreamBatchSampler(unlabeled_idxs, labeled_idxs, args.batch_size,
-                                                       args.labeled_batch_size)
-        else:
-            assert False, "labeled batch size {}".format(args.labeled_batch_size)
+    dataset = datasets.RTEDataset(word_vocab,"train",train_input_file, args,emb_file_path,train_transformation)
+    print(
+        f"after reading training dataset.value of word_vocab.size()={len(dataset.word_vocab.keys())}")
 
 
 
 
+    LOG.info("Type of Noise : "+ dataset.WORD_NOISE_TYPE)
+    LOG.info("Size of Noise : "+ str(dataset.NUM_WORDS_TO_REPLACE))
 
-
-                #mithun: pytorch thing. train_loader uses getitem internally-
-                # train_loader.next gives you the next mini batch -
-                # it picks randomly to create a batch, but it also has to have a minimum:args.batch_size, args.labeled_batch_size
-                # for each mini batch: for each data point, it will call __getitem__
-
-            ''' CLASS torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False, sampler=None, batch_sampler_local=None, num_workers=0, collate_fn=<function default_collate>, pin_memory=False, drop_last=False, timeout=0, worker_init_fn=None)[SOURCE]
-            Data loader. Combines a dataset and a sampler, and provides single- or multi-process iterators over the dataset.
-            
-            Parameters:	
-            dataset (Dataset) – dataset from which to load the data.
-            batch_size (int, optional) – how many samples per batch to load (default: 1).
-            shuffle (bool, optional) – set to True to have the data reshuffled at every epoch (default: False).
-            sampler (Sampler, optional) – defines the strategy to draw samples from the dataset. If specified, shuffle must be False.
-            batch_sampler_local (Sampler, optional) – like sampler, but returns a batch of indices at a time. Mutually exclusive with batch_size, shuffle, sampler, and drop_last.
-            num_workers (int, optional) – how many subprocesses to use for data loading. 0 means that the data will be loaded in the main process. (default: 0)
-            collate_fn (callable, optional) – merges a list of samples to form a mini-batch.
-            pin_memory (bool, optional) – If True, the data loader will copy tensors into CUDA pinned memory before returning them.
-            drop_last (bool, optional) – set to True to drop the last incomplete batch, if the dataset size is not divisible by the batch size. If False and the size of dataset is not divisible by the batch size, then the last batch will be smaller. (default: False)
-            timeout (numeric, optional) – if positive, the timeout value for collecting a batch from workers. Should always be non-negative. (default: 0)
-            worker_init_fn (callable, optional) – If not None, this will be called on each worker subprocess with the worker id (an int in [0, num_workers - 1]) as input, after seeding and before data loading. (default: None)'''
-
-        found_not_supports_label=False
-
-        for lbl in dataset.lbl:
-            if not (lbl == 2):
-                found_not_supports_label=True
-
-
-
-        train_loader = torch.utils.data.DataLoader(dataset,
-                                                   batch_sampler=batch_sampler_local,
-                                                   num_workers=args.workers,
-                                                   pin_memory=True
-                                                  )
-                                                  # drop_last=False)
-                                                  # batch_size=args.batch_size,
-                                                  # shuffle=False)
-
-
-        #do the same for eval data also. i.e read the dev data, and add a sampler..
-        dev_input_file = evaldir + args.dev_input_file
-        dataset_dev = datasets.RTEDataset(word_vocab,"dev",dev_input_file, args, eval_transformation) ## NOTE: test data is the same as dev data
-
-        found_not_supports_label2=False
-        print(
-            f"after reading dev dataset.value of word_vocab.size()={len(dataset_dev.word_vocab.keys())}")
-
-
-
-
-        # debug. exit if gold has any label other than 2.
-        for lbl in dataset.lbl:
-            if not (lbl == 2):
-                found_not_supports_label2=True
-
-
-        # debug. exit if gold has any label other than 2.
-
-        found_not_supports_label1_dev=False
-        for lbl in dataset_dev.lbl:
-            if not (lbl == 2):
-                found_not_supports_label1_dev=True
+    # ans: if you want to do a simple feed forward - i.e ignore all labeled.=args.x_unlabeled=true
+    if args.run_as_plain_ffnn:
+        labeled_idxs = data.get_all_label_indices(dataset, args)
+        sampler = SubsetRandomSampler(labeled_idxs)
+        batch_sampler_local = BatchSampler(sampler, args.batch_size, drop_last=True)
+    elif args.labeled_batch_size:
+        # askfan what does this relabel_dataset do? Ans: taking the training set and dividing a part of it as labeled and rest as unlabeled (label =-1)
+        if args.labels:
+            labeled_idxs, unlabeled_idxs = data.relabel_dataset_nlp(dataset, args)
+            batch_sampler_local = data.TwoStreamBatchSampler(unlabeled_idxs, labeled_idxs, args.batch_size,
+                                                   args.labeled_batch_size)
+    else:
+        assert False, "labeled batch size {}".format(args.labeled_batch_size)
 
 
 
 
 
-        eval_loader = torch.utils.data.DataLoader(dataset_dev,
-                                                  batch_size=args.batch_size,
-                                                  shuffle=False,
-                                                  pin_memory=True,
-                                                  drop_last=False,
-                                                  num_workers=args.workers)
 
-        found_not_supports_label_train3=False
-        found_not_supports_label_dev2 = False
-
-        # debug. exit if gold has any label other than 2.
-        for lbl in dataset.lbl:
-            if not (lbl == 2):
-                found_not_supports_label_train3 = True
-
-        # debug. exit if gold has any label other than 2.
+            #DataLoader is a pytorch class. train_loader uses getitem internally-
+            # train_loader.next gives you the next mini batch -
+            # it picks randomly to create a batch, but it also has to have a minimum:args.batch_size, args.labeled_batch_size
+            # for each mini batch: for each data point, it will call __getitem__
+            # here is the official documentation excerpt
 
 
-        for lbl in dataset_dev.lbl:
-            if not (lbl == 2):
-                found_not_supports_label_dev2 = True
+        ''' CLASS torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False, sampler=None, batch_sampler_local=None, num_workers=0, collate_fn=<function default_collate>, pin_memory=False, drop_last=False, timeout=0, worker_init_fn=None)[SOURCE]
+        Data loader. Combines a dataset and a sampler, and provides single- or multi-process iterators over the dataset.
+        
+        Parameters:	
+        dataset (Dataset) – dataset from which to load the data.
+        batch_size (int, optional) – how many samples per batch to load (default: 1).
+        shuffle (bool, optional) – set to True to have the data reshuffled at every epoch (default: False).
+        sampler (Sampler, optional) – defines the strategy to draw samples from the dataset. If specified, shuffle must be False.
+        batch_sampler_local (Sampler, optional) – like sampler, but returns a batch of indices at a time. Mutually exclusive with batch_size, shuffle, sampler, and drop_last.
+        num_workers (int, optional) – how many subprocesses to use for data loading. 0 means that the data will be loaded in the main process. (default: 0)
+        collate_fn (callable, optional) – merges a list of samples to form a mini-batch.
+        pin_memory (bool, optional) – If True, the data loader will copy tensors into CUDA pinned memory before returning them.
+        drop_last (bool, optional) – set to True to drop the last incomplete batch, if the dataset size is not divisible by the batch size. If False and the size of dataset is not divisible by the batch size, then the last batch will be smaller. (default: False)
+        timeout (numeric, optional) – if positive, the timeout value for collecting a batch from workers. Should always be non-negative. (default: 0)
+        worker_init_fn (callable, optional) – If not None, this will be called on each worker subprocess with the worker id (an int in [0, num_workers - 1]) as input, after seeding and before data loading. (default: None)'''
+
+    found_not_supports_label=False
+
+    for lbl in dataset.lbl:
+        if not (lbl == 2):
+            found_not_supports_label=True
+
+
+
+    train_loader = torch.utils.data.DataLoader(dataset,
+                                               batch_sampler=batch_sampler_local,
+                                               num_workers=args.workers,
+                                               pin_memory=True
+                                              )
+                                              # drop_last=False)
+                                              # batch_size=args.batch_size,
+                                              # shuffle=False)
+
+
+    #do the same for eval data also. i.e read the dev data, and add a sampler..
+    dev_input_file = evaldir + args.dev_input_file
+    dataset_dev = datasets.RTEDataset(word_vocab,"dev",dev_input_file, args, eval_transformation) ## NOTE: test data is the same as dev data
+
+    found_not_supports_label2=False
+    print(
+        f"after reading dev dataset.value of word_vocab.size()={len(dataset_dev.word_vocab.keys())}")
+
+
+
+
+    # debug. exit if gold has any label other than 2.
+    for lbl in dataset.lbl:
+        if not (lbl == 2):
+            found_not_supports_label2=True
+
+
+    # debug. exit if gold has any label other than 2.
+
+    found_not_supports_label1_dev=False
+    for lbl in dataset_dev.lbl:
+        if not (lbl == 2):
+            found_not_supports_label1_dev=True
+
+
+
+
+
+    eval_loader = torch.utils.data.DataLoader(dataset_dev,
+                                              batch_size=args.batch_size,
+                                              shuffle=False,
+                                              pin_memory=True,
+                                              drop_last=False,
+                                              num_workers=args.workers)
+
+    found_not_supports_label_train3=False
+    found_not_supports_label_dev2 = False
+
+    # debug. exit if gold has any label other than 2.
+    for lbl in dataset.lbl:
+        if not (lbl == 2):
+            found_not_supports_label_train3 = True
+
+    # debug. exit if gold has any label other than 2.
+
+
+    for lbl in dataset_dev.lbl:
+        if not (lbl == 2):
+            found_not_supports_label_dev2 = True
 
 
 

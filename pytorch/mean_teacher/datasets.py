@@ -103,13 +103,6 @@ class RTEDataset(Dataset):
             if (args.type_of_data == "ner_replaced"):
                 self.claims, self.evidences, self.labels_str = Datautils.read_ner_neutered_data(dataset_file,args )
 
-        # if(runName=="dev"):
-        #     # debug. exit if gold has any label other than 2.
-        #     for lbl in self.labels_str:
-        #         if not (lbl == 2):
-        #             print(f"\n just after train loader found a new label other than SUPPORTS. label is {lbl}")
-        #             import sys
-        #             sys.exit
 
 
         assert len(self.claims)== len(self.evidences)==len(self.labels_str), "claims and evidences are not of equal length"
@@ -118,6 +111,9 @@ class RTEDataset(Dataset):
         list_of_longest_ev_lengths=[]
         list_of_longest_evidences=[]
         max_evidence_len=0
+        print(
+            f"going to load dataset")
+
         for each_ev in self.evidences:
             words = [w for w in each_ev.split(" ")]
             if len(words) > max_evidence_len:
@@ -162,6 +158,7 @@ class RTEDataset(Dataset):
             if not runName == "dev": # do not load the word embeddings again in eval
                 LOG.info("Loading the pretrained embeddings ... ")
                 self.gigaW2vEmbed, self.lookupGiga, self.embedding_size = Gigaword.load_pretrained_embeddings(emb_file_path,args)
+                LOG.info("Done loading embeddings. going to create vocabulary ... ")
                 self.word_vocab_embed = self.create_word_vocab_embed()
 
         else:

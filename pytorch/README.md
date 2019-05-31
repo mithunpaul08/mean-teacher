@@ -419,8 +419,8 @@ training accuracy @epoch 30: 84.57166666666667,dev: 82.65230004144219
 ```
 
 
-#commands_to_run
-# Some linux versions of the start up command*
+# commands_to_run
+##### Some linux versions of the start up command*
 
 Below is a version that runs on mean teacher on a mac command line-but with toy data- best for laptop:
 ```

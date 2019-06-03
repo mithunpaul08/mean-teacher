@@ -13,6 +13,7 @@ import logging
 import re
 words_in_glove =0
 DEFAULT_ENCODING = 'utf8'
+from tqdm import tqdm
 
 
 
@@ -72,7 +73,8 @@ class RTEDataset(Dataset):
         word_vocab_embed = list()
         # leave last word = "@PADDING"
         counter=0
-        for word_id in range(0, len(self.word_vocab)):
+        all_words=range(0, len(self.word_vocab))
+        for word_id in tqdm(all_words,total=len(self.word_vocab)):
             word_embed = self.sanitise_and_lookup_embedding(word_id)
             word_vocab_embed.append(word_embed)
             counter=counter+1

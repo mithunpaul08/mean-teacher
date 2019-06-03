@@ -200,18 +200,6 @@ def create_data_loaders(LOG,train_transformation,
 
 
 
-    # debug. exit if gold has any label other than 2.
-    for lbl in dataset.lbl:
-        if not (lbl == 2):
-            found_not_supports_label2=True
-
-
-    # debug. exit if gold has any label other than 2.
-
-    found_not_supports_label1_dev=False
-    for lbl in dataset_dev.lbl:
-        if not (lbl == 2):
-            found_not_supports_label1_dev=True
 
 
 
@@ -224,21 +212,6 @@ def create_data_loaders(LOG,train_transformation,
                                               drop_last=False,
                                               num_workers=args.workers)
 
-    found_not_supports_label_train3=False
-    found_not_supports_label_dev2 = False
-
-    # debug. exit if gold has any label other than 2.
-    for lbl in dataset.lbl:
-        print(lbl)
-        if not (lbl == 2):
-            found_not_supports_label_train3 = True
-
-    # debug. exit if gold has any label other than 2.
-
-
-    for lbl in dataset_dev.lbl:
-        if not (lbl == 2):
-            found_not_supports_label_dev2 = True
 
 
 
@@ -272,10 +245,12 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
     global train_teacher_pred_noNA
     global train_teacher_true_noNA
 
+
     if torch.cuda.is_available():
-        class_criterion = nn.CrossEntropyLoss().cuda()
+        class_criterion = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cuda()
     else:
-        class_criterion = nn.CrossEntropyLoss().cpu()
+        class_criterion = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cpu()
+
 
     if args.consistency_type == 'mse':
         consistency_criterion = losses.softmax_mse_loss
@@ -409,7 +384,7 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
 
 
 
-        ## DONE: AJAY - WHAT IS THIS CODE BLK ACHIEVING ? Ans: THIS IS RELATED TO --logit-distance-cost .. (fc1 and fc2 in model) ...
+        ## THIS IS RELATED TO --logit-distance-cost .. (fc1 and fc2 in model) ...
         if isinstance(model_out, Variable):       # this is default
             assert args.logit_distance_cost < 0
             logit1 = model_out
@@ -437,24 +412,14 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
             res_loss = 0
 
         class_loss = class_criterion(class_logit, target_var) / minibatch_size
+        meters.update('class_loss', class_loss.data.item())
 
+        # THe below vaue ema_class_loss is really useless. it is only for FYI/storing purposes in meters.
+        ## - WHAT IF target_var NOT PRESENT (UNLABELED DATAPOINT) ?
+        # Ans: See  ignore index in  `class_criterion = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cpu()`
         if not args.run_student_only:
-            #ema_class_loss = class_criterion(ema_logit, target_var) / minibatch_size
-            ## DONE: AJAY - WHAT IF target_var NOT PRESENT (UNLABELED DATAPOINT) ?
-            # Ans: See  ignore index in  `class_criterion = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cpu()`
-            #meters.update('ema_class_loss', ema_class_loss.data.item())  # Do we need this?
-        # else:
-        #     loss_output=class_criterion(class_logit, target_var)
-        #
-        #     #note: if you are using cross entryopy NLL in pytorch, you don't need to use softmax
-        #     class_logit_soft_max=F.softmax(class_logit,dim=0)
-        #
-        #     LOG.debug(f"type of loss_output={type(loss_output)}")
-        #     LOG.debug(f"value of minibatch_size={minibatch_size} ")
-        #     LOG.debug(f"value of class_logit={class_logit} ")
-        #     LOG.debug(f"value of target_var={target_var} ")
-        #
-        #     LOG.debug(f"value of class_loss={class_loss} ")
+            ema_class_loss = class_criterion(ema_logit, target_var) / minibatch_size
+            meters.update('ema_class_loss', ema_class_loss.data.item())
 
 
 

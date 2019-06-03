@@ -441,14 +441,8 @@ Below is a version that runs the code as a **decomposable attention** as both st
 python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file dev_24K_no_train_120k_overlap.jsonl --arch da_RTE --run_student_only false --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --batch_size 100 --labeled_batch_size 25 --labels 20.0 --consistency 1
 ```
 
-status as of may 31st: 
-testing on laptop. getting the below error at line 438 of main.py (while trying to do training and calculating nnloss). I think its got something to do with the fact that we have 4 classes now. 
-update: exact point it is throwing error is 440 in main.py (`ema_class_loss = class_criterion(ema_logit, target_var) / minibatch_size`)
- 
- and which inturn is in line 1789 in `/anaconda3/envs/meanteacher/lib/python3.7/site-packages/torch/nn/functional.py`
-
-`
-RuntimeError: Assertion cur_target >= 0 && cur_target < n_classes failed.  at /Users/soumith/mc3build/conda-bld/pytorch_1549597882250/work/aten/src/THNN/generic/ClassNLLCriterion.c:93
-`
-ok found the problem: our code assigns -1 for values which are redacted due to the mean teacher
-effect.
+status as of june 2nd ,.11pm: 
+- code now works for both teacher and student.
+- next:
+    - feed in lex into student and delex into teacher
+    - alternately turn on noise/self.transform

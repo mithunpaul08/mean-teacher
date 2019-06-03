@@ -444,5 +444,7 @@ python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_worde
 status as of june 2nd ,.11pm: 
 - code now works for both teacher and student.
 - next:
-    - feed in lex into student and delex into teacher
-    - alternately turn on noise/self.transform
+    - run student teacher on server with complete lex data?
+    - alternately turn on noise/self.transform (this is to check my idea of using noise in a new domain + very less labeled data)
+    - feed in lex into student and delex into teacher (this is mihai's idea of 2 mean teachers. check drawing from april)
+    

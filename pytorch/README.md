@@ -132,9 +132,12 @@ Note:
 #### Qn) What does transform() do?
 
 Ans: `transform` decides what kind of noise you want to add. 
-For example the class `NECDataset` internally calls the function ontonotes() in the file
-`mean_teacher/datasets.py`. 
-Both the student and teacher will have different type of noise added. That is decided by transform
+For example the class `RTEDataset` internally calls the function fever() in the file
+`mean_teacher/datasets.py` which in turn call `data.RandomPatternWordNoise` from the file `mean-teacher/pytorch/mean_teacher/data.py`
+Both the student and teacher will have different type of noise added. That is decided by transform.
+Bottom line is: I don't know how the function fever() is called by the class RTEDataset. It is some kind of internal pytorch thing am assuming. But the function
+fever() is where you specify what kinda tranformations you need. So if you want to turn on noise for your input data you uncomment:
+`#'train_transformation': data.TransformTwiceNEC(addNoise),` in dataset.py. Don't look at me, I just inherited this code from someone else.
 
 
 ```
@@ -444,7 +447,8 @@ python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_worde
 status as of june 2nd ,.11pm: 
 - code now works for both teacher and student.
 - next:
-    - run student teacher on server with complete lex data?
-    - alternately turn on noise/self.transform (this is to check my idea of using noise in a new domain + very less labeled data)
-    - feed in lex into student and delex into teacher (this is mihai's idea of 2 mean teachers. check drawing from april)
+    - run student teacher on server with complete lex data? -june 3rd
+    - turn on noise/self.transform (this is to check my idea of using noise in a new domain + very less labeled data) - june 4th
+    - feed in lex into student and delex into student2 (this is mihai's idea of 2 mean teachers. check drawing from april)-
+    - feed in lex into student and delex into student2 and also attach a teacher (this is mihai's idea of 2 mean teachers. check drawing from april)- 
     

@@ -93,7 +93,7 @@ class RTEDataset(Dataset):
         return word_vocab_id_to_word_maping
 
     #mithun this is called using:#dataset = datasets.NECDataset(traindir, args, train_transformation)
-    def __init__(self, word_vocab,runName,dataset_file, args,emb_file_path,transform=None):
+    def __init__(self, word_vocab,runName,dataset_file, args,emb_file_pathtransform=None):
         LOG = logging.getLogger('datasets')
         LOG.setLevel(logging.INFO)
 

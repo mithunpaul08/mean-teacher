@@ -229,6 +229,7 @@ def create_data_loaders(LOG,train_transformation,
 
     # debug. exit if gold has any label other than 2.
     for lbl in dataset.lbl:
+        print(lbl)
         if not (lbl == 2):
             found_not_supports_label_train3 = True
 
@@ -435,23 +436,25 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
             class_logit, cons_logit = logit1, logit1    # class_logit.data.size(): torch.Size([256, 56])
             res_loss = 0
 
+        class_loss = class_criterion(class_logit, target_var) / minibatch_size
+
         if not args.run_student_only:
-            ema_class_loss = class_criterion(ema_logit, target_var) / minibatch_size
+            #ema_class_loss = class_criterion(ema_logit, target_var) / minibatch_size
             ## DONE: AJAY - WHAT IF target_var NOT PRESENT (UNLABELED DATAPOINT) ?
             # Ans: See  ignore index in  `class_criterion = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cpu()`
-            meters.update('ema_class_loss', ema_class_loss.data.item())  # Do we need this?
-        else:
-            loss_output=class_criterion(class_logit, target_var)
-
-            #note: if you are using cross entryopy NLL in pytorch, you don't need to use softmax
-            class_logit_soft_max=F.softmax(class_logit,dim=0)
-
-            LOG.debug(f"type of loss_output={type(loss_output)}")
-            LOG.debug(f"value of minibatch_size={minibatch_size} ")
-            LOG.debug(f"value of class_logit={class_logit} ")
-            LOG.debug(f"value of target_var={target_var} ")
-            class_loss = class_criterion(class_logit, target_var) / minibatch_size
-            LOG.debug(f"value of class_loss={class_loss} ")
+            #meters.update('ema_class_loss', ema_class_loss.data.item())  # Do we need this?
+        # else:
+        #     loss_output=class_criterion(class_logit, target_var)
+        #
+        #     #note: if you are using cross entryopy NLL in pytorch, you don't need to use softmax
+        #     class_logit_soft_max=F.softmax(class_logit,dim=0)
+        #
+        #     LOG.debug(f"type of loss_output={type(loss_output)}")
+        #     LOG.debug(f"value of minibatch_size={minibatch_size} ")
+        #     LOG.debug(f"value of class_logit={class_logit} ")
+        #     LOG.debug(f"value of target_var={target_var} ")
+        #
+        #     LOG.debug(f"value of class_loss={class_loss} ")
 
 
 
@@ -482,8 +485,7 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
             meters.update('cons_loss', 0)
 
         #if using just student, this will be class_loss + 0+ 0
-        loss = class_loss \
-               #+ consistency_loss + res_loss # NOTE: AJAY - loss is a combination of classification loss and consistency loss (+ residual loss from the 2 outputs of student model fc1 and fc2, see args.logit_distance_cost)
+        loss = class_loss + consistency_loss + res_loss # NOTE: AJAY - loss is a combination of classification loss and consistency loss (+ residual loss from the 2 outputs of student model fc1 and fc2, see args.logit_distance_cost)
         loss.backward()
 
         meters.update('loss', loss.data.item())
@@ -1287,18 +1289,18 @@ def main(context):
     LOG.setLevel(args.log_level)
 
     num_classes=3
-    if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids','fever']:
-        train_loader, eval_loader, dataset, dataset_test = create_data_loaders(LOG,**dataset_config, args=args)
-        LOG.debug(f"after create_data_loaders. main.py line 1031. value of word_vocab.size()={len(dataset.word_vocab.keys())}")
-        num_classes = len(dataset.categories)
-        word_vocab_embed = dataset.word_vocab_embed
-        wordemb_size= dataset.embedding_size
-        LOG.debug(f"inside if arg.s dataset in fever value of word_vocab.size()={len(dataset.word_vocab.keys())}")
-        word_vocab_size = len(dataset.word_vocab.keys())
+    #if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids','fever']:
+    train_loader, eval_loader, dataset, dataset_test = create_data_loaders(LOG,**dataset_config, args=args)
+    LOG.debug(f"after create_data_loaders. main.py line 1031. value of word_vocab.size()={len(dataset.word_vocab.keys())}")
+    num_classes = len(dataset.categories)
+    word_vocab_embed = dataset.word_vocab_embed
+    wordemb_size= dataset.embedding_size
+    LOG.debug(f"inside if arg.s dataset in fever value of word_vocab.size()={len(dataset.word_vocab.keys())}")
+    word_vocab_size = len(dataset.word_vocab.keys())
 
-    else:
+    #else:
         #mithun: i think this is the actual code from valpola that ran on cifar10 dataset
-        train_loader, eval_loader = create_data_loaders(**dataset_config, args=args)
+       # train_loader, eval_loader = create_data_loaders(**dataset_config, args=args)
 
     #uncomment this if you want to pop the number of classes instead from the config file
     # if args.dataset in ['riedel', 'gids','fever']:

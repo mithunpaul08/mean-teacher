@@ -139,6 +139,7 @@ Bottom line is: I don't know how the function fever() is called by the class RTE
 fever() is where you specify what kinda tranformations you need. So if you want to turn on noise for your input data you uncomment:
 `#'train_transformation': data.TransformTwiceNEC(addNoise),` in dataset.py. Don't look at me, I just inherited this code from someone else.
 
+as of may 2019 the function fever() mentioned above can be found [here](https://github.com/mithunpaul08/mean-teacher/blob/add_decomp_attn/pytorch/mean_teacher/datasets.py#L22)
 
 ```
     def ontonotes():

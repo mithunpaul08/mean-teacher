@@ -450,6 +450,7 @@ status as of june 2nd ,.11pm:
 - next:
     - run student teacher on server with complete lex data? -june 3rd (running on tmux 1 and 0 on amy)
     - turn on noise/self.transform (this is to check my idea of using noise in a new domain + very less labeled data) - june 4th
+        - turned drop on at 6pm on june 3rd. started running on a folder called meanteacher2 in clara. tmux 2.
     - cerate another student and feed in lex into student1 and delex into student2 (this is mihai's idea of 2 mean teachers. check drawing from april)- june 30th
     - feed in lex into student and delex into student2 and also attach a teacher (this is mihai's idea of 2 mean teachers. check drawing from april)- 
     

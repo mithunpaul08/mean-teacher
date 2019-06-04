@@ -278,11 +278,6 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
     end = time.time()
 
 
-    # datapoint: List(input_student, student_input teacher, labels)
-    #i.e go through each data point within a mini batch
-
-
-
     bool_inside_accuracy_all_labels_supports = True
 
     avg_after_each_batch=0
@@ -434,25 +429,25 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
 
         #mithun askajay: is this where they are doing consistency comparison-but where is the subtRACTION?
         # #askajay: where is the construction cost and consistency cost and back prop only on student etc?
-        #ans: no. they are doing the subtraction around line
+        #ans: no. they are doing all that in a function called update_ema_variables
 
         # if you want to use consistency loss with given weight  pass --consistency in running script-
         # consistency has to be a positive value. give =1 they must be equally weighted
         # if you are doing feed forward this can be zero
         if args.consistency:
-            
-            #ideally if we are not doing ema, the args.consistency also must be mutually exclusive
             if not args.run_student_only:
                 consistency_weight = get_current_consistency_weight(epoch)
                 meters.update('cons_weight', consistency_weight)
                 consistency_loss = consistency_weight * consistency_criterion(cons_logit, ema_logit) / minibatch_size
                 meters.update('cons_loss', consistency_loss.data.item())
         else:
+            # if you are running student only consistency cost makes no sense. Therefore mark it as zero
             consistency_loss = 0
             meters.update('cons_loss', 0)
 
+        #loss is a combination of classification loss and consistency loss (+ residual loss from the 2 outputs of student model fc1 and fc2, see args.logit_distance_cost)
         #if using just student, this will be class_loss + 0+ 0
-        loss = class_loss + consistency_loss + res_loss # NOTE: AJAY - loss is a combination of classification loss and consistency loss (+ residual loss from the 2 outputs of student model fc1 and fc2, see args.logit_distance_cost)
+        loss = class_loss + consistency_loss + res_loss
         loss.backward()
 
         meters.update('loss', loss.data.item())
@@ -482,11 +477,9 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
             shrinkage = args.max_grad_norm / grad_norm
             if shrinkage < 1:
                 for m in model.input_encoder.modules():
-                    # print m
                     if isinstance(m, nn.Linear):
                         m.weight.grad.data = m.weight.grad.data * shrinkage
                 for m in model.inter_atten.modules():
-                    # print m
                     if isinstance(m, nn.Linear):
                         m.weight.grad.data = m.weight.grad.data * shrinkage
                         m.bias.grad.data = m.bias.grad.data * shrinkage
@@ -518,7 +511,7 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
         
         if not args.run_student_only:
             ema_prec1, pred_labels, gold_labels = accuracy_fever(ema_logit.data,
-                                                                 target_var.data)  # Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
+                                                                 target_var.data)
             meters.update('ema_top1', ema_prec1, labeled_minibatch_size)
             meters.update('ema_error1', 100. - ema_prec1, labeled_minibatch_size)
 
@@ -540,8 +533,6 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
                     'Consistency_loss:{meters[cons_loss]:.4f}\t'
                     'Prec_student: {meters[top1]:.3f}\t'                    
                     'Prec_teacher: {meters[ema_top1]:.3f}\t'
-                    #'teacher_error: {meters[ema_error1]:.3f}\t'
-                    #'student_error:{meters[error1]:.3f}\t'
                         .format(
                     epoch, i, len(train_loader), meters=meters))
             else:

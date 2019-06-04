@@ -447,7 +447,11 @@ python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_worde
 
 status as of june 2nd ,.11pm: 
 - code now works for both teacher and student.
-- next:
+
+- next todo:
+    - most important first thing to do: go through main.py and remove all vestigial/old comments. 
+    - old/wrong comments are worse than no comments
+    - merge with master
     - run student teacher on server with complete lex data? - deadline june 3rd (running on tmux 1 and 0 on amy)
         - update: at epoch 49 best dev accuracy is at 82.70 at epoch 1..
         - search on vim for best_dev_accuracy set ignorecase.
@@ -455,5 +459,11 @@ status as of june 2nd ,.11pm:
         -  started running on a folder called meanteacher2 in clara. tmux 2 and 3.
         -  update: best dev accuracy is 83.29 in epoch 1
     - cerate another student and feed in lex into student1 and delex into student2 (this is mihai's idea of 2 mean teachers. check drawing from april)- june 30th
+        - the current existing student, rename it to student 1
+        - feed the lexicalized data into train loader(this we are already doing)
+        - dont' do droppings of words/adding noise - i.e turn transform off
+        - create a new train loader for student2
+        - feed delex into this train loader of student2 and lex into train loader of student 1
+        - add an if condition for student1 and student2 and pass two different train loaders into train() function
     - feed in lex into student and delex into student2 and also attach a teacher (this is mihai's idea of 2 mean teachers. check drawing from april)- 
     

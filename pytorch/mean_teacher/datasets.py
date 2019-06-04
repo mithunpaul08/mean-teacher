@@ -27,8 +27,8 @@ def fever():
         assert False, "Unknown type of noise {}".format(RTEDataset.WORD_NOISE_TYPE)
 
     return {
-        #'train_transformation': data.TransformTwiceNEC(addNoise),
-        'train_transformation': None,
+        'train_transformation': data.TransformTwiceNEC(addNoise),
+        #'train_transformation': None,
         'eval_transformation': None,
         #'datadir': 'data-local/rte/fever'
         #ask ajay what does this do? why comment out?
@@ -93,7 +93,7 @@ class RTEDataset(Dataset):
         return word_vocab_id_to_word_maping
 
     #mithun this is called using:#dataset = datasets.NECDataset(traindir, args, train_transformation)
-    def __init__(self, word_vocab,runName,dataset_file, args,emb_file_pathtransform=None):
+    def __init__(self, word_vocab,runName,dataset_file, args,emb_file_path,transform=None):
         LOG = logging.getLogger('datasets')
         LOG.setLevel(logging.INFO)
 

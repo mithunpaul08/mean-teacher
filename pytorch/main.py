@@ -16,7 +16,7 @@ from torch.utils.data import DataLoader
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
 import torchvision.datasets
 import torch.cuda
-
+import unittest
 
 from mean_teacher import architectures, datasets, data, losses, ramps, cli
 from mean_teacher.run_context import RunContext
@@ -25,26 +25,14 @@ from mean_teacher.utils import *
 import contextlib
 import random
 
-#askfan: where is log file stored? Ans: stdout
-#logging.basicConfig(filename='example.log',filemode='w+')
+
+logging.basicConfig(filename='meanteacher.log',filemode='w+')
 LOG = logging.getLogger('main')
 LOG.setLevel(logging.INFO)
 
 
-################
-# NOTE: To enable logging on IPythonConsole output or IPyNoteBook
-# LOG = logging.getLogger()
-# LOG.setLevel(logging.DEBUG)
-# LOG.debug("test")
-
-# NOTE: To init args to Mean Teacher :
-# parser = cli.create_parser()
-# parser.set_defaults(dataset='cifar10') # OR any other param
-# args = parser.parse_known_args()[0]
-################
-
 args = None
-best_dev_accuracy_across_epochs = 0
+best_dev_accuracy_so_far = 0
 best_epochs = 0
 global_step = 0
 NA_label = -1
@@ -92,11 +80,11 @@ def create_data_loaders(LOG,train_transformation,
     traindir = os.path.join(args.data_dir , args.train_subdir)
     evaldir = os.path.join(args.data_dir , args.eval_subdir)
 
-    assert_exactly_one([args.exclude_unlabeled, args.labeled_batch_size])
+    assert_exactly_one([args.run_student_only, args.labeled_batch_size])
 
 
-    #feb23rd2019: if  args.exclude_unlabeled: we are dropping/not running teacher model. So make sure consistency is 0.
-    assert_mutually_exclusive(args.exclude_unlabeled, args.consistency)
+    #feb23rd2019: if  args.run_student_only: we are dropping/not running teacher model. So make sure consistency is 0.
+    assert_mutually_exclusive(args.run_student_only, args.consistency)
 
 
 
@@ -104,12 +92,9 @@ def create_data_loaders(LOG,train_transformation,
     if torch.cuda.is_available():
         pin_memory = True
         LOG.info(f"found torch.cuda is true.")
-        print(f"found torch.cuda is true.")
-        LOG.info(torch.cuda.device_count())
+        LOG.info(f"total number of availalbe gpus are:{torch.cuda.device_count()}")
         cuda0 = torch.cuda.set_device(0)
-        LOG.info(torch.cuda.current_device())
-        #LOG.info(torch.cuda.get_device_name(0))
-        LOG.info(torch.cuda.device_count())
+        LOG.info(f"GPU that will be used in this run is:{torch.cuda.current_device()}")
     else:
         pin_memory = False
         LOG.info(f"found torch.cuda is false. giong to exit")
@@ -117,139 +102,120 @@ def create_data_loaders(LOG,train_transformation,
     print(f"found value of args.dataset is {args.dataset}.")
 
 
-    if args.dataset in ['conll', 'ontonotes','fever']:
-        print(f"got inside args.dataset in fever.")
+
+    print(f"got inside args.dataset in fever.")
 
 
 
-        LOG.info("traindir : " + traindir)
-        LOG.info("evaldir : " + evaldir)
+    LOG.info("traindir : " + traindir)
+    LOG.info("evaldir : " + evaldir)
 
-        train_input_file = traindir + args.train_input_file
-        word_vocab = {"@UNKNOWN": 1,"</s>":2}
-        dataset = datasets.RTEDataset(word_vocab,"train",train_input_file, args,train_transformation)
-        print(
-            f"after reading training dataset.value of word_vocab.size()={len(dataset.word_vocab.keys())}")
+    train_input_file = traindir + args.train_input_file
+    word_vocab = {"<unk>": 1,"</s>":2}
 
+    if(args.use_local_glove):
+        embdir = os.path.join(args.data_dir, args.glove_subdir)
+        emb_file_path=embdir+args.pretrained_wordemb_file
+    else:
+        emb_file_path = args.pretrained_wordemb_file
 
-
-
-        LOG.info("Type of Noise : "+ dataset.WORD_NOISE_TYPE)
-        LOG.info("Size of Noise : "+ str(dataset.NUM_WORDS_TO_REPLACE))
-
-        # ans: if you want to do a simple feed forward - i.e ignore all labeled.=args.x_unlabeled=true
-        if args.exclude_unlabeled:
-            labeled_idxs = data.get_all_label_indices(dataset, args)
-            sampler = SubsetRandomSampler(labeled_idxs)
-            batch_sampler_local = BatchSampler(sampler, args.batch_size, drop_last=True)
-        elif args.labeled_batch_size:
-            # askfan what does this relabel_dataset do? Ans: taking the training set and dividing a part of it as labeled and rest as unlabeled (label =-1)
-            if args.labels:
-                labeled_idxs, unlabeled_idxs = data.relabel_dataset_nlp(dataset, args)
-                batch_sampler_local = data.TwoStreamBatchSampler(unlabeled_idxs, labeled_idxs, args.batch_size,
-                                                       args.labeled_batch_size)
-        else:
-            assert False, "labeled batch size {}".format(args.labeled_batch_size)
+                #def __init__(self, word_vocab,runName,dataset_file, args,emb_file_pathtransform=None):
+    dataset = datasets.RTEDataset(word_vocab,"train",train_input_file, args,emb_file_path,train_transformation)
+    print(
+        f"after reading training dataset.value of word_vocab.size()={len(dataset.word_vocab.keys())}")
 
 
 
 
+    LOG.info("Type of Noise : "+ dataset.WORD_NOISE_TYPE)
+    LOG.info("Size of Noise : "+ str(dataset.NUM_WORDS_TO_REPLACE))
 
-
-                #mithun: pytorch thing. train_loader uses getitem internally-
-                # train_loader.next gives you the next mini batch -
-                # it picks randomly to create a batch, but it also has to have a minimum:args.batch_size, args.labeled_batch_size
-                # for each mini batch: for each data point, it will call __getitem__
-
-            ''' CLASS torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False, sampler=None, batch_sampler_local=None, num_workers=0, collate_fn=<function default_collate>, pin_memory=False, drop_last=False, timeout=0, worker_init_fn=None)[SOURCE]
-            Data loader. Combines a dataset and a sampler, and provides single- or multi-process iterators over the dataset.
-            
-            Parameters:	
-            dataset (Dataset) – dataset from which to load the data.
-            batch_size (int, optional) – how many samples per batch to load (default: 1).
-            shuffle (bool, optional) – set to True to have the data reshuffled at every epoch (default: False).
-            sampler (Sampler, optional) – defines the strategy to draw samples from the dataset. If specified, shuffle must be False.
-            batch_sampler_local (Sampler, optional) – like sampler, but returns a batch of indices at a time. Mutually exclusive with batch_size, shuffle, sampler, and drop_last.
-            num_workers (int, optional) – how many subprocesses to use for data loading. 0 means that the data will be loaded in the main process. (default: 0)
-            collate_fn (callable, optional) – merges a list of samples to form a mini-batch.
-            pin_memory (bool, optional) – If True, the data loader will copy tensors into CUDA pinned memory before returning them.
-            drop_last (bool, optional) – set to True to drop the last incomplete batch, if the dataset size is not divisible by the batch size. If False and the size of dataset is not divisible by the batch size, then the last batch will be smaller. (default: False)
-            timeout (numeric, optional) – if positive, the timeout value for collecting a batch from workers. Should always be non-negative. (default: 0)
-            worker_init_fn (callable, optional) – If not None, this will be called on each worker subprocess with the worker id (an int in [0, num_workers - 1]) as input, after seeding and before data loading. (default: None)'''
-
-        found_not_supports_label=False
-
-        for lbl in dataset.lbl:
-            if not (lbl == 2):
-                found_not_supports_label=True
-
-
-
-        train_loader = torch.utils.data.DataLoader(dataset,
-                                                   batch_sampler=batch_sampler_local,
-                                                   num_workers=args.workers,
-                                                   pin_memory=True
-                                                  )
-                                                  # drop_last=False)
-                                                  # batch_size=args.batch_size,
-                                                  # shuffle=False)
-
-
-        #do the same for eval data also. i.e read the dev data, and add a sampler..
-        dev_input_file = evaldir + args.dev_input_file
-        dataset_dev = datasets.RTEDataset(word_vocab,"dev",dev_input_file, args, eval_transformation) ## NOTE: test data is the same as train data
-
-        found_not_supports_label2=False
-        print(
-            f"after reading dev dataset.value of word_vocab.size()={len(dataset_dev.word_vocab.keys())}")
-
-
-
-
-        # debug. exit if gold has any label other than 2.
-        for lbl in dataset.lbl:
-            if not (lbl == 2):
-                found_not_supports_label2=True
-
-
-        # debug. exit if gold has any label other than 2.
-
-        found_not_supports_label1_dev=False
-        for lbl in dataset_dev.lbl:
-            if not (lbl == 2):
-                found_not_supports_label1_dev=True
+    # ans: if you want to do a simple feed forward - i.e ignore all labeled.=args.x_unlabeled=true
+    if args.run_student_only:
+        labeled_idxs = data.get_all_label_indices(dataset, args)
+        sampler = SubsetRandomSampler(labeled_idxs)
+        batch_sampler_local = BatchSampler(sampler, args.batch_size, drop_last=True)
+    elif args.labeled_batch_size:
+        # askfan what does this relabel_dataset do? Ans: taking the training set and dividing a part of it as labeled and rest as unlabeled (label =-1)
+        if args.labels:
+            labeled_idxs, unlabeled_idxs = data.relabel_dataset_nlp(dataset, args)
+            batch_sampler_local = data.TwoStreamBatchSampler(unlabeled_idxs, labeled_idxs, args.batch_size,
+                                                   args.labeled_batch_size)
+    else:
+        assert False, "labeled batch size {}".format(args.labeled_batch_size)
 
 
 
 
 
-        eval_loader = torch.utils.data.DataLoader(dataset_dev,
-                                                  batch_size=args.batch_size,
-                                                  shuffle=False,
-                                                  pin_memory=True,
-                                                  drop_last=False,
-                                                  num_workers=args.workers)
 
-        found_not_supports_label_train3=False
-        found_not_supports_label_dev2 = False
-
-        # debug. exit if gold has any label other than 2.
-        for lbl in dataset.lbl:
-            if not (lbl == 2):
-                found_not_supports_label_train3 = True
-
-        # debug. exit if gold has any label other than 2.
+            #DataLoader is a pytorch class. train_loader uses getitem internally-
+            # train_loader.next gives you the next mini batch -
+            # it picks randomly to create a batch, but it also has to have a minimum:args.batch_size, args.labeled_batch_size
+            # for each mini batch: for each data point, it will call __getitem__
+            # here is the official documentation excerpt
 
 
-        for lbl in dataset_dev.lbl:
-            if not (lbl == 2):
-                found_not_supports_label_dev2 = True
+        ''' CLASS torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False, sampler=None, batch_sampler_local=None, num_workers=0, collate_fn=<function default_collate>, pin_memory=False, drop_last=False, timeout=0, worker_init_fn=None)[SOURCE]
+        Data loader. Combines a dataset and a sampler, and provides single- or multi-process iterators over the dataset.
+        
+        Parameters:	
+        dataset (Dataset) – dataset from which to load the data.
+        batch_size (int, optional) – how many samples per batch to load (default: 1).
+        shuffle (bool, optional) – set to True to have the data reshuffled at every epoch (default: False).
+        sampler (Sampler, optional) – defines the strategy to draw samples from the dataset. If specified, shuffle must be False.
+        batch_sampler_local (Sampler, optional) – like sampler, but returns a batch of indices at a time. Mutually exclusive with batch_size, shuffle, sampler, and drop_last.
+        num_workers (int, optional) – how many subprocesses to use for data loading. 0 means that the data will be loaded in the main process. (default: 0)
+        collate_fn (callable, optional) – merges a list of samples to form a mini-batch.
+        pin_memory (bool, optional) – If True, the data loader will copy tensors into CUDA pinned memory before returning them.
+        drop_last (bool, optional) – set to True to drop the last incomplete batch, if the dataset size is not divisible by the batch size. If False and the size of dataset is not divisible by the batch size, then the last batch will be smaller. (default: False)
+        timeout (numeric, optional) – if positive, the timeout value for collecting a batch from workers. Should always be non-negative. (default: 0)
+        worker_init_fn (callable, optional) – If not None, this will be called on each worker subprocess with the worker id (an int in [0, num_workers - 1]) as input, after seeding and before data loading. (default: None)'''
 
-        print(f"value of found_not_supports_label1={found_not_supports_label}")
-        print(f"value of found_not_supports_label2={found_not_supports_label2}")
-        print(f"value of found_not_supports_label_train3={found_not_supports_label_train3}")
-        print(f"value of found_not_supports_label_dev2={found_not_supports_label_dev2}")
-        print(f"value of found_not_supports_label1_dev={found_not_supports_label1_dev}")
+    found_not_supports_label=False
+
+    for lbl in dataset.lbl:
+        if not (lbl == 2):
+            found_not_supports_label=True
+
+
+
+    train_loader = torch.utils.data.DataLoader(dataset,
+                                               batch_sampler=batch_sampler_local,
+                                               num_workers=args.workers,
+                                               pin_memory=True
+                                              )
+                                              # drop_last=False)
+                                              # batch_size=args.batch_size,
+                                              # shuffle=False)
+
+
+    #do the same for eval data also. i.e read the dev data, and add a sampler..
+    dev_input_file = evaldir + args.dev_input_file
+    dataset_dev = datasets.RTEDataset(word_vocab,"dev",dev_input_file, args, eval_transformation) ## NOTE: test data is the same as dev data
+
+    found_not_supports_label2=False
+    print(
+        f"after reading dev dataset.value of word_vocab.size()={len(dataset_dev.word_vocab.keys())}")
+
+
+
+
+
+
+
+
+
+
+    eval_loader = torch.utils.data.DataLoader(dataset_dev,
+                                              batch_size=args.batch_size,
+                                              shuffle=False,
+                                              pin_memory=True,
+                                              drop_last=False,
+                                              num_workers=args.workers)
+
+
+
 
     #mithun: once you have both the train and test data in the DataLoader format that torch understands, return it to the calling function
 
@@ -263,7 +229,7 @@ def create_data_loaders(LOG,train_transformation,
 
     return train_loader, eval_loader, dataset, dataset_dev
 
-#mithun: this is whe4re they are doing the average thing -ema=exponential moving average
+#mithun: this is where they are doing the average thing -ema=exponential moving average
 def update_ema_variables(model, ema_model, alpha, global_step):
     # Use the true average until the exponential average is more correct
     alpha = min(1 - 1 / (global_step + 1), alpha)
@@ -271,7 +237,7 @@ def update_ema_variables(model, ema_model, alpha, global_step):
         ema_param.data.mul_(alpha).add_(1 - alpha, param.data)
 
 
-def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
+def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer, epoch, dataset, log):
     global global_step
     global NA_label
     global train_student_pred_match_noNA
@@ -281,10 +247,12 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
     global train_teacher_pred_noNA
     global train_teacher_true_noNA
 
+
     if torch.cuda.is_available():
         class_criterion = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cuda()
     else:
         class_criterion = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cpu()
+
 
     if args.consistency_type == 'mse':
         consistency_criterion = losses.softmax_mse_loss
@@ -298,20 +266,16 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
     meters = AverageMeterSet()
 
     # switch to train mode
-    model.train() ### From the documentation (nn.module,py) :
+     ### From the documentation (nn.module,py) :
     # i) Sets the module in training mode.
     # (ii) This has any effect only on modules such as Dropout or BatchNorm. (iii) Returns: Module: self
+    model=model.train()
 
     #if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
-    if not args.exclude_unlabeled:
-        ema_model.train()
+    if not args.run_student_only:
+        ema_model=ema_model.train()
 
     end = time.time()
-
-
-    # datapoint: List(input_student, student_input teacher, labels)
-    #i.e go through each data point within a mini batch
-
 
 
     bool_inside_accuracy_all_labels_supports = True
@@ -322,75 +286,60 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
     total_gold=None
 
 
-
+    #this is where batching happens. i.e for each batch
     for i, datapoint in enumerate(train_loader):
-        # print("len(datapoint) = ", len(datapoint))
-        # print("datapoint[0] shape: {0}".format(datapoint[0].shape))
-        # sys.exit(1)
 
         # measure data loading time()
         meters.update('data_time', time.time() - end)
 
-        adjust_learning_rate(optimizer, epoch, i, len(train_loader))
-        meters.update('lr', optimizer.param_groups[0]['lr'])
+        # this was part of the original valpola code. commenting it out to check if that makes a difference in libowen code.
+        #adjust_learning_rate(input_optimizer, epoch, i, len(train_loader))
+        meters.update('lr', input_optimizer.param_groups[0]['lr'])
 
         len_claims_this_batch = None
         len_evidences_this_batch= None
 
+        #if there is no transformation, the data will be inside datapoint[0]
+        if(dataset.transform) is None:
+            student_input = datapoint[0]
+            teacher_input = datapoint[0]
+            target = datapoint[1]
+            len_claims_this_batch = datapoint[2][0]
+            len_evidences_this_batch = datapoint[2][1]
 
-
-        if args.dataset in ['conll', 'ontonotes','fever']:
-
-            #if there is no transformation, the data will be inside datapoint[0] itself
-            if(dataset.transform) is None:
-                student_input = datapoint[0]
-                teacher_input = datapoint[0]
-                target = datapoint[1]
-                len_claims_this_batch = datapoint[2][0]
-                len_evidences_this_batch = datapoint[2][1]
-
-            else:
-                student_input = datapoint[0]
-                teacher_input = datapoint[1]
-                target = datapoint[2]
-                len_claims_this_batch       = datapoint[3][0]
-                len_evidences_this_batch    = datapoint[3][1]
+        else:
+            student_input = datapoint[0]
+            teacher_input = datapoint[1]
+            target = datapoint[2]
+            len_claims_this_batch       = datapoint[3][0]
+            len_evidences_this_batch    = datapoint[3][1]
 
 
 
-            ## Input consists of tuple (entity_id, pattern_ids)
-            student_input_claim = student_input[0]
-            student_input_evidence = student_input[1]
+        ## Input consists of tuple (entity_id, pattern_ids)
+        student_input_claim = student_input[0]
+        student_input_evidence = student_input[1]
 
-            teacher_input_claim = teacher_input[0]
-            teacher_input_evidence = teacher_input[1]
-
-
-            if torch.cuda.is_available():
-                claims_var = torch.autograd.Variable(student_input_claim).cuda()
-                evidences_var = torch.autograd.Variable(student_input_evidence).cuda()
-                # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
-                if not args.exclude_unlabeled:
-                    ema_claims_var = torch.autograd.Variable(teacher_input_claim, volatile=True).cuda()
-                    ema_evidences_var = torch.autograd.Variable(teacher_input_evidence, volatile=True).cuda()
-
-            else:
-                claims_var = torch.autograd.Variable(student_input_claim).cpu()
-                evidences_var = torch.autograd.Variable(student_input_evidence).cpu()
-                # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
-                if not args.exclude_unlabeled:
-                    ema_claims_var = torch.autograd.Variable(teacher_input_claim, volatile=True).cpu()
-                    ema_evidences_var = torch.autograd.Variable(teacher_input_evidence, volatile=True).cpu()
-
-        #go through all labels in this batch and make sure that there is atleast one data point whose label is not SUPPORTS
-
-        for lbl in dataset.lbl:
-            if not (lbl == 2):
-                bool_inside_accuracy_all_labels_supports=False
+        teacher_input_claim = teacher_input[0]
+        teacher_input_evidence = teacher_input[1]
 
 
 
+        if torch.cuda.is_available():
+            claims_var = torch.autograd.Variable(student_input_claim).cuda()
+            evidences_var = torch.autograd.Variable(student_input_evidence).cuda()
+            
+            if not args.run_student_only:
+                ema_claims_var = torch.autograd.Variable(teacher_input_claim, volatile=True).cuda()
+                ema_evidences_var = torch.autograd.Variable(teacher_input_evidence, volatile=True).cuda()
 
+        else:
+            claims_var = torch.autograd.Variable(student_input_claim).cpu()
+            evidences_var = torch.autograd.Variable(student_input_evidence).cpu()
+            
+            if not args.run_student_only:
+                ema_claims_var = torch.autograd.Variable(teacher_input_claim, volatile=True).cpu()
+                ema_evidences_var = torch.autograd.Variable(teacher_input_evidence, volatile=True).cpu()
 
 
         if torch.cuda.is_available():
@@ -398,37 +347,57 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
         else:
             target_var = torch.autograd.Variable(target.cpu())  # todo: not passing the async=True (as above) .. going along with it now .. to check if this is a problem
 
+        input_optimizer.zero_grad()
+        inter_atten_optimizer.zero_grad()
+
+        # initialize the optimizer
+        if epoch == 0 and args.optimizer == 'adagrad':
+            for group in input_optimizer.param_groups:
+                for p in group['params']:
+                    state = input_optimizer.state[p]
+                    state['sum'] += args.Adagrad_init
+            for group in inter_atten_optimizer.param_groups:
+                for p in group['params']:
+                    state = inter_atten_optimizer.state[p]
+                    state['sum'] += args.Adagrad_init
+
+        # for debug/double checking: go through all labels in this batch and make sure that there is atleast one data point whose label is not SUPPORTS
+        for lbl in dataset.lbl:
+            if not (lbl == 2):
+                bool_inside_accuracy_all_labels_supports = False
+
         minibatch_size = len(target_var)
         labeled_minibatch_size = target_var.data.ne(NO_LABEL).sum()
         assert labeled_minibatch_size > 0
         meters.update('labeled_minibatch_size', labeled_minibatch_size)
 
-        #the feed forward and prediction part happens here.
-        if args.dataset in ['fever'] and args.arch == 'simple_MLP_embed_RTE':
-            # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
-            if not args.exclude_unlabeled:
-                ema_model_out = ema_model(ema_claims_var, ema_evidences_var, len_claims_this_batch, len_evidences_this_batch)
-            model_out = model(claims_var, evidences_var, len_claims_this_batch, len_evidences_this_batch)
+        #the feed forward and prediction part happens here.- if you put a breakpoint in the forward
+        # of architecture you will see that it goes there now
+
+        
+        if not args.run_student_only:
+            ema_model_out = ema_model(ema_claims_var, ema_evidences_var, len_claims_this_batch, len_evidences_this_batch)
+        model_out = model(claims_var, evidences_var, len_claims_this_batch, len_evidences_this_batch)
 
 
 
-        ## DONE: AJAY - WHAT IS THIS CODE BLK ACHIEVING ? Ans: THIS IS RELATED TO --logit-distance-cost .. (fc1 and fc2 in model) ...
+        ## THIS IS RELATED TO --logit-distance-cost .. (fc1 and fc2 in model) ...
         if isinstance(model_out, Variable):       # this is default
             assert args.logit_distance_cost < 0
             logit1 = model_out
-            # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
-            if not args.exclude_unlabeled:
+            
+            if not args.run_student_only:
                 ema_logit = ema_model_out
         else:
             assert len(model_out) == 2
             assert len(ema_model_out) == 2
             logit1, logit2 = model_out
-            # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
-            if not args.exclude_unlabeled:
+            
+            if not args.run_student_only:
                 ema_logit, _ = ema_model_out
 
-            # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
-        if not args.exclude_unlabeled:
+            
+        if not args.run_student_only:
                 ema_logit = Variable(ema_logit.detach().data, requires_grad=False) ## DO NOT UPDATE THE GRADIENTS THORUGH THE TEACHER (EMA) MODEL
 
         if args.logit_distance_cost >= 0:
@@ -439,86 +408,115 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
             class_logit, cons_logit = logit1, logit1    # class_logit.data.size(): torch.Size([256, 56])
             res_loss = 0
 
-        loss_output=class_criterion(class_logit, target_var)
-
-        LOG.debug(f"type of loss_output={type(loss_output)}")
-        LOG.debug(f"value of minibatch_size={minibatch_size} ")
-        class_loss = class_criterion(class_logit, target_var) / minibatch_size
-        LOG.debug(f"value of class_loss={class_loss} ")
-
-
-
-        #note by mithun: this was originally class_loss.data[0], but changing to class_loss.data.item() since it was throwing error on [0]
+        class_loss = (class_logit, target_var) / minibatch_size
         meters.update('class_loss', class_loss.data.item())
 
-        # note by mithun: this was originally _.data[0], but changing to  _.data.item()since it was throwing error on
-        # [0]. this error occurs because we are right now passing data into student and teavher without any transformation. so this change must be temporary
-
-        # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
-        if not args.exclude_unlabeled:
+        # THe below vaue ema_class_loss is really useless. it is only for FYI/storing purposes in meters.
+        ## - WHAT IF target_var NOT PRESENT (UNLABELED DATAPOINT) ?
+        # Ans: See  ignore index in  `class_criterion = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cpu()`
+        if not args.run_student_only:
             ema_class_loss = class_criterion(ema_logit, target_var) / minibatch_size
+            meters.update('ema_class_loss', ema_class_loss.data.item())
 
 
-            ## DONE: AJAY - WHAT IF target_var NOT PRESENT (UNLABELED DATAPOINT) ?
-            # Ans: See  ignore index in  `class_criterion = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cpu()`
-            meters.update('ema_class_loss', ema_class_loss.data.item())    # Do we need this?
+
+            #note: this was originally class_loss.data[0], but changing to class_loss.data.item() since it was throwing error on [0]
+            meters.update('class_loss', class_loss.data.item())
+
+
+
+
 
         #mithun askajay: is this where they are doing consistency comparison-but where is the subtRACTION?
         # #askajay: where is the construction cost and consistency cost and back prop only on student etc?
-        #ans: no. they are doing the subtraction around line
+        #ans: no. they are doing all that in a function called update_ema_variables
 
         # if you want to use consistency loss with given weight  pass --consistency in running script-
         # consistency has to be a positive value. give =1 they must be equally weighted
         # if you are doing feed forward this can be zero
         if args.consistency:
-            # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
-            #ideally if we are not doing ema, the args.consistency also must be mutually exclusive
-            if not args.exclude_unlabeled:
+            if not args.run_student_only:
                 consistency_weight = get_current_consistency_weight(epoch)
                 meters.update('cons_weight', consistency_weight)
                 consistency_loss = consistency_weight * consistency_criterion(cons_logit, ema_logit) / minibatch_size
                 meters.update('cons_loss', consistency_loss.data.item())
         else:
+            # if you are running student only consistency cost makes no sense. Therefore mark it as zero
             consistency_loss = 0
             meters.update('cons_loss', 0)
 
-        loss = class_loss + consistency_loss + res_loss # NOTE: AJAY - loss is a combination of classification loss and consistency loss (+ residual loss from the 2 outputs of student model fc1 and fc2, see args.logit_distance_cost)
-
-        #todo: note by mithun: uncomment this after we have transform turned on.
+        #loss is a combination of classification loss and consistency loss (+ residual loss from the 2 outputs of student model fc1 and fc2, see args.logit_distance_cost)
+        #if using just student, this will be class_loss + 0+ 0
+        loss = class_loss + consistency_loss + res_loss
+        loss.backward()
 
         meters.update('loss', loss.data.item())
 
 
 
 
-        prec1,pred_labels,gold_labels = accuracy_fever(class_logit.data, target_var.data)
+        if (args.use_double_optimizers):
+            grad_norm = 0.
+            para_norm = 0.
+            for m in model.input_encoder.modules():
+                if isinstance(m, nn.Linear):
+                    grad_norm += m.weight.grad.data.norm() ** 2
+                    para_norm += m.weight.data.norm() ** 2
+                    if m.bias:
+                        grad_norm += m.bias.grad.data.norm() ** 2
+                        para_norm += m.bias.data.norm() ** 2
 
-        # accumulate all gold and predicted labels for the entire epochs.
+            for m in model.inter_atten.modules():
+                if isinstance(m, nn.Linear):
+                    grad_norm += m.weight.grad.data.norm() ** 2
+                    para_norm += m.weight.data.norm() ** 2
+                    if m.bias is not None:
+                        grad_norm += m.bias.grad.data.norm() ** 2
+                        para_norm += m.bias.data.norm() ** 2
+
+            shrinkage = args.max_grad_norm / grad_norm
+            if shrinkage < 1:
+                for m in model.input_encoder.modules():
+                    if isinstance(m, nn.Linear):
+                        m.weight.grad.data = m.weight.grad.data * shrinkage
+                for m in model.inter_atten.modules():
+                    if isinstance(m, nn.Linear):
+                        m.weight.grad.data = m.weight.grad.data * shrinkage
+                        m.bias.grad.data = m.bias.grad.data * shrinkage
+
+                # compute gradient and do SGD step
+        if (args.use_double_optimizers):
+            input_optimizer.step()
+            inter_atten_optimizer.step()
+
+        else:
+            input_optimizer.step()
+
+        global_step += 1
+
+        prec1, pred_labels, gold_labels = accuracy_fever(class_logit.data, target_var.data)
+
+        # accumulate all gold and predicted labels for the entire epochs.- this is for second method of calculation of accuracy,. refer below
         # if its first batch, assign the datatype. Else extend
         if (i == 0):
             total_predictions = pred_labels[0]
             total_gold = gold_labels
         else:
-            total_predictions = torch.cat((total_predictions, pred_labels[0]),0)
-            total_gold=torch.cat((total_gold, gold_labels),0)
+            total_predictions = torch.cat((total_predictions, pred_labels[0]), 0)
+            total_gold = torch.cat((total_gold, gold_labels), 0)
 
         meters.update('top1', prec1, labeled_minibatch_size)
         meters.update('error1', 100. - prec1, labeled_minibatch_size)
 
-        # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
-        if not args.exclude_unlabeled:
-            ema_prec1,pred_labels,gold_labels = accuracy_fever(ema_logit.data, target_var.data) #Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
+        
+        if not args.run_student_only:
+            ema_prec1, pred_labels, gold_labels = accuracy_fever(ema_logit.data,
+                                                                 target_var.data)
             meters.update('ema_top1', ema_prec1, labeled_minibatch_size)
             meters.update('ema_error1', 100. - ema_prec1, labeled_minibatch_size)
 
-        # compute gradient and do SGD step
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-        global_step += 1
 
-        # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
-        if not args.exclude_unlabeled:
+        if not args.run_student_only:
             update_ema_variables(model, ema_model, args.ema_decay, global_step)
 
         # measure elapsed time
@@ -527,16 +525,14 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
 
 
         if (i+1) % args.print_freq == 0:
-            # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
-            if not args.exclude_unlabeled:
+            
+            if not args.run_student_only:
                 LOG.info(
                     'Epoch: [{0}][{1}/{2}]\t'
                     'Classification_loss:{meters[class_loss]:.4f}\t'
                     'Consistency_loss:{meters[cons_loss]:.4f}\t'
                     'Prec_student: {meters[top1]:.3f}\t'                    
                     'Prec_teacher: {meters[ema_top1]:.3f}\t'
-                    #'teacher_error: {meters[ema_error1]:.3f}\t'
-                    #'student_error:{meters[error1]:.3f}\t'
                         .format(
                     epoch, i, len(train_loader), meters=meters))
             else:
@@ -547,6 +543,8 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
                         .format(
                         epoch, i, len(train_loader), meters=meters))
         avg_after_each_batch=meters['top1'].avg
+
+    store_model_to_disk(args,epoch,model.state_dict())
     LOG.debug("end of all batches in training.")
     if (bool_inside_accuracy_all_labels_supports):
         import sys
@@ -555,8 +553,27 @@ def train(train_loader, model, ema_model, optimizer, epoch, dataset, log):
 
     assert len(total_predictions) == len(total_gold), "length of predictions and gold labels doesn't match"
     avg_prec_taken_totally=accuracy_given_labels(total_predictions,total_gold,len(total_gold))
+
+
     return avg_after_each_batch,avg_prec_taken_totally
 
+def store_model_to_disk(args,epoch,model_state):
+    if args.output_folder is not None:
+        model_path = os.path.join(args.output_folder, "model_state_epoch_{}.th".format(epoch))
+        torch.save(model_state, model_path)
+
+def predict_total_ie_not_by_batches(model, total_claims, evidence_dev, labels_dev, length_of_each_claim_global, length_of_each_ev_global):
+    if torch.cuda.is_available():
+        claims_var = torch.autograd.Variable(torch.LongTensor(total_claims), volatile=True).cuda()
+        evidence_var = torch.autograd.Variable(torch.LongTensor(evidence_dev), volatile=True).cuda()
+        target_var = torch.autograd.Variable(torch.LongTensor(labels_dev), volatile=True).cuda()
+    else:
+        claims_var = torch.autograd.Variable(torch.LongTensor(total_claims), volatile=True).cpu()
+        evidence_var = torch.autograd.Variable(torch.LongTensor(evidence_dev), volatile=True).cpu()
+        target_var = torch.autograd.Variable(torch.LongTensor(labels_dev).cpu(),volatile=True)
+    output1 = model(claims_var, evidence_var, length_of_each_claim_global, length_of_each_ev_global)
+    prec1, pred_labels, gold_labels = accuracy_fever(output1.data, target_var.data)
+    return prec1
 
 
 def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, model_type):
@@ -577,7 +594,7 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
     meters = AverageMeterSet()
 
     # switch to evaluate mode
-    model.eval() ### From the documentation (nn.module,py) : i) Sets the module in evaluation mode. (ii) This has any effect only on modules such as Dropout or BatchNorm. (iii) Returns: Module: self
+    model=model.eval() ### From the documentation (nn.module,py) : i) Sets the module in evaluation mode. (ii) This has any effect only on modules such as Dropout or BatchNorm. (iii) Returns: Module: self
     LOG.debug(f"got here after model.eval()")
     end = time.time()
 
@@ -603,56 +620,63 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
 
     sum_all_acc=0
     total_no_batches=0
-
+    all_target_var=[]
     total_predictions=None
     total_gold = None
+
+    length_of_each_claim_global=[]
+    length_of_each_ev_global = []
+    all_claims_global=[]
+    all_evidences_global=[]
+    all_labels_global=[]
     #enumerate means enumerate through each of the batches.
     #the __getitem__ in datasets.py is called here
+    # also not sure why there is batching in dev (this is how valpola/ajay was doing it). at the end of all batches
     for i, datapoint in enumerate(eval_loader):
         LOG.debug(f"got inside .i, datapoint in enumerate(eval_loader)")
         meters.update('data_time', time.time() - end)
+        LOG.debug(f"got inside args.dataset in fever")
 
-        if args.dataset in ['conll', 'ontonotes','fever']:
-            LOG.debug(f"got inside args.dataset in fever")
 
-            # claims_dev = datapoint[0][0]
-            # evidence_dev = datapoint[0][1]
-            # labels_dev = datapoint[1]
-            # len_claims_this_batch = datapoint[2][0]
-            # len_evidences_this_batch = datapoint[2][1]
-
+        '''Note: when you get here from devsomewhere in the code it is internally making self. transform=None.
+         So by the time it is reaching here in validate, it will always take the same output. But yeah, good to check
+         . Have updated the code with that from train() nevertheless, Just that it always gets into 
+         Self.Transform=None branch'''
+        if (dataset.transform) is None:
             # if there is no transformation, the data will be inside datapoint[0] itself
+            student_input = datapoint[0]
+            labels_dev = datapoint[1]
+            length_of_each_claim_in_this_batch = datapoint[2][0]
+            length_of_each_evidence_in_this_batch = datapoint[2][1]
 
-            '''Note: when you get here from devsomewhere in the code it is internally making self. transform=None.
-             So by the time it is reaching here in validate, it will always take the same output. But yeah, good to check
-             . Have updated the code with that from train() nevertheless, Just that it always gets into 
-             Self.Transform=None branch'''
-            if (dataset.transform) is None:
-                student_input = datapoint[0]
-                labels_dev = datapoint[1]
-                len_claims_this_batch = datapoint[2][0]
-                len_evidences_this_batch = datapoint[2][1]
-
-            else:
-                student_input = datapoint[0]
-                labels_dev = datapoint[2]
-                len_claims_this_batch = datapoint[3][0]
-                len_evidences_this_batch = datapoint[3][1]
-
-            ## Input consists of tuple (entity_id, pattern_ids)
-            claims_dev = student_input[0]
-            evidence_dev = student_input[1]
+        else:
+            student_input = datapoint[0]
+            labels_dev = datapoint[2]
+            length_of_each_claim_in_this_batch = datapoint[3][0]
+            length_of_each_evidence_in_this_batch = datapoint[3][1]
 
 
-            if torch.cuda.is_available():
-                claims_var = torch.autograd.Variable(claims_dev, volatile=True).cuda()
-                evidence_var = torch.autograd.Variable(evidence_dev, volatile=True).cuda()
-                target_var = torch.autograd.Variable(labels_dev.cuda(), volatile=True)
-            else:
-                claims_var = torch.autograd.Variable(claims_dev, volatile=True).cpu()
-                evidence_var = torch.autograd.Variable(evidence_dev, volatile=True).cpu()
-                target_var = torch.autograd.Variable(labels_dev.cpu(),
-                                                     volatile=True)  ## NOTE: AJAY - volatile: Boolean indicating that the Variable should be used in inference mode,
+        ## Input consists of tuple (entity_id, pattern_ids)
+        claims_dev = student_input[0]
+        evidence_dev = student_input[1]
+
+        # for accuracy calculation 3, i.e predict all claims and evidences together
+        all_claims_global.extend(claims_dev.numpy())
+        all_evidences_global.extend(evidence_dev.numpy().astype(int))
+        all_labels_global.extend(labels_dev.numpy())
+        length_of_each_claim_global.append(length_of_each_claim_in_this_batch)
+        length_of_each_ev_global.append(length_of_each_evidence_in_this_batch)
+
+        if torch.cuda.is_available():
+            claims_var = torch.autograd.Variable(claims_dev, volatile=True).cuda()
+            evidence_var = torch.autograd.Variable(evidence_dev, volatile=True).cuda()
+            target_var = torch.autograd.Variable(labels_dev.cuda(), volatile=True)
+        else:
+            claims_var = torch.autograd.Variable(claims_dev, volatile=True).cpu()
+            evidence_var = torch.autograd.Variable(evidence_dev, volatile=True).cpu()
+            target_var = torch.autograd.Variable(labels_dev.cpu(),
+                                                 volatile=True)  ## NOTE: AJAY - volatile: Boolean indicating that the Variable should be used in inference mode,
+
 
         minibatch_size = len(target_var)
         labeled_minibatch_size = target_var.data.ne(NO_LABEL).sum()
@@ -669,16 +693,21 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
         LOG.debug(f"value of args.arch is:{args.arch}")
         LOG.debug(f"value of args.dataset is:{args.dataset}")
 
+        output1=None
         # compute output
         if args.dataset in ['conll', 'ontonotes'] and args.arch == 'custom_embed':
             output1, entity_custom_embed, pattern_custom_embed = model(claims_var, evidence_var)
             if save_custom_embed_condition:
                 custom_embeddings_minibatch.append((entity_custom_embed, pattern_custom_embed))  # , minibatch_size))
 
-        elif args.dataset in ['fever'] and args.arch == 'simple_MLP_embed_RTE':
-            output1 = model(claims_var, evidence_var,len_claims_this_batch,len_evidences_this_batch)
+        elif args.dataset in ['fever']:
+            output1 = model(claims_var, evidence_var,length_of_each_claim_in_this_batch,length_of_each_evidence_in_this_batch)
 
-
+        if(output1 is None):
+            LOG.error("Error: output of the neural network pass is empty. check.")
+            sys.exit(1)
+        else:
+            assert output1.__len__() > 0, "Tensor is empty"
 
         class_loss = class_criterion(output1, target_var) / minibatch_size
         LOG.debug(f"value of class_loss is:{class_loss}")
@@ -696,6 +725,7 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
         if (i == 0):
             total_predictions = pred_labels[0]
             total_gold = gold_labels
+
         else:
             total_predictions = torch.cat((total_predictions, pred_labels[0]), 0)
             total_gold = torch.cat((total_gold, gold_labels), 0)
@@ -715,18 +745,18 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
 
         #pwhen in FFNN mode, don't print teavher details.
         if (i + 1) % args.print_freq == 0:
-            if not args.exclude_unlabeled:
+            if not args.run_student_only:
                     LOG.info(
                         'Dev Epoch/Batch: [{0}][{1}/{2}]\t'
-                        'Classification_loss:{meters[class_loss]:.4f}\t'
+                        'Dev Classification_loss:{meters[class_loss]:.4f}\t'
                         'Precision: {meters[top1]:.3f}\t'
                             .format(
                         epoch, i, len(eval_loader), meters=meters))
             else:
                     LOG.info(
-                        'Epoch: [{0}][{1}/{2}]\t'
-                        'Classification_loss:{meters[class_loss]:.4f}\t'                    
-                        'Prec_model: {meters[top1]:.3f}\t'
+                        'Dev Epoch: [{0}][{1}/{2}]\t'
+                        'Dev Classification_loss:{meters[class_loss]:.4f}\t'                    
+                        'Dev Prec_model: {meters[top1]:.3f}\t'
                             .format(
                             epoch, i, len(eval_loader), meters=meters))
 
@@ -743,24 +773,30 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
 
 
 
-    # LOG.info(' * Prec@1 {top1.avg:.3f}\tClassLoss {class_loss.avg:.3f}'
-    #          .format(top1=meters['top1'], class_loss=meters['class_loss']))
+
 
     if save_custom_embed_condition:
         save_custom_embeddings(custom_embeddings_minibatch, dataset, result_dir, model_type)
 
+    #I don't like that they are doing an average of predictions across batches, hence I am trying to do 3 types of accuracy calculation and make sure that all are same.
+
+    #accuracy calculation 1: valpola method of takign cumulative average
     LOG.debug(f"avg_after_each_batch={avg_after_each_batch}")
     cum_avg=meters['top1'].avg
 
 
     total_datapoints=len(dataset.claims)
-    LOG.debug(f"average precision after all the {total_no_batches} batches in epoch {epoch} is :{cum_avg}")
+    LOG.debug(f" precision after all the {total_no_batches} batches (when done cumulative way) in epoch {epoch} is :{cum_avg}")
     LOG.debug(f"value of  total_no_batches  is :{total_no_batches}")
     LOG.debug(f"value of sum_all_acc after epoch {epoch} is :{sum_all_acc}")
 
     assert len(total_predictions) == len(total_gold), "length of predictions and gold labels doesn't match"
+
+    # accuracy calculation 2: accumulate predictions and gold labels per batch, then predict together.
     avg_prec_taken_totally = accuracy_given_labels(total_predictions, total_gold, len(total_gold))
 
+    # accuracy calculation 3: accumulate claims, evidences, predict all together, then calculate accuracy_fever
+    #prec_after_all_batches=predict_total_ie_not_by_batches(model, all_claims_global, all_evidences_global, all_labels_global,length_of_each_claim_global,length_of_each_ev_global)
 
     return cum_avg,avg_prec_taken_totally
 
@@ -1194,7 +1230,7 @@ def write_as_csv(train_accuracy, dev_accuracy,args):
 
 def main(context):
     global global_step
-    global best_dev_accuracy_across_epochs
+    global best_dev_accuracy_so_far
     global best_epochs
 
     time_start = time.time()
@@ -1206,18 +1242,22 @@ def main(context):
 
     dataset_config = datasets.__dict__[args.dataset]()
 
-    num_classes=3
-    if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids','fever']:
-        train_loader, eval_loader, dataset, dataset_test = create_data_loaders(LOG,**dataset_config, args=args)
-        LOG.debug(f"after create_data_loaders. main.py line 1031. value of word_vocab.size()={len(dataset.word_vocab.keys())}")
-        num_classes = len(dataset.categories)
-        word_vocab_embed = dataset.word_vocab_embed
-        LOG.debug(f"inside if arg.s dataset in fever value of word_vocab.size()={len(dataset.word_vocab.keys())}")
-        word_vocab_size = len(dataset.word_vocab.keys())
+    #by default, it prints to STDOUT. else set a file also here
+    LOG.setLevel(args.log_level)
 
-    else:
+    num_classes=3
+    #if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids','fever']:
+    train_loader, eval_loader, dataset, dataset_test = create_data_loaders(LOG,**dataset_config, args=args)
+    LOG.debug(f"after create_data_loaders. main.py line 1031. value of word_vocab.size()={len(dataset.word_vocab.keys())}")
+    num_classes = len(dataset.categories)
+    word_vocab_embed = dataset.word_vocab_embed
+    wordemb_size= dataset.embedding_size
+    LOG.debug(f"inside if arg.s dataset in fever value of word_vocab.size()={len(dataset.word_vocab.keys())}")
+    word_vocab_size = len(dataset.word_vocab.keys())
+
+    #else:
         #mithun: i think this is the actual code from valpola that ran on cifar10 dataset
-        train_loader, eval_loader = create_data_loaders(**dataset_config, args=args)
+       # train_loader, eval_loader = create_data_loaders(**dataset_config, args=args)
 
     #uncomment this if you want to pop the number of classes instead from the config file
     # if args.dataset in ['riedel', 'gids','fever']:
@@ -1235,26 +1275,36 @@ def main(context):
         model_factory = architectures.__dict__[args.arch]
         model_params = dict(pretrained=args.pretrained, num_classes=num_classes)
 
-        if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids','fever']:
+        #if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids','fever']:
 
             #first two (word_vocab_embed,word_vocab_size) needs to be provided from command line
-            model_params['word_vocab_embed'] = word_vocab_embed
-            model_params['word_vocab_size'] = word_vocab_size
-            model_params['wordemb_size'] = args.wordemb_size
-            model_params['hidden_size'] = args.hidden_size
-            model_params['update_pretrained_wordemb'] = args.update_pretrained_wordemb
+        model_params['word_vocab_embed'] = word_vocab_embed
+        model_params['word_vocab_size'] = word_vocab_size
+        model_params['wordemb_size'] = wordemb_size
+        model_params['hidden_size'] = args.hidden_size
+        model_params['update_pretrained_wordemb'] = args.update_pretrained_wordemb
+        model_params['para_init'] = args.para_init
+        model_params['use_gpu'] = args.use_gpu
+
 
         LOG.debug(f"value of word_vocab_embed={word_vocab_embed}")
         LOG.debug(f"value of word_vocab_size={word_vocab_size}")
 
         model = model_factory(**model_params)
         LOG.debug("--------------------IMPORTANT: REMOVING nn.DataParallel for the moment --------------------")
-        if torch.cuda.is_available():
-            model = model.cuda()    # Note: Disabling data parallelism for now
-            LOG.info(f"in line 1067 of main. found thatcUDA is available")
 
+        args.device=None
+        if(args.use_gpu) and torch.cuda.is_available():
+            torch.cuda.set_device(0)
+            args.device = torch.device('cuda')
         else:
-            model = model.cpu()
+            args.device = torch.device('cpu')
+
+        model = model.to(device=args.device)
+        # # Note: Disabling data parallelism for now
+        #     LOG.info(f"in line 1067 of main. found thatcUDA is available")
+        # else:
+        #     model = model.cpu()
 
         #here if ema (e mean teacher)=True, they don't do back propagation. that is what param.detach does.
         if ema:
@@ -1268,7 +1318,20 @@ def main(context):
     model = create_model()
     ema_model = create_model(ema=True)
 
-    LOG.info(parameters_string(model))
+    total_parameters_count=0
+    gradabale_params=0
+    for  name,param in model.named_parameters():
+        total_parameters_count=total_parameters_count+1
+        print(name)
+        if param.requires_grad:
+            gradabale_params=gradabale_params+1
+
+    LOG.info(f"total number of parameters={total_parameters_count}")
+    LOG.info(f"total number of gradabale_param]s parameters={gradabale_params}")
+    LOG.info(parameters_string(model.input_encoder))
+    LOG.info(parameters_string(model.inter_atten))
+
+
 
     evaldir = os.path.join(args.data_dir, args.eval_subdir)
     train_student_pred_file = evaldir  + args.run_name + '_train_student_pred.tsv'
@@ -1281,22 +1344,44 @@ def main(context):
         os.remove(test_student_pred_file)
         os.remove(test_teacher_pred_file)
 
+    input_optimizer=None
+    inter_atten_optimizer=None
 
-    #todo mithun: ask becky or fan if we need thi adam optimizer...also why are they using only when pretrained is false? damned tuning.
-    if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids'] and args.update_pretrained_wordemb is False:
-        ## Note: removing the parameters of embeddings as they are not updated
-        # https://discuss.pytorch.org/t/freeze-the-learnable-parameters-of-resnet-and-attach-it-to-a-new-network/949/9
-        filtered_parameters = list(filter(lambda p: p.requires_grad, model.parameters()))
-        optimizer = torch.optim.Adam(filtered_parameters)
-        # optimizer = torch.optim.SGD(filtered_parameters, args.lr,
-        #                             momentum=args.momentum,
-        #                             weight_decay=args.weight_decay,
-        #                             nesterov=args.nesterov)
+    if ( args.use_double_optimizers==True ):
+        para1 = model.para1
+        para2 = model.para2
+
+        if args.optimizer == 'adagrad':
+            input_optimizer = torch.optim.Adagrad(para1, lr=args.lr, weight_decay=args.weight_decay)
+            inter_atten_optimizer = torch.optim.Adagrad(para2, lr=args.lr, weight_decay=args.weight_decay)
+        elif args.optimizer == 'Adadelta':
+            input_optimizer = torch.optim.Adadelta(para1, lr=args.lr)
+            inter_atten_optimizer = torch.optim.Adadelta(para2, lr=args.lr)
+        else:
+            LOG.info('No Optimizer.')
+            sys.exit()
+        assert input_optimizer != None
+        assert inter_atten_optimizer != None
     else:
-        optimizer = torch.optim.SGD(model.parameters(), args.lr,
-                                momentum=args.momentum,
-                                weight_decay=args.weight_decay,
-                                nesterov=args.nesterov)
+        if args.optimizer == "adam" :
+            ## Note: removing the parameters of embeddings as they are not updated
+            # https://discuss.pytorch.org/t/freeze-the-learnable-parameters-of-resnet-and-attach-it-to-a-new-network/949/9
+            filtered_parameters = list(filter(lambda p: p.requires_grad, model.parameters()))
+            input_optimizer = torch.optim.Adam(filtered_parameters)
+        else:
+            if args.optimizer == "sgd":
+                input_optimizer = torch.optim.SGD(model.parameters(), args.lr,
+                                    momentum=args.momentum,
+                                    weight_decay=args.weight_decay,
+                                    nesterov=args.nesterov)
+            else:
+                if args.optimizer is "adagrad":
+                     input_optimizer = torch.optim.Adagrad(model.parameters(), args.lr,
+                                            weight_decay=args.weight_decay)
+
+
+        assert input_optimizer != None
+
 
     # optionally resume from a checkpoint
     if args.resume:
@@ -1305,26 +1390,26 @@ def main(context):
         checkpoint = torch.load(args.resume)
         args.start_epoch = checkpoint['epoch']
         global_step = checkpoint['global_step']
-        best_dev_accuracy_across_epochs = checkpoint['best_prec1']
+        best_dev_accuracy_so_far = checkpoint['best_prec1']
         model.load_state_dict(checkpoint['state_dict'])
         ema_model.load_state_dict(checkpoint['ema_state_dict'])
-        optimizer.load_state_dict(checkpoint['optimizer'])
+        input_optimizer.load_state_dict(checkpoint['input_optimizer'])
         LOG.info("=> loaded checkpoint '{}' (epoch {})".format(args.resume, checkpoint['epoch']))
 
     cudnn.benchmark = True
 
     #EVALUATE - ithink is for loading a trained model
     if args.evaluate:
-        if args.dataset in ['conll', 'ontonotes','fever']:
-            LOG.info("Evaluating the primary model:")
-            validate(eval_loader, model, validation_log, global_step, args.start_epoch, dataset, context.result_dir, "student")
-            LOG.info("Evaluating the EMA model:")
-            validate(eval_loader, ema_model, ema_validation_log, global_step, args.start_epoch, dataset, context.result_dir, "teacher")
-        elif args.dataset in ['riedel', 'gids']:
-            LOG.info("Evaluating the primary model:")
-            validate(eval_loader, model, validation_log, global_step, args.start_epoch, dataset_test, context.result_dir, "student")
-            LOG.info("Evaluating the EMA model:")
-            validate(eval_loader, ema_model, ema_validation_log, global_step, args.start_epoch, dataset_test, context.result_dir, "teacher")
+        # if args.dataset in ['conll', 'ontonotes','fever']:
+        LOG.info("Evaluating the primary model:")
+        validate(eval_loader, model, validation_log, global_step, args.start_epoch, dataset, context.result_dir, "student")
+        LOG.info("Evaluating the EMA model:")
+        validate(eval_loader, ema_model, ema_validation_log, global_step, args.start_epoch, dataset, context.result_dir, "teacher")
+        # elif args.dataset in ['riedel', 'gids']:
+        #     LOG.info("Evaluating the primary model:")
+        #     validate(eval_loader, model, validation_log, global_step, args.start_epoch, dataset_test, context.result_dir, "student")
+        #     LOG.info("Evaluating the EMA model:")
+        #     validate(eval_loader, ema_model, ema_validation_log, global_step, args.start_epoch, dataset_test, context.result_dir, "teacher")
         return
 
     accuracy_per_epoch_training=[]
@@ -1344,8 +1429,8 @@ def main(context):
 
     for epoch in range(args.start_epoch, args.epochs):
         start_time = time.time()
-        #ask ajay: why are they not returning the trained models explicitly
-        avg_tr_precision_this_epoch,avg_tr_prec_taken_totally=train(train_loader, model, ema_model, optimizer, epoch, dataset, training_log)
+        #ask ajay: why are they not returning the trained models explicitly. Ans : python is pass by reference by default
+        avg_tr_precision_this_epoch,avg_tr_prec_taken_totally=train(train_loader, model, ema_model, input_optimizer,inter_atten_optimizer, epoch, dataset, training_log)
         accuracy_per_epoch_training.append(avg_tr_precision_this_epoch)
         LOG.debug(f"--- done training epoch {epoch} in {(time.time() - start_time)} seconds. avg_precision_cumulative:{avg_tr_precision_this_epoch}, avg_prec_taken_by_total_pred_gold:{avg_tr_prec_taken_totally}" )
 
@@ -1379,28 +1464,30 @@ def main(context):
             LOG.debug(f"value of dataset_test: {dataset_test} ")
             LOG.debug(f"value of context.result_dir: {context.result_dir} ")
 
-            student_accuracy,avg_st_prec_taken_totally = validate(eval_loader, model, validation_log, global_step, epoch , dataset_test,
+            dev_prec_cum_avg_method, dev_prec_accumulate_pred_method = validate(eval_loader, model, validation_log, global_step, epoch , dataset_test,
                              context.result_dir, "student")
 
             teacher_accuracy=0
             avg_teacher_prec_taken_totally=0
-            if not args.exclude_unlabeled:
+            if not args.run_student_only:
                 LOG.debug("Evaluating the EMA model:")
                 teacher_accuracy,avg_teacher_prec_taken_totally = validate(eval_loader, ema_model, ema_validation_log, global_step, epoch , dataset_test,context.result_dir, "teacher")
 
-            LOG.debug("--- validation in %s seconds ---" % (time.time() - start_time))
-            dev_local_best_acc= max(teacher_accuracy, student_accuracy,avg_st_prec_taken_totally,avg_teacher_prec_taken_totally)
-            is_best = teacher_accuracy > best_dev_accuracy_across_epochs
+            LOG.debug("--- validation done in %s seconds ---" % (time.time() - start_time))
+            #get the best of all various types of accuracy including comparison between student and teacher. Note that this is a temporary thing being used only during feed forward network to
+            # asses which method of calculating accuracy is the best. Ideally student and teacher accuracies must be kept different and not compared with each other.
+            dev_local_best_acc= max(teacher_accuracy, dev_prec_cum_avg_method,dev_prec_accumulate_pred_method,avg_teacher_prec_taken_totally)
+            is_best = teacher_accuracy > best_dev_accuracy_so_far
 
-            if(dev_local_best_acc>best_dev_accuracy_across_epochs):
-                best_dev_accuracy_across_epochs = dev_local_best_acc
+            if(dev_local_best_acc>best_dev_accuracy_so_far):
+                best_dev_accuracy_so_far = dev_local_best_acc
                 best_epochs=epoch
             else:
                 is_best = False
 
             accuracy_per_epoch_dev.append(dev_local_best_acc)
             LOG.debug(f"best value of DEV validation accuracy after epoch {epoch} is {dev_local_best_acc}")
-            LOG.debug(f"best value of best_accuracy_across_epochs for DEV so far is {best_dev_accuracy_across_epochs} at epoch number {best_epochs}")
+            LOG.debug(f"best value of best_accuracy_across_epochs for DEV so far is {best_dev_accuracy_so_far} at epoch number {best_epochs}")
 
             if args.checkpoint_epochs and (epoch + 1) % args.checkpoint_epochs == 0:
                 save_checkpoint({
@@ -1409,36 +1496,34 @@ def main(context):
                     'arch': args.arch,
                     'state_dict': model.state_dict(),
                     'ema_state_dict': ema_model.state_dict(),
-                    'best_prec1': best_dev_accuracy_across_epochs,
-                    'optimizer' : optimizer.state_dict(),
+                    'best_prec1': best_dev_accuracy_so_far,
+                    'input_optimizer' : input_optimizer.state_dict(),
                     'dataset' : args.dataset,
                 }, is_best, checkpoint_path, epoch + 1)
 
                 # write train and dev accuracies to disk as csv
         append_as_csv(avg_tr_prec_taken_totally, dev_local_best_acc, args,epoch)
-            # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
-        # if not args.exclude_unlabeled:
-        #         LOG.info(accuracy_per_epoch_training,accuracy_per_epoch_dev)
-        # else:
-        #         #todo print teacher accuracy also
-        #         LOG.info(accuracy_per_epoch_training,accuracy_per_epoch_dev)
-        # LOG.info(f"avg_tr_precision_cumulative:{avg_tr_precision_this_epoch}, avg_tr_prec_taken_by_total_pred_gold:"
-        #          f"{avg_tr_prec_taken_totally},dev_local_best_acc:{dev_local_best_acc},"
-        #          f"best_dev_accuracy_across_epochs:{best_dev_accuracy_across_epochs}.best_epoch:{best_epochs}")
 
-        if(epoch==0):
-            LOG.info(f"epoch, avg_tr_precision_cumulative, "
-                     f"avg_tr_prec_taken_by_total_pred_gold, dev_local_best_acc, best_dev_accuracy_across_epochs, best_epoch")
-
-        LOG.info(f"{epoch}:{avg_tr_precision_this_epoch},{avg_tr_prec_taken_totally},{dev_local_best_acc},{best_dev_accuracy_across_epochs},{best_epochs}")
+        #todo print teacher accuracy also
 
 
+        LOG.info(
+                 f"*************************\n"
+                 f"dev_prec_cum_avg_method:{dev_prec_cum_avg_method},\n"
+                 f"dev_prec_accumulate_pred_method :{dev_prec_accumulate_pred_method}\n"
+                 f"best_dev_accuracy_so_far:{best_dev_accuracy_so_far},\n"
+                 f"best_epoch_so_far:{best_epochs}\n"
+                 f"*************************\n")
+        time.sleep(10)
+
+        # from allennlp.models import Model, archive_model
+        # archive_model(args.output_folder)
 
     # for testing only .. commented
     # LOG.info("For testing only; Comment the following line of code--------------------------------")
     # validate(eval_loader, model, validation_log, global_step, 0, dataset, context.result_dir, "student")
     LOG.info("--------Total end to end time %s seconds ----------- " % (time.time() - time_start))
-    LOG.info(f"best best_accuracy_across_epochs  is:{best_dev_accuracy_across_epochs} at epoch number:{best_epochs},dev_accuracy{dev_local_best_acc},best_dev_so_far:")
+    LOG.info(f"best best_dev_accuracy_so_far  is:{best_dev_accuracy_so_far} was at epoch number:{best_epochs},dev_accuracy{dev_local_best_acc},best_dev_so_far:")
     write_as_csv(accuracy_per_epoch_training, accuracy_per_epoch_dev, args)
 
 

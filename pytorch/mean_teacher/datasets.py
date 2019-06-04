@@ -10,9 +10,10 @@ import os
 import contextlib
 import json
 import logging
-
+import re
 words_in_glove =0
 DEFAULT_ENCODING = 'utf8'
+from tqdm import tqdm
 
 
 
@@ -26,8 +27,8 @@ def fever():
         assert False, "Unknown type of noise {}".format(RTEDataset.WORD_NOISE_TYPE)
 
     return {
-        #'train_transformation': data.TransformTwiceNEC(addNoise),
-        'train_transformation': None,
+        'train_transformation': data.TransformTwiceNEC(addNoise),
+        #'train_transformation': None,
         'eval_transformation': None,
         #'datadir': 'data-local/rte/fever'
         #ask ajay what does this do? why comment out?
@@ -36,8 +37,8 @@ def fever():
 
 class RTEDataset(Dataset):
 
-    PAD = "@PADDING"
-    UNKNOWN = "@UNKNOWN"
+    PAD = "<pad>"
+    UNKNOWN = "<unk>"
     OOV = "</s>"
     ENTITY = "@ENTITY"
     OOV_ID = 0
@@ -45,38 +46,66 @@ class RTEDataset(Dataset):
     NUM_WORDS_TO_REPLACE = 1
     WORD_NOISE_TYPE = "drop"
 
+    LOG = logging.getLogger('main')
+    LOG.setLevel(logging.INFO)
 
+    def get_word_from_vocab_dict_given_word_id(self, word_id):
+        return self.word_vocab_id_to_word[word_id]
 
-    def create_word_vocab_embed(self, args):
+    def sanitise_and_lookup_embedding(self, word_id):
+        word_original = Gigaword.sanitiseWord(self.get_word_from_vocab_dict_given_word_id(word_id))
 
+            #used to have .lower()- performance was less. so commented it out
+
+        if word_original in self.lookupGiga:
+            #todo : not sure what Gigaword.norm is doing. This is from ajay/valpola code.
+            #  commenting it out and loading glove vectors directly on march 29th2019 until i find out what it does and if we need it.
+            #word_embed = Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga[word_original]])
+            word_embed = self.gigaW2vEmbed[self.lookupGiga[word_original]]
+        else:
+            #word_embed = Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga["<unk>"]])
+            word_embed = self.gigaW2vEmbed[self.lookupGiga["<unk>"]]
+
+        self.LOG.debug(f"word:[{word_original} \t embedding:{word_embed}")
+        return word_embed
+
+    def create_word_vocab_embed(self):
         word_vocab_embed = list()
-
         # leave last word = "@PADDING"
-        for word_id in range(0, self.word_vocab.size() - 1):
-            word_embed = self.sanitise_and_lookup_embedding(word_id, args)
+        counter=0
+        all_words=range(0, len(self.word_vocab))
+        for word_id in tqdm(all_words,total=len(self.word_vocab)):
+            word_embed = self.sanitise_and_lookup_embedding(word_id)
             word_vocab_embed.append(word_embed)
+            counter=counter+1
 
         # NOTE: adding the embed for @PADDING
-        word_vocab_embed.append(Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga["<pad>"]]))
+        #word_vocab_embed.append(Gigaword.norm(self.gigaW2vEmbed[self.lookupGiga["<pad>"]]))
         return np.array(word_vocab_embed).astype('float32')
 
+
+    # create a mapping from word to id from id to word
+    def map_id_to_word(self,word_vocab):
+        word_vocab_id_to_word_maping={}
+        for word,id in word_vocab.items():
+            word_vocab_id_to_word_maping[id]=word
+
+        return word_vocab_id_to_word_maping
+
     #mithun this is called using:#dataset = datasets.NECDataset(traindir, args, train_transformation)
-    def __init__(self, word_vocab,runName,dataset_file, args,transform=None):
+    def __init__(self, word_vocab,runName,dataset_file, args,emb_file_path,transform=None):
         LOG = logging.getLogger('datasets')
         LOG.setLevel(logging.INFO)
 
         print("got inside init of RTE data set")
 
+        if(args.type_of_data=="plain"):
+            self.claims, self.evidences, self.labels_str = Datautils.read_rte_data(dataset_file,args)
+        else:
+            if (args.type_of_data == "ner_replaced"):
+                self.claims, self.evidences, self.labels_str = Datautils.read_ner_neutered_data(dataset_file,args )
 
-        self.claims, self.evidences, self.labels_str = Datautils.read_rte_data(dataset_file,args)
 
-        # if(runName=="dev"):
-        #     # debug. exit if gold has any label other than 2.
-        #     for lbl in self.labels_str:
-        #         if not (lbl == 2):
-        #             print(f"\n just after train loader found a new label other than SUPPORTS. label is {lbl}")
-        #             import sys
-        #             sys.exit(1)
 
         assert len(self.claims)== len(self.evidences)==len(self.labels_str), "claims and evidences are not of equal length"
 
@@ -84,6 +113,9 @@ class RTEDataset(Dataset):
         list_of_longest_ev_lengths=[]
         list_of_longest_evidences=[]
         max_evidence_len=0
+        print(
+            f"going to load dataset")
+
         for each_ev in self.evidences:
             words = [w for w in each_ev.split(" ")]
             if len(words) > max_evidence_len:
@@ -98,7 +130,8 @@ class RTEDataset(Dataset):
                '''
 
 
-        self.word_vocab, self.max_claims_len, self.max_ev_len, self.word_count= self.get_max_lengths_add_to_vocab(word_vocab,runName)
+        self.word_vocab, self.max_claims_len, self.max_ev_len, self.word_count= self.get_max_lengths_add_to_vocab(word_vocab,runName,args)
+        self.word_vocab_id_to_word={}
 
         print(f"inside datasets.py . just after  build_word_vocabulary.value of word_vocab.size()={len(self.word_vocab.keys())}")
 
@@ -118,19 +151,24 @@ class RTEDataset(Dataset):
 
         self.pad_id = self.word_vocab[RTEDataset.PAD]
 
-        #todo: load pretrained wordemb
+        # create a mapping from word to id from id to word
+
+        self.word_vocab_id_to_word=self.map_id_to_word(self.word_vocab)
+
 
         if args.pretrained_wordemb:
-            if args.eval_subdir not in dir:  # do not load the word embeddings again in eval
-
-                #todo for mithun: should come up with a saner test than checking in dir.
-                # Right now , jan 28th2019, i have removed dir..should pass a flag from command line explicitly when doing dev or something. this check in dir is realy stupid
-
-                self.gigaW2vEmbed, self.lookupGiga = Gigaword.load_pretrained_embeddings(w2vfile)
+            if not runName == "dev": # do not load the word embeddings again in eval
+                sys.stdout.write("going to Loading the pretrained embeddings ... ")
+                LOG.info("going to Loading the pretrained embeddings ... ")
+                sys.stdout.flush()
+                self.gigaW2vEmbed, self.lookupGiga, self.embedding_size = Gigaword.load_pretrained_embeddings(emb_file_path,args)
+                LOG.info("Done loading embeddings. going to create vocabulary ... ")
+                sys.stdout.write("Done loading embeddings. going to create vocabulary ... " )
+                sys.stdout.flush()
                 self.word_vocab_embed = self.create_word_vocab_embed()
 
         else:
-            print("Not loading the pretrained embeddings ... ")
+            LOG.info("Not loading the pretrained embeddings ... ")
             assert args.update_pretrained_wordemb, "Pretrained embeddings should be updated but " \
                                                    "--update-pretrained-wordemb = {}".format(args.update_pretrained_wordemb)
             self.word_vocab_embed = None
@@ -185,14 +223,16 @@ class RTEDataset(Dataset):
 
     def build_word_vocabulary(self,w,word_vocab):
         # if the word is new, get the last id and add it
-        if(w not in word_vocab ):
+        w_small=w
+            #commenting out .lower() test if that affects performance.lower()
+        #if(w.lower() not in word_vocab ):
+        if (w not in word_vocab):
             len_dict=len(word_vocab.keys())
-            word_vocab[w]=len_dict+1
+            word_vocab[w_small]=len_dict+1
         return word_vocab
 
 
-
-    def get_max_lengths_add_to_vocab(self,word_vocab,runName):
+    def get_max_lengths_add_to_vocab(self,word_vocab,runName,args):
         #their vocabulary function was giving issues (including having duplicates). creating my own dictionary.
         #word_vocab = Vocabulary()
 
@@ -213,14 +253,13 @@ class RTEDataset(Dataset):
 
         for each_claim in self.claims:
             words = [w for w in each_claim.split(" ")]
-            for w in words:
+            for word in words:
                 #build vocabulary only from training data. In dev, a new word it sees must be returned @UNKNOWN
                 if(runName=='train'):
-                    word_vocab=self.build_word_vocabulary(w,word_vocab)
-
+                    word_vocab=self.build_word_vocabulary(word,word_vocab)
 
                 #increase word frequency count
-                self.update_word_count(word_count,w)
+                self.update_word_count(word_count,word)
 
             if len(words) > max_claim_len:
                 max_claim_len = len(words)
@@ -230,11 +269,12 @@ class RTEDataset(Dataset):
 
         for each_ev in self.evidences:
             words = [w for w in each_ev.split(" ")]
-            for w in words:
+            for word in words:
                 if (runName == 'train'):
-                    word_vocab=self.build_word_vocabulary(w,word_vocab)
+                    word_vocab = self.build_word_vocabulary(word, word_vocab)
+
                 # increase word frequency count
-                self.update_word_count(word_count, w)
+                self.update_word_count(word_count, word)
             if len(words) > max_evidence_len:
                 max_evidence_len = len(words)
                 longest_evidence_words = words

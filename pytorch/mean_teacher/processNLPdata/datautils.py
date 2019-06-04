@@ -14,6 +14,7 @@ class Datautils:
 
 
     def get_num_lines(file_path):
+
         fp = open(file_path, "r+")
         buf = mmap.mmap(fp.fileno(), 0)
         lines = 0
@@ -72,6 +73,7 @@ class Datautils:
                 claim = x["claim"]
                 evidences = x["sents"]
                 label = x["label"]
+                label = label.upper()
                 evidences_this_list=[]
                 evidences_this_str = ""
                 if (len(evidences) > 1):
@@ -88,6 +90,58 @@ class Datautils:
                 # Else it was overloading memory due to the packing/padding of all sentences into the longest size..
                 # which was like 180k words or something
 
+                claim_split=claim.split(" ")
+                if(len(claim_split) > tr_len):
+                    claim_tr=claim_split[:1000]
+                    claim = " ".join(claim_tr)
+
+                evidences_split = evidences_this_str.split(" ")
+                if (len(evidences_split) > tr_len):
+                    evidences_tr = evidences_split[:1000]
+                    evidences_this_str=" ".join(evidences_tr)
+
+                all_claims.append(claim)
+                all_evidences.append(evidences_this_str)
+                all_labels.append(label)
+
+        return all_claims, all_evidences, all_labels
+
+
+       # if the input data is NER neutered, replace PERSON-c1 with PERSONC1. This is vestigial. My code does fine, but sandeep said his code splits the tokens based on dashes.
+    # so doing this to avoid that.
+
+    def replace_if_PERSON_C1_format(sent, args):
+        sent_replaced = ""
+        regex = re.compile('([A-Z]+)(-)([ce])([0-99])')
+        if (args.type_of_data == "ner_replaced" and regex.search(sent)):
+            sent_replaced = regex.sub(r'\1\3\4', sent)
+        else:
+            sent_replaced = sent
+        return sent_replaced
+
+    @classmethod
+    def read_ner_neutered_data(cls, filename, args):
+        tr_len=args.truncate_words_length
+        all_labels = []
+        all_claims = []
+        all_evidences = []
+
+        with open(filename) as f:
+            for index,line in enumerate(tqdm(f, total=cls.get_num_lines(filename))):
+                multiple_ev = False
+                x = json.loads(line)
+                claim = x["claim"]
+                evidences_this_str = x["evidence"]
+                label = x["label"]
+                label=label.upper()
+
+                #if reading NER neutered data replace PERSON-C1 with PERSONC1 etc- this is to avoid splitting based on - during tokenization
+                claim = cls.replace_if_PERSON_C1_format(claim, args)
+                evidences_this_str = cls.replace_if_PERSON_C1_format(evidences_this_str, args)
+
+                ## truncate at n words. irrespective of claim or evidence truncate it at n...
+                # Else it was overloading memory due to the packing/padding of all sentences into the longest size..
+                # which was like 180k words or something
                 claim_split=claim.split(" ")
                 if(len(claim_split) > tr_len):
                     claim_tr=claim_split[:1000]

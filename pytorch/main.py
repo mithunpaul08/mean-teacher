@@ -229,7 +229,7 @@ def create_data_loaders(LOG,train_transformation,
 
     return train_loader, eval_loader, dataset, dataset_dev
 
-#mithun: this is whe4re they are doing the average thing -ema=exponential moving average
+#mithun: this is where they are doing the average thing -ema=exponential moving average
 def update_ema_variables(model, ema_model, alpha, global_step):
     # Use the true average until the exponential average is more correct
     alpha = min(1 - 1 / (global_step + 1), alpha)
@@ -333,7 +333,7 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
         if torch.cuda.is_available():
             claims_var = torch.autograd.Variable(student_input_claim).cuda()
             evidences_var = torch.autograd.Variable(student_input_evidence).cuda()
-            # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
+            
             if not args.run_student_only:
                 ema_claims_var = torch.autograd.Variable(teacher_input_claim, volatile=True).cuda()
                 ema_evidences_var = torch.autograd.Variable(teacher_input_evidence, volatile=True).cuda()
@@ -341,7 +341,7 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
         else:
             claims_var = torch.autograd.Variable(student_input_claim).cpu()
             evidences_var = torch.autograd.Variable(student_input_evidence).cpu()
-            # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
+            
             if not args.run_student_only:
                 ema_claims_var = torch.autograd.Variable(teacher_input_claim, volatile=True).cpu()
                 ema_evidences_var = torch.autograd.Variable(teacher_input_evidence, volatile=True).cpu()
@@ -379,7 +379,7 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
         #the feed forward and prediction part happens here.- if you put a breakpoint in the forward
         # of architecture you will see that it goes there now
 
-        # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
+        
         if not args.run_student_only:
             ema_model_out = ema_model(ema_claims_var, ema_evidences_var, len_claims_this_batch, len_evidences_this_batch)
         model_out = model(claims_var, evidences_var, len_claims_this_batch, len_evidences_this_batch)
@@ -390,18 +390,18 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
         if isinstance(model_out, Variable):       # this is default
             assert args.logit_distance_cost < 0
             logit1 = model_out
-            # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
+            
             if not args.run_student_only:
                 ema_logit = ema_model_out
         else:
             assert len(model_out) == 2
             assert len(ema_model_out) == 2
             logit1, logit2 = model_out
-            # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
+            
             if not args.run_student_only:
                 ema_logit, _ = ema_model_out
 
-            # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
+            
         if not args.run_student_only:
                 ema_logit = Variable(ema_logit.detach().data, requires_grad=False) ## DO NOT UPDATE THE GRADIENTS THORUGH THE TEACHER (EMA) MODEL
 
@@ -413,7 +413,7 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
             class_logit, cons_logit = logit1, logit1    # class_logit.data.size(): torch.Size([256, 56])
             res_loss = 0
 
-        class_loss = class_criterion(class_logit, target_var) / minibatch_size
+        class_loss = (class_logit, target_var) / minibatch_size
         meters.update('class_loss', class_loss.data.item())
 
         # THe below vaue ema_class_loss is really useless. it is only for FYI/storing purposes in meters.
@@ -440,7 +440,7 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
         # consistency has to be a positive value. give =1 they must be equally weighted
         # if you are doing feed forward this can be zero
         if args.consistency:
-            # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
+            
             #ideally if we are not doing ema, the args.consistency also must be mutually exclusive
             if not args.run_student_only:
                 consistency_weight = get_current_consistency_weight(epoch)
@@ -515,7 +515,7 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
         meters.update('top1', prec1, labeled_minibatch_size)
         meters.update('error1', 100. - prec1, labeled_minibatch_size)
 
-        # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
+        
         if not args.run_student_only:
             ema_prec1, pred_labels, gold_labels = accuracy_fever(ema_logit.data,
                                                                  target_var.data)  # Note: Ajay changing this to 2 .. since there are only 4 labels in CoNLL dataset
@@ -523,7 +523,6 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
             meters.update('ema_error1', 100. - ema_prec1, labeled_minibatch_size)
 
 
-        # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
         if not args.run_student_only:
             update_ema_variables(model, ema_model, args.ema_decay, global_step)
 
@@ -533,7 +532,7 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
 
 
         if (i+1) % args.print_freq == 0:
-            # if you are doing FFNN, just do student alone. don't confuse things with adding teacher model
+            
             if not args.run_student_only:
                 LOG.info(
                     'Epoch: [{0}][{1}/{2}]\t'

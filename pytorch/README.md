@@ -11,11 +11,11 @@ In this fork of the original mean teacher code, we replace the feed forward netw
 ```
 pip install numpy scipy pandas sklearn nltk tqdm
 pip install git+ssh://git@github.com/pytorch/vision@c31c3d7e0e68e871d2128c8b731698ed3b11b119
-conda install pytorch-cpu torchvision-cpu -c pytorch 
+conda install pytorch-cpu torchvision-cpu -c pytorch *
 ```
-*note: for conda install get the right command from the pytorch home page based on your OS and configs.*
+\* **note**: for conda install get the right command from the pytorch [homepage](https://pytorch.org/) based on your OS and configs.
 
-**PS: I personally like/trust `pip install *` instead of `conda install`**
+*PS: I personally like/trust `pip install *` instead of `conda install`*
 
 
 The code expects to find the data in specific directories inside the data-local directory. So do remember to 
@@ -448,9 +448,12 @@ python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_worde
 status as of june 2nd ,.11pm: 
 - code now works for both teacher and student.
 - next:
-    - run student teacher on server with complete lex data? -june 3rd (running on tmux 1 and 0 on amy)
+    - run student teacher on server with complete lex data? - deadline june 3rd (running on tmux 1 and 0 on amy)
+        - update: at epoch 49 best dev accuracy is at 82.70 at epoch 1..
+        - search on vim for best_dev_accuracy set ignorecase.
     - turn on noise/self.transform (this is to check my idea of using noise in a new domain + very less labeled data) - june 4th
-        - turned drop on at 6pm on june 3rd. started running on a folder called meanteacher2 in clara. tmux 2.
+        -  started running on a folder called meanteacher2 in clara. tmux 2 and 3.
+        -  update: best dev accuracy is 83.29 in epoch 1
     - cerate another student and feed in lex into student1 and delex into student2 (this is mihai's idea of 2 mean teachers. check drawing from april)- june 30th
     - feed in lex into student and delex into student2 and also attach a teacher (this is mihai's idea of 2 mean teachers. check drawing from april)- 
     

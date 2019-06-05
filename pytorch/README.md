@@ -456,14 +456,18 @@ status as of june 2nd ,.11pm:
         - update: at epoch 49 best dev accuracy is at 82.70 at epoch 1..
         - search on vim for best_dev_accuracy set ignorecase.
     - turn on noise/self.transform (this is to check my idea of using noise in a new domain + very less labeled data) - june 4th
-        -  started running on a folder called meanteacher2 in clara. tmux 2 and 3.
-        -  update: best dev accuracy is 83.29 in epoch 1
-    - cerate another student and feed in lex into student1 and delex into student2 (this is mihai's idea of 2 mean teachers. check drawing from april)- june 30th
+            -  started running on a folder called meanteacher2 in clara. tmux 2 and 3.
+            -  update: best dev accuracy is 83.29 in epoch 1
+    - create another student and feed in lex into student1 and delex into student2 (this is mihai's idea of 2 mean teachers. check drawing from april)- june 30th
+        - feed in the four class split up
         - the current existing student, rename it to student 1
-        - feed the lexicalized data into train loader(this we are already doing)
-        - dont' do droppings of words/adding noise - i.e turn transform off
-        - create a new train loader for student2
-        - feed delex into this train loader of student2 and lex into train loader of student 1
-        - add an if condition for student1 and student2 and pass two different train loaders into train() function
+        - create a new model in create_model() for student 2
+        - create a create_data_loader for student2
+            - separate out the function   
+            - feed the lexicalized data into train loader(this we are already doing)
+            - dont' do droppings of words/adding noise - i.e turn transform off
+            - create a new train loader for student2
+            - feed delex into this train loader of student2 and lex into train loader of student 1
+            - add an if condition for student1 and student2 and pass two different train loaders into train() function
     - feed in lex into student and delex into student2 and also attach a teacher (this is mihai's idea of 2 mean teachers. check drawing from april)- 
-    
+        

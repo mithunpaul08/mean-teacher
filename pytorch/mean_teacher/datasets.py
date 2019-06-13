@@ -27,8 +27,8 @@ def fever():
         assert False, "Unknown type of noise {}".format(RTEDataset.WORD_NOISE_TYPE)
 
     return {
-        'train_transformation': data.TransformTwiceNEC(addNoise),
-        #'train_transformation': None,
+        #'train_transformation': data.TransformTwiceNEC(addNoise),
+        'train_transformation': None,
         'eval_transformation': None,
         #'datadir': 'data-local/rte/fever'
         #ask ajay what does this do? why comment out?

@@ -412,7 +412,7 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
             class_logit, cons_logit = logit1, logit1    # class_logit.data.size(): torch.Size([256, 56])
             res_loss = 0
 
-        class_loss = (class_logit, target_var) / minibatch_size
+        class_loss = class_criterion(class_logit, target_var) / minibatch_size
         meters.update('class_loss', class_loss.data.item())
 
         # THe below vaue ema_class_loss is really useless. it is only for FYI/storing purposes in meters.

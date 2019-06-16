@@ -9,13 +9,15 @@ In this fork of the original mean teacher code, we replace the feed forward netw
  The code runs on Python 3. Install the dependencies and prepare the datasets with the following commands:
 
 ```
-pip install numpy scipy pandas sklearn nltk tqdm
+conda create --name mean_teacher python=3 numpy scipy pandas nltk tqdm
+source activate mean_teacher
+pip sklearn
 pip install git+ssh://git@github.com/pytorch/vision@c31c3d7e0e68e871d2128c8b731698ed3b11b119
 conda install pytorch-cpu torchvision-cpu -c pytorch *
 ```
-\* **note**: for conda install get the right command from the pytorch [homepage](https://pytorch.org/) based on your OS and configs.
+\* **note**: for pytorch instinstallation get the right command from the pytorch [homepage](https://pytorch.org/) based on your OS and configs.
 
-*PS: I personally like/trust `pip install *` instead of `conda install`*
+*PS: I personally like/trust `pip install *` instead of `conda install` * because the repos of pip are more comprehensive
 
 
 The code expects to find the data in specific directories inside the data-local directory. So do remember to 
@@ -64,7 +66,8 @@ python -u main.py
 that when running both, first the dataset is divided into labeled and unlabeled based on the percentage you mentioned in `--labels`.
 now instead if you just want to work with labeled data: i.e supervised training. i.e you don't want to run mean teacher for some reason: then you turn this on/true.
 
- If you are doing `--run_student_only true` i.e to run mean teacher as a simple feed forward supervised network with all data points having labels, you shouldn't pass any of these argument parameters which are meant for mean teacher.
+ If you are doing `--run_student_only true` i.e to run as only a student (which might internally have say a simple feed forward supervised network)
+  with all data points having labels, you shouldn't pass any of these argument parameters which are meant for mean teacher.
 
 ```
 --labeled_batch_size
@@ -79,6 +82,27 @@ now instead if you just want to work with labeled data: i.e supervised training.
 passing the actual number of data points you want to be labeled. Else
 if its float, the code assumes it is a percentage value.
 
+`--labeled_batch_size` : say 20% (`--labels`) of the full data you are dropping the labels for/marking
+as unlabeled. You still have a batch size (as specified in `----batch_size`). `--labeled_batch_size` is an int value
+which says how many of the data points within a batch do you want to be marked as unlabeled.
+Eg: Say there are 200 data points in your training batch and your command line looks like this:
+`--labels 20.0 ----batch_size 32 --labeled_batch_size 10`. This means that, 20% of the labels (i.e 40 data points) overall will be marked as
+unlabeled. Now all these 400 data points will be divided into approximately 12 batches with each batch containing 32 data points. Within this
+32, atleast 10 of them will be marked as unlabeled, and the rest 22 will be left as is, i.e labeled.
+
+Note: If you want to run both student and teacher, but without dropping any labels, you must not have any of these:
+```
+--labeled_batch_size
+--labels
+--consistency
+```
+
+i.e you should use only `----batch_size` from the 3 above . ALso you must make `--run_student_only false`
+
+so the total command will look like
+```
+--dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6 --run-name fever_transform --batch_size 10 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file dev_with_50_evi_sents.jsonl --train_input_file train_with_100_evi_sents.jsonl --arch da_RTE --log_level INFO --use_gpu false --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --run_student_only false --labeled_batch_size 10
+```
 
 Further details of other command line parameters can be found in `pytorch/mean_teacher/tests/cli.py`
 
@@ -456,8 +480,14 @@ status as of june 2nd ,.11pm:
         - update: at epoch 49 best dev accuracy is at 82.70 at epoch 1..
         - search on vim for best_dev_accuracy set ignorecase.
     - turn on noise/self.transform (this is to check my idea of using noise in a new domain + very less labeled data) - june 4th
-            -  started running on a folder called meanteacher2 in clara. tmux 2 and 3.
             -  update: best dev accuracy is 83.29 in epoch 1
+    - turn on noise/dropping labels (i.e mean teacher) one at a time.
+        - turned off noise in function fever() in datasets.py
+            - left label dropping on- i.e it is running both student and teacher
+            - created a  new branch mithun_run_tests_lex
+            - its running on tmux 2, watching on tmux 3. @2pm Thursday 13th june 2019
+        - 
+    
     - create another student and feed in lex into student1 and delex into student2 (this is mihai's idea of 2 mean teachers. check drawing from april)- june 30th
         - feed in the four class split up
         - the current existing student, rename it to student 1

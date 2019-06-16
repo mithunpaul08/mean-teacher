@@ -15,7 +15,7 @@ pip sklearn
 pip install git+ssh://git@github.com/pytorch/vision@c31c3d7e0e68e871d2128c8b731698ed3b11b119
 conda install pytorch-cpu torchvision-cpu -c pytorch *
 ```
-\* **note**: for conda install get the right command from the pytorch [homepage](https://pytorch.org/) based on your OS and configs.
+\* **note**: for pytorch instinstallation get the right command from the pytorch [homepage](https://pytorch.org/) based on your OS and configs.
 
 *PS: I personally like/trust `pip install *` instead of `conda install` * because the repos of pip are more comprehensive
 

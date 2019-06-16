@@ -130,15 +130,19 @@ def create_data_loaders(LOG,train_transformation,
     LOG.info("Type of Noise : "+ dataset.WORD_NOISE_TYPE)
     LOG.info("Size of Noise : "+ str(dataset.NUM_WORDS_TO_REPLACE))
 
-    # ans: if you want to do a simple feed forward - i.e ignore all labeled.=args.x_unlabeled=true
+    #if you want to run both student and teacher but without any label dropping
     if args.run_student_only:
         labeled_idxs = data.get_all_label_indices(dataset, args)
         sampler = SubsetRandomSampler(labeled_idxs)
         batch_sampler_local = BatchSampler(sampler, args.batch_size, drop_last=True)
-    elif args.labeled_batch_size:
-        # askfan what does this relabel_dataset do? Ans: taking the training set and dividing a part of it as labeled and rest as unlabeled (label =-1)
-        if args.labels:
-            labeled_idxs, unlabeled_idxs = data.relabel_dataset_nlp(dataset, args)
+    # if you want to run both student and teacher but without any label dropping
+    elif (not args.run_student_only) and (args.labeled_batch_size):
+        labeled_idxs = data.get_all_label_indices(dataset, args)
+        sampler = SubsetRandomSampler(labeled_idxs)
+        batch_sampler_local = BatchSampler(sampler, args.batch_size, drop_last=True)
+    # if you want to run both student and teacher but with  label dropping
+    elif (not args.run_student_only) and (args.labeled_batch_size) and (args.labels):
+            labeled_idxs, unlabeled_idxs = data.relabel_dataset_nlp(dataset, args) # relabel_dataset : takes the training set and dividing a part of it as labeled and rest as unlabeled (i.e it will have alabel =-1)
             batch_sampler_local = data.TwoStreamBatchSampler(unlabeled_idxs, labeled_idxs, args.batch_size,
                                                    args.labeled_batch_size)
     else:

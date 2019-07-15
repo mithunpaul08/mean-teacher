@@ -83,10 +83,6 @@ def create_data_loaders(LOG,train_transformation,
     assert_exactly_one([args.run_student_only, args.labeled_batch_size])
 
 
-    #feb23rd2019: if  args.run_student_only: we are dropping/not running teacher model. So make sure consistency is 0.
-    assert_mutually_exclusive(args.run_student_only, args.consistency)
-
-
 
 
     if torch.cuda.is_available():
@@ -323,6 +319,12 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
         ## Input consists of tuple (entity_id, pattern_ids)
         student_input_claim = student_input[0]
         student_input_evidence = student_input[1]
+
+        LOG.debug(f"value of student_input_claim is:{student_input_claim}")
+        LOG.debug(f"value of student_input_evidence is:{student_input_evidence}")
+        LOG.debug(f"value of target is:{target}")
+        import sys
+        sys.exit(1)
 
         teacher_input_claim = teacher_input[0]
         teacher_input_evidence = teacher_input[1]

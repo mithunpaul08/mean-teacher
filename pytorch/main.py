@@ -323,8 +323,7 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
         LOG.debug(f"value of student_input_claim is:{student_input_claim}")
         LOG.debug(f"value of student_input_evidence is:{student_input_evidence}")
         LOG.debug(f"value of target is:{target}")
-        import sys
-        sys.exit(1)
+        
 
         teacher_input_claim = teacher_input[0]
         teacher_input_evidence = teacher_input[1]

@@ -468,36 +468,3 @@ Below is a version that runs the code as a **decomposable attention** as both st
 ```
 python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file dev_24K_no_train_120k_overlap.jsonl --arch da_RTE --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --run_student_only false --labeled_batch_size 25 --labels 20.0 --consistency 1
 ```
-
-status as of june 2nd ,.11pm: 
-- code now works for both teacher and student.
-
-- next todo:
-    - most important first thing to do: go through main.py and remove all vestigial/old comments. 
-    - old/wrong comments are worse than no comments
-    - merge with master
-    - run student teacher on server with complete lex data? - deadline june 3rd (running on tmux 1 and 0 on amy)
-        - update: at epoch 49 best dev accuracy is at 82.70 at epoch 1..
-        - search on vim for best_dev_accuracy set ignorecase.
-    - turn on noise/self.transform (this is to check my idea of using noise in a new domain + very less labeled data) - june 4th
-            -  update: best dev accuracy is 83.29 in epoch 1
-    - turn on noise/dropping labels (i.e mean teacher) one at a time.
-        - turned off noise in function fever() in datasets.py
-            - left label dropping on- i.e it is running both student and teacher
-            - created a  new branch mithun_run_tests_lex
-            - its running on tmux 2, watching on tmux 3. @2pm Thursday 13th june 2019
-        - 
-    
-    - create another student and feed in lex into student1 and delex into student2 (this is mihai's idea of 2 mean teachers. check drawing from april)- june 30th
-        - feed in the four class split up
-        - the current existing student, rename it to student 1
-        - create a new model in create_model() for student 2
-        - create a create_data_loader for student2
-            - separate out the function   
-            - feed the lexicalized data into train loader(this we are already doing)
-            - dont' do droppings of words/adding noise - i.e turn transform off
-            - create a new train loader for student2
-            - feed delex into this train loader of student2 and lex into train loader of student 1
-            - add an if condition for student1 and student2 and pass two different train loaders into train() function
-    - feed in lex into student and delex into student2 and also attach a teacher (this is mihai's idea of 2 mean teachers. check drawing from april)- 
-        

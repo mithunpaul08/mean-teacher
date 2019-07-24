@@ -131,7 +131,7 @@ class Datautils:
                 multiple_ev = False
                 x = json.loads(line)
                 claim = x["claim"]
-                evidences_this_str = x["evidence"]
+                evidences_this_str = x["sents"]
                 label = x["label"]
                 label=label.upper()
 

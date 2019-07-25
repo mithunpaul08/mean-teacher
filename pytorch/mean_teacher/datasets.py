@@ -99,11 +99,11 @@ class RTEDataset(Dataset):
 
         print("got inside init of RTE data set")
 
-        if(args.type_of_data=="plain"):
-            self.claims, self.evidences, self.labels_str = Datautils.read_rte_data(dataset_file,args)
-        else:
-            if (args.type_of_data == "ner_replaced"):
-                self.claims, self.evidences, self.labels_str = Datautils.read_ner_neutered_data(dataset_file,args )
+        #if(args.type_of_data=="plain"):
+        self.claims, self.evidences, self.labels_str = Datautils.read_data_where_evidences_are_strings(dataset_file,args)
+        #else:
+           # if (args.type_of_data == "ner_replaced"):
+           #     self.claims, self.evidences, self.labels_str = Datautils.read_data_where_evidences_are_strings(dataset_file, args)
 
 
 

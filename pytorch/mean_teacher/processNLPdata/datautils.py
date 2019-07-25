@@ -120,7 +120,7 @@ class Datautils:
         return sent_replaced
 
     @classmethod
-    def read_ner_neutered_data(cls, filename, args):
+    def read_data_where_evidences_are_strings(cls, filename, args):
         tr_len=args.truncate_words_length
         all_labels = []
         all_claims = []
@@ -131,7 +131,7 @@ class Datautils:
                 multiple_ev = False
                 x = json.loads(line)
                 claim = x["claim"]
-                evidences_this_str = x["sents"]
+                evidences_this_str = x["evidence"]
                 label = x["label"]
                 label=label.upper()
 

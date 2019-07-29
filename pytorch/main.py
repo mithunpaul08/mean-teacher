@@ -803,7 +803,7 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
     # accuracy calculation 3: accumulate claims, evidences, predict all together, then calculate accuracy_fever
     #prec_after_all_batches=predict_total_ie_not_by_batches(model, all_claims_global, all_evidences_global, all_labels_global,length_of_each_claim_global,length_of_each_ev_global)
 
-    return cum_avg,avg_prec_taken_totally
+    return cum_avg,avg_prec_taken_totally,total_predictions
 
 #todo: do we need to save custom_embeddings?  - mihai
 def save_custom_embeddings(custom_embeddings_minibatch, dataset, result_dir, model_type):
@@ -1224,12 +1224,12 @@ def append_as_csv(train_accuracy, dev_accuracy,args,epoch):
         employee_writer = csv.writer(employee_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         employee_writer.writerow([epoch,train_accuracy,dev_accuracy])
 
-def write_as_csv(train_accuracy, dev_accuracy,args):
+def write_as_csv(column1, column2, output_folder, output_filename):
     import csv
     epoch=0
-    with open(args.output_folder+'train_dev_per_epoch_accuracy_end_of_all_epochs.csv', mode='w+') as employee_file:
+    with open(output_folder+output_filename, mode='w+') as employee_file:
         employee_writer = csv.writer(employee_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        for x,y in zip(train_accuracy,dev_accuracy):
+        for x,y in zip(column1, column2):
             employee_writer.writerow([epoch,x,y])
             epoch=epoch+1
 
@@ -1469,7 +1469,7 @@ def main(context):
             LOG.debug(f"value of dataset_test: {dataset_test} ")
             LOG.debug(f"value of context.result_dir: {context.result_dir} ")
 
-            dev_prec_cum_avg_method, dev_prec_accumulate_pred_method = validate(eval_loader, model, validation_log, global_step, epoch , dataset_test,
+            dev_prec_cum_avg_method, dev_prec_accumulate_pred_method,total_predictions = validate(eval_loader, model, validation_log, global_step, epoch , dataset_test,
                              context.result_dir, "student")
 
             teacher_accuracy=0
@@ -1487,6 +1487,9 @@ def main(context):
             if(dev_local_best_acc>best_dev_accuracy_so_far):
                 best_dev_accuracy_so_far = dev_local_best_acc
                 best_epochs=epoch
+                write_as_csv(total_predictions, "", args.output_folder,
+                             'predictions.csv')
+
             else:
                 is_best = False
 
@@ -1529,7 +1532,8 @@ def main(context):
     # validate(eval_loader, model, validation_log, global_step, 0, dataset, context.result_dir, "student")
     LOG.info("--------Total end to end time %s seconds ----------- " % (time.time() - time_start))
     LOG.info(f"best best_dev_accuracy_so_far  is:{best_dev_accuracy_so_far} was at epoch number:{best_epochs},dev_accuracy{dev_local_best_acc},best_dev_so_far:")
-    write_as_csv(accuracy_per_epoch_training, accuracy_per_epoch_dev, args)
+    write_as_csv(accuracy_per_epoch_training, accuracy_per_epoch_dev, args.output_folder,
+                 'train_dev_per_epoch_accuracy_end_of_all_epochs.csv')
 
 
 

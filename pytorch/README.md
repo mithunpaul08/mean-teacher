@@ -407,9 +407,11 @@ inside the student only on a mac command line-but with data that is NER neutered
 ```
 
 Below is a version that runs the code as a **decomposable attention**  as **mean teacher** 
- on a mac command line- using this on may16th 2019.
+ on a mac command line- using this on aug 3rd 2019.
 
-```python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6 --run-name fever_transform --batch_size 10 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file dev_with_50_evi_sents.jsonl --train_input_file train_with_100_evi_sents.jsonl --arch da_RTE --log_level DEBUG --use_gpu false --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --run_student_only true --labeled_batch_size 5 --labels 20.0 --consistency 1```
+```
+python -u main.py
+ --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6 --run-name fever_transform --batch_size 10 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file fever_dev_lex_3labels_26k_no_lists_evidence_not_sents.jsonl --train_input_file fever_train_lex_3labels_119k_smartner_3labels_no_lists_evidence_not_sents.jsonl --arch da_RTE --log_level DEBUG --use_gpu false --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --run_student_only true --labels 20.0 --consistency 1```
 
 #### from here on every command is for a server machine (defined as a computer that has huge memory/huge gpu/huge disk space)
 Below is a version that runs on linux command line (server/big memory-but with 12k training and 2.5k dev):

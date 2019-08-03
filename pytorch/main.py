@@ -741,7 +741,7 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
         meters.update('class_loss', class_loss.data.item(), labeled_minibatch_size)
         meters.update('top1', prec1, labeled_minibatch_size)
         meters.update('error1', 100.0 - prec1, labeled_minibatch_size)
-        
+
         # measure elapsed time
         meters.update('batch_time', time.time() - end)
         end = time.time()

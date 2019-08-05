@@ -1,6 +1,8 @@
 from __future__ import division
 import re
 import os,sys
+import json
+import io
 import shutil
 import time
 import logging
@@ -452,7 +454,7 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
 
         #loss is a combination of classification loss and consistency loss (+ residual loss from the 2 outputs of student model fc1 and fc2, see args.logit_distance_cost)
         #if using just student, this will be class_loss + 0+ 0
-        loss = class_loss + consistency_loss + res_loss
+        loss = class_loss  + res_loss
         loss.backward()
 
         meters.update('loss', loss.data.item())
@@ -1222,15 +1224,20 @@ def append_as_csv(train_accuracy, dev_accuracy,args,epoch):
         employee_writer = csv.writer(employee_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         employee_writer.writerow([epoch,train_accuracy,dev_accuracy])
 
-def write_as_csv(column1, column2, output_folder, output_filename):
+def write_as_csv(predictions, output_folder, epoch, output_filename):
     import csv
-    epoch=0
     with open(output_folder+output_filename, mode='w+') as employee_file:
         employee_writer = csv.writer(employee_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        for x,y in zip(column1, column2):
-            employee_writer.writerow([epoch,x,y])
-            epoch=epoch+1
+        employee_writer.writerow([epoch, predictions.numpy()])
 
+def write_predictions_as_json(predictions, output_folder, epoch, output_filename):
+    with io.open(output_folder+output_filename, mode='w+',encoding=DEFAULT_ENCODING) as pred_file:
+        pred_file.write(json.dumps(self.word_vocab))
+        employee_writer = csv.writer(pred_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        employee_writer.writerow([epoch, predictions.numpy()])
+
+        with io.open(vocab_file, 'w+', encoding=DEFAULT_ENCODING) as f:
+                    #     f.write(json.dumps(self.word_vocab))
 def main(context):
     global global_step
     global best_dev_accuracy_so_far
@@ -1485,8 +1492,7 @@ def main(context):
             if(dev_local_best_acc>best_dev_accuracy_so_far):
                 best_dev_accuracy_so_far = dev_local_best_acc
                 best_epochs=epoch
-                write_as_csv(total_predictions, "", args.output_folder,
-                             'predictions.csv')
+                write_as_csv(total_predictions,args.output_folder,epoch,'predictions.csv')
 
             else:
                 is_best = False

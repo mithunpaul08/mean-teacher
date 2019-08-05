@@ -368,44 +368,6 @@ training accuracy @epoch 30: 84.57166666666667,dev: 82.65230004144219
 # commands_to_run
 ##### Some linux versions of the start up command*
 
-Below is a version that runs on mean teacher on a mac command line-but with toy data- best for laptop:
-```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/rte/fever --print_freq 1 --workers 0 --labeled_batch_size 5 --consistency 1 --dev_input_file dev_90_from_train_big145k.jsonl --train_input_file train_small_200_claims_with_evi_sents.jsonl
-```
-Below is a version that runs the code as a simple FFNN on a mac command line-but with toy data- best for laptop:
-```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 1 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_small_200_claims_with_evi_sents.jsonl --dev_input_file dev_90_with_evi_sents.jsonl --workers 0 --run_student_only true --batch_size 20 --lr 0.0000001 --ema_decay 8 --print_freq 1
-
-```
-Below is a version that runs the code as a **decomposable attention** given [here](https://github.com/mithunpaul08/SNLI-decomposable-attention) 
-inside the student only on a **mac command** line-but with toy data- best for laptop:
-
-```
---dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file dev_90_from_train_big145k.jsonl --train_input_file train_small_200_claims_with_evi_sents.jsonl --arch da_RTE --run_student_only true --log_level INFO --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true
-```
-
-```--dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file fn_dev_ner_neutered_10.jsonl --train_input_file train_with_100_evi_sents.jsonl --arch da_RTE --run_student_only true --log_level INFO --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true
-```
-
-same (lexicalized data.) on mac, but with teacher trained on.
-```
---dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6  --run-name fever_transform --batch_size 20 --data_dir data-local/ --print_freq 1 --workers 0 
---dev_input_file fn_dev_ner_neutered_10.jsonl --train_input_file train_with_100_evi_sents.jsonl 
---arch da_RTE --run_student_only false --log_level INFO --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true
-```
-same, on mac, but train on fever, test on fnc dev
-```
---dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file fn_dev_ner_neutered_10.jsonl --train_input_file fever_training_NER_replaced_100.jsonl --arch da_RTE --run_student_only true --log_level INFO --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --type_of_data ner_replaced
-```
-
-
-Below is a version that runs the code as a **decomposable attention** given [here](https://github.com/mithunpaul08/SNLI-decomposable-attention) 
-inside the student only on a mac command line-but with data that is NER neutered 
-```
---dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/ --print_freq 1 --workers 0 
---arch da_RTE --run_student_only true --log_level INFO --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --type_of_data ner_replaced
-```
-
 Below is a version that runs the code as a **decomposable attention**  as **mean teacher** 
  on a mac command line- using this on aug 3rd 2019.
 
@@ -417,57 +379,10 @@ python -u main.py
 #### from here on every command is for a server machine (defined as a computer that has huge memory/huge gpu/huge disk space)
 Below is a version that runs on linux command line (server/big memory-but with 12k training and 2.5k dev):
 
-```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 100 --consistency 1 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_12k_with_evi_sents.jsonl --dev_input_file dev_2k_with_evi_sents.jsonl --print-freq 1 --workers 4 --consistency 1 --run_student_only false --batch_size 1000 --labeled_batch_size 100 --labels 20.0 
-```
-Below is a version that runs **mean teacher** on a linux command line (server/big memory:145k training 10k dev- ACTUAL fever competition data):
-```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 100 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_full_with_evi_sents.jsonl --dev_input_file actual_fever_dev_with_9k.jsonl --print_freq 1 --workers 4 --consistency 8 --run_student_only false --batch_size 2000 --labeled_batch_size 1000 --labels 20.0 --lr=0.1 --ema_decay 0.999  
-```
 
-Below is a version that runs **FFNN** on linux command line (server/big memory:120k training 25k dev) -i.e: --run_student_only true
-``` 
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 500 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file actual_fever_dev_with_9k.jsonl --print_freq 1 --workers 4 --run_student_only true --batch_size 2000 --lr 0.1      
- 
-```
-Below is a version that runs **FFNN** on linux command line (server/big memory:145k training 10k dev) -i.e: --run_student_only true
-``` 
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 500 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_full_with_evi_sents.jsonl --dev_input_file actual_fever_dev_with_9k.jsonl --print_freq 1 --workers 4 --run_student_only true --batch_size 2000 --lr 0.1 
-```     
-
-Below is a version that runs **Decomposable Attention** on linux command line (server/big memory:12k training 2k dev) student only -i.e: --run_student_only true
-use conda environment: meanteacher in clara
-
-``` 
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 50 --run-name fever_transform --batch_size 10 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  train_12k_with_evi_sents.jsonl --dev_input_file dev_2k_with_evi_sents.jsonl --arch da_RTE --run_student_only true  --run_student_only true --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true
-       
-```
 Below is a version that runs **Decomposable Attention** on linux command line (server/big memory-but with 120k training and 24k dev) student only -i.e: --run_student_only true
 use conda environment: meanteacher in clara **and gave 82% accuracy, highest so far**
 
 ``` 
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file dev_24K_no_train_120k_overlap.jsonl --arch da_RTE --run_student_only true  --run_student_only true --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true  
-```
-
-Below is a version that runs the code as a **decomposable attention** as the student only version of a mean teacher on a linux
-machine with 119197 lines in training data and 26252 lines in dev data-but with data that is NER neutered 
-```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  fever_training_smartner_converted.jsonl --dev_input_file fever_dev_smartner_converted.jsonl --arch da_RTE --run_student_only true  --run_student_only true --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --type_of_data ner_replaced
-
-```
-
-also, here is the same one as above, instead does training on fnc, and dev on fever. Also glove will be loaded from a hardcoded path
-```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  fnc_train_mithun_modified_with_ner_replacement.jsonl --dev_input_file fever_dev_smartner_converted.jsonl --arch da_RTE --run_student_only true  --run_student_only true --log_level INFO --use_gpu True --pretrained_wordemb_file /work/mithunpaul/meanteacher/pytorch/data-local/glove/glove.840B.300d.txt --use_double_optimizers true --type_of_data ner_replaced --use_local_glove False
-```
-
-same as above but training on fever and testing on fnc dev
-
-```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  fever_training_smartner_converted.jsonl --dev_input_file fn_dev_smartner_neutered.jsonl --arch da_RTE --run_student_only true  --run_student_only true --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --type_of_data ner_replaced
-```
-Below is a version that runs the code as a **decomposable attention** as both student and teacher.
-
-```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file dev_24K_no_train_120k_overlap.jsonl --arch da_RTE --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --run_student_only false --labeled_batch_size 25 --labels 20.0 --consistency 1
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  fever_train_lex_3labels_119k_smartner_3labels_no_lists_evidence_not_sents.jsonl --dev_input_file fever_dev_lex_3labels_26k_no_lists_evidence_not_sents.jsonl --arch da_RTE --run_student_only true  --run_student_only true --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true  
 ```

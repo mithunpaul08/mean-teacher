@@ -1535,8 +1535,8 @@ def main(context):
     # validate(eval_loader, model, validation_log, global_step, 0, dataset, context.result_dir, "student")
     LOG.info("--------Total end to end time %s seconds ----------- " % (time.time() - time_start))
     LOG.info(f"best best_dev_accuracy_so_far  is:{best_dev_accuracy_so_far} was at epoch number:{best_epochs},dev_accuracy{dev_local_best_acc},best_dev_so_far:")
-    write_as_csv(accuracy_per_epoch_training, accuracy_per_epoch_dev, args.output_folder,
-                 'train_dev_per_epoch_accuracy_end_of_all_epochs.csv')
+    # write_as_csv(accuracy_per_epoch_training, accuracy_per_epoch_dev, args.output_folder,
+    #              'train_dev_per_epoch_accuracy_end_of_all_epochs.csv')
 
 
 

@@ -1,7 +1,7 @@
 from __future__ import division
 import re
 import os,sys
-import json
+import json,jsonlines
 import io
 import shutil
 import time
@@ -1231,13 +1231,12 @@ def write_as_csv(predictions, output_folder, epoch, output_filename):
         employee_writer.writerow([epoch, predictions.numpy()])
 
 def write_predictions_as_json(predictions, output_folder, epoch, output_filename):
-    with io.open(output_folder+output_filename, mode='w+',encoding=DEFAULT_ENCODING) as pred_file:
-        pred_file.write(json.dumps(self.word_vocab))
-        employee_writer = csv.writer(pred_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        employee_writer.writerow([epoch, predictions.numpy()])
+     full_path=os.path.join(output_folder,output_filename)
+     with jsonlines.open(full_path, mode='w') as writer:
+                preds={"epoch":epoch,
+                    "prediction": predictions.numpy().tolist()}
+                writer.write(preds)
 
-        with io.open(vocab_file, 'w+', encoding=DEFAULT_ENCODING) as f:
-                    #     f.write(json.dumps(self.word_vocab))
 def main(context):
     global global_step
     global best_dev_accuracy_so_far
@@ -1492,7 +1491,7 @@ def main(context):
             if(dev_local_best_acc>best_dev_accuracy_so_far):
                 best_dev_accuracy_so_far = dev_local_best_acc
                 best_epochs=epoch
-                write_as_csv(total_predictions,args.output_folder,epoch,'predictions.csv')
+                write_predictions_as_json(total_predictions,args.output_folder,epoch,'predictions.jsonl')
 
             else:
                 is_best = False

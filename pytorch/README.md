@@ -294,64 +294,9 @@ Ans: he is  using glove. he just names it function w2v. i  also checked the
 Qn)does libowen code have momentum? 
   Ans: no
     
-    
-# Todo :
-- find embedding value of same word in both libowen and your code
-    - tried printing the embedding of first value after loading glove. it was -1. i thought it was -1 because our local machine couldnt' find it. but its all -1s in server also. that is a problem.
-    - words are ok. first 10 words after pad emb etc had embeddings.
-    - print the first sentences inside forward() of inter_Attention code in both valpola and libowen
-- compare line by line libowen vs my code
-    - done until line 77 in libowen's `train_baseline_snli.py` 
-- where is he using the glove embedding size?
-    - ideally specifying embedding size must be done in hdf5 file creation
-- is he doing gigaword normalization in harvard code for hdfs?
-- will doing normalization change accuracy value?
-- are you updating he is not
-	- is he doing drop out
-	- is he handling low frequency words
-	- debug line by line and make sure all sizes and lengths especially w2v match
-- compare command line input with libowen cli command line
-- replace batch size as 32 which libowen uses
-- go to allennlp +fever's [json file](https://github.com/mithunpaul08/decomp_attn_fever/blob/master/experiments/decomp_attn.json) and try to replicate the parameters here
-- add/hardcode/randomly initialize an embedding for `</s>` also after you enable transform. right now it is taking that of `<unk>`
-- why are we doing prediction before loss.backward? -confirm if libowen does it
-- implement early stopping +prediction
-#  marco
-- batch average- which one to take...sum all individual per point average/divided by- refer my code
-    - done. marco said for dev doesn't matter. infact i verified using both methods, i.e amassing claims and evidences vs amassing predictions. both gave same results 
-- how do we know model() is trained, vs model_out. atleast forward, explicitly returns stuff...line 408- same pass by reference thing?
-
-
-# parameters in the two layers
-
-=========================
-embedding.weight                                   5656 * 300 =   1,696,800
-input_linear.weight                                 200 * 300 =      60,000
-===========================================================================
-all parameters count=2                           sum of above =   1,756,800
-
-INFO:main:
-List of model parameters:
-=========================
-mlp_f.1.weight                                      200 * 200 =      40,000
-mlp_f.1.bias                                              200 =         200
-mlp_f.4.weight                                      200 * 200 =      40,000
-mlp_f.4.bias                                              200 =         200
-mlp_g.1.weight                                      200 * 400 =      80,000
-mlp_g.1.bias                                              200 =         200
-mlp_g.4.weight                                      200 * 200 =      40,000
-mlp_g.4.bias                                              200 =         200
-mlp_h.1.weight                                      200 * 400 =      80,000
-mlp_h.1.bias                                              200 =         200
-mlp_h.4.weight                                      200 * 200 =      40,000
-mlp_h.4.bias                                              200 =         200
-final_linear.weight                                   3 * 200 =         600
-final_linear.bias                                           3 =           3
-===========================================================================
-all parameters count=14                          sum of above =     321,803
-
+  
 **update: on april 12th 2019, becky suggested to match the batch size =20 that libowen was having, and guess what**
-#I have a dev stable accuracy of around 83%
+###### I have a dev stable accuracy of around 83%
 
 ```INFO:main:
 Dev Epoch: [30][754/755]      Dev Classification_loss:0.9863 (0.0000) Dev Prec_model: 50.000 (82.244)
@@ -376,8 +321,6 @@ python -u main.py
  --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6 --run-name fever_transform --batch_size 10 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file fever_dev_lex_3labels_200_no_lists_evidence_not_sents.jsonl --train_input_file fever_train_lex_3labels_200_smartner_3labels_no_lists_evidence_not_sents.jsonl --arch da_RTE --log_level DEBUG --use_gpu false --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --run_student_only true --labels 20.0 --consistency 1
  ```
 
-#### from here on every command is for a server machine (defined as a computer that has huge memory/huge gpu/huge disk space)
-Below is a version that runs on linux command line (server/big memory-but with 12k training and 2.5k dev):
 
 
 Below is a version that runs **Decomposable Attention** on linux command line (server/big memory-but with 120k training and 24k dev) student only -i.e: --run_student_only true

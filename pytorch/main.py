@@ -1232,11 +1232,14 @@ def write_as_csv(predictions, output_folder, epoch, output_filename):
 
 def write_predictions_as_json(predictions, output_folder, epoch, output_filename):
      full_path=os.path.join(output_folder,output_filename)
- 
+
+     #since numpy wont work on a CUDA tensor
+     predictions = predictions.cpu()
+
      # if torch.cuda.is_available():
      #     predictions = predictions.cuda()
      # else:
-     #     predictions = predictions.cpu()
+     #
 
      with jsonlines.open(full_path, mode='w') as writer:
                 preds={"epoch":epoch,

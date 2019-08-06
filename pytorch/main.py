@@ -1236,11 +1236,6 @@ def write_predictions_as_json(predictions, output_folder, epoch, output_filename
      #since numpy wont work on a CUDA tensor
      predictions = predictions.cpu()
 
-     # if torch.cuda.is_available():
-     #     predictions = predictions.cuda()
-     # else:
-     #
-
      with jsonlines.open(full_path, mode='w') as writer:
                 preds={"epoch":epoch,
                     "prediction": predictions.numpy().tolist()}

@@ -112,8 +112,8 @@ def create_data_loaders(LOG,train_transformation,
     word_vocab = {"<unk>": 1,"</s>":2}
 
     if(args.use_local_glove):
-        embdir = os.path.join(args.data_dir, args.glove_subdir)
-        emb_file_path=embdir+args.pretrained_wordemb_file
+        #embdir = os.path.join(args.data_dir, args.glove_subdir)
+        emb_file_path=args.pretrained_wordemb_file
     else:
         emb_file_path = args.pretrained_wordemb_file
 

@@ -206,6 +206,11 @@ class RTEDataset(Dataset):
             for lbl in self.categories:
                 f.write(lbl + '\n')
 
+        gold_labels_file = dir + 'label_gold_' + runName + '.txt'
+        with io.open(gold_labels_file, 'w', encoding='utf8') as f:
+            for lbl in self.lbl:
+                f.write(str(lbl)+"\n")
+
         self.transform = transform
         print("4self.word_vocab.size=", len(self.word_vocab.keys()))
 

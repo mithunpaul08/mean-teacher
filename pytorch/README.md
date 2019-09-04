@@ -294,64 +294,9 @@ Ans: he is  using glove. he just names it function w2v. i  also checked the
 Qn)does libowen code have momentum? 
   Ans: no
     
-    
-# Todo :
-- find embedding value of same word in both libowen and your code
-    - tried printing the embedding of first value after loading glove. it was -1. i thought it was -1 because our local machine couldnt' find it. but its all -1s in server also. that is a problem.
-    - words are ok. first 10 words after pad emb etc had embeddings.
-    - print the first sentences inside forward() of inter_Attention code in both valpola and libowen
-- compare line by line libowen vs my code
-    - done until line 77 in libowen's `train_baseline_snli.py` 
-- where is he using the glove embedding size?
-    - ideally specifying embedding size must be done in hdf5 file creation
-- is he doing gigaword normalization in harvard code for hdfs?
-- will doing normalization change accuracy value?
-- are you updating he is not
-	- is he doing drop out
-	- is he handling low frequency words
-	- debug line by line and make sure all sizes and lengths especially w2v match
-- compare command line input with libowen cli command line
-- replace batch size as 32 which libowen uses
-- go to allennlp +fever's [json file](https://github.com/mithunpaul08/decomp_attn_fever/blob/master/experiments/decomp_attn.json) and try to replicate the parameters here
-- add/hardcode/randomly initialize an embedding for `</s>` also after you enable transform. right now it is taking that of `<unk>`
-- why are we doing prediction before loss.backward? -confirm if libowen does it
-- implement early stopping +prediction
-#  marco
-- batch average- which one to take...sum all individual per point average/divided by- refer my code
-    - done. marco said for dev doesn't matter. infact i verified using both methods, i.e amassing claims and evidences vs amassing predictions. both gave same results 
-- how do we know model() is trained, vs model_out. atleast forward, explicitly returns stuff...line 408- same pass by reference thing?
-
-
-# parameters in the two layers
-
-=========================
-embedding.weight                                   5656 * 300 =   1,696,800
-input_linear.weight                                 200 * 300 =      60,000
-===========================================================================
-all parameters count=2                           sum of above =   1,756,800
-
-INFO:main:
-List of model parameters:
-=========================
-mlp_f.1.weight                                      200 * 200 =      40,000
-mlp_f.1.bias                                              200 =         200
-mlp_f.4.weight                                      200 * 200 =      40,000
-mlp_f.4.bias                                              200 =         200
-mlp_g.1.weight                                      200 * 400 =      80,000
-mlp_g.1.bias                                              200 =         200
-mlp_g.4.weight                                      200 * 200 =      40,000
-mlp_g.4.bias                                              200 =         200
-mlp_h.1.weight                                      200 * 400 =      80,000
-mlp_h.1.bias                                              200 =         200
-mlp_h.4.weight                                      200 * 200 =      40,000
-mlp_h.4.bias                                              200 =         200
-final_linear.weight                                   3 * 200 =         600
-final_linear.bias                                           3 =           3
-===========================================================================
-all parameters count=14                          sum of above =     321,803
-
+  
 **update: on april 12th 2019, becky suggested to match the batch size =20 that libowen was having, and guess what**
-#I have a dev stable accuracy of around 83%
+###### I have a dev stable accuracy of around 83%
 
 ```INFO:main:
 Dev Epoch: [30][754/755]      Dev Classification_loss:0.9863 (0.0000) Dev Prec_model: 50.000 (82.244)
@@ -368,136 +313,19 @@ training accuracy @epoch 30: 84.57166666666667,dev: 82.65230004144219
 # commands_to_run
 ##### Some linux versions of the start up command*
 
-Below is a version that runs on mean teacher on a mac command line-but with toy data- best for laptop:
-```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/rte/fever --print_freq 1 --workers 0 --labeled_batch_size 5 --consistency 1 --dev_input_file dev_90_from_train_big145k.jsonl --train_input_file train_small_200_claims_with_evi_sents.jsonl
-```
-Below is a version that runs the code as a simple FFNN on a mac command line-but with toy data- best for laptop:
-```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 1 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_small_200_claims_with_evi_sents.jsonl --dev_input_file dev_90_with_evi_sents.jsonl --workers 0 --run_student_only true --batch_size 20 --lr 0.0000001 --ema_decay 8 --print_freq 1
-
-```
-Below is a version that runs the code as a **decomposable attention** given [here](https://github.com/mithunpaul08/SNLI-decomposable-attention) 
-inside the student only on a **mac command** line-but with toy data- best for laptop:
-
-```
---dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file dev_90_from_train_big145k.jsonl --train_input_file train_small_200_claims_with_evi_sents.jsonl --arch da_RTE --run_student_only true --log_level INFO --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true
-```
-
-```--dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file fn_dev_ner_neutered_10.jsonl --train_input_file train_with_100_evi_sents.jsonl --arch da_RTE --run_student_only true --log_level INFO --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true
-```
-
-same (lexicalized data.) on mac, but with teacher trained on.
-```
---dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6  --run-name fever_transform --batch_size 20 --data_dir data-local/ --print_freq 1 --workers 0 
---dev_input_file fn_dev_ner_neutered_10.jsonl --train_input_file train_with_100_evi_sents.jsonl 
---arch da_RTE --run_student_only false --log_level INFO --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true
-```
-same, on mac, but train on fever, test on fnc dev
-```
---dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file fn_dev_ner_neutered_10.jsonl --train_input_file fever_training_NER_replaced_100.jsonl --arch da_RTE --run_student_only true --log_level INFO --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --type_of_data ner_replaced
-```
-
-
-Below is a version that runs the code as a **decomposable attention** given [here](https://github.com/mithunpaul08/SNLI-decomposable-attention) 
-inside the student only on a mac command line-but with data that is NER neutered 
-```
---dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6  --run-name fever_transform --batch_size 20 --labels 20.0 --data_dir data-local/ --print_freq 1 --workers 0 
---arch da_RTE --run_student_only true --log_level INFO --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --type_of_data ner_replaced
-```
-
 Below is a version that runs the code as a **decomposable attention**  as **mean teacher** 
- on a mac command line- using this on may16th 2019.
-
-```python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6 --run-name fever_transform --batch_size 10 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file dev_with_50_evi_sents.jsonl --train_input_file train_with_100_evi_sents.jsonl --arch da_RTE --log_level DEBUG --use_gpu false --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --run_student_only true --labeled_batch_size 5 --labels 20.0 --consistency 1```
-
-#### from here on every command is for a server machine (defined as a computer that has huge memory/huge gpu/huge disk space)
-Below is a version that runs on linux command line (server/big memory-but with 12k training and 2.5k dev):
+ on a mac command line- using this on aug 3rd 2019.
 
 ```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 100 --consistency 1 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_12k_with_evi_sents.jsonl --dev_input_file dev_2k_with_evi_sents.jsonl --print-freq 1 --workers 4 --consistency 1 --run_student_only false --batch_size 1000 --labeled_batch_size 100 --labels 20.0 
-```
-Below is a version that runs **mean teacher** on a linux command line (server/big memory:145k training 10k dev- ACTUAL fever competition data):
-```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 100 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_full_with_evi_sents.jsonl --dev_input_file actual_fever_dev_with_9k.jsonl --print_freq 1 --workers 4 --consistency 8 --run_student_only false --batch_size 2000 --labeled_batch_size 1000 --labels 20.0 --lr=0.1 --ema_decay 0.999  
-```
+python -u main.py
+ --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 6 --run-name fever_transform --batch_size 10 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file fever_dev_lex_3labels_200_no_lists_evidence_not_sents.jsonl --train_input_file fever_train_lex_3labels_200_smartner_3labels_no_lists_evidence_not_sents.jsonl --arch da_RTE --log_level DEBUG --use_gpu false --pretrained_wordemb_file /Users/mordor/research/glove/glove.840B.300d.txt --use_double_optimizers true --run_student_only true --labels 20.0 --consistency 1
+ ```
 
-Below is a version that runs **FFNN** on linux command line (server/big memory:120k training 25k dev) -i.e: --run_student_only true
-``` 
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 500 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file actual_fever_dev_with_9k.jsonl --print_freq 1 --workers 4 --run_student_only true --batch_size 2000 --lr 0.1      
- 
-```
-Below is a version that runs **FFNN** on linux command line (server/big memory:145k training 10k dev) -i.e: --run_student_only true
-``` 
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb false --update_pretrained_wordemb true --epochs 500 --run-name fever_transform --data_dir data-local/rte/fever --train_input_file  train_full_with_evi_sents.jsonl --dev_input_file actual_fever_dev_with_9k.jsonl --print_freq 1 --workers 4 --run_student_only true --batch_size 2000 --lr 0.1 
-```     
 
-Below is a version that runs **Decomposable Attention** on linux command line (server/big memory:12k training 2k dev) student only -i.e: --run_student_only true
-use conda environment: meanteacher in clara
 
-``` 
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 50 --run-name fever_transform --batch_size 10 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  train_12k_with_evi_sents.jsonl --dev_input_file dev_2k_with_evi_sents.jsonl --arch da_RTE --run_student_only true  --run_student_only true --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true
-       
-```
 Below is a version that runs **Decomposable Attention** on linux command line (server/big memory-but with 120k training and 24k dev) student only -i.e: --run_student_only true
 use conda environment: meanteacher in clara **and gave 82% accuracy, highest so far**
 
 ``` 
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file dev_24K_no_train_120k_overlap.jsonl --arch da_RTE --run_student_only true  --run_student_only true --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true  
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  fever_train_delex_smartner_119k_3labels_no_lists_evidence_not_sents.jsonl --dev_input_file fever_dev_delexicalized_3labels_26k.jsonl --arch da_RTE --run_student_only true  --run_student_only true --log_level INFO --use_gpu True --pretrained_wordemb_file /work/mithunpaul/glove/glove.840B.300d.txt --use_double_optimizers true  
 ```
-
-Below is a version that runs the code as a **decomposable attention** as the student only version of a mean teacher on a linux
-machine with 119197 lines in training data and 26252 lines in dev data-but with data that is NER neutered 
-```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  fever_training_smartner_converted.jsonl --dev_input_file fever_dev_smartner_converted.jsonl --arch da_RTE --run_student_only true  --run_student_only true --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --type_of_data ner_replaced
-
-```
-
-also, here is the same one as above, instead does training on fnc, and dev on fever. Also glove will be loaded from a hardcoded path
-```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  fnc_train_mithun_modified_with_ner_replacement.jsonl --dev_input_file fever_dev_smartner_converted.jsonl --arch da_RTE --run_student_only true  --run_student_only true --log_level INFO --use_gpu True --pretrained_wordemb_file /work/mithunpaul/meanteacher/pytorch/data-local/glove/glove.840B.300d.txt --use_double_optimizers true --type_of_data ner_replaced --use_local_glove False
-```
-
-same as above but training on fever and testing on fnc dev
-
-```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  fever_training_smartner_converted.jsonl --dev_input_file fn_dev_smartner_neutered.jsonl --arch da_RTE --run_student_only true  --run_student_only true --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --type_of_data ner_replaced
-```
-Below is a version that runs the code as a **decomposable attention** as both student and teacher.
-
-```
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  train_120k_with_evi_sents.jsonl --dev_input_file dev_24K_no_train_120k_overlap.jsonl --arch da_RTE --log_level INFO --use_gpu True --pretrained_wordemb_file glove.840B.300d.txt --use_double_optimizers true --run_student_only false --labeled_batch_size 25 --labels 20.0 --consistency 1
-```
-
-status as of june 2nd ,.11pm: 
-- code now works for both teacher and student.
-
-- next todo:
-    - most important first thing to do: go through main.py and remove all vestigial/old comments. 
-    - old/wrong comments are worse than no comments
-    - merge with master
-    - run student teacher on server with complete lex data? - deadline june 3rd (running on tmux 1 and 0 on amy)
-        - update: at epoch 49 best dev accuracy is at 82.70 at epoch 1..
-        - search on vim for best_dev_accuracy set ignorecase.
-    - turn on noise/self.transform (this is to check my idea of using noise in a new domain + very less labeled data) - june 4th
-            -  update: best dev accuracy is 83.29 in epoch 1
-    - turn on noise/dropping labels (i.e mean teacher) one at a time.
-        - turned off noise in function fever() in datasets.py
-            - left label dropping on- i.e it is running both student and teacher
-            - created a  new branch mithun_run_tests_lex
-            - its running on tmux 2, watching on tmux 3. @2pm Thursday 13th june 2019
-        - 
-    
-    - create another student and feed in lex into student1 and delex into student2 (this is mihai's idea of 2 mean teachers. check drawing from april)- june 30th
-        - feed in the four class split up
-        - the current existing student, rename it to student 1
-        - create a new model in create_model() for student 2
-        - create a create_data_loader for student2
-            - separate out the function   
-            - feed the lexicalized data into train loader(this we are already doing)
-            - dont' do droppings of words/adding noise - i.e turn transform off
-            - create a new train loader for student2
-            - feed delex into this train loader of student2 and lex into train loader of student 1
-            - add an if condition for student1 and student2 and pass two different train loaders into train() function
-    - feed in lex into student and delex into student2 and also attach a teacher (this is mihai's idea of 2 mean teachers. check drawing from april)- 
-        

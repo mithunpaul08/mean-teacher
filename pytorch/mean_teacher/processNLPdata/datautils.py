@@ -120,7 +120,7 @@ class Datautils:
         return sent_replaced
 
     @classmethod
-    def read_ner_neutered_data(cls, filename, args):
+    def read_data_where_evidences_are_strings(cls, filename, args):
         tr_len=args.truncate_words_length
         all_labels = []
         all_claims = []

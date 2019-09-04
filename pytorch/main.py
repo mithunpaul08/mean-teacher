@@ -1,6 +1,8 @@
 from __future__ import division
 import re
 import os,sys
+import json,jsonlines
+import io
 import shutil
 import time
 import logging
@@ -83,10 +85,6 @@ def create_data_loaders(LOG,train_transformation,
     assert_exactly_one([args.run_student_only, args.labeled_batch_size])
 
 
-    #feb23rd2019: if  args.run_student_only: we are dropping/not running teacher model. So make sure consistency is 0.
-    assert_mutually_exclusive(args.run_student_only, args.consistency)
-
-
 
 
     if torch.cuda.is_available():
@@ -114,8 +112,8 @@ def create_data_loaders(LOG,train_transformation,
     word_vocab = {"<unk>": 1,"</s>":2}
 
     if(args.use_local_glove):
-        embdir = os.path.join(args.data_dir, args.glove_subdir)
-        emb_file_path=embdir+args.pretrained_wordemb_file
+        #embdir = os.path.join(args.data_dir, args.glove_subdir)
+        emb_file_path=args.pretrained_wordemb_file
     else:
         emb_file_path = args.pretrained_wordemb_file
 
@@ -324,6 +322,11 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
         student_input_claim = student_input[0]
         student_input_evidence = student_input[1]
 
+        LOG.debug(f"value of student_input_claim is:{student_input_claim}")
+        LOG.debug(f"value of student_input_evidence is:{student_input_evidence}")
+        LOG.debug(f"value of target is:{target}")
+
+
         teacher_input_claim = teacher_input[0]
         teacher_input_evidence = teacher_input[1]
 
@@ -412,7 +415,7 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
             class_logit, cons_logit = logit1, logit1    # class_logit.data.size(): torch.Size([256, 56])
             res_loss = 0
 
-        class_loss = (class_logit, target_var) / minibatch_size
+        class_loss = class_criterion(class_logit, target_var) / minibatch_size
         meters.update('class_loss', class_loss.data.item())
 
         # THe below vaue ema_class_loss is really useless. it is only for FYI/storing purposes in meters.
@@ -451,7 +454,7 @@ def train(train_loader, model, ema_model, input_optimizer, inter_atten_optimizer
 
         #loss is a combination of classification loss and consistency loss (+ residual loss from the 2 outputs of student model fc1 and fc2, see args.logit_distance_cost)
         #if using just student, this will be class_loss + 0+ 0
-        loss = class_loss + consistency_loss + res_loss
+        loss = class_loss  + res_loss
         loss.backward()
 
         meters.update('loss', loss.data.item())
@@ -740,8 +743,6 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
         meters.update('class_loss', class_loss.data.item(), labeled_minibatch_size)
         meters.update('top1', prec1, labeled_minibatch_size)
         meters.update('error1', 100.0 - prec1, labeled_minibatch_size)
-        # meters.update('top5', prec5[0], labeled_minibatch_size)
-        # meters.update('error5', 100.0 - prec5[0], labeled_minibatch_size)
 
         # measure elapsed time
         meters.update('batch_time', time.time() - end)
@@ -802,7 +803,7 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
     # accuracy calculation 3: accumulate claims, evidences, predict all together, then calculate accuracy_fever
     #prec_after_all_batches=predict_total_ie_not_by_batches(model, all_claims_global, all_evidences_global, all_labels_global,length_of_each_claim_global,length_of_each_ev_global)
 
-    return cum_avg,avg_prec_taken_totally
+    return cum_avg,avg_prec_taken_totally,total_predictions
 
 #todo: do we need to save custom_embeddings?  - mihai
 def save_custom_embeddings(custom_embeddings_minibatch, dataset, result_dir, model_type):
@@ -1223,14 +1224,22 @@ def append_as_csv(train_accuracy, dev_accuracy,args,epoch):
         employee_writer = csv.writer(employee_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         employee_writer.writerow([epoch,train_accuracy,dev_accuracy])
 
-def write_as_csv(train_accuracy, dev_accuracy,args):
+def write_as_csv(predictions, output_folder, epoch, output_filename):
     import csv
-    epoch=0
-    with open(args.output_folder+'train_dev_per_epoch_accuracy_end_of_all_epochs.csv', mode='w+') as employee_file:
+    with open(output_folder+output_filename, mode='w+') as employee_file:
         employee_writer = csv.writer(employee_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        for x,y in zip(train_accuracy,dev_accuracy):
-            employee_writer.writerow([epoch,x,y])
-            epoch=epoch+1
+        employee_writer.writerow([epoch, predictions.numpy()])
+
+def write_predictions_as_json(predictions, output_folder, epoch, output_filename):
+     full_path=os.path.join(output_folder,output_filename)
+
+     #since numpy wont work on a CUDA tensor
+     predictions = predictions.cpu()
+
+     with jsonlines.open(full_path, mode='w') as writer:
+                preds={"epoch":epoch,
+                    "prediction": predictions.numpy().tolist()}
+                writer.write(preds)
 
 def main(context):
     global global_step
@@ -1468,7 +1477,7 @@ def main(context):
             LOG.debug(f"value of dataset_test: {dataset_test} ")
             LOG.debug(f"value of context.result_dir: {context.result_dir} ")
 
-            dev_prec_cum_avg_method, dev_prec_accumulate_pred_method = validate(eval_loader, model, validation_log, global_step, epoch , dataset_test,
+            dev_prec_cum_avg_method, dev_prec_accumulate_pred_method,total_predictions = validate(eval_loader, model, validation_log, global_step, epoch , dataset_test,
                              context.result_dir, "student")
 
             teacher_accuracy=0
@@ -1486,6 +1495,8 @@ def main(context):
             if(dev_local_best_acc>best_dev_accuracy_so_far):
                 best_dev_accuracy_so_far = dev_local_best_acc
                 best_epochs=epoch
+                write_predictions_as_json(total_predictions,args.output_folder,epoch,'predictions.jsonl')
+
             else:
                 is_best = False
 
@@ -1528,7 +1539,8 @@ def main(context):
     # validate(eval_loader, model, validation_log, global_step, 0, dataset, context.result_dir, "student")
     LOG.info("--------Total end to end time %s seconds ----------- " % (time.time() - time_start))
     LOG.info(f"best best_dev_accuracy_so_far  is:{best_dev_accuracy_so_far} was at epoch number:{best_epochs},dev_accuracy{dev_local_best_acc},best_dev_so_far:")
-    write_as_csv(accuracy_per_epoch_training, accuracy_per_epoch_dev, args)
+    # write_as_csv(accuracy_per_epoch_training, accuracy_per_epoch_dev, args.output_folder,
+    #              'train_dev_per_epoch_accuracy_end_of_all_epochs.csv')
 
 
 

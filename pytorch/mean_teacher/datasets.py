@@ -99,11 +99,11 @@ class RTEDataset(Dataset):
 
         print("got inside init of RTE data set")
 
-        if(args.type_of_data=="plain"):
-            self.claims, self.evidences, self.labels_str = Datautils.read_rte_data(dataset_file,args)
-        else:
-            if (args.type_of_data == "ner_replaced"):
-                self.claims, self.evidences, self.labels_str = Datautils.read_ner_neutered_data(dataset_file,args )
+        #if(args.type_of_data=="plain"):
+        self.claims, self.evidences, self.labels_str = Datautils.read_data_where_evidences_are_strings(dataset_file,args)
+        #else:
+           # if (args.type_of_data == "ner_replaced"):
+           #     self.claims, self.evidences, self.labels_str = Datautils.read_data_where_evidences_are_strings(dataset_file, args)
 
 
 
@@ -205,6 +205,11 @@ class RTEDataset(Dataset):
         with io.open(label_category_file, 'w', encoding='utf8') as f:
             for lbl in self.categories:
                 f.write(lbl + '\n')
+
+        gold_labels_file = dir + 'label_gold_' + runName + '.txt'
+        with io.open(gold_labels_file, 'w', encoding='utf8') as f:
+            for lbl in self.lbl:
+                f.write(str(lbl)+"\n")
 
         self.transform = transform
         print("4self.word_vocab.size=", len(self.word_vocab.keys()))

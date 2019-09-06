@@ -183,7 +183,7 @@ class RTEDataset(Dataset):
 
 
 
-        LOG.debug(f"inside dataset.py just after Datautils.read_rte_data. size of self.claism is:{len(self.claims)}")
+        LOG.debug(f"inside data_class.py just after Datautils.read_rte_data. size of self.claism is:{len(self.claims)}")
 
 
         #write the vocab file to disk so that you can load it later

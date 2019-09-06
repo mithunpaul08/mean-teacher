@@ -20,7 +20,9 @@ import torchvision.datasets
 import torch.cuda
 import unittest
 
+from mean_teacher.modules.data_class import RTEDataset2
 from mean_teacher import architectures, datasets, data, losses, ramps, cli
+
 from mean_teacher.run_context import RunContext
 from mean_teacher.data import NO_LABEL
 from mean_teacher.utils import *
@@ -95,18 +97,13 @@ def create_data_loaders(LOG,train_transformation,
         LOG.info(f"GPU that will be used in this run is:{torch.cuda.current_device()}")
     else:
         pin_memory = False
-        LOG.info(f"found torch.cuda is false. giong to exit")
-
-    print(f"found value of args.dataset is {args.dataset}.")
+        LOG.info(f"found torch.cuda is false.")
 
 
 
-    print(f"got inside args.dataset in fever.")
 
-
-
-    LOG.info("traindir : " + traindir)
-    LOG.info("evaldir : " + evaldir)
+    LOG.debug("traindir : " + traindir)
+    LOG.debug("evaldir : " + evaldir)
 
     train_input_file = traindir + args.train_input_file
     word_vocab = {"<unk>": 1,"</s>":2}
@@ -117,8 +114,9 @@ def create_data_loaders(LOG,train_transformation,
     else:
         emb_file_path = args.pretrained_wordemb_file
 
+    dataset = RTEDataset2.load_dataset_and_make_vectorizer(args)
                 #def __init__(self, word_vocab,runName,dataset_file, args,emb_file_pathtransform=None):
-    dataset = datasets.RTEDataset(word_vocab,"train",train_input_file, args,emb_file_path,train_transformation)
+    dataset = RTEDataset2(word_vocab,"train",train_input_file, args,emb_file_path,train_transformation)
     print(
         f"after reading training dataset.value of word_vocab.size()={len(dataset.word_vocab.keys())}")
 

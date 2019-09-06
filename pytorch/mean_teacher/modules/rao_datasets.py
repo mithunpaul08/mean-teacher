@@ -20,23 +20,23 @@ def fever():
         'eval_transformation': None,
     }
 
-class RTEDataset2(Dataset):
-    def __init__(self, review_df, vectorizer):
+class RTEDataset(Dataset):
+    def __init__(self, claims_evidences_df, vectorizer):
         """
         Args:
-            review_df (pandas.DataFrame): the dataset
+            claims_evidences_df (pandas.DataFrame): the dataset
             vectorizer (ReviewVectorizer): vectorizer instantiated from dataset
         """
-        self.review_df = review_df
+        self.claims_ev_df = claims_evidences_df
         self._vectorizer = vectorizer
 
-        self.train_df = self.review_df[self.review_df.split == 'train']
+        self.train_df = self.claims_ev_df[self.claims_ev_df.split == 'train']
         self.train_size = len(self.train_df)
 
-        self.val_df = self.review_df[self.review_df.split == 'val']
+        self.val_df = self.claims_ev_df[self.claims_ev_df.split == 'val']
         self.validation_size = len(self.val_df)
 
-        self.test_df = self.review_df[self.review_df.split == 'test']
+        self.test_df = self.claims_ev_df[self.claims_ev_df.split == 'test']
         self.test_size = len(self.test_df)
 
         self._lookup_dict = {'train': (self.train_df, self.train_size),
@@ -45,22 +45,6 @@ class RTEDataset2(Dataset):
 
         self.set_split('train')
 
-    def replace_if_PERSON_C1_format(sent, args):
-        sent_replaced = ""
-        regex = re.compile('([A-Z]+)(-)([ce])([0-99])')
-        if (args.type_of_data == "ner_replaced" and regex.search(sent)):
-            sent_replaced = regex.sub(r'\1\3\4', sent)
-        else:
-            sent_replaced = sent
-        return sent_replaced
-
-    def get_num_lines(file_path):
-        fp = open(file_path, "r+")
-        buf = mmap.mmap(fp.fileno(), 0)
-        lines = 0
-        while buf.readline():
-            lines += 1
-        return lines
 
     @classmethod
     def load_dataset_and_make_vectorizer(cls, args):
@@ -151,7 +135,7 @@ class RTEDataset2(Dataset):
             self._vectorizer.vectorize(combined_claim_evidence)
 
         label_index = \
-            self._vectorizer.rating_vocab.lookup_token(row.label)
+            self._vectorizer.label_vocab.lookup_token(row.label)
 
         return {'x_data': claim_evidence_vector,
                 'y_target': label_index}

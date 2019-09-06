@@ -20,7 +20,7 @@ import torchvision.datasets
 import torch.cuda
 import unittest
 
-from mean_teacher.modules.data_class import RTEDataset2
+from mean_teacher.modules.rao_datasets import RTEDataset
 from mean_teacher import architectures, datasets, data, losses, ramps, cli
 
 from mean_teacher.run_context import RunContext
@@ -114,32 +114,33 @@ def create_data_loaders(LOG,train_transformation,
     else:
         emb_file_path = args.pretrained_wordemb_file
 
-    dataset = RTEDataset2.load_dataset_and_make_vectorizer(args)
+    dataset = RTEDataset.load_dataset_and_make_vectorizer(args)
+    vectorizer = dataset.get_vectorizer()
 
-    #if you want to run both student and teacher but without any label dropping
-    if args.run_student_only:
-        labeled_idxs = data.get_all_label_indices(dataset, args)
-        sampler = SubsetRandomSampler(labeled_idxs)
-        batch_sampler_local = BatchSampler(sampler, args.batch_size, drop_last=True)
-    # if you want to run both student and teacher but without any label dropping
-    elif (not args.run_student_only) and (args.labeled_batch_size):
-        labeled_idxs = data.get_all_label_indices(dataset, args)
-        sampler = SubsetRandomSampler(labeled_idxs)
-        batch_sampler_local = BatchSampler(sampler, args.batch_size, drop_last=True)
-    # if you want to run both student and teacher but with  label dropping
-    elif (not args.run_student_only) and (args.labeled_batch_size) and (args.labels):
-            labeled_idxs, unlabeled_idxs = data.relabel_dataset_nlp(dataset, args) # relabel_dataset : takes the training set and dividing a part of it as labeled and rest as unlabeled (i.e it will have alabel =-1)
-            batch_sampler_local = data.TwoStreamBatchSampler(unlabeled_idxs, labeled_idxs, args.batch_size,
-                                                   args.labeled_batch_size)
-    else:
-        assert False, "labeled batch size {}".format(args.labeled_batch_size)
+    # commenting on sep 5th 2019 because right now we are trying to run in supervised mode. i.e all labels.
+    #todo : uncomment this if and when you do unsupervised.
+    #
+    # #if you want to run both student and teacher but without any label dropping
+    # if args.run_student_only:
+    #     labeled_idxs = data.get_all_label_indices(dataset, args)
+    #     sampler = SubsetRandomSampler(labeled_idxs)
+    #     batch_sampler_local = BatchSampler(sampler, args.batch_size, drop_last=True)
+    # # if you want to run both student and teacher but without any label dropping
+    # elif (not args.run_student_only) and (args.labeled_batch_size):
+    #     labeled_idxs = data.get_all_label_indices(dataset, args)
+    #     sampler = SubsetRandomSampler(labeled_idxs)
+    #     batch_sampler_local = BatchSampler(sampler, args.batch_size, drop_last=True)
+    # # if you want to run both student and teacher but with  label dropping
+    # elif (not args.run_student_only) and (args.labeled_batch_size) and (args.labels):
+    #         labeled_idxs, unlabeled_idxs = data.relabel_dataset_nlp(dataset, args) # relabel_dataset : takes the training set and dividing a part of it as labeled and rest as unlabeled (i.e it will have alabel =-1)
+    #         batch_sampler_local = data.TwoStreamBatchSampler(unlabeled_idxs, labeled_idxs, args.batch_size,
+    #                                                args.labeled_batch_size)
+    # else:
+    #     assert False, "labeled batch size {}".format(args.labeled_batch_size)
 
 
 
 
-
-
-            #DataLoader is a pytorch class. train_loader uses getitem internally-
 
 
 
@@ -156,10 +157,6 @@ def create_data_loaders(LOG,train_transformation,
     #do the same for eval data also. i.e read the dev data, and add a sampler..
     dev_input_file = evaldir + args.dev_input_file
     dataset_dev = datasets.RTEDataset(word_vocab,"dev",dev_input_file, args, eval_transformation) ## NOTE: test data is the same as dev data
-
-    found_not_supports_label2=False
-    print(
-        f"after reading dev dataset.value of word_vocab.size()={len(dataset_dev.word_vocab.keys())}")
 
 
 
@@ -1220,7 +1217,6 @@ def main(context):
     LOG.setLevel(args.log_level)
 
     num_classes=3
-    #if args.dataset in ['conll', 'ontonotes', 'riedel', 'gids','fever']:
     train_loader, eval_loader, dataset, dataset_test = create_data_loaders(LOG,**dataset_config, args=args)
     LOG.debug(f"after create_data_loaders. main.py line 1031. value of word_vocab.size()={len(dataset.word_vocab.keys())}")
     num_classes = len(dataset.categories)
@@ -1229,15 +1225,6 @@ def main(context):
     LOG.debug(f"inside if arg.s dataset in fever value of word_vocab.size()={len(dataset.word_vocab.keys())}")
     word_vocab_size = len(dataset.word_vocab.keys())
 
-    #else:
-        #mithun: i think this is the actual code from valpola that ran on cifar10 dataset
-       # train_loader, eval_loader = create_data_loaders(**dataset_config, args=args)
-
-    #uncomment this if you want to pop the number of classes instead from the config file
-    # if args.dataset in ['riedel', 'gids','fever']:
-    #
-    # else:
-    #     num_classes = dataset_config.pop('num_classes')
 
     def create_model(ema=False):
         LOG.info("=> creating {pretrained}{ema}model '{arch}'".format(
@@ -1288,7 +1275,6 @@ def main(context):
 
         return model
 
-    #askfan: so the ema is teacher? and teacher is just a copy of student itself-but how/where do they do the moving average thing?
     model = create_model()
     ema_model = create_model(ema=True)
 

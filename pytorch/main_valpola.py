@@ -185,7 +185,7 @@ def create_data_loaders(LOG,train_transformation,
 
     #mithun: once you have both the train and test data in the DataLoader format that torch understands, return it to the calling function
 
-    LOG.debug(f"just before return statement inside create_data_loaders. main.py line 229. value of word_vocab.size()={len(dataset.word_vocab.keys())}")
+    LOG.debug(f"just before return statement inside create_data_loaders. main_valpola.py line 229. value of word_vocab.size()={len(dataset.word_vocab.keys())}")
 
 
 
@@ -1224,7 +1224,7 @@ def main(context):
 
     num_classes=3
     train_loader, eval_loader, dataset, dataset_test = create_data_loaders(LOG,**dataset_config, args=args)
-    LOG.debug(f"after create_data_loaders. main.py line 1031. value of word_vocab.size()={len(dataset.word_vocab.keys())}")
+    LOG.debug(f"after create_data_loaders. main_valpola.py line 1031. value of word_vocab.size()={len(dataset.word_vocab.keys())}")
     num_classes = len(dataset.categories)
     word_vocab_embed = dataset.word_vocab_embed
     wordemb_size= dataset.embedding_size

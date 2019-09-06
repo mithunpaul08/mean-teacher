@@ -5,7 +5,7 @@ import sys
 import logging
 
 
-LOG = logging.getLogger('utils.py')
+LOG = logging.getLogger('utils_valpola.py')
 
 def parameters_string(module):
     lines = [

@@ -4,16 +4,16 @@ import json
 from torch.utils.data import Dataset, DataLoader
 from  .vectorizer import ReviewVectorizer
 import pandas as pd
-from mean_teacher.utils import export
+from mean_teacher.utils.utils_valpola import export
 import os
 
 @export
 def fever():
 
-    if RTEDataset2.WORD_NOISE_TYPE in ['drop', 'replace']:
-        addNoise = data.RandomPatternWordNoise(RTEDataset2.NUM_WORDS_TO_REPLACE, RTEDataset2.OOV, RTEDataset2.WORD_NOISE_TYPE)
+    if RTEDataset.WORD_NOISE_TYPE in ['drop', 'replace']:
+        addNoise = data.RandomPatternWordNoise(RTEDataset.NUM_WORDS_TO_REPLACE, RTEDataset.OOV, RTEDataset.WORD_NOISE_TYPE)
     else:
-        assert False, "Unknown type of noise {}".format(RTEDataset2.WORD_NOISE_TYPE)
+        assert False, "Unknown type of noise {}".format(RTEDataset.WORD_NOISE_TYPE)
 
     return {
         'train_transformation': None,

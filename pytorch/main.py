@@ -22,12 +22,13 @@ import unittest
 
 from mean_teacher.modules.rao_datasets import RTEDataset
 from mean_teacher.model.classifier import FFNNClassifier
+from mean_teacher.model.train import Trainer
 
 from mean_teacher import architectures,datasets, data, losses, ramps, cli
 
 from mean_teacher.run_context import RunContext
 from mean_teacher.data import NO_LABEL
-from mean_teacher.utils import *
+from mean_teacher.utils.utils_valpola import *
 import contextlib
 import random
 
@@ -119,6 +120,8 @@ def create_data_loaders(LOG,train_transformation,
     dataset = RTEDataset.load_dataset_and_make_vectorizer(args)
     vectorizer = dataset.get_vectorizer()
     classifier = FFNNClassifier(num_features=len(vectorizer.claim_ev_vocab))
+    train_rte = Trainer()
+    train_rte.train(args)
 
     # commenting on sep 5th 2019 because right now we are trying to run in supervised mode. i.e all labels.
     #todo : uncomment this if and when you do unsupervised.

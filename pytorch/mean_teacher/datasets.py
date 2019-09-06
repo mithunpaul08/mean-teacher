@@ -3,7 +3,7 @@ from torch.utils.data import Dataset
 import torch
 import io
 from . import data
-from .utils import export
+from mean_teacher.utils.utils_valpola import export
 import sys
 from .processNLPdata.processNECdata import *
 import os

@@ -8,7 +8,7 @@ from torch.nn import functional as F
 from torch.autograd import Variable, Function
 from torch.nn.utils.rnn import pack_padded_sequence
 
-from .utils import export, parameter_count
+from mean_teacher.utils.utils_valpola import export, parameter_count
 
 
 

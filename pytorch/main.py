@@ -115,16 +115,6 @@ def create_data_loaders(LOG,train_transformation,
         emb_file_path = args.pretrained_wordemb_file
 
     dataset = RTEDataset2.load_dataset_and_make_vectorizer(args)
-                #def __init__(self, word_vocab,runName,dataset_file, args,emb_file_pathtransform=None):
-    dataset = RTEDataset2(word_vocab,"train",train_input_file, args,emb_file_path,train_transformation)
-    print(
-        f"after reading training dataset.value of word_vocab.size()={len(dataset.word_vocab.keys())}")
-
-
-
-
-    LOG.info("Type of Noise : "+ dataset.WORD_NOISE_TYPE)
-    LOG.info("Size of Noise : "+ str(dataset.NUM_WORDS_TO_REPLACE))
 
     #if you want to run both student and teacher but without any label dropping
     if args.run_student_only:
@@ -150,33 +140,6 @@ def create_data_loaders(LOG,train_transformation,
 
 
             #DataLoader is a pytorch class. train_loader uses getitem internally-
-            # train_loader.next gives you the next mini batch -
-            # it picks randomly to create a batch, but it also has to have a minimum:args.batch_size, args.labeled_batch_size
-            # for each mini batch: for each data point, it will call __getitem__
-            # here is the official documentation excerpt
-
-
-        ''' CLASS torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False, sampler=None, batch_sampler_local=None, num_workers=0, collate_fn=<function default_collate>, pin_memory=False, drop_last=False, timeout=0, worker_init_fn=None)[SOURCE]
-        Data loader. Combines a dataset and a sampler, and provides single- or multi-process iterators over the dataset.
-        
-        Parameters:	
-        dataset (Dataset) – dataset from which to load the data.
-        batch_size (int, optional) – how many samples per batch to load (default: 1).
-        shuffle (bool, optional) – set to True to have the data reshuffled at every epoch (default: False).
-        sampler (Sampler, optional) – defines the strategy to draw samples from the dataset. If specified, shuffle must be False.
-        batch_sampler_local (Sampler, optional) – like sampler, but returns a batch of indices at a time. Mutually exclusive with batch_size, shuffle, sampler, and drop_last.
-        num_workers (int, optional) – how many subprocesses to use for data loading. 0 means that the data will be loaded in the main process. (default: 0)
-        collate_fn (callable, optional) – merges a list of samples to form a mini-batch.
-        pin_memory (bool, optional) – If True, the data loader will copy tensors into CUDA pinned memory before returning them.
-        drop_last (bool, optional) – set to True to drop the last incomplete batch, if the dataset size is not divisible by the batch size. If False and the size of dataset is not divisible by the batch size, then the last batch will be smaller. (default: False)
-        timeout (numeric, optional) – if positive, the timeout value for collecting a batch from workers. Should always be non-negative. (default: 0)
-        worker_init_fn (callable, optional) – If not None, this will be called on each worker subprocess with the worker id (an int in [0, num_workers - 1]) as input, after seeding and before data loading. (default: None)'''
-
-    found_not_supports_label=False
-
-    for lbl in dataset.lbl:
-        if not (lbl == 2):
-            found_not_supports_label=True
 
 
 

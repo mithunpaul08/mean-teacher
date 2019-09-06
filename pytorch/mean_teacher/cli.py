@@ -115,9 +115,9 @@ def create_parser():
     parser.add_argument('--data_dir', type=str, default='None',
                         help='link to the folder where training and dev data is kept')
     parser.add_argument('--train_input_file', type=str, default='None',
-                        help='path to the training data file.folder path is hard coded via:data-local/rte/fever/train')
+                        help='path to the training data file.folder path is in data_dir')
     parser.add_argument('--dev_input_file', type=str, default='None',
-                        help='path to the dev data file. folder path is hard coded via:data-local/rte/fever/dev')
+                        help='path to the dev data file. folder path is in data_dir')
     parser.add_argument('--output_folder', type=str, default='outputs/',
                         help='')
 

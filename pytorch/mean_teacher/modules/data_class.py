@@ -5,6 +5,7 @@ from torch.utils.data import Dataset, DataLoader
 from  .vectorizer import ReviewVectorizer
 import pandas as pd
 from mean_teacher.utils import export
+import os
 
 @export
 def fever():
@@ -70,10 +71,10 @@ class RTEDataset2(Dataset):
         Returns:
             an instance of ReviewDataset
         """
-        fever_lex_train_df = pd.read_json(args.train_input_file, lines=True)
+        fever_lex_train_df = pd.read_json(os.path.join(args.data_dir,args.train_input_file), lines=True)
         fever_lex_train_df['split'] = "train"
 
-        fever_lex_dev_df = pd.read_json(args.dev_input_file.jsonl, lines=True)
+        fever_lex_dev_df = pd.read_json(os.path.join(args.data_dir,args.dev_input_file), lines=True)
         fever_lex_dev_df['split'] = "val"
 
         frames = [fever_lex_train_df, fever_lex_dev_df]

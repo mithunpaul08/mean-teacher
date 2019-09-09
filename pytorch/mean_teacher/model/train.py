@@ -83,7 +83,7 @@ class Trainer:
             dataset.save_vectorizer(args_in.vectorizer_file)
         vectorizer = dataset.get_vectorizer()
 
-        classifier = FFNNClassifier(num_features=len(vectorizer.review_vocab))
+        classifier = FFNNClassifier(num_features=len(vectorizer.claim_ev_vocab))
 
         classifier = classifier.to(args_in.device)
 

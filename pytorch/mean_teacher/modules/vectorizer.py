@@ -7,7 +7,7 @@ import string
 # ### The Vectorizer
 
 
-class ReviewVectorizer(object):
+class Vectorizer(object):
     """ The Vectorizer which coordinates the Vocabularies and puts them to use"""
 
     def __init__(self, claim_ev_vocab, labels_vocab):

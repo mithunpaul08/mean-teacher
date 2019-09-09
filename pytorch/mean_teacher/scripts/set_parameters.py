@@ -1,9 +1,9 @@
 from argparse import Namespace
 import torch
 import os
-from utils.utils import set_seed_everywhere
-from utils.utils import handle_dirs
-from modules.dataset import ReviewDataset
+from mean_teacher.utils.utils_rao import set_seed_everywhere
+from mean_teacher.utils.utils_rao import handle_dirs
+from mean_teacher.modules.rao_datasets import RTEDataset
 
 class Initializer():
     def set_parameters(self):
@@ -38,7 +38,7 @@ class Initializer():
             update_pretrained_wordemb='False',
             #epochs=500,
             run_name='fever_transform',
-            data_dir='data-local/rte/fever',
+            data_dir='../data-local/rte/fever',
             print_freq=1,
             workers=4,
             log_level='INFO',
@@ -81,11 +81,11 @@ class Initializer():
         if args.reload_from_files:
             # training from a checkpoint
             print("Loading dataset and vectorizer")
-            dataset = ReviewDataset.load_dataset_and_load_vectorizer(args.review_csv,
+            dataset = RTEDataset.load_dataset_and_load_vectorizer(args.review_csv,
                                                                      args.vectorizer_file)
         else:
             print("Loading dataset and creating vectorizer")
             # create dataset and vectorizer
-            dataset = ReviewDataset.load_dataset_and_make_vectorizer(args)
+            dataset = RTEDataset.load_dataset_and_make_vectorizer(args)
             dataset.save_vectorizer(args.vectorizer_file)
         return dataset

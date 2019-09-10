@@ -2,7 +2,7 @@ import re
 import argparse
 import logging
 
-from . import architectures, datasets
+from . import architectures_valpola, datasets
 
 
 LOG = logging.getLogger('main')
@@ -30,9 +30,9 @@ def create_parser():
     parser.add_argument('--run_student_only', default=False, type=str2bool, metavar='BOOL',
                         help='exclude unlabeled examples from the training set')
     parser.add_argument('--arch', '-a', metavar='ARCH', default='simple_MLP_embed',
-                        choices=architectures.__all__,
+                        choices=architectures_valpola.__all__,
                         help='model architecture: ' +
-                            ' | '.join(architectures.__all__))
+                            ' | '.join(architectures_valpola.__all__))
     parser.add_argument('--workers', default=4, type=int, metavar='N',
                         help='number of data loading workers (default: 4)')
     parser.add_argument('--epochs', default=90, type=int, metavar='N',

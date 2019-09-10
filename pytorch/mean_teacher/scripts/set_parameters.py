@@ -27,16 +27,20 @@ class Initializer():
             cuda=True,
             expand_filepaths_to_save_dir=True,
             reload_from_files=False,
+            #End of rao's parameters
+
+            #todo: get it from data
+            num_classes=3,
             truncate_words_length=1000,
             type_of_data='plain',
-
-
-            ##########
+            embedding_size=300,
+            #parameter initialization gaussian
+            para_init=0.01,
+            hidden_sz=200,
             dataset='fever',
             arch='simple_MLP_embed_RTE',
             pretrained_wordemb='True',
             update_pretrained_wordemb='False',
-            #epochs=500,
             run_name='fever_transform',
             data_dir='../data-local/rte/fever',
             print_freq=1,

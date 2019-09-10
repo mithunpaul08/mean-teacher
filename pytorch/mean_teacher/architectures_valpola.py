@@ -23,7 +23,7 @@ class FeedForwardMLPEmbed_RTE(nn.Module):
         super().__init__()
         self.embedding_size = embedding_size
         self.embeddings = nn.Embedding(word_vocab_size, embedding_size)
-        print(f"inside architectures.py line 26 at 1 value of self.embeddings.weight is {self.embeddings.weight.shape} ")
+        print(f"inside architectures_valpola.py line 26 at 1 value of self.embeddings.weight is {self.embeddings.weight.shape} ")
 
 
         # https://discuss.pytorch.org/t/can-we-use-pre-trained-word-embeddings-for-weight-initialization-in-nn-embedding/1222
@@ -119,7 +119,7 @@ def da_RTE(word_vocab_size, num_classes, wordemb_size, pretrained=True, word_voc
 class DecompAttnLibowenCode(nn.Module):
     # num_embeddings, embedding_size, hidden_size, para_init):
 
-    def __init__(self, word_vocab_size, embedding_size, hidden_sz, output_sz, word_vocab_embed,
+    def __init__(self, word_vocab_size, embedding_size, hidden_sz, word_vocab_embed,
                  update_pretrained_wordemb,para_init,num_classes,use_gpu):
 
         super(DecompAttnLibowenCode, self).__init__()

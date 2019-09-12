@@ -1,7 +1,7 @@
 from argparse import Namespace
 import torch
 import os
-from mean_teacher.utils.utils_rao import set_seed_everywhere
+from mean_teacher.utils.utils_rao import set_seed_everywhere,make_embedding_matrix
 from mean_teacher.utils.utils_rao import handle_dirs
 from mean_teacher.modules.rao_datasets import RTEDataset
 
@@ -75,13 +75,35 @@ class Initializer():
 
         # Set seed for reproducibility
         set_seed_everywhere(args.seed, args.cuda)
-
-        # handle dirs
         handle_dirs(args.save_dir)
 
         return args
 
+
+
     def read_data_make_vectorizer(self,args):
+
+        if args.reload_from_files:
+            # training from a checkpoint
+            dataset = RTEDataset.load_dataset_and_load_vectorizer(args.news_csv,
+                                                                   args.vectorizer_file)
+        else:
+            # create dataset and vectorizer
+            dataset = RTEDataset.load_dataset_and_make_vectorizer(args.news_csv)
+            dataset.save_vectorizer(args.vectorizer_file)
+        vectorizer = dataset.get_vectorizer()
+
+        # Use GloVe or randomly initialized embeddings
+        if args.use_glove:
+            words = vectorizer.title_vocab._token_to_idx.keys()
+            embeddings = make_embedding_matrix(glove_filepath=args.glove_filepath,
+                                               words=words)
+            print("Using pre-trained embeddings")
+        else:
+            print("Not using pre-trained embeddings")
+            embeddings = None
+
+
         if args.reload_from_files:
             # training from a checkpoint
             print("Loading dataset and vectorizer")
@@ -92,4 +114,5 @@ class Initializer():
             # create dataset and vectorizer
             dataset = RTEDataset.load_dataset_and_make_vectorizer(args)
             dataset.save_vectorizer(args.vectorizer_file)
-        return dataset
+
+        return dataset,embeddings

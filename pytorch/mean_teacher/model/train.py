@@ -70,21 +70,7 @@ class Trainer:
         return n_correct / len(y_pred_indices) * 100
 
 
-    def train(self, args_in):
-        if args_in.reload_from_files:
-            # training from a checkpoint
-            print("Loading dataset and vectorizer")
-            dataset = RTEDataset.load_dataset_and_load_vectorizer(args_in.review_csv,
-                                                                     args_in.vectorizer_file)
-        else:
-            print("Loading dataset and creating vectorizer")
-            # create dataset and vectorizer
-            dataset = RTEDataset.load_dataset_and_make_vectorizer(args_in)
-            dataset.save_vectorizer(args_in.vectorizer_file)
-        vectorizer = dataset.get_vectorizer()
-
-        classifier = FFNNClassifier(num_features=len(vectorizer.claim_ev_vocab))
-
+    def train(self, args_in,classifier,dataset):
         classifier = classifier.to(args_in.device)
 
         loss_func = nn.BCEWithLogitsLoss()

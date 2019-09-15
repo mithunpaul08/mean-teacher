@@ -80,4 +80,4 @@ def make_embedding_matrix(glove_filepath, words):
             torch.nn.init.xavier_uniform_(embedding_i)
             final_embeddings[i, :] = embedding_i
 
-    return final_embeddings
+    return final_embeddings,embedding_size

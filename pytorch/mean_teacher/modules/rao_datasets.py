@@ -68,18 +68,18 @@ class RTEDataset(Dataset):
         return cls(combined_train_dev_test_with_split_column_df, VectorizerWithEmbedding.from_dataframe(fever_lex_train_df))
 
     @classmethod
-    def load_dataset_and_load_vectorizer(cls, review_csv, vectorizer_filepath):
+    def load_dataset_and_load_vectorizer(cls, input_file, vectorizer_filepath):
         """Load dataset and the corresponding vectorizer.
         Used in the case in the vectorizer has been cached for re-use
 
         Args:
-            review_csv (str): location of the dataset
+            input_file (str): location of the dataset
             vectorizer_filepath (str): location of the saved vectorizer
         Returns:
             an instance of ReviewDataset
         """
-        print(f"just before reading file {review_csv}")
-        review_df = cls.read_rte_data(review_csv)
+        print(f"just before reading file {input_file}")
+        review_df = cls.read_rte_data(input_file)
 
         vectorizer = cls.load_vectorizer_only(vectorizer_filepath)
         return cls(review_df, vectorizer)

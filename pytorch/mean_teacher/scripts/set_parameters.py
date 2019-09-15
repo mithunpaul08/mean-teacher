@@ -79,41 +79,41 @@ class Initializer():
         handle_dirs(args.save_dir)
 
         return args
-
-
-
-    def read_data_make_vectorizer(self,args):
-
-        if args.reload_from_files:
-            # training from a checkpoint
-            dataset = RTEDataset.load_dataset_and_load_vectorizer(args.review_csv,
-                                                                   args.vectorizer_file)
-        else:
-            # create dataset and vectorizer
-            dataset = RTEDataset.load_dataset_and_make_vectorizer(args)
-            dataset.save_vectorizer(args.vectorizer_file)
-        vectorizer = dataset.get_vectorizer()
-
-        # Use GloVe or randomly initialized embeddings
-        if args.use_glove:
-            words = vectorizer.claim_ev_vocab._token_to_idx.keys()
-            embeddings = make_embedding_matrix(glove_filepath=args.glove_filepath,
-                                               words=words)
-            print("Using pre-trained embeddings")
-        else:
-            print("Not using pre-trained embeddings")
-            embeddings = None
-
-
-        if args.reload_from_files:
-            # training from a checkpoint
-            print("Loading dataset and vectorizer")
-            dataset = RTEDataset.load_dataset_and_load_vectorizer(args.review_csv,
-                                                                     args.vectorizer_file)
-        else:
-            print("Loading dataset and creating vectorizer")
-            # create dataset and vectorizer
-            dataset = RTEDataset.load_dataset_and_make_vectorizer(args)
-            dataset.save_vectorizer(args.vectorizer_file)
-
-        return dataset,embeddings
+    #
+    #
+    #
+    # def read_data_make_vectorizer(self,args):
+    #
+    #     if args.reload_from_files:
+    #         # training from a checkpoint
+    #         dataset = RTEDataset.load_dataset_and_load_vectorizer(args.review_csv,
+    #                                                                args.vectorizer_file)
+    #     else:
+    #         # create dataset and vectorizer
+    #         dataset = RTEDataset.load_dataset_and_make_vectorizer(args)
+    #         dataset.save_vectorizer(args.vectorizer_file)
+    #     vectorizer = dataset.get_vectorizer()
+    #
+    #     # Use GloVe or randomly initialized embeddings
+    #     if args.use_glove:
+    #         words = vectorizer.claim_ev_vocab._token_to_idx.keys()
+    #         embeddings = make_embedding_matrix(glove_filepath=args.glove_filepath,
+    #                                            words=words)
+    #         print("Using pre-trained embeddings")
+    #     else:
+    #         print("Not using pre-trained embeddings")
+    #         embeddings = None
+    #
+    #
+    #     if args.reload_from_files:
+    #         # training from a checkpoint
+    #         print("Loading dataset and vectorizer")
+    #         dataset = RTEDataset.load_dataset_and_load_vectorizer(args.review_csv,
+    #                                                                  args.vectorizer_file)
+    #     else:
+    #         print("Loading dataset and creating vectorizer")
+    #         # create dataset and vectorizer
+    #         dataset = RTEDataset.load_dataset_and_make_vectorizer(args)
+    #         dataset.save_vectorizer(args.vectorizer_file)
+    #
+    #     return dataset,embeddings

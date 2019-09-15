@@ -1,5 +1,5 @@
 from mean_teacher.modules.rao_datasets import RTEDataset
-from mean_teacher.model.classifier import DecompAttnClassifier
+from mean_teacher.model.classifier import DecompAttnClassifier,FFNNClassifier
 from mean_teacher.model.train import Trainer
 from mean_teacher.scripts.set_parameters import Initializer
 

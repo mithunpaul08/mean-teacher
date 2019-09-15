@@ -2,7 +2,7 @@
 
 import json
 from torch.utils.data import Dataset, DataLoader
-from  .vectorizer import Vectorizer
+from  .vectorizerwithembedding import VectorizerWithEmbedding
 import pandas as pd
 from mean_teacher.utils.utils_valpola import export
 import os
@@ -25,7 +25,7 @@ class RTEDataset(Dataset):
         """
         Args:
             claims_evidences_df (pandas.DataFrame): the dataset
-            vectorizer (Vectorizer): vectorizer instantiated from dataset
+            vectorizer (VectorizerWithEmbedding): vectorizer instantiated from dataset
         """
         self.claims_ev_df = claims_evidences_df
         self._vectorizer = vectorizer
@@ -65,7 +65,7 @@ class RTEDataset(Dataset):
         combined_train_dev_test_with_split_column_df = pd.concat(frames)
 
         # todo: uncomment/call and check the function replace_if_PERSON_C1_format has any effect on claims and evidence sentences-mainpulate dataframe
-        return cls(combined_train_dev_test_with_split_column_df, Vectorizer.from_dataframe(fever_lex_train_df))
+        return cls(combined_train_dev_test_with_split_column_df, VectorizerWithEmbedding.from_dataframe(fever_lex_train_df))
 
     @classmethod
     def load_dataset_and_load_vectorizer(cls, review_csv, vectorizer_filepath):
@@ -94,7 +94,7 @@ class RTEDataset(Dataset):
             an instance of ReviewVectorizer
         """
         with open(vectorizer_filepath) as fp:
-            return Vectorizer.from_serializable(json.load(fp))
+            return VectorizerWithEmbedding.from_serializable(json.load(fp))
 
     def save_vectorizer(self, vectorizer_filepath):
         """saves the vectorizer to disk using json

@@ -29,8 +29,9 @@ class Initializer():
             reload_from_files=False,
             #End of rao's parameters
 
-            #todo: get it from data
-            num_classes=3,
+            #start of mean teacher specific parameters
+            num_classes=3, #todo: get num_classes from data
+            use_glove=True,
             truncate_words_length=1000,
             type_of_data='plain',
             embedding_size=300,
@@ -39,15 +40,15 @@ class Initializer():
             hidden_sz=200,
             dataset='fever',
             arch='simple_MLP_embed_RTE',
-            pretrained_wordemb='True',
-            update_pretrained_wordemb='False',
+            pretrained_wordemb=True,
+            update_pretrained_wordemb=False,
             run_name='fever_transform',
             data_dir='../data-local/rte/fever',
             print_freq=1,
             workers=4,
             log_level='INFO',
             use_gpu=False,
-            pretrained_wordemb_file='/Users/mordor/research/glove/glove.840B.300d.txt',
+            glove_filepath='/Users/mordor/research/glove/glove.840B.300d.txt',
             use_double_optimizers=True,
             run_student_only=True,
             labels=20.0,
@@ -85,17 +86,17 @@ class Initializer():
 
         if args.reload_from_files:
             # training from a checkpoint
-            dataset = RTEDataset.load_dataset_and_load_vectorizer(args.news_csv,
+            dataset = RTEDataset.load_dataset_and_load_vectorizer(args.review_csv,
                                                                    args.vectorizer_file)
         else:
             # create dataset and vectorizer
-            dataset = RTEDataset.load_dataset_and_make_vectorizer(args.news_csv)
+            dataset = RTEDataset.load_dataset_and_make_vectorizer(args)
             dataset.save_vectorizer(args.vectorizer_file)
         vectorizer = dataset.get_vectorizer()
 
         # Use GloVe or randomly initialized embeddings
         if args.use_glove:
-            words = vectorizer.title_vocab._token_to_idx.keys()
+            words = vectorizer.claim_ev_vocab._token_to_idx.keys()
             embeddings = make_embedding_matrix(glove_filepath=args.glove_filepath,
                                                words=words)
             print("Using pre-trained embeddings")

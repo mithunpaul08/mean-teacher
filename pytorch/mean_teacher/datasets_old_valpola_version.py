@@ -133,7 +133,7 @@ class RTEDataset(Dataset):
         self.word_vocab, self.max_claims_len, self.max_ev_len, self.word_count= self.get_max_lengths_add_to_vocab(word_vocab,runName,args)
         self.word_vocab_id_to_word={}
 
-        print(f"inside datasets.py . just after  build_word_vocabulary.value of word_vocab.size()={len(self.word_vocab.keys())}")
+        print(f"inside datasets_old_valpola_version.py . just after  build_word_vocabulary.value of word_vocab.size()={len(self.word_vocab.keys())}")
 
 
 

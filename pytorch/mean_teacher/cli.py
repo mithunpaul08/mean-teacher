@@ -2,7 +2,7 @@ import re
 import argparse
 import logging
 
-from . import architectures_valpola, datasets
+from . import architectures_valpola, datasets_old_valpola_version
 
 
 LOG = logging.getLogger('main')
@@ -13,9 +13,9 @@ __all__ = ['parse_cmd_args', 'parse_dict_args']
 def create_parser():
     parser = argparse.ArgumentParser(description='PyTorch Mean-Teacher Training')
     parser.add_argument('--dataset', metavar='DATASET', default='conll',
-                        choices=datasets.__all__,
+                        choices=datasets_old_valpola_version.__all__,
                         help='dataset: ' +
-                            ' | '.join(datasets.__all__) +
+                            ' | '.join(datasets_old_valpola_version.__all__) +
                             ' (default: conll)')
     parser.add_argument('--train-subdir', type=str, default='rte/fever/train/',
                         help='the subdirectory inside the data directory that contains the training data')

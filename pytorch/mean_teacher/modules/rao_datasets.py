@@ -30,6 +30,11 @@ class RTEDataset(Dataset):
         self.claims_ev_df = claims_evidences_df
         self._vectorizer = vectorizer
 
+        # +1 if only using begin_seq, +2 if using both begin and end seq tokens
+        measure_len = lambda context: len(context.split(" "))
+        self._max_claim_length = max(map(measure_len, claims_evidences_df.claim)) + 2
+        self._max_evidence_length = max(map(measure_len, claims_evidences_df.evidence)) + 2
+
         self.train_df = self.claims_ev_df[self.claims_ev_df.split == 'train']
         self.train_size = len(self.train_df)
 
@@ -130,14 +135,17 @@ class RTEDataset(Dataset):
             a dictionary holding the data point's features (x_data) and label (y_target)
         """
         row = self._target_df.iloc[index]
-        combined_claim_evidence=row.claim+row.evidence
-        claim_evidence_vector = \
-            self._vectorizer.vectorize(combined_claim_evidence)
+        claim_vector = \
+            self._vectorizer.vectorize(row.claim,self._max_claim_length)
+
+        evidence_vector = \
+            self._vectorizer.vectorize(row.evidence, self._max_evidence_length)
 
         label_index = \
             self._vectorizer.label_vocab.lookup_token(row.label)
 
-        return {'x_data': claim_evidence_vector,
+        return {'x_claim': claim_vector,
+                'x_evidence': evidence_vector,
                 'y_target': label_index}
 
     def get_num_batches(self, batch_size):

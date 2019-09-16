@@ -14,19 +14,20 @@ class VectorizerWithEmbedding(object):
         self.claim_ev_vocab = claim_ev_vocab
         self.label_vocab = labels_vocab
 
-    def vectorize(self, title, vector_length=-1):
+    def vectorize(self, input_sentence, vector_length=-1):
         """
         Args:
-            title (str): the string of words separated by a space
+            input_sentence (str): the string of words separated by a space
             vector_length (int): an argument for forcing the length of index vector
         Returns:
             the vetorized title (numpy.array)
         """
         indices = [self.claim_ev_vocab.begin_seq_index]
         indices.extend(self.claim_ev_vocab.lookup_token(token)
-                       for token in title.split(" "))
+                       for token in input_sentence.split(" "))
         indices.append(self.claim_ev_vocab.end_seq_index)
 
+        #if we have not found or are providing the length of the input with maximum length.
         if vector_length < 0:
             vector_length = len(indices)
 

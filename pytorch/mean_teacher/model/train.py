@@ -1,6 +1,5 @@
 from mean_teacher.utils.utils_rao import generate_batches
 from mean_teacher.modules.rao_datasets import RTEDataset
-from mean_teacher.model.classifier import FFNNClassifier
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -119,7 +118,7 @@ class Trainer:
                     optimizer.zero_grad()
 
                     # step 2. compute the output
-                    y_pred = classifier(x_in=batch_dict['x_data'].float())
+                    y_pred = classifier(batch_dict['x_claim'].float(), batch_dict['x_evidence'].float())
 
                     # step 3. compute the loss
                     loss = loss_func(y_pred, batch_dict['y_target'].float())

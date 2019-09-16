@@ -601,7 +601,7 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
     all_evidences_global=[]
     all_labels_global=[]
     #enumerate means enumerate through each of the batches.
-    #the __getitem__ in datasets.py is called here
+    #the __getitem__ in datasets_old_valpola_version.py is called here
     # also not sure why there is batching in dev (this is how valpola/ajay was doing it). at the end of all batches
     for i, datapoint in enumerate(eval_loader):
         LOG.debug(f"got inside .i, datapoint in enumerate(eval_loader)")

@@ -29,7 +29,7 @@ class DecompAttnClassifier(nn.Module):
         self.para2 = self.inter_atten.parameters()
 
 
-    def forward(self, claim, evidence, claim_lengths, evidence_lengths):
+    def forward(self, claim, evidence):
         train_src_linear, train_tgt_linear = self.input_encoder(
             claim, evidence)
         log_prob = self.inter_atten(train_src_linear, train_tgt_linear)
@@ -180,31 +180,3 @@ class atten(nn.Module):
         log_prob = self.log_prob(h)
 
         return log_prob
-
-class FFNNClassifier(nn.Module):
-    """ a simple perceptron based classifier """
-
-    def __init__(self, num_features):
-        """
-        Args:
-            num_features (int): the size of the input feature vector
-        """
-        super(FFNNClassifier, self).__init__()
-        self.fc1 = nn.Linear(in_features=num_features,
-                             out_features=1)
-
-    def forward(self, x_in, apply_sigmoid=False):
-        """The forward pass of the classifier
-
-        Args:
-            x_in (torch.Tensor): an input data tensor.
-                x_in.shape should be (batch, num_features)
-            apply_sigmoid (bool): a flag for the sigmoid activation
-                should be false if used with the Cross Entropy losses
-        Returns:
-            the resulting tensor. tensor.shape should be (batch,)
-        """
-        y_out = self.fc1(x_in).squeeze()
-        if apply_sigmoid:
-            y_out = torch.sigmoid(y_out)
-        return y_out

@@ -1,5 +1,5 @@
 from mean_teacher.modules.rao_datasets import RTEDataset
-from mean_teacher.model.classifier import DecompAttnClassifier,FFNNClassifier
+from mean_teacher.model.classifier_decomp_attn_works_with_rao_code import DecompAttnClassifier
 from mean_teacher.model.train import Trainer
 from mean_teacher.scripts.set_parameters import Initializer
 from mean_teacher.utils.utils_rao import make_embedding_matrix
@@ -30,8 +30,7 @@ else:
     embeddings = None
 
 classifier = DecompAttnClassifier(len(vectorizer.claim_ev_vocab),embedding_size,args.hidden_sz, embeddings,
-                  args.update_pretrained_wordemb, args.para_init, args.num_classes, args.use_gpu)
-###############
+                  args.update_pretrained_wordemb, args.para_init, len(vectorizer.label_vocab), args.use_gpu)
 
 train_rte=Trainer()
 train_rte.train(args,classifier,dataset)

@@ -29,8 +29,6 @@ class Initializer():
             reload_from_files=False,
             #End of rao's parameters
 
-            #start of mean teacher specific parameters
-            num_classes=3, #todo: get num_classes from data
             use_glove=True,
             truncate_words_length=1000,
             type_of_data='plain',

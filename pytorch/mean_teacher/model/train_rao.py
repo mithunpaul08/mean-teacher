@@ -172,7 +172,7 @@ class Trainer:
 
                 for batch_index, batch_dict in enumerate(batch_generator):
                     # compute the output
-                    y_pred = classifier(x_in=batch_dict['x_data'].float())
+                    y_pred = classifier(batch_dict['x_claim'], batch_dict['x_evidence'])
 
                     # step 3. compute the loss
                     loss = class_loss_func(y_pred, batch_dict['y_target'].float())
@@ -180,7 +180,9 @@ class Trainer:
                     running_loss += (loss_t - running_loss) / (batch_index + 1)
 
                     # compute the accuracy
-                    acc_t = self.compute_accuracy(y_pred, batch_dict['y_target'])
+                    y_pred_labels = self.calculate_argmax_list(y_pred)
+                    y_pred_labels = torch.FloatTensor(y_pred_labels)
+                    acc_t = self.compute_accuracy(y_pred_labels, batch_dict['y_target'])
                     running_acc += (acc_t - running_acc) / (batch_index + 1)
 
                     val_bar.set_postfix(loss=running_loss,

@@ -17,7 +17,7 @@ class Initializer():
             vectorizer_file='vectorizer.json',
             # No Model hyper parameters
             # Training hyper parameters
-            batch_size=128,
+            batch_size=1000,
             early_stopping_criteria=5,
             learning_rate=0.005,
             num_epochs=200,

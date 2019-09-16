@@ -10,15 +10,15 @@ command_line_args = initializer.parse_commandline_args()
 args=initializer.set_parameters()
 args.use_glove = True
 
-data_dir=args.data_dir
+data_dir=args.data_dir_local
 glove_filepath_in = args.glove_filepath_local
 fever_train_input_file = os.path.join(data_dir, args.fever_train_local)
 fever_dev_input_file = os.path.join(data_dir, args.fever_dev_local)
 
 if(command_line_args.run_on_server==True):
     glove_filepath_in = args.glove_filepath_server ,
-    fever_train_input_file = os.path.join(data_dir, args.fever_train_server)
-    fever_dev_input_file = os.path.join(data_dir, args.fever_dev_server)
+    fever_train_input_file = os.path.join(args.data_dir_server, args.fever_train_server)
+    fever_dev_input_file = os.path.join(args.data_dir_server, args.fever_dev_server)
 
 print(os.getcwd())
 print(fever_train_input_file)

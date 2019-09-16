@@ -444,7 +444,7 @@ def errors(logits, labels, name=None):
         applicable = tf.not_equal(labels, -1)
         labels = tf.boolean_mask(labels, applicable)
         logits = tf.boolean_mask(logits, applicable)
-        predictions = tf.argmax(logits, -1)
+        predictions = tf.calculate_argmax_list(logits, -1)
         labels = tf.cast(labels, tf.int64)
         per_sample = tf.to_float(tf.not_equal(predictions, labels))
         mean = tf.reduce_mean(per_sample, name=scope)

@@ -683,7 +683,7 @@ def validate(eval_loader, model, log, global_step, epoch, dataset, result_dir, m
         class_loss = class_criterion(output1, target_var) / minibatch_size
         LOG.debug(f"value of class_loss is:{class_loss}")
 
-        #pred_labels=get_label_from_softmax(output1.data)
+        pred_labels=get_label_from_softmax(output1.data)
 
         LOG.debug(f"list of predictions are: of class_loss is:{output1.data}")
         LOG.debug(f"list of gold labels are:{target_var.data}")

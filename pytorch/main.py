@@ -1,6 +1,6 @@
 from mean_teacher.modules.rao_datasets import RTEDataset
 from mean_teacher.model.classifier_decomp_attn_works_with_rao_code import DecompAttnClassifier
-from mean_teacher.model.train import Trainer
+from mean_teacher.model.train_rao import Trainer
 from mean_teacher.scripts.set_parameters import Initializer
 from mean_teacher.utils.utils_rao import make_embedding_matrix
 

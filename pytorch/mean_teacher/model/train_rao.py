@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm_notebook
+from torch.nn import functional as F
 
 class Trainer:
     def make_train_state(self,args):
@@ -68,11 +69,22 @@ class Trainer:
         n_correct = torch.eq(y_pred_indices, y_target).sum().item()
         return n_correct / len(y_pred_indices) * 100
 
+    def calculate_argmax_list(self, logit):
+        list_labels_pred = []
+        for tensor in logit:
+            values, indices = torch.max(tensor, 0)
+            list_labels_pred.append(indices.data.item())
+        return list_labels_pred
 
     def train(self, args_in,classifier,dataset):
         classifier = classifier.to(args_in.device)
 
-        loss_func = nn.BCEWithLogitsLoss()
+        if torch.cuda.is_available():
+            class_loss_func = nn.CrossEntropyLoss(size_average=False).cuda()
+            #todo: use this line when doing semi supervised :class_loss_func = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cuda()
+        else:
+            class_loss_func = nn.CrossEntropyLoss(size_average=False).cpu()
+
         optimizer = optim.Adam(classifier.parameters(), lr=args_in.learning_rate)
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer,
                                                          mode='min', factor=0.5,
@@ -121,7 +133,7 @@ class Trainer:
                     y_pred = classifier(batch_dict['x_claim'], batch_dict['x_evidence'])
 
                     # step 3. compute the loss
-                    loss = loss_func(y_pred, batch_dict['y_target'].float())
+                    loss = class_loss_func(y_pred, batch_dict['y_target'])
                     loss_t = loss.item()
                     running_loss += (loss_t - running_loss) / (batch_index + 1)
 
@@ -132,7 +144,9 @@ class Trainer:
                     optimizer.step()
                     # -----------------------------------------
                     # compute the accuracy
-                    acc_t = self.compute_accuracy(y_pred, batch_dict['y_target'])
+                    y_pred_labels=self.calculate_argmax_list(y_pred)
+                    y_pred_labels = torch.FloatTensor(y_pred_labels)
+                    acc_t = self.compute_accuracy(y_pred_labels, batch_dict['y_target'])
                     running_acc += (acc_t - running_acc) / (batch_index + 1)
 
                     # update bar
@@ -160,7 +174,7 @@ class Trainer:
                     y_pred = classifier(x_in=batch_dict['x_data'].float())
 
                     # step 3. compute the loss
-                    loss = loss_func(y_pred, batch_dict['y_target'].float())
+                    loss = class_loss_func(y_pred, batch_dict['y_target'].float())
                     loss_t = loss.item()
                     running_loss += (loss_t - running_loss) / (batch_index + 1)
 
@@ -218,7 +232,7 @@ class Trainer:
             y_pred = classifier(x_in=batch_dict['x_data'].float())
 
             # compute the loss
-            loss = loss_func(y_pred, batch_dict['y_target'].float())
+            loss = class_loss_func(y_pred, batch_dict['y_target'].float())
             loss_t = loss.item()
             running_loss += (loss_t - running_loss) / (batch_index + 1)
 

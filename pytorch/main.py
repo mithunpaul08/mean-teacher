@@ -39,8 +39,7 @@ embedding_size=args.embedding_size
 # Use GloVe or randomly initialized embeddings
 if args.use_glove:
     words = vectorizer.claim_ev_vocab._token_to_idx.keys()
-    embeddings,embedding_size = make_embedding_matrix(glove_filepath=glove_filepath_in,
-                                       words=words)
+    embeddings,embedding_size = make_embedding_matrix(glove_filepath_in,words)
     print("Using pre-trained embeddings")
 else:
     print("Not using pre-trained embeddings")

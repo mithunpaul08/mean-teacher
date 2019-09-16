@@ -175,7 +175,7 @@ class Trainer:
                     y_pred = classifier(batch_dict['x_claim'], batch_dict['x_evidence'])
 
                     # step 3. compute the loss
-                    loss = class_loss_func(y_pred, batch_dict['y_target'].float())
+                    loss = class_loss_func(y_pred, batch_dict['y_target'])
                     loss_t = loss.item()
                     running_loss += (loss_t - running_loss) / (batch_index + 1)
 

@@ -52,7 +52,7 @@ class RTEDataset(Dataset):
 
 
     @classmethod
-    def load_dataset_and_make_vectorizer(cls, args):
+    def load_dataset_and_make_vectorizer(cls,train_file, dev_file):
         """Load dataset and make a new vectorizer from scratch
 
         Args:
@@ -60,10 +60,10 @@ class RTEDataset(Dataset):
         Returns:
             an instance of ReviewDataset
         """
-        fever_lex_train_df = pd.read_json(os.path.join(args.data_dir,args.fever_lex_train), lines=True)
+        fever_lex_train_df = pd.read_json(train_file, lines=True)
         fever_lex_train_df['split'] = "train"
 
-        fever_lex_dev_df = pd.read_json(os.path.join(args.data_dir,args.fever_lex_dev), lines=True)
+        fever_lex_dev_df = pd.read_json(dev_file, lines=True)
         fever_lex_dev_df['split'] = "val"
 
         frames = [fever_lex_train_df, fever_lex_dev_df]

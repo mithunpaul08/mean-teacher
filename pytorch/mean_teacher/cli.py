@@ -17,11 +17,11 @@ def create_parser():
                         help='dataset: ' +
                             ' | '.join(datasets_old_valpola_version.__all__) +
                             ' (default: conll)')
-    parser.add_argument('--train-subdir', type=str, default='rte/fever/train/',
+    parser.add_argument('--train-subdir', type=str, default='initializer/fever/train/',
                         help='the subdirectory inside the data directory that contains the training data')
     parser.add_argument('--results_subdir', type=str, default='results/',
                         help='the subdirectory where the output will be stored under run_name')
-    parser.add_argument('--eval-subdir', type=str, default='rte/fever/dev/',
+    parser.add_argument('--eval-subdir', type=str, default='initializer/fever/dev/',
                         help='the subdirectory inside the data directory that contains the evaluation data')
     parser.add_argument('--glove_subdir', type=str, default='glove/',
                         help='the subdirectory inside the data directory that contains the evaluation data')

@@ -30,7 +30,7 @@ def fever():
         #'train_transformation': data.TransformTwiceNEC(addNoise),
         'train_transformation': None,
         'eval_transformation': None,
-        #'datadir': 'data-local/rte/fever'
+        #'datadir': 'data-local/initializer/fever'
         #ask ajay what does this do? why comment out?
         # 'num_classes': 11
     }

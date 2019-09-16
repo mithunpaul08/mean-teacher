@@ -1,6 +1,7 @@
 from argparse import Namespace
 import torch
 import os
+import argparse
 from mean_teacher.utils.utils_rao import set_seed_everywhere,make_embedding_matrix
 from mean_teacher.utils.utils_rao import handle_dirs
 from mean_teacher.modules.rao_datasets import RTEDataset
@@ -12,12 +13,12 @@ class Initializer():
             frequency_cutoff=25,
             model_state_file='model.pth',
             # for laptop
-            # fever_lex_train='train/fever_train_lex_3labels_11k_smartner_3labels_no_lists_evidence_not_sents.jsonl',
-            # fever_lex_dev='dev/fever_dev_lex_3labels_2k_no_lists_evidence_not_sents.jsonl',
+            fever_train_local='train/fever_train_lex_3labels_11k_smartner_3labels_no_lists_evidence_not_sents.jsonl',
+            fever_dev_local='dev/fever_dev_lex_3labels_2k_no_lists_evidence_not_sents.jsonl',
 
             #for server
-            fever_lex_train='train/fever_train_delex_smartner_119k_3labels_no_lists_evidence_not_sents.jsonl',
-            fever_lex_dev='dev/fever_dev_delexicalized_3labels_26k.jsonl',
+            fever_train_server='train/fever_train_delex_smartner_119k_3labels_no_lists_evidence_not_sents.jsonl',
+            fever_dev_server='dev/fever_dev_delexicalized_3labels_26k.jsonl',
 
             save_dir='model_storage/ch3/yelp/',
             vectorizer_file='vectorizer.json',
@@ -52,10 +53,8 @@ class Initializer():
             workers=4,
             log_level='INFO',
             use_gpu=False,
-            #for laptop
-            # glove_filepath='/Users/mordor/research/glove/glove.840B.300d.txt',
-            #for server
-            glove_filepath='/work/mithunpaul/glove/glove.840B.300d.txt ',
+            glove_filepath_local='/Users/mordor/research/glove/glove.840B.300d.txt',
+            glove_filepath_server='/work/mithunpaul/glove/glove.840B.300d.txt ',
             use_double_optimizers=True,
             run_student_only=True,
             labels=20.0,
@@ -86,41 +85,21 @@ class Initializer():
         handle_dirs(args.save_dir)
 
         return args
-    #
-    #
-    #
-    # def read_data_make_vectorizer(self,args):
-    #
-    #     if args.reload_from_files:
-    #         # training from a checkpoint
-    #         dataset = RTEDataset.load_dataset_and_load_vectorizer(args.review_csv,
-    #                                                                args.vectorizer_file)
-    #     else:
-    #         # create dataset and vectorizer
-    #         dataset = RTEDataset.load_dataset_and_make_vectorizer(args)
-    #         dataset.save_vectorizer(args.vectorizer_file)
-    #     vectorizer = dataset.get_vectorizer()
-    #
-    #     # Use GloVe or randomly initialized embeddings
-    #     if args.use_glove:
-    #         words = vectorizer.claim_ev_vocab._token_to_idx.keys()
-    #         embeddings = make_embedding_matrix(glove_filepath=args.glove_filepath,
-    #                                            words=words)
-    #         print("Using pre-trained embeddings")
-    #     else:
-    #         print("Not using pre-trained embeddings")
-    #         embeddings = None
-    #
-    #
-    #     if args.reload_from_files:
-    #         # training from a checkpoint
-    #         print("Loading dataset and vectorizer")
-    #         dataset = RTEDataset.load_dataset_and_load_vectorizer(args.review_csv,
-    #                                                                  args.vectorizer_file)
-    #     else:
-    #         print("Loading dataset and creating vectorizer")
-    #         # create dataset and vectorizer
-    #         dataset = RTEDataset.load_dataset_and_make_vectorizer(args)
-    #         dataset.save_vectorizer(args.vectorizer_file)
-    #
-    #     return dataset,embeddings
+
+    def create_parser(self):
+        parser = argparse.ArgumentParser(description='PyTorch Mean-Teacher Training')
+        parser.add_argument('--run_on_server', default=False, type=self.str2bool, metavar='BOOL',
+                            help='exclude unlabeled examples from the training set')
+
+        return parser
+
+    def parse_commandline_args(self):
+        return self.create_parser().parse_args()
+
+    def str2bool(self,v):
+        if v.lower() in ('yes', 'true', 't', 'y', '1'):
+            return True
+        elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+            return False
+        else:
+            raise argparse.ArgumentTypeError('Boolean value expected.')

@@ -10,10 +10,7 @@ command_line_args = initializer.parse_commandline_args()
 args=initializer.set_parameters()
 args.use_glove = True
 
-cwd=os.getcwd()
-data_dir=os.path.join(cwd,args.data_dir)
-
-
+data_dir=args.data_dir
 glove_filepath_in = args.glove_filepath_local
 fever_train_input_file = os.path.join(data_dir, args.fever_train_local)
 fever_dev_input_file = os.path.join(data_dir, args.fever_dev_local)

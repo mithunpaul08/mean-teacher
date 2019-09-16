@@ -20,9 +20,7 @@ if(command_line_args.run_on_server==True):
     fever_train_input_file = os.path.join(args.data_dir_server, args.fever_train_server)
     fever_dev_input_file = os.path.join(args.data_dir_server, args.fever_dev_server)
 
-print(os.getcwd())
-print(fever_train_input_file)
-print(fever_dev_input_file)
+print(glove_filepath_in)
 
 
 

@@ -20,7 +20,7 @@ if(command_line_args.run_on_server==True):
     fever_train_input_file = os.path.join(args.data_dir_server, args.fever_train_server)
     fever_dev_input_file = os.path.join(args.data_dir_server, args.fever_dev_server)
 
-print(f"loading glove from path:{glove_filepath}")
+print(f"loading glove from path:{glove_filepath_in}")
 
 
 

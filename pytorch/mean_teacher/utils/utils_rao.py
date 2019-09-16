@@ -67,7 +67,7 @@ def make_embedding_matrix(glove_filepath, words):
         glove_filepath (str): file path to the glove embeddigns
         words (list): list of words in the dataset
     """
-    print(f"value of glove_filepath inside make_emb_matrix_is:{glove_filepath}")
+
     word_to_idx, glove_embeddings = load_glove_from_file(glove_filepath)
     embedding_size = glove_embeddings.shape[1]
 

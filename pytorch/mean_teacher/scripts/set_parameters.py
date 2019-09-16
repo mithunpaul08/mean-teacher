@@ -11,8 +11,14 @@ class Initializer():
             # Data and Path information
             frequency_cutoff=25,
             model_state_file='model.pth',
-            fever_lex_train='train/fever_train_lex_3labels_11k_smartner_3labels_no_lists_evidence_not_sents.jsonl',
-            fever_lex_dev='dev/fever_dev_lex_3labels_2k_no_lists_evidence_not_sents.jsonl',
+            # for laptop
+            # fever_lex_train='train/fever_train_lex_3labels_11k_smartner_3labels_no_lists_evidence_not_sents.jsonl',
+            # fever_lex_dev='dev/fever_dev_lex_3labels_2k_no_lists_evidence_not_sents.jsonl',
+
+            #for server
+            fever_lex_train='train/fever_train_delex_smartner_119k_3labels_no_lists_evidence_not_sents.jsonl',
+            fever_lex_dev='dev/fever_dev_delexicalized_3labels_26k.jsonl',
+
             save_dir='model_storage/ch3/yelp/',
             vectorizer_file='vectorizer.json',
             # No Model hyper parameters
@@ -46,7 +52,10 @@ class Initializer():
             workers=4,
             log_level='INFO',
             use_gpu=False,
-            glove_filepath='/Users/mordor/research/glove/glove.840B.300d.txt',
+            #for laptop
+            # glove_filepath='/Users/mordor/research/glove/glove.840B.300d.txt',
+            #for server
+            glove_filepath='/work/mithunpaul/glove/glove.840B.300d.txt ',
             use_double_optimizers=True,
             run_student_only=True,
             labels=20.0,

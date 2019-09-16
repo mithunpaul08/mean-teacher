@@ -22,8 +22,9 @@ if(command_line_args.run_on_server==True):
     glove_filepath_in = args.glove_filepath_server ,
     fever_train_input_file = os.path.join(data_dir, args.fever_train_server)
     fever_dev_input_file = os.path.join(data_dir, args.fever_dev_server)
-    print(fever_train_input_file)
-    print(fever_dev_input_file)
+
+print(fever_train_input_file)
+print(fever_dev_input_file)
 
 
 

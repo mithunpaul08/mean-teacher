@@ -55,7 +55,7 @@ class Initializer():
             log_level='INFO',
             use_gpu=False,
             glove_filepath_local='/Users/mordor/research/glove/glove.840B.300d.txt',
-            glove_filepath_server='/work/mithunpaul/glove/glove.840B.300d.txt ',
+            glove_filepath_server='/work/mithunpaul/glove/glove.840B.300d.txt',
             use_double_optimizers=True,
             run_student_only=True,
             labels=20.0,

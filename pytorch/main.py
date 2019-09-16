@@ -16,7 +16,7 @@ fever_train_input_file = os.path.join(data_dir, args.fever_train_local)
 fever_dev_input_file = os.path.join(data_dir, args.fever_dev_local)
 
 if(command_line_args.run_on_server==True):
-    glove_filepath_in = args.glove_filepath_server ,
+    glove_filepath_in = args.glove_filepath_server
     fever_train_input_file = os.path.join(args.data_dir_server, args.fever_train_server)
     fever_dev_input_file = os.path.join(args.data_dir_server, args.fever_dev_server)
 

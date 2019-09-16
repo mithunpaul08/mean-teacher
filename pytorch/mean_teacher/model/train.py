@@ -118,7 +118,7 @@ class Trainer:
                     optimizer.zero_grad()
 
                     # step 2. compute the output
-                    y_pred = classifier(batch_dict['x_claim'].float(), batch_dict['x_evidence'].float())
+                    y_pred = classifier(batch_dict['x_claim'], batch_dict['x_evidence'])
 
                     # step 3. compute the loss
                     loss = loss_func(y_pred, batch_dict['y_target'].float())

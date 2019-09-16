@@ -155,7 +155,6 @@ class Trainer:
                                           epoch=epoch_index)
                     train_bar.update()
 
-                    print(f"batch:{batch_index} tr loss: {running_loss} val Accuracy: {running_acc} ")
 
                 train_state_in['train_loss'].append(running_loss)
                 train_state_in['train_acc'].append(running_acc)

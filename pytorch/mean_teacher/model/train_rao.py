@@ -189,6 +189,7 @@ class Trainer:
                                         acc=running_acc,
                                         epoch=epoch_index)
                     val_bar.update()
+                    print(f"epoch:{epoch_index} batch:{batch_index}  loss: {loss_t} train Accuracy: {acc_t} ")
 
                 train_state_in['val_loss'].append(running_loss)
                 train_state_in['val_acc'].append(running_acc)

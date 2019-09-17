@@ -2,7 +2,9 @@ import numpy as np
 import torch
 import os
 import re
+import mmap
 from torch.utils.data import Dataset, DataLoader
+from tqdm import tqdm
 
 # #### General utilities
 
@@ -37,6 +39,14 @@ def generate_batches(dataset, batch_size, shuffle=True,
             out_data_dict[name] = data_dict[name].to(device)
         yield out_data_dict
 
+def get_num_lines(file_path):
+
+    fp = open(file_path, "r+")
+    buf = mmap.mmap(fp.fileno(), 0)
+    lines = 0
+    while buf.readline():
+        lines += 1
+    return lines
 
 def load_glove_from_file(glove_filepath):
     """
@@ -50,8 +60,9 @@ def load_glove_from_file(glove_filepath):
 
     word_to_index = {}
     embeddings = []
+    total_lines = get_num_lines(glove_filepath)
     with open(glove_filepath, "r") as fp:
-        for index, line in enumerate(fp):
+        for index, line in tqdm(enumerate(fp),total=total_lines):
             line = line.split(" ")  # each line: word num1 num2 ...
             word_to_index[line[0]] = index  # word = line[0]
             embedding_i = np.array([float(val) for val in line[1:]])

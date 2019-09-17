@@ -251,6 +251,6 @@ class Trainer:
 
         train_state_in['test_loss'] = running_loss
         train_state_in['test_acc'] = running_acc
-        print("Val loss at end of all epochs: {:.3f}".format(train_state_in['val_loss']))
-        print("Val accuracy at end of all epochs: {:.2f}".format(train_state_in['val_acc']))
+        print("Val loss at end of all epochs: {(train_state_in['val_loss'])}")
+        print("Val accuracy at end of all epochs: {(train_state_in['val_acc'])}")
 

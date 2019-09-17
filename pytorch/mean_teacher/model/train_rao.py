@@ -3,7 +3,7 @@ from mean_teacher.modules.rao_datasets import RTEDataset
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from tqdm import tqdm_notebook
+from tqdm import tqdm,tqdm_notebook
 from torch.nn import functional as F
 
 class Trainer:
@@ -123,6 +123,7 @@ class Trainer:
                 classifier.train()
 
                 for batch_index, batch_dict in enumerate(batch_generator):
+
                     # the training routine is these 5 steps:
 
                     # --------------------------------------
@@ -154,6 +155,7 @@ class Trainer:
                                           acc=running_acc,
                                           epoch=epoch_index)
                     train_bar.update()
+                    print(f"epoch:{epoch_index} batch:{batch_index}  train_loss: {loss_t} train_accuracy: {acc_t} ")
 
 
                 train_state_in['train_loss'].append(running_loss)
@@ -189,7 +191,7 @@ class Trainer:
                                         acc=running_acc,
                                         epoch=epoch_index)
                     val_bar.update()
-                    print(f"epoch:{epoch_index} batch:{batch_index}  loss: {loss_t} train Accuracy: {acc_t} ")
+                    print(f"epoch:{epoch_index} batch:{batch_index}  validation_loss: {loss_t} validation_accuracy: {acc_t} ")
 
                 train_state_in['val_loss'].append(running_loss)
                 train_state_in['val_acc'].append(running_acc)

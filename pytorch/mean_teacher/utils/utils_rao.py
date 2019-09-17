@@ -62,7 +62,7 @@ def load_glove_from_file(glove_filepath):
     embeddings = []
     total_lines = get_num_lines(glove_filepath)
     with open(glove_filepath, "r") as fp:
-        for index, line in tqdm(enumerate(fp),total=total_lines):
+        for index, line in tqdm(enumerate(fp),total=total_lines, desc="glove"):
             line = line.split(" ")  # each line: word num1 num2 ...
             word_to_index[line[0]] = index  # word = line[0]
             embedding_i = np.array([float(val) for val in line[1:]])

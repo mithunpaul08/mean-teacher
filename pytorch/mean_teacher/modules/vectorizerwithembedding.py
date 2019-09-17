@@ -57,7 +57,8 @@ class VectorizerWithEmbedding(object):
 
 
         for word, count in word_counts.items():
-            if count > cutoff:
+            # removing cutoff for the time being- to check if it increases accuracy
+            # if count > cutoff:
                 claim_ev_vocab.add_token(word)
 
         labels_vocab = Vocabulary(add_unk=False)

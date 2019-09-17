@@ -52,7 +52,7 @@ class RTEDataset(Dataset):
 
 
     @classmethod
-    def load_dataset_and_make_vectorizer(cls,train_file, dev_file):
+    def load_dataset_and_create_vocabulary(cls, train_file, dev_file,args):
         """Load dataset and make a new vectorizer from scratch
 
         Args:
@@ -70,7 +70,7 @@ class RTEDataset(Dataset):
         combined_train_dev_test_with_split_column_df = pd.concat(frames)
 
         # todo: uncomment/call and check the function replace_if_PERSON_C1_format has any effect on claims and evidence sentences-mainpulate dataframe
-        return cls(combined_train_dev_test_with_split_column_df, VectorizerWithEmbedding.from_dataframe(fever_lex_train_df))
+        return cls(combined_train_dev_test_with_split_column_df, VectorizerWithEmbedding.from_dataframe(fever_lex_train_df,args.frequency_cutoff))
 
     @classmethod
     def load_dataset_and_load_vectorizer(cls, input_file, vectorizer_filepath):

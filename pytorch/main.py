@@ -31,7 +31,7 @@ if args.reload_from_files:
                                                               args.vectorizer_file)
 else:
     # create dataset and vectorizer
-    dataset = RTEDataset.load_dataset_and_make_vectorizer(fever_train_input_file,fever_dev_input_file)
+    dataset = RTEDataset.load_dataset_and_create_vocabulary(fever_train_input_file, fever_dev_input_file,args)
     dataset.save_vectorizer(args.vectorizer_file)
 vectorizer = dataset.get_vectorizer()
 

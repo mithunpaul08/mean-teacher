@@ -10,7 +10,7 @@ class Initializer():
     def set_parameters(self):
         args = Namespace(
             # Data and Path information
-            frequency_cutoff=50,
+            frequency_cutoff=5,
             model_state_file='model.pth',
             # for laptop
             fever_train_local='train/fever_train_lex_3labels_11k_smartner_3labels_no_lists_evidence_not_sents.jsonl',

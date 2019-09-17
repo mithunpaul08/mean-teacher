@@ -122,7 +122,7 @@ class Trainer:
                 running_loss = 0.0
                 running_acc = 0.0
                 classifier.train()
-                no_of_batches= int(len(dataset)/args_in.batch_size)
+                no_of_batches= int(len(dataset.train_df)/args_in.batch_size)
 
                 for batch_index, batch_dict in enumerate(batch_generator):
 
@@ -173,6 +173,7 @@ class Trainer:
                 running_loss = 0.
                 running_acc = 0.
                 classifier.eval()
+                no_of_batches = int(len(dataset.val_df) / args_in.batch_size)
 
                 for batch_index, batch_dict in enumerate(batch_generator):
                     # compute the output
@@ -248,9 +249,8 @@ class Trainer:
         #     # compute the accuracy
         #     acc_t = self.compute_accuracy(y_pred, batch_dict['y_target'])
         #     running_acc += (acc_t - running_acc) / (batch_index + 1)
-
-        train_state_in['test_loss'] = running_loss
-        train_state_in['test_acc'] = running_acc
+        #train_state_in['test_loss'] = running_loss
+        #train_state_in['test_acc'] = running_acc
         print("Val loss at end of all epochs: {(train_state_in['val_loss'])}")
         print("Val accuracy at end of all epochs: {(train_state_in['val_acc'])}")
 

@@ -81,7 +81,8 @@ class Trainer:
 
         if torch.cuda.is_available():
             class_loss_func = nn.CrossEntropyLoss(size_average=False).cuda()
-            #todo: use this line when doing semi supervised :class_loss_func = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cuda()
+            #todo: use this code below instead when doing semi supervised :
+            # class_loss_func = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cuda()
         else:
             class_loss_func = nn.CrossEntropyLoss(size_average=False).cpu()
 
@@ -121,6 +122,7 @@ class Trainer:
                 running_loss = 0.0
                 running_acc = 0.0
                 classifier.train()
+                no_of_batches= int(len(dataset)/args_in.batch_size)
 
                 for batch_index, batch_dict in enumerate(batch_generator):
 
@@ -155,7 +157,7 @@ class Trainer:
                                           acc=running_acc,
                                           epoch=epoch_index)
                     train_bar.update()
-                    print(f"epoch:{epoch_index} batch:{batch_index}  train_loss: {loss_t} train_accuracy: {acc_t} ")
+                    print(f"epoch:{epoch_index} batch:{batch_index}/{no_of_batches}  train_loss: {loss_t} train_accuracy: {acc_t} ")
 
 
                 train_state_in['train_loss'].append(running_loss)

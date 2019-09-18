@@ -172,7 +172,7 @@ class Trainer:
                                           acc=running_acc,
                                           epoch=epoch_index)
                     train_bar.update()
-                    print(f"epoch:{epoch_index} batch:{batch_index}/{no_of_batches}  per_batch_train_loss: {loss_t} per_batch_train_accuracy: {acc_t} moving_avg_train_loss: {running_loss} moving_avg_train_accuracy: {running_acc} ")
+                    print(f"epoch:{epoch_index}\tbatch:{batch_index}/{no_of_batches}\tmoving_avg_train_loss:{running_loss}\tmoving_avg_train_accuracy:{running_acc} ")
 
 
                 train_state_in['train_loss'].append(running_loss)
@@ -188,7 +188,7 @@ class Trainer:
                 running_loss = 0.
                 running_acc = 0.
                 classifier.eval()
-                no_of_batches_val = int(len(dataset) / args_in.batch_size)
+                no_of_batches = int(len(dataset) / args_in.batch_size)
 
                 for batch_index, batch_dict in enumerate(batch_generator):
                     # compute the output
@@ -209,7 +209,7 @@ class Trainer:
                                         acc=running_acc,
                                         epoch=epoch_index)
                     val_bar.update()
-                    print(f"epoch:{epoch_index} batch:{batch_index}/{no_of_batches_val}  validation_loss: {loss_t} validation_accuracy: {acc_t} moving_avg_val_loss: {running_loss} moving_avg_val_accuracy: {running_acc} ")
+                    print(f"epoch:{epoch_index}\tbatch:{batch_index}/{no_of_batches}\tmoving_avg_val_loss:{running_loss}\tmoving_avg_val_accuracy:{running_acc} ")
 
                 train_state_in['val_loss'].append(running_loss)
                 train_state_in['val_acc'].append(running_acc)
@@ -230,7 +230,7 @@ class Trainer:
                 val_bar.n = 0
                 epoch_bar.update()
 
-                print(f"epoch:{epoch_index} val loss: {running_loss} val Accuracy: {running_acc} ")
+                print(f"epoch:{epoch_index}\tval_loss_end_of_epoch:{running_loss}\tval_accuracy_end_of_epoch:{running_acc} ")
                 time.sleep(10)
                 
 

@@ -1,5 +1,6 @@
 from mean_teacher.utils.utils_rao import generate_batches
 from mean_teacher.modules.rao_datasets import RTEDataset
+import time
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -216,6 +217,7 @@ class Trainer:
                 epoch_bar.update()
 
                 print(f"epoch:{epoch_index} val loss: {running_loss} val Accuracy: {running_acc} ")
+                time.sleep(10)
                 
 
         except KeyboardInterrupt:

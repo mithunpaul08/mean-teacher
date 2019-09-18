@@ -122,7 +122,7 @@ class Trainer:
                 running_loss = 0.0
                 running_acc = 0.0
                 classifier.train()
-                no_of_batches= int(len(dataset.train_df)/args_in.batch_size)
+                no_of_batches= int(len(dataset)/args_in.batch_size)
 
                 for batch_index, batch_dict in enumerate(batch_generator):
 
@@ -173,7 +173,7 @@ class Trainer:
                 running_loss = 0.
                 running_acc = 0.
                 classifier.eval()
-                no_of_batches = int(len(dataset.val_df) / args_in.batch_size)
+                no_of_batches_val = int(len(dataset) / args_in.batch_size)
 
                 for batch_index, batch_dict in enumerate(batch_generator):
                     # compute the output
@@ -194,7 +194,7 @@ class Trainer:
                                         acc=running_acc,
                                         epoch=epoch_index)
                     val_bar.update()
-                    print(f"epoch:{epoch_index} batch:{batch_index}  validation_loss: {loss_t} validation_accuracy: {acc_t} ")
+                    print(f"epoch:{epoch_index} batch:{batch_index}/{no_of_batches_val}  validation_loss: {loss_t} validation_accuracy: {acc_t} ")
 
                 train_state_in['val_loss'].append(running_loss)
                 train_state_in['val_acc'].append(running_acc)

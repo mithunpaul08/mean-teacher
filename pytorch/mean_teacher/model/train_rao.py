@@ -172,7 +172,7 @@ class Trainer:
                                           acc=running_acc,
                                           epoch=epoch_index)
                     train_bar.update()
-                    print(f"epoch:{epoch_index}\tbatch:{batch_index}/{no_of_batches}\tmoving_avg_train_loss:{running_loss}\tmoving_avg_train_accuracy:{running_acc} ")
+                    print(f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches} \t moving_avg_train_loss:{round(running_loss,2)} \t moving_avg_train_accuracy:{round(running_acc,2)} ")
 
 
                 train_state_in['train_loss'].append(running_loss)
@@ -209,7 +209,7 @@ class Trainer:
                                         acc=running_acc,
                                         epoch=epoch_index)
                     val_bar.update()
-                    print(f"epoch:{epoch_index}\tbatch:{batch_index}/{no_of_batches}\tmoving_avg_val_loss:{running_loss}\tmoving_avg_val_accuracy:{running_acc} ")
+                    print(f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches} \t moving_avg_val_loss:{round(running_loss,2)} \t moving_avg_val_accuracy:{round(running_acc,2)} ")
 
                 train_state_in['val_loss'].append(running_loss)
                 train_state_in['val_acc'].append(running_acc)

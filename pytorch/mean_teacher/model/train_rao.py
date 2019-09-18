@@ -172,7 +172,7 @@ class Trainer:
                                           acc=running_acc,
                                           epoch=epoch_index)
                     train_bar.update()
-                    print(f"epoch:{epoch_index} batch:{batch_index}/{no_of_batches}  train_loss: {loss_t} train_accuracy: {acc_t} ")
+                    print(f"epoch:{epoch_index} batch:{batch_index}/{no_of_batches}  per_batch_train_loss: {loss_t} per_batch_train_accuracy: {acc_t} moving_avg_train_loss: {running_loss} moving_avg_train_accuracy: {running_acc} ")
 
 
                 train_state_in['train_loss'].append(running_loss)
@@ -209,7 +209,7 @@ class Trainer:
                                         acc=running_acc,
                                         epoch=epoch_index)
                     val_bar.update()
-                    print(f"epoch:{epoch_index} batch:{batch_index}/{no_of_batches_val}  validation_loss: {loss_t} validation_accuracy: {acc_t} ")
+                    print(f"epoch:{epoch_index} batch:{batch_index}/{no_of_batches_val}  validation_loss: {loss_t} validation_accuracy: {acc_t} moving_avg_val_loss: {running_loss} moving_avg_val_accuracy: {running_acc} ")
 
                 train_state_in['val_loss'].append(running_loss)
                 train_state_in['val_acc'].append(running_acc)
@@ -217,7 +217,7 @@ class Trainer:
                 train_state_in = self.update_train_state( args=args_in, model=classifier,
                                                       train_state=train_state_in)
 
-                scheduler.step(train_state_in['val_loss'][-1])
+                #scheduler.step(train_state_in['val_loss'][-1])
 
                 train_bar.n = 0
                 val_bar.n = 0

@@ -17,7 +17,7 @@ class Initializer():
             model_state_file='model.pth',
             # for laptop
             fever_train_local='train/fever_train_lex_3labels_200_smartner_3labels_no_lists_evidence_not_sents.jsonl',
-            fever_dev_local='dev/fever_dev_lex_3labels_2k_no_lists_evidence_not_sents.jsonl',
+            fever_dev_local='dev/fever_dev_lex_3labels_200_no_lists_evidence_not_sents.jsonl',
 
             #for server
             fever_train_server='train/fever_train_lex_3labels_119k_smartner_3labels_no_lists_evidence_not_sents.jsonl',

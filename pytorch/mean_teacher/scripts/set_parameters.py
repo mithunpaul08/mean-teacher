@@ -17,8 +17,8 @@ class Initializer():
             fever_dev_local='dev/fever_dev_lex_3labels_2k_no_lists_evidence_not_sents.jsonl',
 
             #for server
-            fever_train_server='train/fever_train_delex_smartner_119k_3labels_no_lists_evidence_not_sents.jsonl',
-            fever_dev_server='dev/fever_dev_delexicalized_3labels_26k.jsonl',
+            fever_train_server='train/fever_train_lex_3labels_119k_smartner_3labels_no_lists_evidence_not_sents.jsonl',
+            fever_dev_server='dev/fever_dev_lex_3labels_26k_no_lists_evidence_not_sents.jsonl',
 
             save_dir='model_storage/ch3/yelp/',
             vectorizer_file='vectorizer.json',

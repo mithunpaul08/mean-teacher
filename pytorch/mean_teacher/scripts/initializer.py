@@ -41,6 +41,7 @@ class Initializer():
             cuda=True,
             expand_filepaths_to_save_dir=True,
             reload_from_files=False,
+            max_grad_norm=5,
             #End of rao's parameters
 
             use_glove=True,

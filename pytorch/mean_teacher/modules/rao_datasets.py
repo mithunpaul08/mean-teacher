@@ -2,7 +2,7 @@
 
 import json
 from torch.utils.data import Dataset, DataLoader
-from  .vectorizerwithembedding import VectorizerWithEmbedding
+from  .vectorizer_with_embedding import VectorizerWithEmbedding
 import pandas as pd
 from mean_teacher.utils.utils_valpola import export
 import os

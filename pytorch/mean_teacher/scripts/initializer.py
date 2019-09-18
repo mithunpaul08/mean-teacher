@@ -17,7 +17,7 @@ class Initializer():
             model_state_file='model.pth',
             # for laptop
             fever_train_local='train/fever_train_lex_3labels_200_smartner_3labels_no_lists_evidence_not_sents.jsonl',
-            fever_dev_local='dev/fever_dev_lex_3labels_200_no_lists_evidence_not_sents.jsonl',
+            fever_dev_local='dev/fever_dev_lex_3labels_2k_no_lists_evidence_not_sents.jsonl',
 
             #for server
             fever_train_server='train/fever_train_lex_3labels_119k_smartner_3labels_no_lists_evidence_not_sents.jsonl',
@@ -26,12 +26,16 @@ class Initializer():
             save_dir='model_storage/ch3/yelp/',
             vectorizer_file='vectorizer.json',
             # No Model hyper parameters
+
+
             # Training hyper parameters
             batch_size=32,
             early_stopping_criteria=5,
             learning_rate=0.005,
             num_epochs=200,
             seed=1337,
+            weight_decay=5e-5,
+            Adagrad_init=0,
             # Runtime options
             catch_keyboard_interrupt=True,
             cuda=True,
@@ -44,6 +48,7 @@ class Initializer():
             type_of_data='plain',
             embedding_size=300,
             #parameter initialization gaussian
+            optimizer="adagrad",
             para_init=0.01,
             hidden_sz=200,
             dataset='fever',

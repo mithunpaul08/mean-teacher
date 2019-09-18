@@ -93,3 +93,42 @@ def make_embedding_matrix(glove_filepath, words):
             final_embeddings[i, :] = embedding_i
 
     return final_embeddings,embedding_size
+
+def initialize_double_optimizers(model, args):
+
+    '''
+        The code for decomposable attention we use , utilizes two different optimizers
+    :param model:
+    :param args:
+    :return:
+    '''
+    input_optimizer = None
+    inter_atten_optimizer = None
+    para1 = model.para1
+    para2 = model.para2
+    if args.optimizer == 'adagrad':
+        input_optimizer = torch.optim.Adagrad(para1, lr=args.learning_rate, weight_decay=args.weight_decay)
+        inter_atten_optimizer = torch.optim.Adagrad(para2, lr=args.learning_rate, weight_decay=args.weight_decay)
+    elif args.optimizer == 'Adadelta':
+        input_optimizer = torch.optim.Adadelta(para1, lr=args.lr)
+        inter_atten_optimizer = torch.optim.Adadelta(para2, lr=args.lr)
+    else:
+        #LOG.info('No Optimizer.')
+        print('No Optimizer.')
+        import sys
+        sys.exit()
+    assert input_optimizer != None
+    assert inter_atten_optimizer != None
+
+    return input_optimizer,inter_atten_optimizer
+
+def update_optimizer_state(input_optimizer, inter_atten_optimizer,args):
+    for group in input_optimizer.param_groups:
+        for p in group['params']:
+            state = input_optimizer.state[p]
+            state['sum'] += args.Adagrad_init
+    for group in inter_atten_optimizer.param_groups:
+        for p in group['params']:
+            state = inter_atten_optimizer.state[p]
+            state['sum'] += args.Adagrad_init
+    return input_optimizer, inter_atten_optimizer

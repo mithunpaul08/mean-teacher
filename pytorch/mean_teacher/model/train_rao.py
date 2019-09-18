@@ -1,4 +1,4 @@
-from mean_teacher.utils.utils_rao import generate_batches
+from mean_teacher.utils.utils_rao import generate_batches,initialize_double_optimizers,update_optimizer_state
 from mean_teacher.modules.rao_datasets import RTEDataset
 import time
 import torch
@@ -87,10 +87,11 @@ class Trainer:
         else:
             class_loss_func = nn.CrossEntropyLoss(size_average=False).cpu()
 
-        optimizer = optim.Adam(classifier.parameters(), lr=args_in.learning_rate)
-        scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer,
-                                                         mode='min', factor=0.5,
-                                                         patience=1)
+        #optimizer = optim.Adam(classifier.parameters(), lr=args_in.learning_rate)
+        input_optimizer, inter_atten_optimizer = initialize_double_optimizers(classifier, args_in)
+
+        #todo: turn this on to check if it improves accuracy. commenting to do one thing at a time
+        #scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer,mode='min', factor=0.5,patience=1)
 
         train_state_in = self.make_train_state(args_in)
 
@@ -109,6 +110,7 @@ class Trainer:
                                 position=1,
                                 leave=True)
 
+
         try:
             for epoch_index in range(args_in.num_epochs):
                 train_state_in['epoch_index'] = epoch_index
@@ -125,13 +127,23 @@ class Trainer:
                 classifier.train()
                 no_of_batches= int(len(dataset)/args_in.batch_size)
 
+
+
+
                 for batch_index, batch_dict in enumerate(batch_generator):
 
                     # the training routine is these 5 steps:
 
                     # --------------------------------------
                     # step 1. zero the gradients
-                    optimizer.zero_grad()
+                    input_optimizer.zero_grad()
+                    inter_atten_optimizer.zero_grad()
+
+                    #this code is from the libowen code base we are using for decomposable attention
+                    if epoch_index == 0 and args_in.optimizer == 'adagrad':
+                        update_optimizer_state(input_optimizer, inter_atten_optimizer, args_in)
+
+
 
                     # step 2. compute the output
                     y_pred = classifier(batch_dict['x_claim'], batch_dict['x_evidence'])
@@ -145,7 +157,9 @@ class Trainer:
                     loss.backward()
 
                     # step 5. use optimizer to take gradient step
-                    optimizer.step()
+                    #optimizer.step()
+                    input_optimizer.step()
+                    inter_atten_optimizer.step()
                     # -----------------------------------------
                     # compute the accuracy
                     y_pred_labels=self.calculate_argmax_list(y_pred)

@@ -12,8 +12,6 @@ glove_filepath_in,fever_train_input_file,fever_dev_input_file=initializer.get_fi
 print(f"loading glove from path:{glove_filepath_in}")
 
 
-
-
 if args.reload_from_files:
     # training from a checkpoint
     dataset = RTEDataset.load_dataset_and_load_vectorizer(args.fever_lex_train,

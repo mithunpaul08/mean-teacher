@@ -7,6 +7,9 @@ from mean_teacher.utils.utils_rao import handle_dirs
 from mean_teacher.modules.rao_datasets import RTEDataset
 
 class Initializer():
+    def __init__(self):
+        self._args=Namespace()
+
     def set_parameters(self):
         args = Namespace(
             # Data and Path information
@@ -61,7 +64,7 @@ class Initializer():
             labels=20.0,
             consistency=1
         )
-
+        args.use_glove = True
         if args.expand_filepaths_to_save_dir:
             args.vectorizer_file = os.path.join(args.save_dir,
                                                 args.vectorizer_file)
@@ -84,6 +87,7 @@ class Initializer():
         # Set seed for reproducibility
         set_seed_everywhere(args.seed, args.cuda)
         handle_dirs(args.save_dir)
+        self._args=args
 
         return args
 
@@ -104,3 +108,21 @@ class Initializer():
             return False
         else:
             raise argparse.ArgumentTypeError('Boolean value expected.')
+
+    def get_file_paths(self,command_line_args):
+        '''
+        decide the path of the local files based on whether we are running on server or laptop.
+        #todo: move this to config file
+        :return:
+        '''
+
+        data_dir = self._args.data_dir_local
+        glove_filepath_in = self._args.glove_filepath_local
+        fever_train_input_file = os.path.join(data_dir, self._args.fever_train_local)
+        fever_dev_input_file = os.path.join(data_dir, self._args.fever_dev_local)
+
+        if (command_line_args.run_on_server == True):
+            glove_filepath_in = self._args.glove_filepath_server
+            fever_train_input_file = os.path.join(self._args.data_dir_server, self._args.fever_train_server)
+            fever_dev_input_file = os.path.join(self._args.data_dir_server, self._args.fever_dev_server)
+        return glove_filepath_in,fever_train_input_file,fever_dev_input_file

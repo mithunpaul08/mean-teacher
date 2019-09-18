@@ -1,25 +1,14 @@
 from mean_teacher.modules.rao_datasets import RTEDataset
 from mean_teacher.model.classifier_decomp_attn_works_with_rao_code import DecompAttnClassifier
 from mean_teacher.model.train_rao import Trainer
-from mean_teacher.scripts.set_parameters import Initializer
+from mean_teacher.scripts.initializer import Initializer
 from mean_teacher.utils.utils_rao import make_embedding_matrix
 import os
 
 initializer=Initializer()
 command_line_args = initializer.parse_commandline_args()
 args=initializer.set_parameters()
-args.use_glove = True
-
-data_dir=args.data_dir_local
-glove_filepath_in = args.glove_filepath_local
-fever_train_input_file = os.path.join(data_dir, args.fever_train_local)
-fever_dev_input_file = os.path.join(data_dir, args.fever_dev_local)
-
-if(command_line_args.run_on_server==True):
-    glove_filepath_in = args.glove_filepath_server
-    fever_train_input_file = os.path.join(args.data_dir_server, args.fever_train_server)
-    fever_dev_input_file = os.path.join(args.data_dir_server, args.fever_dev_server)
-
+glove_filepath_in,fever_train_input_file,fever_dev_input_file=initializer.get_file_paths(command_line_args)
 print(f"loading glove from path:{glove_filepath_in}")
 
 

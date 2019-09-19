@@ -31,7 +31,7 @@ class Initializer():
             # Training hyper parameters
             batch_size=32,
             early_stopping_criteria=5,
-            learning_rate=0.005,
+            learning_rate=0.1,
             num_epochs=500,
             seed=1337,
             weight_decay=5e-5,

@@ -50,9 +50,33 @@ class RTEDataset(Dataset):
 
         self.set_split('train')
 
+    @classmethod
+    def truncate_words(cls,sent, tr_len):
+        sent_split = sent.split(" ")
+        if (len(sent_split) > tr_len):
+            sent_tr = sent_split[:1000]
+            sent_output = " ".join(sent_tr)
+            return sent_output
+        else:
+            return sent
 
     @classmethod
-    def load_dataset_and_create_vocabulary(cls, train_file, dev_file,args):
+    def truncate_data(cls,data_dataframe, tr_len):
+        '''
+        #the data has lots of junk values. Truncate/cut short evidence/claim sentneces if they are more than tr_length
+        :param data_dataframe:
+        :param tr_len:
+        :param args:
+        :return: modified pandas dataframe
+        '''
+        for i, row in data_dataframe.iterrows():
+            row.claim= cls.truncate_words(row.claim, tr_len)
+            row.evidence = cls.truncate_words(row.evidence, tr_len)
+        return data_dataframe
+
+
+    @classmethod
+    def load_dataset_and_create_vocabulary(cls, train_file, dev_file, args):
         """Load dataset and make a new vectorizer from scratch
 
         Args:
@@ -61,16 +85,18 @@ class RTEDataset(Dataset):
             an instance of ReviewDataset
         """
         fever_lex_train_df = pd.read_json(train_file, lines=True)
+        fever_lex_train_df=cls.truncate_data(fever_lex_train_df, args.truncate_words_length)
         fever_lex_train_df['split'] = "train"
 
         fever_lex_dev_df = pd.read_json(dev_file, lines=True)
+        fever_lex_dev_df = cls.truncate_data(fever_lex_dev_df, args.truncate_words_length)
         fever_lex_dev_df['split'] = "val"
 
         frames = [fever_lex_train_df, fever_lex_dev_df]
         combined_train_dev_test_with_split_column_df = pd.concat(frames)
 
         # todo: uncomment/call and check the function replace_if_PERSON_C1_format has any effect on claims and evidence sentences-mainpulate dataframe
-        return cls(combined_train_dev_test_with_split_column_df, VectorizerWithEmbedding.from_dataframe(fever_lex_train_df,args.frequency_cutoff))
+        return cls(combined_train_dev_test_with_split_column_df, VectorizerWithEmbedding.from_dataframe(fever_lex_train_df, args.frequency_cutoff))
 
     @classmethod
     def load_dataset_and_load_vectorizer(cls, input_file, vectorizer_filepath):

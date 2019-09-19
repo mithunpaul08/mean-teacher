@@ -3,13 +3,24 @@ from mean_teacher.model.classifier_decomp_attn_works_with_rao_code import Decomp
 from mean_teacher.model.train_rao import Trainer
 from mean_teacher.scripts.initializer import Initializer
 from mean_teacher.utils.utils_rao import make_embedding_matrix
+from mean_teacher.utils.logger import Logger
 import os
+import logging
+import time
+
+
 
 initializer=Initializer()
 command_line_args = initializer.parse_commandline_args()
 args=initializer.set_parameters()
+
+obj_logger=Logger(args)
+LOG=obj_logger.get_logger()
+
+current_time={time.strftime("%c")}
+
 glove_filepath_in,fever_train_input_file,fever_dev_input_file=initializer.get_file_paths(command_line_args)
-print(f"loading glove from path:{glove_filepath_in}")
+LOG.info(f"{current_time} loading glove from path:{glove_filepath_in}")
 
 
 if args.reload_from_files:
@@ -28,13 +39,13 @@ embedding_size=args.embedding_size
 if args.use_glove:
     words = vectorizer.claim_ev_vocab._token_to_idx.keys()
     embeddings,embedding_size = make_embedding_matrix(glove_filepath_in,words)
-    print("Using pre-trained embeddings")
+    LOG.info(f"{current_time:} Using pre-trained embeddings")
 else:
-    print("Not using pre-trained embeddings")
+    LOG.info(f"{current_time:} Not using pre-trained embeddings")
     embeddings = None
 
 classifier = DecompAttnClassifier(len(vectorizer.claim_ev_vocab),embedding_size,args.hidden_sz, embeddings,
                   args.update_pretrained_wordemb, args.para_init, len(vectorizer.label_vocab), args.use_gpu)
 
-train_rte=Trainer()
+train_rte=Trainer(LOG)
 train_rte.train(args,classifier,dataset)

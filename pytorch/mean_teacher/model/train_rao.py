@@ -103,10 +103,7 @@ class Trainer():
         scheduler1 = optim.lr_scheduler.ReduceLROnPlateau(optimizer=input_optimizer,mode='min', factor=0.5,patience=1)
         scheduler2 = optim.lr_scheduler.ReduceLROnPlateau(optimizer=inter_atten_optimizer, mode='min', factor=0.5, patience=1)
 
-        lr=self.get_learning_rate(input_optimizer)
-        self._LOG.debug(f"value of learning rate now  for input_optimizer is:{lr}")
-        lr = self.get_learning_rate(inter_atten_optimizer)
-        self._LOG.debug(f"value of learning rate now  for inter_atten_optimizer is:{lr}")
+
 
 
         train_state_in = self.make_train_state(args_in)
@@ -206,6 +203,7 @@ class Trainer():
                     #optimizer.step()
                     input_optimizer.step()
                     inter_atten_optimizer.step()
+
                     # -----------------------------------------
                     # compute the accuracy
                     y_pred_labels=self.calculate_argmax_list(y_pred)
@@ -220,7 +218,11 @@ class Trainer():
                     train_bar.update()
                     self._LOG.info(f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches} \t moving_avg_train_loss:{round(running_loss,2)} \t moving_avg_train_accuracy:{round(running_acc,2)} ")
 
-
+                lr = self.get_learning_rate(input_optimizer)
+                self._LOG.debug(f"value of learning rate now  for input_optimizer is:{lr}")
+                lr = self.get_learning_rate(inter_atten_optimizer)
+                self._LOG.debug(f"value of learning rate now  for inter_atten_optimizer is:{lr}")
+                
                 train_state_in['train_loss'].append(running_loss)
                 train_state_in['train_acc'].append(running_acc)
 

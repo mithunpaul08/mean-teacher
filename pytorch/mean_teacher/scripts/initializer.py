@@ -22,10 +22,12 @@ class Initializer():
             #for server
             fever_train_server='train/fever_train_lex_3labels_119k_smartner_3labels_no_lists_evidence_not_sents.jsonl',
             fever_dev_server='dev/fever_dev_lex_3labels_26k_no_lists_evidence_not_sents.jsonl',
-
+            data_dir_local='../data-local/rte/fever',
+            data_dir_server='data-local/rte/fever',
             save_dir='model_storage/ch3/yelp/',
             vectorizer_file='vectorizer.json',
-            # No Model hyper parameters
+            glove_filepath_local='/Users/mordor/research/glove/glove.840B.300d.txt',
+            glove_filepath_server='/work/mithunpaul/glove/glove.840B.300d.txt',
 
 
             # Training hyper parameters
@@ -36,40 +38,27 @@ class Initializer():
             seed=1337,
             weight_decay=5e-5,
             Adagrad_init=0,
+
             # Runtime options
-            catch_keyboard_interrupt=True,
-            cuda=True,
             expand_filepaths_to_save_dir=True,
             reload_from_files=False,
             max_grad_norm=5,
             #End of rao's parameters
 
-            use_glove=True,
+
             truncate_words_length=1000,
-            type_of_data='plain',
             embedding_size=300,
-            #parameter initialization gaussian
             optimizer="adagrad",
             para_init=0.01,
             hidden_sz=200,
-            dataset='fever',
             arch='decomp_attention',
             pretrained="false",
-            pretrained_wordemb=True,
             update_pretrained_wordemb=False,
-            run_name='fever_transform',
-            data_dir_local='../data-local/rte/fever',
-            data_dir_server='data-local/rte/fever',
-            print_freq=1,
-            workers=4,
+
+
+            #workers=4,
             log_level='DEBUG',
-            use_gpu=False,
-            glove_filepath_local='/Users/mordor/research/glove/glove.840B.300d.txt',
-            glove_filepath_server='/work/mithunpaul/glove/glove.840B.300d.txt',
-            use_double_optimizers=True,
-            run_student_only=True,
-            labels=20.0,
-            consistency=1
+            use_gpu=False
         )
         args.use_glove = True
         if args.expand_filepaths_to_save_dir:

@@ -35,6 +35,7 @@ vectorizer = dataset.get_vectorizer()
 
 # taking embedding size from user initially, but will get replaced by original embedding size if its loaded
 embedding_size=args.embedding_size
+
 # Use GloVe or randomly initialized embeddings
 if args.use_glove:
     words = vectorizer.claim_ev_vocab._token_to_idx.keys()

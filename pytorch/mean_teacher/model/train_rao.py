@@ -75,6 +75,10 @@ class Trainer():
         n_correct = torch.eq(y_pred_indices, y_target).sum().item()
         return n_correct / len(y_pred_indices) * 100
 
+    def get_learning_rate(self,optimizer):
+        for param_group in optimizer.param_groups:
+            return param_group["lr"]
+
     def calculate_argmax_list(self, logit):
         list_labels_pred = []
         for tensor in logit:
@@ -95,9 +99,15 @@ class Trainer():
         #optimizer = optim.Adam(classifier.parameters(), lr=args_in.learning_rate)
         input_optimizer, inter_atten_optimizer = initialize_double_optimizers(classifier, args_in)
 
-
+        self._LOG.debug(f"going to get into ReduceLROnPlateau ")
         scheduler1 = optim.lr_scheduler.ReduceLROnPlateau(optimizer=input_optimizer,mode='min', factor=0.5,patience=1)
         scheduler2 = optim.lr_scheduler.ReduceLROnPlateau(optimizer=inter_atten_optimizer, mode='min', factor=0.5, patience=1)
+
+        lr=self.get_learning_rate(input_optimizer)
+        self._LOG.debug(f"value of learning rate now  for input_optimizer is:{lr}")
+        lr = self.get_learning_rate(inter_atten_optimizer)
+        self._LOG.debug(f"value of learning rate now  for inter_atten_optimizer is:{lr}")
+
 
         train_state_in = self.make_train_state(args_in)
 

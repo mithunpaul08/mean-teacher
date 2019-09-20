@@ -61,7 +61,7 @@ class Initializer():
             data_dir_server='data-local/rte/fever',
             print_freq=1,
             workers=4,
-            log_level='INFO',
+            log_level='DEBUG',
             use_gpu=False,
             glove_filepath_local='/Users/mordor/research/glove/glove.840B.300d.txt',
             glove_filepath_server='/work/mithunpaul/glove/glove.840B.300d.txt',

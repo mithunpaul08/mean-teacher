@@ -5,7 +5,8 @@ import re
 import mmap
 from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
-
+import sys
+from mean_teacher.model import architectures
 # #### General utilities
 
 def set_seed_everywhere(seed, cuda):
@@ -132,3 +133,39 @@ def update_optimizer_state(input_optimizer, inter_atten_optimizer,args):
             state = inter_atten_optimizer.state[p]
             state['sum'] += args.Adagrad_init
     return input_optimizer, inter_atten_optimizer
+
+
+def create_model(logger_object, args_in,  num_classes_in, word_vocab_embed, word_vocab_size, wordemb_size_in,ema=False,):
+    logger_object.info("=> creating {pretrained}{ema}model '{arch}'".format(
+            pretrained='pre-trained '
+            if args_in.pretrained else '',
+            ema='EMA '
+            if ema else '',arch=args_in.arch))
+    model_factory = architectures.__dict__[args_in.arch]
+    model_params = dict(pretrained=args_in.pretrained, num_classes_in=num_classes_in)
+    model_params['word_vocab_embed'] = word_vocab_embed
+    model_params['word_vocab_size'] = word_vocab_size
+    model_params['wordemb_size'] = wordemb_size_in
+    model_params['hidden_size'] = args_in.hidden_sz
+    model_params['update_pretrained_wordemb'] = args_in.update_pretrained_wordemb
+    model_params['para_init'] = args_in.para_init
+    model_params['use_gpu'] = args_in.use_gpu
+    logger_object.debug(f"value of word_vocab_embed={word_vocab_embed}")
+    logger_object.debug(f"value of word_vocab_size={word_vocab_size}")
+
+    model = model_factory(**model_params)
+
+    args_in.device=None
+    if(args_in.use_gpu) and torch.cuda.is_available():
+        torch.cuda.set_device(0)
+        args_in.device = torch.device('cuda')
+    else:
+        args_in.device = torch.device('cpu')
+
+    model = model.to(device=args_in.device)
+
+    if ema:
+        for param in model.parameters():
+            param.detach_() ##NOTE: Detaches the variable from the gradient computation, making it a leaf .. needed from EMA model
+
+    return model

@@ -1,9 +1,9 @@
 from mean_teacher.modules.rao_datasets import RTEDataset
-from mean_teacher.model.classifier_decomp_attn_works_with_rao_code import DecompAttnClassifier
 from mean_teacher.model.train_rao import Trainer
 from mean_teacher.scripts.initializer import Initializer
-from mean_teacher.utils.utils_rao import make_embedding_matrix
+from mean_teacher.utils.utils_rao import make_embedding_matrix,create_model
 from mean_teacher.utils.logger import Logger
+from mean_teacher.model import architectures
 import os
 import logging
 import time
@@ -44,8 +44,9 @@ else:
     LOG.info(f"{current_time:} Not using pre-trained embeddings")
     embeddings = None
 
-classifier = DecompAttnClassifier(len(vectorizer.claim_ev_vocab),embedding_size,args.hidden_sz, embeddings,
-                  args.update_pretrained_wordemb, args.para_init, len(vectorizer.label_vocab), args.use_gpu)
+num_features=len(vectorizer.claim_ev_vocab)
+classifier = create_model(logger_object=LOG,args_in=args,num_classes_in=len(vectorizer.label_vocab)
+                          ,word_vocab_embed=embeddings,word_vocab_size=num_features,wordemb_size_in=embedding_size)
 
 train_rte=Trainer(LOG)
 train_rte.train(args,classifier,dataset)

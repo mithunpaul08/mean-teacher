@@ -64,7 +64,7 @@ class Initializer():
 
             #workers=4,
             log_level='DEBUG',
-            use_gpu=False
+            use_gpu=True
         )
         args.use_glove = True
         if args.expand_filepaths_to_save_dir:

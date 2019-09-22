@@ -256,7 +256,7 @@ class Trainer():
                 # Iterate over val dataset
 
                 # setup: batch generator, set class_loss_lex and acc to 0; set eval mode on
-                dataset.set_split('val')
+                dataset.set_split('val_lex')
                 batch_generator1 = generate_batches(dataset,
                                                    batch_size=args_in.batch_size,
                                                    device=args_in.device)

@@ -54,6 +54,7 @@ class Initializer():
             arch='decomp_attention',
             pretrained="false",
             update_pretrained_wordemb=False,
+            cuda=True,
 
 
             #workers=4,

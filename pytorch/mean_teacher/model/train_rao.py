@@ -132,9 +132,12 @@ class Trainer():
 
                 # setup: batch generator, set loss and acc to 0, set train mode on
                 dataset.set_split('train')
-                batch_generator = generate_batches(dataset,
+                batch_generator1 = generate_batches(dataset,
                                                    batch_size=args_in.batch_size,
                                                    device=args_in.device)
+                batch_generator2 = generate_batches(dataset,
+                                                    batch_size=args_in.batch_size,
+                                                    device=args_in.device)
                 running_loss = 0.0
                 running_acc = 0.0
                 classifier.train()
@@ -143,7 +146,7 @@ class Trainer():
 
 
 
-                for batch_index, batch_dict in enumerate(batch_generator):
+                for batch_index, (batch_dict1,batch_dict2) in enumerate(zip(batch_generator1,batch_generator2)):
 
                     # the training routine is these 5 steps:
 
@@ -159,10 +162,10 @@ class Trainer():
 
 
                     # step 2. compute the output
-                    y_pred = classifier(batch_dict['x_claim'], batch_dict['x_evidence'])
+                    y_pred = classifier(batch_dict1['x_claim'], batch_dict1['x_evidence'])
 
                     # step 3. compute the loss
-                    loss = class_loss_func(y_pred, batch_dict['y_target'])
+                    loss = class_loss_func(y_pred, batch_dict1['y_target'])
                     loss_t = loss.item()
                     running_loss += (loss_t - running_loss) / (batch_index + 1)
 
@@ -208,7 +211,7 @@ class Trainer():
                     # compute the accuracy
                     y_pred_labels=self.calculate_argmax_list(y_pred)
                     y_pred_labels = torch.FloatTensor(y_pred_labels)
-                    acc_t = self.compute_accuracy(y_pred_labels, batch_dict['y_target'])
+                    acc_t = self.compute_accuracy(y_pred_labels, batch_dict1['y_target'])
                     running_acc += (acc_t - running_acc) / (batch_index + 1)
 
                     # update bar
@@ -222,7 +225,7 @@ class Trainer():
                 self._LOG.debug(f"value of learning rate now  for input_optimizer is:{lr}")
                 lr = self.get_learning_rate(inter_atten_optimizer)
                 self._LOG.debug(f"value of learning rate now  for inter_atten_optimizer is:{lr}")
-                
+
                 train_state_in['train_loss'].append(running_loss)
                 train_state_in['train_acc'].append(running_acc)
 
@@ -230,7 +233,7 @@ class Trainer():
 
                 # setup: batch generator, set loss and acc to 0; set eval mode on
                 dataset.set_split('val')
-                batch_generator = generate_batches(dataset,
+                batch_generator1 = generate_batches(dataset,
                                                    batch_size=args_in.batch_size,
                                                    device=args_in.device)
                 running_loss = 0.
@@ -238,19 +241,19 @@ class Trainer():
                 classifier.eval()
                 no_of_batches = int(len(dataset) / args_in.batch_size)
 
-                for batch_index, batch_dict in enumerate(batch_generator):
+                for batch_index, batch_dict1 in enumerate(batch_generator1):
                     # compute the output
-                    y_pred = classifier(batch_dict['x_claim'], batch_dict['x_evidence'])
+                    y_pred = classifier(batch_dict1['x_claim'], batch_dict1['x_evidence'])
 
                     # step 3. compute the loss
-                    loss = class_loss_func(y_pred, batch_dict['y_target'])
+                    loss = class_loss_func(y_pred, batch_dict1['y_target'])
                     loss_t = loss.item()
                     running_loss += (loss_t - running_loss) / (batch_index + 1)
 
                     # compute the accuracy
                     y_pred_labels = self.calculate_argmax_list(y_pred)
                     y_pred_labels = torch.FloatTensor(y_pred_labels)
-                    acc_t = self.compute_accuracy(y_pred_labels, batch_dict['y_target'])
+                    acc_t = self.compute_accuracy(y_pred_labels, batch_dict1['y_target'])
                     running_acc += (acc_t - running_acc) / (batch_index + 1)
 
                     val_bar.set_postfix(loss=running_loss,
@@ -295,14 +298,14 @@ class Trainer():
         # classifier = classifier.to(args_in.device)
         #
         # dataset.set_split('test')
-        # batch_generator = generate_batches(dataset,
+        # batch_generator1 = generate_batches(dataset,
         #                                    batch_size=args_in.batch_size,
         #                                    device=args_in.device)
         # running_loss = 0.
         # running_acc = 0.
         # classifier.eval()
         #
-        # for batch_index, batch_dict in enumerate(batch_generator):
+        # for batch_index, batch_dict in enumerate(batch_generator1):
         #     # compute the output
         #     y_pred = classifier(batch_dict['x_claim'], batch_dict['x_evidence'])
         #

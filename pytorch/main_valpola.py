@@ -117,7 +117,7 @@ def create_data_loaders(LOG,train_transformation,
     else:
         emb_file_path = args.pretrained_wordemb_file
 
-    dataset = RTEDataset.load_dataset_and_create_vocabulary(args)
+    dataset = RTEDataset.load_dataset_and_create_vocabulary_for_combined_lex_delex(args)
     vectorizer = dataset.get_vectorizer()
     classifier = FFNNClassifier(num_features=len(vectorizer.claim_ev_vocab))
     train_rte = Trainer()

@@ -37,11 +37,12 @@ class VectorizerWithEmbedding(object):
 
         return out_vector
 
+
     @classmethod
-    def from_dataframe(cls, claim_ev_df, cutoff=25):
+    def create_vocabulary(cls, claim_ev_lex, claim_ev_delex, cutoff=25):
         """Instantiate the vectorizer from the dataset dataframe
         Args:
-            claim_ev_df (pandas.DataFrame): the review dataset
+            claim_ev_lex (pandas.DataFrame): the review dataset
             cutoff (int): the parameter for frequency-based filtering
         Returns:
             an instance of the ReviewVectorizer
@@ -49,12 +50,17 @@ class VectorizerWithEmbedding(object):
 
         claim_ev_vocab = SequenceVocabulary()
         word_counts = Counter()
-        for claim, ev in zip(claim_ev_df.claim, claim_ev_df.evidence):
-            combined_claim_ev = claim + ev
+        for claim, ev in zip(claim_ev_lex.claim, claim_ev_lex.evidence):
+            combined_claim_ev = claim + ""+ ev
             for word in combined_claim_ev.split(" "):
                 if word not in string.punctuation:
                     word_counts[word] += 1
 
+        for claim, ev in zip(claim_ev_delex.claim, claim_ev_delex.evidence):
+            combined_claim_ev = claim + ev
+            for word in combined_claim_ev.split(" "):
+                if word not in string.punctuation:
+                    word_counts[word] += 1
 
         for word, count in word_counts.items():
             # removing cutoff for the time being- to check if it increases accuracy
@@ -62,7 +68,7 @@ class VectorizerWithEmbedding(object):
                 claim_ev_vocab.add_token(word)
 
         labels_vocab = Vocabulary(add_unk=False)
-        for label in sorted(set(claim_ev_df.label)):
+        for label in sorted(set(claim_ev_lex.label)):
             labels_vocab.add_token(label)
 
         return cls(claim_ev_vocab, labels_vocab)

@@ -76,7 +76,7 @@ class RTEDataset(Dataset):
 
 
     @classmethod
-    def load_dataset_and_create_vocabulary(cls, train_file, dev_file, args):
+    def load_dataset_and_create_vocabulary_for_combined_lex_delex(cls, train_lex_file, dev_lex_file, train_delex_file, dev_delex_file, args):
         """Load dataset and make a new vectorizer from scratch
 
         Args:
@@ -84,19 +84,27 @@ class RTEDataset(Dataset):
         Returns:
             an instance of ReviewDataset
         """
-        fever_lex_train_df = pd.read_json(train_file, lines=True)
+        fever_lex_train_df = pd.read_json(train_lex_file, lines=True)
         fever_lex_train_df=cls.truncate_data(fever_lex_train_df, args.truncate_words_length)
-        fever_lex_train_df['split'] = "train"
+        fever_lex_train_df['split'] = "train_lex"
 
-        fever_lex_dev_df = pd.read_json(dev_file, lines=True)
+        fever_lex_dev_df = pd.read_json(dev_lex_file, lines=True)
         fever_lex_dev_df = cls.truncate_data(fever_lex_dev_df, args.truncate_words_length)
-        fever_lex_dev_df['split'] = "val"
+        fever_lex_dev_df['split'] = "val_lex"
 
-        frames = [fever_lex_train_df, fever_lex_dev_df]
+        fever_delex_train_df = pd.read_json(train_delex_file, lines=True)
+        fever_delex_train_df = cls.truncate_data(fever_delex_train_df, args.truncate_words_length)
+        fever_delex_train_df['split'] = "train_delex"
+
+        fever_delex_dev_df = pd.read_json(dev_delex_file, lines=True)
+        fever_delex_dev_df = cls.truncate_data(fever_delex_dev_df, args.truncate_words_length)
+        fever_delex_dev_df['split'] = "val_delex"
+
+        frames = [fever_lex_train_df, fever_lex_dev_df,fever_delex_train_df,fever_delex_dev_df]
         combined_train_dev_test_with_split_column_df = pd.concat(frames)
 
         # todo: uncomment/call and check the function replace_if_PERSON_C1_format has any effect on claims and evidence sentences-mainpulate dataframe
-        return cls(combined_train_dev_test_with_split_column_df, VectorizerWithEmbedding.from_dataframe(fever_lex_train_df, args.frequency_cutoff))
+        return cls(combined_train_dev_test_with_split_column_df, VectorizerWithEmbedding.create_vocabulary(fever_lex_train_df,fever_delex_train_df, args.frequency_cutoff))
 
     @classmethod
     def load_dataset_and_load_vectorizer(cls, input_file, vectorizer_filepath):

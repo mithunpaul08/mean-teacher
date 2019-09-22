@@ -188,33 +188,33 @@ class Trainer():
                     combined_class_loss.backward()
 
                     #step 4.5 this is specific to decomposable attention
-                    grad_norm = 0.
-                    para_norm = 0.
-                    for m in classifier.input_encoder.modules():
-                        if isinstance(m, nn.Linear):
-                            grad_norm += m.weight.grad.data.norm() ** 2
-                            para_norm += m.weight.data.norm() ** 2
-                            if m.bias:
-                                grad_norm += m.bias.grad.data.norm() ** 2
-                                para_norm += m.bias.data.norm() ** 2
-
-                    for m in classifier.inter_atten.modules():
-                        if isinstance(m, nn.Linear):
-                            grad_norm += m.weight.grad.data.norm() ** 2
-                            para_norm += m.weight.data.norm() ** 2
-                            if m.bias is not None:
-                                grad_norm += m.bias.grad.data.norm() ** 2
-                                para_norm += m.bias.data.norm() ** 2
-
-                    shrinkage = args_in.max_grad_norm / grad_norm
-                    if shrinkage < 1:
-                        for m in classifier.input_encoder.modules():
-                            if isinstance(m, nn.Linear):
-                                m.weight.grad.data = m.weight.grad.data * shrinkage
-                        for m in classifier.inter_atten.modules():
-                            if isinstance(m, nn.Linear):
-                                m.weight.grad.data = m.weight.grad.data * shrinkage
-                                m.bias.grad.data = m.bias.grad.data * shrinkage
+                    # grad_norm = 0.
+                    # para_norm = 0.
+                    # for m in classifier.input_encoder.modules():
+                    #     if isinstance(m, nn.Linear):
+                    #         grad_norm += m.weight.grad.data.norm() ** 2
+                    #         para_norm += m.weight.data.norm() ** 2
+                    #         if m.bias:
+                    #             grad_norm += m.bias.grad.data.norm() ** 2
+                    #             para_norm += m.bias.data.norm() ** 2
+                    #
+                    # for m in classifier.inter_atten.modules():
+                    #     if isinstance(m, nn.Linear):
+                    #         grad_norm += m.weight.grad.data.norm() ** 2
+                    #         para_norm += m.weight.data.norm() ** 2
+                    #         if m.bias is not None:
+                    #             grad_norm += m.bias.grad.data.norm() ** 2
+                    #             para_norm += m.bias.data.norm() ** 2
+                    #
+                    # shrinkage = args_in.max_grad_norm / grad_norm
+                    # if shrinkage < 1:
+                    #     for m in classifier.input_encoder.modules():
+                    #         if isinstance(m, nn.Linear):
+                    #             m.weight.grad.data = m.weight.grad.data * shrinkage
+                    #     for m in classifier.inter_atten.modules():
+                    #         if isinstance(m, nn.Linear):
+                    #             m.weight.grad.data = m.weight.grad.data * shrinkage
+                    #             m.bias.grad.data = m.bias.grad.data * shrinkage
 
 
                     # step 5. use optimizer to take gradient step

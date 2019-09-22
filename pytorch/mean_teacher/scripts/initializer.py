@@ -16,8 +16,8 @@ class Initializer():
             frequency_cutoff=5,
             model_state_file='model.pth',
             # for laptop
-            fever_lex_train_local='train/fever_train_lex_3labels_200_smartner_3labels_no_lists_evidence_not_sents.jsonl',
-            fever_lex_dev_local='dev/fever_dev_lex_3labels_200_no_lists_evidence_not_sents.jsonl',
+            fever_lex_train_local='train/fever_train_lex_3labels_400_smartner_3labels_no_lists_evidence_not_sents.jsonl',
+            fever_lex_dev_local='dev/fever_dev_lex_3labels_100_no_lists_evidence_not_sents.jsonl',
             fever_delex_train_local='train/fever_train_delex_smartner_400_3labels_no_lists_evidence_not_sents.jsonl',
             fever_delex_dev_local='dev/fever_dev_delexicalized_3labels_100_no_lists_evidence_not_sents.jsonl',
 

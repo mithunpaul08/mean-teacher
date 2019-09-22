@@ -21,34 +21,43 @@ import os
 #     }
 
 class RTEDataset(Dataset):
-    def __init__(self, claims_evidences_df, vectorizer):
+    def __init__(self, combined_train_dev_test_with_split_column_df, vectorizer):
         """
         Args:
-            claims_evidences_df (pandas.DataFrame): the dataset
+            combined_train_dev_test_with_split_column_df (pandas.DataFrame): the dataset
             vectorizer (VectorizerWithEmbedding): vectorizer instantiated from dataset
         """
-        self.claims_ev_df = claims_evidences_df
+        self.lex_delex_claims_ev_df = combined_train_dev_test_with_split_column_df
         self._vectorizer = vectorizer
 
         # +1 if only using begin_seq, +2 if using both begin and end seq tokens
         measure_len = lambda context: len(context.split(" "))
-        self._max_claim_length = max(map(measure_len, claims_evidences_df.claim)) + 2
-        self._max_evidence_length = max(map(measure_len, claims_evidences_df.evidence)) + 2
+        self._max_claim_length = max(map(measure_len, combined_train_dev_test_with_split_column_df.claim)) + 2
+        self._max_evidence_length = max(map(measure_len, combined_train_dev_test_with_split_column_df.evidence)) + 2
 
-        self.train_df = self.claims_ev_df[self.claims_ev_df.split == 'train']
-        self.train_size = len(self.train_df)
+        self.train_lex_df = self.lex_delex_claims_ev_df[self.lex_delex_claims_ev_df.split == 'train_lex']
+        self.train_lex_size = len(self.train_lex_df)
 
-        self.val_df = self.claims_ev_df[self.claims_ev_df.split == 'val']
-        self.validation_size = len(self.val_df)
+        self.train_delex_df = self.lex_delex_claims_ev_df[self.lex_delex_claims_ev_df.split == 'train_delex']
+        self.train_delex_size = len(self.train_delex_df)
 
-        self.test_df = self.claims_ev_df[self.claims_ev_df.split == 'test']
+
+        self.val_lex_df = self.lex_delex_claims_ev_df[self.lex_delex_claims_ev_df.split == 'val_lex']
+        self.validation_lex_size = len(self.val_lex_df)
+
+        self.val_delex_df = self.lex_delex_claims_ev_df[self.lex_delex_claims_ev_df.split == 'val_delex']
+        self.validation_delex_size = len(self.val_delex_df)
+
+        self.test_df = self.lex_delex_claims_ev_df[self.lex_delex_claims_ev_df.split == 'test']
         self.test_size = len(self.test_df)
 
-        self._lookup_dict = {'train': (self.train_df, self.train_size),
-                             'val': (self.val_df, self.validation_size),
+        self._lookup_dict = {'train_lex': (self.train_lex_df, self.train_lex_size),
+                             'train_delex': (self.train_delex_df, self.train_delex_size),
+                             'val_lex': (self.val_lex_df, self.validation_lex_size),
+                             'val_delex': (self.val_delex_df, self.validation_delex_size),
                              'test': (self.test_df, self.test_size)}
 
-        self.set_split('train')
+        self.set_split('train_lex')
 
     @classmethod
     def truncate_words(cls,sent, tr_len):

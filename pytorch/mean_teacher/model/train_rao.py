@@ -99,9 +99,9 @@ class Trainer():
         #optimizer = optim.Adam(classifier.parameters(), lr=args_in.learning_rate)
         input_optimizer, inter_atten_optimizer = initialize_double_optimizers(classifier, args_in)
 
-        self._LOG.debug(f"going to get into ReduceLROnPlateau ")
-        scheduler1 = optim.lr_scheduler.ReduceLROnPlateau(optimizer=input_optimizer,mode='min', factor=0.5,patience=1)
-        scheduler2 = optim.lr_scheduler.ReduceLROnPlateau(optimizer=inter_atten_optimizer, mode='min', factor=0.5, patience=1)
+        #self._LOG.debug(f"going to get into ReduceLROnPlateau ")
+        #scheduler1 = optim.lr_scheduler.ReduceLROnPlateau(optimizer=input_optimizer,mode='min', factor=0.5,patience=1)
+        #scheduler2 = optim.lr_scheduler.ReduceLROnPlateau(optimizer=inter_atten_optimizer, mode='min', factor=0.5, patience=1)
 
 
 
@@ -293,8 +293,8 @@ class Trainer():
                 train_state_in = self.update_train_state( args=args_in, model=classifier,
                                                       train_state=train_state_in)
 
-                scheduler1.step(train_state_in['val_loss'][-1])
-                scheduler2.step(train_state_in['val_loss'][-1])
+                #scheduler1.step(train_state_in['val_loss'][-1])
+                #scheduler2.step(train_state_in['val_loss'][-1])
 
                 train_bar.n = 0
                 val_bar.n = 0

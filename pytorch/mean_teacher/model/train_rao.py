@@ -1,5 +1,5 @@
 from mean_teacher.utils.utils_rao import generate_batches,initialize_double_optimizers,update_optimizer_state
-
+from mean_teacher.utils import losses
 import time
 import torch
 import torch.nn as nn
@@ -88,6 +88,11 @@ class Trainer():
 
     def train(self, args_in,classifier,dataset):
         classifier = classifier.to(args_in.device)
+
+        if args_in.consistency_type == 'mse':
+            consistency_criterion = losses.softmax_mse_loss
+        elif args_in.consistency_type == 'kl':
+            consistency_criterion = losses.softmax_kl_loss
 
         if torch.cuda.is_available():
             class_loss_func = nn.CrossEntropyLoss(size_average=False).cuda()
@@ -184,8 +189,11 @@ class Trainer():
                     running_loss_delex += (loss_t_delex - running_loss_delex) / (batch_index + 1)
 
                     # step 4. use combined classification loss to produce gradients
-                    combined_class_loss=class_loss_lex+class_loss_delex
-                    combined_class_loss.backward()
+                    #combined_class_loss=class_loss_lex+class_loss_delex
+
+                    consistency_loss = consistency_criterion(y_pred_lex, y_pred_delex)
+                    combined_loss=consistency_loss+class_loss_lex
+                    combined_loss.backward()
 
                     #step 4.5 this is specific to decomposable attention
                     # grad_norm = 0.
@@ -243,7 +251,7 @@ class Trainer():
                                           acc=running_acc_lex,
                                           epoch=epoch_index)
                     train_bar.update()
-                    self._LOG.info(f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches_lex} \t moving_avg_train_loss:{round(running_loss_lex,2)} \t moving_avg_train_accuracy:{round(running_acc_lex,2)} ")
+                    self._LOG.info(f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches_lex} \t combined_loss:{round(running_loss_lex,2)} \t running_acc_delex:{round(running_acc_delex,2)} ")
 
                 lr = self.get_learning_rate(input_optimizer)
                 self._LOG.debug(f"value of learning rate now  for input_optimizer is:{lr}")

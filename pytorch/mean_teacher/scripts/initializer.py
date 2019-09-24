@@ -16,8 +16,8 @@ class Initializer():
             frequency_cutoff=5,
             model_state_file='model.pth',
             # for laptop
-            fever_train_local='train/fever_train_lex_3labels_200_smartner_3labels_no_lists_evidence_not_sents.jsonl',
-            fever_dev_local='dev/fever_dev_lex_3labels_200_no_lists_evidence_not_sents.jsonl',
+            fever_train_local='train/fever_train_lex_3labels_400_smartner_3labels_no_lists_evidence_not_sents.jsonl',
+            fever_dev_local='dev/fever_dev_lex_3labels_100_no_lists_evidence_not_sents.jsonl',
 
             #for server
             fever_train_server='train/fever_train_lex_3labels_119k_smartner_3labels_no_lists_evidence_not_sents.jsonl',
@@ -59,7 +59,7 @@ class Initializer():
 
             #workers=4,
             log_level='DEBUG',
-            use_gpu=False
+            use_gpu=True
         )
         args.use_glove = True
         if args.expand_filepaths_to_save_dir:

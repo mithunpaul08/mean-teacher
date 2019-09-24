@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm,tqdm_notebook
 from torch.nn import functional as F
-from mean_teacher.utils.logger import Logger
+from mean_teacher.utils.logger import LOG
 
 class Trainer():
     def __init__(self,LOG):

@@ -4,6 +4,7 @@ import json
 from torch.utils.data import Dataset, DataLoader
 from  .vectorizer_with_embedding import VectorizerWithEmbedding
 import pandas as pd
+import random
 from mean_teacher.utils.utils_valpola import export
 import os
 
@@ -50,6 +51,10 @@ class RTEDataset(Dataset):
 
         self.set_split('train')
 
+        self._train_labels=None
+
+
+
     @classmethod
     def truncate_words(cls,sent, tr_len):
         sent_split = sent.split(" ")
@@ -94,6 +99,7 @@ class RTEDataset(Dataset):
 
         frames = [fever_lex_train_df, fever_lex_dev_df]
         combined_train_dev_test_with_split_column_df = pd.concat(frames)
+        cls._train_labels=fever_lex_train_df.label
 
         # todo: uncomment/call and check the function replace_if_PERSON_C1_format has any effect on claims and evidence sentences-mainpulate dataframe
         return cls(combined_train_dev_test_with_split_column_df, VectorizerWithEmbedding.create_vocabulary(fever_lex_train_df, args.frequency_cutoff))
@@ -184,18 +190,20 @@ class RTEDataset(Dataset):
         """
         return len(self) // batch_size
 
+    def get_labels(self):
+        return self._train_labels
 
-def generate_batches(dataset, batch_size, shuffle=True,
-                     drop_last=True, device="cpu"):
-    """
-    A generator function which wraps the PyTorch DataLoader. It will
-      ensure each tensor is on the write device location.
-    """
-    dataloader = DataLoader(dataset=dataset, batch_size=batch_size,
-                            shuffle=shuffle, drop_last=drop_last)
+    def get_all_label_indices(self,dataset):
 
-    for data_dict in dataloader:
-        out_data_dict = {}
-        for name, tensor in data_dict.items():
-            out_data_dict[name] = data_dict[name].to(device)
-        yield out_data_dict
+        #this command returns all the labels and its corresponding indices eg:[198,2]
+        all_labels = list(enumerate(dataset.get_labels()))
+
+        #note that even though the labels are shuffled up, we are keeping track/returning only the shuffled indices. so it all works out fine.
+        random.shuffle(all_labels)
+
+        #get all the indices alone
+        all_indices=[]
+        for idx,_  in all_labels:
+            all_indices.append(idx)
+        return all_indices
+

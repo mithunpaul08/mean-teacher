@@ -131,12 +131,11 @@ class Trainer():
 
                 # setup: batch generator, set loss and acc to 0, set train mode on
                 dataset.set_split('train')
-                batch_generator1 = generate_batches(dataset,
-                                                   batch_size=args_in.batch_size,
-                                                   device=args_in.device)
-                batch_generator2 = generate_batches(dataset,
-                                                    batch_size=args_in.batch_size,
-                                                    device=args_in.device)
+                #(dataset, batch_size, shuffle=True,
+                     #drop_last=True, device="cpu",workers=1):
+                #
+                batch_generator1 = generate_batches(dataset,workers=args_in.workers,batch_size=args_in.batch_size,device=args_in.device)
+
                 running_loss = 0.0
                 running_acc = 0.0
                 classifier.train()
@@ -145,7 +144,7 @@ class Trainer():
 
 
 
-                for batch_index, (batch_dict1,batch_dict2) in enumerate(zip(batch_generator1,batch_generator2)):
+                for batch_index, (batch_dict1) in enumerate(zip(batch_generator1)):
 
                     # the training routine is these 5 steps:
 
@@ -232,9 +231,12 @@ class Trainer():
 
                 # setup: batch generator, set loss and acc to 0; set eval mode on
                 dataset.set_split('val')
-                batch_generator1 = generate_batches(dataset,
-                                                   batch_size=args_in.batch_size,
-                                                   device=args_in.device)
+                # batch_generator1 = generate_batches(dataset,
+                #                                    batch_size=args_in.batch_size,
+                #                                    device=args_in.device)
+
+                batch_generator1 = generate_batches(dataset,workers=args_in.workers,batch_size=args_in.batch_size,device=args_in.device)
+
                 running_loss = 0.
                 running_acc = 0.
                 classifier.eval()

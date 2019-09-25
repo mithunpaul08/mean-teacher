@@ -55,6 +55,7 @@ class Initializer():
             pretrained="false",
             update_pretrained_wordemb=False,
             cuda=True,
+            workers=4,
 
 
             #workers=4,

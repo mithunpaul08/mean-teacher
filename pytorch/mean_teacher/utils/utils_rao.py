@@ -7,6 +7,8 @@ from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 import sys
 from mean_teacher.model import architectures
+from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
+
 # #### General utilities
 
 def set_seed_everywhere(seed, cuda):
@@ -25,14 +27,23 @@ def preprocess_text(text):
     text = re.sub(r"[^a-zA-Z.,!?]+", r" ", text)
     return text
 
-def generate_batches(dataset, batch_size, shuffle=True,
-                     drop_last=True, device="cpu"):
+def generate_batches(dataset,workers,batch_size,device ,shuffle=True,
+                     drop_last=True ):
     """
     A generator function which wraps the PyTorch DataLoader. It will
       ensure each tensor is on the write device location.
     """
-    dataloader = DataLoader(dataset=dataset, batch_size=batch_size,
-                            shuffle=shuffle, drop_last=drop_last)
+
+    labeled_idxs = dataset.get_all_label_indices(dataset)
+    sampler = SubsetRandomSampler(labeled_idxs)
+    batch_sampler_local = BatchSampler(sampler, batch_size, drop_last=True)
+    # dataloader = DataLoader(dataset=dataset, batch_size=batch_size,
+    #                         shuffle=shuffle, drop_last=drop_last)
+
+    dataloader=DataLoader(dataset,
+     batch_sampler=batch_sampler_local,
+     num_workers=workers,
+     pin_memory=True)
 
     for data_dict in dataloader:
         out_data_dict = {}

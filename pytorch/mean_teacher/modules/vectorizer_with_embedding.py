@@ -75,8 +75,7 @@ class VectorizerWithEmbedding(object):
             labels_vocab.add_token(label)
         LOG.debug(f"size of claim_ev_vocab is {len(claim_ev_vocab)}")
         LOG.debug(f"size of labels_vocab is {len(labels_vocab)}")
-        import sys
-        sys.exit(1)
+
 
         return cls(claim_ev_vocab, labels_vocab)
 

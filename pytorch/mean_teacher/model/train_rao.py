@@ -136,6 +136,7 @@ class Trainer():
                 #
                 batch_generator1 = generate_batches(dataset,workers=args_in.workers,batch_size=args_in.batch_size,device=args_in.device)
 
+
                 running_loss = 0.0
                 running_acc = 0.0
                 classifier.train()
@@ -235,7 +236,7 @@ class Trainer():
                 #                                    batch_size=args_in.batch_size,
                 #                                    device=args_in.device)
 
-                batch_generator1 = generate_batches(dataset,workers=args_in.workers,batch_size=args_in.batch_size,device=args_in.device)
+                batch_generator1 = generate_batches(dataset,workers=args_in.workers,batch_size=args_in.batch_size,device=args_in.device,shuffle=False)
 
                 running_loss = 0.
                 running_acc = 0.

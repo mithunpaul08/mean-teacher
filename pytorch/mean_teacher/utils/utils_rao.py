@@ -34,13 +34,16 @@ def generate_batches(dataset,workers,batch_size,device ,shuffle=True,
       ensure each tensor is on the write device location.
     """
 
-    labeled_idxs = dataset.get_all_label_indices(dataset)
-    sampler = SubsetRandomSampler(labeled_idxs)
-    batch_sampler_local = BatchSampler(sampler, batch_size, drop_last=True)
+
 
     # dataloader = DataLoader(dataset=dataset, batch_size=batch_size,shuffle=shuffle, drop_last=drop_last)
-
-    dataloader=DataLoader(dataset,batch_sampler=batch_sampler_local,num_workers=workers,pin_memory=True)
+    if(shuffle==True):
+        labeled_idxs = dataset.get_all_label_indices(dataset)
+        sampler = SubsetRandomSampler(labeled_idxs)
+        batch_sampler_local = BatchSampler(sampler, batch_size, drop_last=True)
+        dataloader=DataLoader(dataset,batch_sampler=batch_sampler_local,num_workers=workers,pin_memory=True)
+    else:
+        dataloader = DataLoader(dataset,batch_size=batch_size,shuffle=False,pin_memory=True,drop_last=False,num_workers=workers)
 
     for data_dict in dataloader:
         out_data_dict = {}

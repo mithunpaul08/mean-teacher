@@ -72,6 +72,9 @@ class VectorizerWithEmbedding(object):
         labels_vocab = Vocabulary(add_unk=False)
         for label in sorted(set(claim_ev_df.label)):
             labels_vocab.add_token(label)
+        print(f"size of vocabulary is {len(claim_ev_vocab)}")
+        import sys
+        sys.exit(1)
 
         return cls(claim_ev_vocab, labels_vocab)
 

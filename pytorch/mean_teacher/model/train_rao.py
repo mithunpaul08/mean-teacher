@@ -6,11 +6,10 @@ import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm,tqdm_notebook
 from torch.nn import functional as F
-from mean_teacher.utils.logger import Logger
+from mean_teacher.utils.logger import LOG
 
 class Trainer():
-    def __init__(self,LOG):
-        self._LOG=LOG
+    def __init__(self):
         self._current_time={time.strftime("%c")}
 
     def make_train_state(self,args):
@@ -99,7 +98,7 @@ class Trainer():
         #optimizer = optim.Adam(classifier.parameters(), lr=args_in.learning_rate)
         input_optimizer, inter_atten_optimizer = initialize_double_optimizers(classifier, args_in)
 
-        self._LOG.debug(f"going to get into ReduceLROnPlateau ")
+        LOG.debug(f"going to get into ReduceLROnPlateau ")
         #scheduler1 = optim.lr_scheduler.ReduceLROnPlateau(optimizer=input_optimizer,mode='min', factor=0.5,patience=1)
         #scheduler2 = optim.lr_scheduler.ReduceLROnPlateau(optimizer=inter_atten_optimizer, mode='min', factor=0.5, patience=1)
 
@@ -219,12 +218,12 @@ class Trainer():
                                           acc=running_acc,
                                           epoch=epoch_index)
                     train_bar.update()
-                    self._LOG.info(f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches} \t moving_avg_train_loss:{round(running_loss,2)} \t moving_avg_train_accuracy:{round(running_acc,2)} ")
+                    LOG.info(f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches} \t moving_avg_train_loss:{round(running_loss,2)} \t moving_avg_train_accuracy:{round(running_acc,2)} ")
 
                 lr = self.get_learning_rate(input_optimizer)
-                self._LOG.debug(f"value of learning rate now  for input_optimizer is:{lr}")
+                LOG.debug(f"value of learning rate now  for input_optimizer is:{lr}")
                 lr = self.get_learning_rate(inter_atten_optimizer)
-                self._LOG.debug(f"value of learning rate now  for inter_atten_optimizer is:{lr}")
+                LOG.debug(f"value of learning rate now  for inter_atten_optimizer is:{lr}")
 
                 train_state_in['train_loss'].append(running_loss)
                 train_state_in['train_acc'].append(running_acc)
@@ -260,7 +259,7 @@ class Trainer():
                                         acc=running_acc,
                                         epoch=epoch_index)
                     val_bar.update()
-                    self._LOG.info(
+                    LOG.info(
                         f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches} \t moving_avg_val_loss:{round(running_loss,2)} \t moving_avg_val_accuracy:{round(running_acc,2)} ")
 
                 train_state_in['val_loss'].append(running_loss)
@@ -283,7 +282,7 @@ class Trainer():
                 val_bar.n = 0
                 epoch_bar.update()
 
-                self._LOG.info(f"epoch:{epoch_index}\tval_loss_end_of_epoch:{round(running_loss,4)}\tval_accuracy_end_of_epoch:{round(running_acc,4)} ")
+                LOG.info(f"epoch:{epoch_index}\tval_loss_end_of_epoch:{round(running_loss,4)}\tval_accuracy_end_of_epoch:{round(running_acc,4)} ")
                 time.sleep(10)
                 
 
@@ -320,6 +319,6 @@ class Trainer():
         #     running_acc += (acc_t - running_acc) / (batch_index + 1)
         #train_state_in['test_loss'] = running_loss
         #train_state_in['test_acc'] = running_acc
-        self._LOG.info(f"{self._current_time:}Val loss at end of all epochs: {(train_state_in['val_loss'])}")
-        self._LOG.info(f"{self._current_time:}Val accuracy at end of all epochs: {(train_state_in['val_acc'])}")
+        LOG.info(f"{self._current_time:}Val loss at end of all epochs: {(train_state_in['val_loss'])}")
+        LOG.info(f"{self._current_time:}Val accuracy at end of all epochs: {(train_state_in['val_acc'])}")
 

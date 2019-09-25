@@ -2,7 +2,7 @@ from mean_teacher.modules.rao_datasets import RTEDataset
 from mean_teacher.model.train_rao import Trainer
 from mean_teacher.scripts.initializer import Initializer
 from mean_teacher.utils.utils_rao import make_embedding_matrix,create_model
-from mean_teacher.utils.logger import Logger
+from mean_teacher.utils.logger import LOG
 from mean_teacher.model import architectures
 import os
 import logging
@@ -14,9 +14,8 @@ initializer=Initializer()
 command_line_args = initializer.parse_commandline_args()
 args=initializer.set_parameters()
 
-obj_logger=Logger(args)
-LOG=obj_logger.get_logger()
 
+LOG.setLevel(args.log_level)
 current_time={time.strftime("%c")}
 
 glove_filepath_in,fever_train_input_file,fever_dev_input_file=initializer.get_file_paths(command_line_args)
@@ -49,5 +48,5 @@ num_features=len(vectorizer.claim_ev_vocab)
 classifier = create_model(logger_object=LOG,args_in=args,num_classes_in=len(vectorizer.label_vocab)
                           ,word_vocab_embed=embeddings,word_vocab_size=num_features,wordemb_size_in=embedding_size)
 
-train_rte=Trainer(LOG)
+train_rte=Trainer()
 train_rte.train(args,classifier,dataset)

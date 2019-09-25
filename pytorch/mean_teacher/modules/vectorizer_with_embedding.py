@@ -1,5 +1,6 @@
 from collections import Counter
 from .vocabulary import Vocabulary,SequenceVocabulary
+from mean_teacher.utils.logger import LOG
 import numpy as np
 import string
 
@@ -72,9 +73,8 @@ class VectorizerWithEmbedding(object):
         labels_vocab = Vocabulary(add_unk=False)
         for label in sorted(set(claim_ev_df.label)):
             labels_vocab.add_token(label)
-        # print(f"size of vocabulary is {len(claim_ev_vocab)}")
-        # import sys
-        # sys.exit(1)
+        LOG.debug(f"size of vocabulary is {len(claim_ev_vocab)}")
+      
 
         return cls(claim_ev_vocab, labels_vocab)
 

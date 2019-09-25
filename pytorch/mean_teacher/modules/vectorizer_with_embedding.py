@@ -37,6 +37,12 @@ class VectorizerWithEmbedding(object):
 
         return out_vector
 
+    def update_word_count(self, sentence,word_counts):
+            for word in sentence.split(" "):
+                if word not in string.punctuation:
+                    word_counts[word] += 1
+            return word_counts
+
     @classmethod
     def create_vocabulary(cls, claim_ev_df, cutoff=25):
         """Instantiate the vectorizer from the dataset dataframe
@@ -49,11 +55,12 @@ class VectorizerWithEmbedding(object):
 
         claim_ev_vocab = SequenceVocabulary()
         word_counts = Counter()
-        for claim, ev in zip(claim_ev_df.claim, claim_ev_df.evidence):
-            combined_claim_ev = claim + ev
-            for word in combined_claim_ev.split(" "):
-                if word not in string.punctuation:
-                    word_counts[word] += 1
+
+        for claim in (claim_ev_df.claim):
+            word_counts=cls.update_word_count(cls,claim,word_counts)
+
+        for ev in (claim_ev_df.evidence):
+            word_counts=cls.update_word_count(cls, ev,word_counts)
 
 
         for word, count in word_counts.items():

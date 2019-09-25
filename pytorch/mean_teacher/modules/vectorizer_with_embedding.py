@@ -22,10 +22,11 @@ class VectorizerWithEmbedding(object):
         Returns:
             the vetorized title (numpy.array)
         """
-        indices = [self.claim_ev_vocab.begin_seq_index]
+        #indices = [self.claim_ev_vocab.begin_seq_index]
+        indices=[]
         indices.extend(self.claim_ev_vocab.lookup_token(token)
                        for token in input_sentence.split(" "))
-        indices.append(self.claim_ev_vocab.end_seq_index)
+        #indices.append(self.claim_ev_vocab.end_seq_index)
 
         #if we have not found or are providing the length of the input with maximum length.
         if vector_length < 0:

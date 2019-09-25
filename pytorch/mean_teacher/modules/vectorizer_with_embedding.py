@@ -39,7 +39,7 @@ class VectorizerWithEmbedding(object):
 
     def update_word_count(self, sentence,word_counts):
             for word in sentence.split(" "):
-                if word not in string.punctuation:
+                #if word not in string.punctuation:
                     word_counts[word] += 1
             return word_counts
 

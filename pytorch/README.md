@@ -27,7 +27,7 @@ The code expects to find the data in specific directories inside the data-local 
  For example the data for RTE-FEVER is kept here:
 
 ```
-pytorch/data-local/rte/fever/train/train_full_with_evi_sents.jsonl
+pytorch/data-local/rte/fever/train/
 ```
 Note that in this particular case the file train_full_with_evi_sents is a collection of all claims and the corresponding
  evidences in the training data of [FEVER](http://fever.ai/) challenge. This is not available in public unlike the FEVER data. 

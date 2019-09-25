@@ -12,6 +12,7 @@ In this fork of the original mean teacher code, we replace the feed forward netw
 conda create --name mean_teacher python=3 numpy scipy pandas nltk tqdm
 source activate mean_teacher
 pip install sklearn
+pip install jsonlines
 pip install git+ssh://git@github.com/pytorch/vision@c31c3d7e0e68e871d2128c8b731698ed3b11b119
 conda install pytorch-cpu torchvision-cpu -c pytorch *
 ```
@@ -26,13 +27,13 @@ The code expects to find the data in specific directories inside the data-local 
  For example the data for RTE-FEVER is kept here:
 
 ```
-/data-local/rte/fever/train/train_full_with_evi_sents.jsonl
+pytorch/data-local/rte/fever/train/train_full_with_evi_sents.jsonl
 ```
 Note that in this particular case the file train_full_with_evi_sents is a collection of all claims and the corresponding
  evidences in the training data of [FEVER](http://fever.ai/) challenge. This is not available in public unlike the FEVER data. 
  This is the output of the IR module of FEVER baseline [code](http://fever.ai/task.html).
 
-To train on FEVER, run e.g.:
+To train on FEVER, run the following command in the folder 'pytorch/' :
 
 
 ``` 

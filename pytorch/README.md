@@ -12,12 +12,13 @@ In this fork of the original mean teacher code, we replace the feed forward netw
 conda create --name mean_teacher python=3 numpy scipy pandas nltk tqdm
 source activate mean_teacher
 pip install sklearn
+pip install jsonlines
 pip install git+ssh://git@github.com/pytorch/vision@c31c3d7e0e68e871d2128c8b731698ed3b11b119
 conda install pytorch-cpu torchvision-cpu -c pytorch *
 ```
-\* **note**: for pytorch instinstallation get the right command from the pytorch [homepage](https://pytorch.org/) based on your OS and configs.
+\* **note1**: for pytorch instinstallation get the right command from the pytorch [homepage](https://pytorch.org/) based on your OS and configs.
 
-*PS: I personally like/trust `pip install *` instead of `conda install` * because the repos of pip are more comprehensive
+* note 2: I personally like/trust `pip install *` instead of `conda install` * because the repos of pip are more comprehensive
 
 
 The code expects to find the data in specific directories inside the data-local directory. So do remember to 
@@ -26,34 +27,17 @@ The code expects to find the data in specific directories inside the data-local 
  For example the data for RTE-FEVER is kept here:
 
 ```
-/data-local/rte/fever/train/train_full_with_evi_sents.jsonl
+pytorch/data-local/rte/fever/train/
 ```
 Note that in this particular case the file train_full_with_evi_sents is a collection of all claims and the corresponding
  evidences in the training data of [FEVER](http://fever.ai/) challenge. This is not available in public unlike the FEVER data. 
  This is the output of the IR module of FEVER baseline [code](http://fever.ai/task.html).
 
-To train on FEVER, run e.g.:
+To train on FEVER, run the following command in the folder `pytorch/` :
 
 
 ``` 
-python -u main.py 
---dataset fever 
---arch simple_MLP_embed_RTE 
---pretrained_wordemb false 
---update_pretrained_wordemb true
---epochs 2
---consistency 1
---run-name fever_transform
---data_dir data-local/rte/fever
---train_input_file  train_small_200_claims_with_evi_sents.jsonl 
---dev_input_file dev_90_with_evi_sents.jsonl
---print-freq 1
---workers 0
---run_student_only false
---batch_size 100
---labeled_batch_size 25
---labels 20.0
---consistency 1
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 0 --dev_input_file fever_dev_lex_3labels_100_no_lists_evidence_not_sents.jsonl --train_input_file fever_train_lex_3labels_400_smartner_3labels_no_lists_evidence_not_sents.jsonl --arch da_RTE --log_level DEBUG --use_gpu false --pretrained_wordemb_file data-local/glove/glove.840B.300d.txt --use_double_optimizers true --run_student_only true --labels 20.0 --consistency 1
 
 ```
 

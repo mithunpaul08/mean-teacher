@@ -36,24 +36,7 @@ To train on FEVER, run e.g.:
 
 
 ``` 
-python -u main.py 
---dataset fever 
---arch simple_MLP_embed_RTE 
---pretrained_wordemb false 
---update_pretrained_wordemb true
---epochs 2
---consistency 1
---run-name fever_transform
---data_dir data-local/rte/fever
---train_input_file  train_small_200_claims_with_evi_sents.jsonl 
---dev_input_file dev_90_with_evi_sents.jsonl
---print-freq 1
---workers 0
---run_student_only false
---batch_size 100
---labeled_batch_size 25
---labels 20.0
---consistency 1
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  train_full_with_evi_sents.jsonl --dev_input_file fever_dev_delexicalized_3labels_26k.jsonl --arch da_RTE --run_student_only true  --run_student_only true --log_level INFO --use_gpu True --pretrained_wordemb_file /work/mithunpaul/glove/glove.840B.300d.txt --use_double_optimizers true 
 
 ```
 

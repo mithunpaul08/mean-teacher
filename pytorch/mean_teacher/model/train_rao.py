@@ -144,7 +144,7 @@ class Trainer():
 
 
 
-                for batch_index, (batch_dict1) in enumerate(zip(batch_generator1)):
+                for batch_index, batch_dict1 in enumerate(batch_generator1):
 
                     # the training routine is these 5 steps:
 

@@ -51,7 +51,7 @@ class RTEDataset(Dataset):
 
         self.set_split('train')
 
-        self._train_labels=None
+        self._labels=self.train_df.label
 
 
 
@@ -99,7 +99,7 @@ class RTEDataset(Dataset):
 
         frames = [fever_lex_train_df, fever_lex_dev_df]
         combined_train_dev_test_with_split_column_df = pd.concat(frames)
-        cls._train_labels=fever_lex_train_df.label
+        cls.labels=fever_lex_train_df.label
 
         # todo: uncomment/call and check the function replace_if_PERSON_C1_format has any effect on claims and evidence sentences-mainpulate dataframe
         return cls(combined_train_dev_test_with_split_column_df, VectorizerWithEmbedding.create_vocabulary(fever_lex_train_df, args.frequency_cutoff))
@@ -154,6 +154,8 @@ class RTEDataset(Dataset):
         """
         self._target_split = split
         self._target_df, self._target_size = self._lookup_dict[split]
+        self._labels=self._target_df.label
+        print("temp")
 
     def __len__(self):
         return self._target_size
@@ -191,7 +193,7 @@ class RTEDataset(Dataset):
         return len(self) // batch_size
 
     def get_labels(self):
-        return self._train_labels
+         return self._labels
 
     def get_all_label_indices(self,dataset):
 

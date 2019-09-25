@@ -55,11 +55,11 @@ class Initializer():
             pretrained="false",
             update_pretrained_wordemb=False,
             cuda=True,
-            workers=4,
+            workers=0,
 
 
             #workers=4,
-            log_level='DEBUG',
+            log_level='INFO',
             use_gpu=True
         )
         args.use_glove = True

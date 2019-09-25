@@ -37,7 +37,7 @@ To train on FEVER, run the following command in the folder 'pytorch/' :
 
 
 ``` 
-python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  train_full_with_evi_sents.jsonl --dev_input_file fever_dev_delexicalized_3labels_26k.jsonl --arch da_RTE --run_student_only true  --run_student_only true --log_level INFO --use_gpu True --pretrained_wordemb_file /data-local/glove/glove.840B.300d.txt --use_double_optimizers true 
+python -u main.py --dataset fever --arch simple_MLP_embed_RTE --pretrained_wordemb true --update_pretrained_wordemb false --epochs 100 --run-name fever_transform --batch_size 32 --lr 0.005 --data_dir data-local/ --print_freq 1 --workers 4 --train_input_file  train_full_with_evi_sents.jsonl --dev_input_file fever_dev_delexicalized_3labels_26k.jsonl --arch da_RTE --run_student_only true  --run_student_only true --log_level INFO --use_gpu True --pretrained_wordemb_file data-local/glove/glove.840B.300d.txt --use_double_optimizers true 
 
 ```
 

@@ -16,9 +16,9 @@ pip install jsonlines
 pip install git+ssh://git@github.com/pytorch/vision@c31c3d7e0e68e871d2128c8b731698ed3b11b119
 conda install pytorch-cpu torchvision-cpu -c pytorch *
 ```
-\* **note**: for pytorch instinstallation get the right command from the pytorch [homepage](https://pytorch.org/) based on your OS and configs.
+\* **note1**: for pytorch instinstallation get the right command from the pytorch [homepage](https://pytorch.org/) based on your OS and configs.
 
-*PS: I personally like/trust `pip install *` instead of `conda install` * because the repos of pip are more comprehensive
+* note 2: I personally like/trust `pip install *` instead of `conda install` * because the repos of pip are more comprehensive
 
 
 The code expects to find the data in specific directories inside the data-local directory. So do remember to 
@@ -33,7 +33,7 @@ Note that in this particular case the file train_full_with_evi_sents is a collec
  evidences in the training data of [FEVER](http://fever.ai/) challenge. This is not available in public unlike the FEVER data. 
  This is the output of the IR module of FEVER baseline [code](http://fever.ai/task.html).
 
-To train on FEVER, run the following command in the folder 'pytorch/' :
+To train on FEVER, run the following command in the folder `pytorch/` :
 
 
 ``` 

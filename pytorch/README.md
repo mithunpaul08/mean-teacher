@@ -11,7 +11,7 @@ In this fork of the original mean teacher code, we replace the feed forward netw
 ```
 conda create --name mean_teacher python=3 numpy scipy pandas nltk tqdm
 source activate mean_teacher
-pip sklearn
+pip install sklearn
 pip install git+ssh://git@github.com/pytorch/vision@c31c3d7e0e68e871d2128c8b731698ed3b11b119
 conda install pytorch-cpu torchvision-cpu -c pytorch *
 ```

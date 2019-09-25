@@ -269,8 +269,8 @@ class Trainer():
                 train_state_in = self.update_train_state( args=args_in, model=classifier,
                                                       train_state=train_state_in)
 
-                scheduler1.step(train_state_in['val_loss'][-1])
-                scheduler2.step(train_state_in['val_loss'][-1])
+                #scheduler1.step(train_state_in['val_loss'][-1])
+                #scheduler2.step(train_state_in['val_loss'][-1])
 
                 train_bar.n = 0
                 val_bar.n = 0

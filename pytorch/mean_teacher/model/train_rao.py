@@ -274,9 +274,10 @@ class Trainer():
                     running_loss += (loss_t - running_loss) / (batch_index + 1)
 
                     # compute the accuracy
-                    y_pred_labels = self.calculate_argmax_list(y_pred_logit)
-                    y_pred_labels = torch.FloatTensor(y_pred_labels)
-                    acc_t = self.compute_accuracy(y_pred_labels, batch_dict1['y_target'])
+                    #y_pred_labels = self.calculate_argmax_list(y_pred_logit)
+                    #y_pred_labels = torch.FloatTensor(y_pred_labels)
+
+                    acc_t = self.accuracy_fever(y_pred_logit, batch_dict1['y_target'])
                     running_acc += (acc_t - running_acc) / (batch_index + 1)
 
                     val_bar.set_postfix(loss=running_loss,

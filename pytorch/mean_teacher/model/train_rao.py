@@ -90,9 +90,9 @@ class Trainer():
 
     def compute_accuracy(self,y_pred, y_target):
         y_target = y_target.cpu()
-        y_pred_indices = (torch.sigmoid(y_pred) > 0.5).cpu().long()  # .max(dim=1)[1]
-        n_correct = torch.eq(y_pred_indices, y_target).sum().item()
-        return n_correct / len(y_pred_indices) * 100
+        #y_pred_indices = (torch.sigmoid(y_pred) > 0.5).cpu().long()  # .max(dim=1)[1]
+        n_correct = torch.eq(y_pred.long(), y_target).sum().item()
+        return n_correct / len(y_pred) * 100
 
     def get_learning_rate(self,optimizer):
         for param_group in optimizer.param_groups:
@@ -109,11 +109,11 @@ class Trainer():
         classifier = classifier.to(args_in.device)
 
         if torch.cuda.is_available():
-            class_loss_func = nn.CrossEntropyLoss(size_average=False).cuda()
+            class_loss_func = nn.CrossEntropyLoss(size_average=True).cuda()
             #todo: use this code below instead when doing semi supervised :
             # class_loss_func = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cuda()
         else:
-            class_loss_func = nn.CrossEntropyLoss(size_average=False).cpu()
+            class_loss_func = nn.CrossEntropyLoss(size_average=True).cpu()
 
         #optimizer = optim.Adam(classifier.parameters(), lr=args_in.learning_rate)
         input_optimizer, inter_atten_optimizer = initialize_double_optimizers(classifier, args_in)
@@ -228,8 +228,9 @@ class Trainer():
 
                     # -----------------------------------------
                     # compute the accuracy
-                    #y_pred_labels=self.calculate_argmax_list(y_pred_logit)
-                    #y_pred_labels = torch.FloatTensor(y_pred_labels)
+                    y_pred_labels = self.calculate_argmax_list(y_pred_logit)
+                    y_pred_labels = torch.FloatTensor(y_pred_labels)
+                    acc_t = self.compute_accuracy(y_pred_labels, batch_dict1['y_target'])
 
                     acc_t = self.accuracy_fever(y_pred_logit, batch_dict1['y_target'])
                     running_acc += (acc_t - running_acc) / (batch_index + 1)

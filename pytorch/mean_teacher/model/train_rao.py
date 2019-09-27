@@ -68,6 +68,26 @@ class Trainer():
 
         return train_state
 
+    def accuracy_fever(self,predicted_labels, gold_labels):
+        m = nn.Softmax()
+        output_sftmax = m(predicted_labels)
+        NO_LABEL = -1
+        labeled_minibatch_size = max(gold_labels.ne(NO_LABEL).sum(), 1e-8)
+        _, pred = output_sftmax.topk(1, 1, True, True)
+
+        # gold labels and predictions are in transposes (eg:1x15 vs 15x1). so take a transpose to correct it.
+        pred_t = pred.t()
+        correct = pred_t.eq(gold_labels.view(1, -1).expand_as(pred_t))
+
+        # take sum because in correct_k all the LABELS that match are now denoted by 1. So the sum means, total number of correct answers
+        correct_k = correct.sum(1)
+        correct_k_float = float(correct_k.data.item())
+        labeled_minibatch_size_f = float(labeled_minibatch_size)
+        result2 = (correct_k_float / labeled_minibatch_size_f) * 100
+
+
+        return result2
+
     def compute_accuracy(self,y_pred, y_target):
         y_target = y_target.cpu()
         y_pred_indices = (torch.sigmoid(y_pred) > 0.5).cpu().long()  # .max(dim=1)[1]

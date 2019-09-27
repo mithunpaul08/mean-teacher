@@ -33,6 +33,7 @@ class VectorizerWithEmbedding(object):
         if vector_length < 0:
             vector_length = len(indices)
 
+        #Pad the rest of the sentence with masking token
         out_vector = np.zeros(vector_length, dtype=np.int64)
         out_vector[:len(indices)] = indices
         out_vector[len(indices):] = self.claim_ev_vocab.mask_index

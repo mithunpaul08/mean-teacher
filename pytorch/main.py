@@ -21,16 +21,18 @@ args=initializer.set_parameters()
 random_seed = args.random_seed
 random.seed(random_seed)
 np.random.seed(random_seed)
+LOG.setLevel(args.log_level)
 
 torch.backends.cudnn.deterministic = True
 if torch.cuda.is_available():
     torch.manual_seed(args.random_seed)
     torch.cuda.manual_seed(args.random_seed)
+    LOG.info(f"found that cuda is available and hence setting the manual seed as {args.random_seed} ")
 else:
     torch.manual_seed(args.random_seed)
+    LOG.info(f"found that cuda is not available and hence setting the manual seed as {args.random_seed} ")
 
 set_seed_everywhere(args.seed, args.cuda)
-LOG.setLevel(args.log_level)
 current_time={time.strftime("%c")}
 
 glove_filepath_in,fever_train_input_file,fever_dev_input_file=initializer.get_file_paths(command_line_args)

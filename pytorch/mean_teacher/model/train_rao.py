@@ -250,7 +250,7 @@ class Trainer():
                     train_bar.update()
                     LOG.info(
                         f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t running_loss_lex:{round(running_loss_lex,2)}"
-                        f" \t moving_avg_train_accuracy:{round(running_acc_lex,2) } \t running_loss_delex:"
+                        f" \t running_acc_lex:{round(running_acc_lex,2) } \t running_loss_delex:"
                         f"{round(running_loss_delex,2)} \t running_acc_delex:{round(running_acc_delex,2)} ")
 
 

@@ -69,6 +69,25 @@ class Trainer():
 
         return train_state
 
+    def accuracy_fever(self,predicted_labels, gold_labels):
+        m = nn.Softmax()
+        output_sftmax = m(predicted_labels)
+        NO_LABEL = -1
+        labeled_minibatch_size = max(gold_labels.ne(NO_LABEL).sum(), 1e-8)
+        _, pred = output_sftmax.topk(1, 1, True, True)
+
+        # gold labels and predictions are in transposes (eg:1x15 vs 15x1). so take a transpose to correct it.
+        pred_t = pred.t()
+        correct = pred_t.eq(gold_labels.view(1, -1).expand_as(pred_t))
+
+        # take sum because in correct_k all the LABELS that match are now denoted by 1. So the sum means, total number of correct answers
+        correct_k = correct.sum(1)
+        correct_k_float = float(correct_k.data.item())
+        labeled_minibatch_size_f = float(labeled_minibatch_size)
+        result2 = (correct_k_float / labeled_minibatch_size_f) * 100
+
+        return result2
+
     def compute_accuracy(self,y_pred, y_target):
         y_target = y_target.cpu()
         y_pred_indices = (torch.sigmoid(y_pred) > 0.5).cpu().long()  # .max(dim=1)[1]
@@ -86,8 +105,10 @@ class Trainer():
             list_labels_pred.append(indices.data.item())
         return list_labels_pred
 
-    def train(self, args_in,classifier,dataset):
-        classifier = classifier.to(args_in.device)
+    def train(self, args_in, classifier_student1,classifier_student2, dataset):
+        classifier_student1 = classifier_student1.to(args_in.device)
+        classifier_student2 = classifier_student2.to(args_in.device)
+
 
         if args_in.consistency_type == 'mse':
             consistency_criterion = losses.softmax_mse_loss
@@ -101,12 +122,13 @@ class Trainer():
         else:
             class_loss_func = nn.CrossEntropyLoss(size_average=False).cpu()
 
-        #optimizer = optim.Adam(classifier.parameters(), lr=args_in.learning_rate)
-        input_optimizer, inter_atten_optimizer = initialize_double_optimizers(classifier, args_in)
+        input_optimizer_classifier_student1, inter_atten_optimizer_classifier_student1 = initialize_double_optimizers(
+            classifier_student1, args_in)
+        input_optimizer_classifier_student2, inter_atten_optimizer_classifier_student2 = initialize_double_optimizers(
+            classifier_student2, args_in)
 
-        #self._LOG.debug(f"going to get into ReduceLROnPlateau ")
-        #scheduler1 = optim.lr_scheduler.ReduceLROnPlateau(optimizer=input_optimizer,mode='min', factor=0.5,patience=1)
-        #scheduler2 = optim.lr_scheduler.ReduceLROnPlateau(optimizer=inter_atten_optimizer, mode='min', factor=0.5, patience=1)
+        #scheduler1 = optim.lr_scheduler.ReduceLROnPlateau(optimizer=input_optimizer_classifier_student1,mode='min', factor=0.5,patience=1)
+        #scheduler2 = optim.lr_scheduler.ReduceLROnPlateau(optimizer=inter_atten_optimizer_classifier_student1, mode='min', factor=0.5, patience=1)
 
 
 
@@ -153,7 +175,8 @@ class Trainer():
                 running_acc_lex = 0.0
                 running_loss_delex = 0.0
                 running_acc_delex = 0.0
-                classifier.train()
+                classifier_student1.train()
+                classifier_student2.train()
 
 
 
@@ -165,21 +188,23 @@ class Trainer():
 
                     # --------------------------------------
                     # step 1. zero the gradients
-                    input_optimizer.zero_grad()
-                    inter_atten_optimizer.zero_grad()
+                    input_optimizer_classifier_student1.zero_grad()
+                    inter_atten_optimizer_classifier_student1.zero_grad()
+                    input_optimizer_classifier_student2.zero_grad()
+                    inter_atten_optimizer_classifier_student2.zero_grad()
 
                     #this code is from the libowen code base we are using for decomposable attention
                     if epoch_index == 0 and args_in.optimizer == 'adagrad':
-                        update_optimizer_state(input_optimizer, inter_atten_optimizer, args_in)
+                        update_optimizer_state(input_optimizer_classifier_student1, inter_atten_optimizer_classifier_student1, args_in)
 
 
 
                     # step 2. compute the output
-                    y_pred_lex = classifier(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
-                    y_pred_delex = classifier(batch_dict_delex['x_claim'], batch_dict_delex['x_evidence'])
+                    y_pred = classifier_student1(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
+                    y_pred_delex = classifier_student2(batch_dict_delex['x_claim'], batch_dict_delex['x_evidence'])
 
                     # step 3.1 compute the class_loss_lex
-                    class_loss_lex = class_loss_func(y_pred_lex, batch_dict_lex['y_target'])
+                    class_loss_lex = class_loss_func(y_pred, batch_dict_lex['y_target'])
                     loss_t_lex = class_loss_lex.item()
                     running_loss_lex += (loss_t_lex - running_loss_lex) / (batch_index + 1)
 
@@ -191,44 +216,18 @@ class Trainer():
                     # step 4. use combined classification loss to produce gradients
                     #combined_class_loss=class_loss_lex+class_loss_delex
 
-                    consistency_loss = consistency_criterion(y_pred_lex, y_pred_delex)
+                    consistency_loss = consistency_criterion(y_pred, y_pred_delex)
                     combined_loss=consistency_loss+class_loss_lex
                     combined_loss.backward()
-
-                    #step 4.5 this is specific to decomposable attention
-                    # grad_norm = 0.
-                    # para_norm = 0.
-                    # for m in classifier.input_encoder.modules():
-                    #     if isinstance(m, nn.Linear):
-                    #         grad_norm += m.weight.grad.data.norm() ** 2
-                    #         para_norm += m.weight.data.norm() ** 2
-                    #         if m.bias:
-                    #             grad_norm += m.bias.grad.data.norm() ** 2
-                    #             para_norm += m.bias.data.norm() ** 2
-                    #
-                    # for m in classifier.inter_atten.modules():
-                    #     if isinstance(m, nn.Linear):
-                    #         grad_norm += m.weight.grad.data.norm() ** 2
-                    #         para_norm += m.weight.data.norm() ** 2
-                    #         if m.bias is not None:
-                    #             grad_norm += m.bias.grad.data.norm() ** 2
-                    #             para_norm += m.bias.data.norm() ** 2
-                    #
-                    # shrinkage = args_in.max_grad_norm / grad_norm
-                    # if shrinkage < 1:
-                    #     for m in classifier.input_encoder.modules():
-                    #         if isinstance(m, nn.Linear):
-                    #             m.weight.grad.data = m.weight.grad.data * shrinkage
-                    #     for m in classifier.inter_atten.modules():
-                    #         if isinstance(m, nn.Linear):
-                    #             m.weight.grad.data = m.weight.grad.data * shrinkage
-                    #             m.bias.grad.data = m.bias.grad.data * shrinkage
 
 
                     # step 5. use optimizer to take gradient step
                     #optimizer.step()
-                    input_optimizer.step()
-                    inter_atten_optimizer.step()
+                    input_optimizer_classifier_student1.step()
+                    inter_atten_optimizer_classifier_student1.step()
+                    input_optimizer_classifier_student2.step()
+                    inter_atten_optimizer_classifier_student2.step()
+
 
                     # -----------------------------------------
 
@@ -236,7 +235,7 @@ class Trainer():
 
                     # compute the accuracy for lex data
 
-                    acc_t_lex = self.accuracy_fever(y_pred_lex, batch_dict_lex['y_target'])
+                    acc_t_lex = self.accuracy_fever(y_pred, batch_dict_lex['y_target'])
                     running_acc_lex += (acc_t_lex - running_acc_lex) / (batch_index + 1)
 
                     # compute the accuracy for delex data
@@ -250,7 +249,9 @@ class Trainer():
                                           epoch=epoch_index)
                     train_bar.update()
                     LOG.info(
-                        f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches} \t moving_avg_train_loss:{round(running_loss,2)} \t moving_avg_train_accuracy:{round(running_acc,2)} ")
+                        f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t running_loss_lex:{round(running_loss_lex,2)}"
+                        f" \t moving_avg_train_accuracy:{round(running_acc_lex,2) } \t running_loss_delex:"
+                        f"{round(running_loss_delex,2)} \t running_acc_delex:{round(running_acc_delex,2)} ")
 
 
                 train_state_in['train_loss'].append(running_loss_lex)
@@ -260,38 +261,39 @@ class Trainer():
 
                 # setup: batch generator, set class_loss_lex and acc to 0; set eval mode on
                 dataset.set_split('val_delex')
-                batch_generator1 = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
+                batch_generator_val = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
                                                     device=args_in.device, shuffle=False)
-                running_loss_lex = 0.
-                running_acc_lex = 0.
-                classifier.eval()
+                running_loss_val = 0.
+                running_acc_val = 0.
+                classifier_student1.eval()
+                classifier_student2.eval()
                 no_of_batches_lex = int(len(dataset) / args_in.batch_size)
 
-                for batch_index, batch_dict_lex in enumerate(batch_generator1):
+                for batch_index, batch_dict_lex in enumerate(batch_generator_val):
                     # compute the output
-                    y_pred_lex = classifier(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
+                    y_pred = classifier_student2(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
 
                     # step 3. compute the class_loss_lex
-                    class_loss_lex = class_loss_func(y_pred_lex, batch_dict_lex['y_target'])
+                    class_loss_lex = class_loss_func(y_pred, batch_dict_lex['y_target'])
                     loss_t_lex = class_loss_lex.item()
-                    running_loss_lex += (loss_t_lex - running_loss_lex) / (batch_index + 1)
+                    running_loss_val += (loss_t_lex - running_loss_lex) / (batch_index + 1)
 
                     # compute the accuracy
-                    acc_t_lex = self.accuracy_fever(y_pred_lex, batch_dict_lex['y_target'])
-                    running_acc_lex += (acc_t_lex - running_acc_lex) / (batch_index + 1)
+                    acc_t_lex = self.accuracy_fever(y_pred, batch_dict_lex['y_target'])
+                    running_acc_val += (acc_t_lex - running_acc_lex) / (batch_index + 1)
 
-                    val_bar.set_postfix(loss=running_loss_lex,
-                                        acc=running_acc_lex,
+                    val_bar.set_postfix(loss=running_loss_val,
+                                        acc=running_acc_val,
                                         epoch=epoch_index)
                     val_bar.update()
                     LOG.info(
-                        f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches} \t moving_avg_val_loss:{round(running_loss,2)} \t moving_avg_val_accuracy:{round(running_acc,2)} ")
+                        f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches_lex} \t moving_avg_val_loss:{round(running_loss_val,2)} \t moving_avg_val_accuracy:{round(running_acc_val,2)} ")
 
                 train_state_in['val_loss'].append(running_loss_lex)
                 train_state_in['val_acc'].append(running_acc_lex)
 
-                train_state_in = self.update_train_state( args=args_in, model=classifier,
-                                                      train_state=train_state_in)
+                train_state_in = self.update_train_state(args=args_in, model=classifier_student2,
+                                                         train_state=train_state_in)
 
                 #scheduler1.step(train_state_in['val_loss'][-1])
                 #scheduler2.step(train_state_in['val_loss'][-1])
@@ -314,6 +316,5 @@ class Trainer():
         except KeyboardInterrupt:
             print("Exiting loop")
 
-    LOG.info(f"{self._current_time:}Val loss at end of all epochs: {(train_state_in['val_loss'])}")
-    LOG.info(f"{self._current_time:}Val accuracy at end of all epochs: {(train_state_in['val_acc'])}")
+
 

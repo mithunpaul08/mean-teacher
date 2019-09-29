@@ -37,7 +37,8 @@ LOG.setLevel(args.log_level)
 
 current_time={time.strftime("%c")}
 
-glove_filepath_in,fever_train_input_file,fever_dev_input_file,fever_delex_train_input_file,fever_delex_dev_input_file=initializer.get_file_paths(command_line_args)
+glove_filepath_in, fever_lex_train_input_file, fever_lex_dev_input_file, fever_delex_train_input_file, \
+fever_delex_dev_input_file=initializer.get_file_paths(command_line_args)
 LOG.info(f"{current_time} loading glove from path:{glove_filepath_in}")
 
 
@@ -47,7 +48,7 @@ if args.reload_from_files:
                                                               args.vectorizer_file)
 else:
     # create dataset and vectorizer
-    dataset = RTEDataset.load_dataset_and_create_vocabulary_for_combined_lex_delex(fever_train_input_file, fever_dev_input_file, fever_delex_train_input_file,fever_delex_dev_input_file,args)
+    dataset = RTEDataset.load_dataset_and_create_vocabulary_for_combined_lex_delex(fever_lex_train_input_file, fever_lex_dev_input_file, fever_delex_train_input_file, fever_delex_dev_input_file, args)
     dataset.save_vectorizer(args.vectorizer_file)
 vectorizer = dataset.get_vectorizer()
 
@@ -64,8 +65,11 @@ else:
     embeddings = None
 
 num_features=len(vectorizer.claim_ev_vocab)
-classifier = create_model(logger_object=LOG,args_in=args,num_classes_in=len(vectorizer.label_vocab)
+classifier_student1 = create_model(logger_object=LOG,args_in=args,num_classes_in=len(vectorizer.label_vocab)
+                          ,word_vocab_embed=embeddings,word_vocab_size=num_features,wordemb_size_in=embedding_size)
+
+classifier_student2 = create_model(logger_object=LOG,args_in=args,num_classes_in=len(vectorizer.label_vocab)
                           ,word_vocab_embed=embeddings,word_vocab_size=num_features,wordemb_size_in=embedding_size)
 
 train_rte=Trainer(LOG)
-train_rte.train(args,classifier,dataset)
+train_rte.train(args,classifier_student1,classifier_student2,dataset)

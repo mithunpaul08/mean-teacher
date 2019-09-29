@@ -27,7 +27,7 @@ class Initializer():
             fever_delex_train_server='train/fever_train_delex_smartner_119k_3labels_no_lists_evidence_not_sents.jsonl',
             fever_delex_dev_server='dev/fever_dev_delexicalized_3labels_26k_no_lists_evidence_not_sents.jsonl',
 
-            data_dir_local='../data-local/rte/fever',
+            data_dir_local='data-local/rte/fever',
             data_dir_server='data-local/rte/fever',
             save_dir='model_storage/ch3/yelp/',
             vectorizer_file='vectorizer.json',
@@ -61,10 +61,11 @@ class Initializer():
             pretrained="false",
             update_pretrained_wordemb=False,
             cuda=True,
+            workers=0,
 
             log_level='INFO',
-            use_gpu=True
-            #consistency_type="mse"
+            use_gpu=True,
+            consistency_type="mse"
         )
         args.use_glove = True
         if args.expand_filepaths_to_save_dir:
@@ -120,10 +121,10 @@ class Initializer():
 
         data_dir = self._args.data_dir_local
         glove_filepath_in = self._args.glove_filepath_local
-        fever_lex_train_input_file = os.path.join(data_dir, self._args.fever_lex_train_local)
-        fever_lex_dev_input_file = os.path.join(data_dir, self._args.fever_lex_dev_local)
-        fever_delex_train_input_file = os.path.join(data_dir, self._args.fever_delex_train_local)
-        fever_delex_dev_input_file = os.path.join(data_dir, self._args.fever_delex_dev_local)
+        fever_lex_train_input_file = os.path.join(os.getcwd(),data_dir, self._args.fever_lex_train_local)
+        fever_lex_dev_input_file = os.path.join(os.getcwd(),data_dir, self._args.fever_lex_dev_local)
+        fever_delex_train_input_file = os.path.join(os.getcwd(),data_dir, self._args.fever_delex_train_local)
+        fever_delex_dev_input_file = os.path.join(os.getcwd(),data_dir, self._args.fever_delex_dev_local)
 
 
         if (command_line_args.run_on_server == True):

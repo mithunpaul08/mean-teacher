@@ -4,21 +4,10 @@ import json
 from torch.utils.data import Dataset, DataLoader
 from  .vectorizer_with_embedding import VectorizerWithEmbedding
 import pandas as pd
+import random
 from mean_teacher.utils.utils_valpola import export
 import os
 
-# @export
-# def fever():
-#
-#     if RTEDataset.WORD_NOISE_TYPE in ['drop', 'replace']:
-#         addNoise = data.RandomPatternWordNoise(RTEDataset.NUM_WORDS_TO_REPLACE, RTEDataset.OOV, RTEDataset.WORD_NOISE_TYPE)
-#     else:
-#         assert False, "Unknown type of noise {}".format(RTEDataset.WORD_NOISE_TYPE)
-#
-#     return {
-#         'train_transformation': None,
-#         'eval_transformation': None,
-#     }
 
 class RTEDataset(Dataset):
     def __init__(self, combined_train_dev_test_with_split_column_df, vectorizer):
@@ -58,6 +47,7 @@ class RTEDataset(Dataset):
                              'test': (self.test_df, self.test_size)}
 
         self.set_split('train_lex')
+        self._labels = self.train_lex_df.label
 
     @classmethod
     def truncate_words(cls,sent, tr_len):
@@ -165,6 +155,7 @@ class RTEDataset(Dataset):
         """
         self._target_split = split
         self._target_df, self._target_size = self._lookup_dict[split]
+        self._labels = self._target_df.label
 
     def __len__(self):
         return self._target_size
@@ -200,19 +191,19 @@ class RTEDataset(Dataset):
             number of batches in the dataset
         """
         return len(self) // batch_size
+    def get_labels(self):
+         return self._labels
 
+    def get_all_label_indices(self,dataset):
 
-def generate_batches(dataset, batch_size, shuffle=True,
-                     drop_last=True, device="cpu"):
-    """
-    A generator function which wraps the PyTorch DataLoader. It will
-      ensure each tensor is on the write device location.
-    """
-    dataloader = DataLoader(dataset=dataset, batch_size=batch_size,
-                            shuffle=shuffle, drop_last=drop_last)
+        #this command returns all the labels and its corresponding indices eg:[198,2]
+        all_labels = list(enumerate(dataset.get_labels()))
 
-    for data_dict in dataloader:
-        out_data_dict = {}
-        for name, tensor in data_dict.items():
-            out_data_dict[name] = data_dict[name].to(device)
-        yield out_data_dict
+        #note that even though the labels are shuffled up, we are keeping track/returning only the shuffled indices. so it all works out fine.
+        random.shuffle(all_labels)
+
+        #get all the indices alone
+        all_indices=[]
+        for idx,_  in all_labels:
+            all_indices.append(idx)
+        return all_indices

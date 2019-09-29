@@ -309,7 +309,8 @@ class Trainer():
                 val_bar.n = 0
                 epoch_bar.update()
 
-                self._LOG.info(f"epoch:{epoch_index}\tval_loss_end_of_epoch:{round(running_loss_lex,4)}\tval_accuracy_end_of_epoch:{round(running_acc_lex,4)} ")
+                LOG.info(
+                    f"val_loss_end_of_epoch:{round(running_loss_val,2)} \t val_accuracy_end_of_epoch:{round(running_acc_val,2)} ")
                 time.sleep(10)
                 
 

@@ -200,11 +200,11 @@ class Trainer():
 
 
                     # step 2. compute the output
-                    y_pred = classifier_student1(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
+                    y_pred_lex = classifier_student1(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
                     y_pred_delex = classifier_student2(batch_dict_delex['x_claim'], batch_dict_delex['x_evidence'])
 
                     # step 3.1 compute the class_loss_lex
-                    class_loss_lex = class_loss_func(y_pred, batch_dict_lex['y_target'])
+                    class_loss_lex = class_loss_func(y_pred_lex, batch_dict_lex['y_target'])
                     loss_t_lex = class_loss_lex.item()
                     running_loss_lex += (loss_t_lex - running_loss_lex) / (batch_index + 1)
 
@@ -216,7 +216,7 @@ class Trainer():
                     # step 4. use combined classification loss to produce gradients
                     #combined_class_loss=class_loss_lex+class_loss_delex
 
-                    consistency_loss = consistency_criterion(y_pred, y_pred_delex)
+                    consistency_loss = consistency_criterion(y_pred_lex, y_pred_delex)
                     combined_loss=consistency_loss+class_loss_lex
                     combined_loss.backward()
 
@@ -235,7 +235,7 @@ class Trainer():
 
                     # compute the accuracy for lex data
 
-                    acc_t_lex = self.accuracy_fever(y_pred, batch_dict_lex['y_target'])
+                    acc_t_lex = self.accuracy_fever(y_pred_lex, batch_dict_lex['y_target'])
                     running_acc_lex += (acc_t_lex - running_acc_lex) / (batch_index + 1)
 
                     # compute the accuracy for delex data
@@ -271,15 +271,15 @@ class Trainer():
 
                 for batch_index, batch_dict_lex in enumerate(batch_generator_val):
                     # compute the output
-                    y_pred = classifier_student2(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
+                    y_pred_lex = classifier_student2(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
 
                     # step 3. compute the class_loss_lex
-                    class_loss_lex = class_loss_func(y_pred, batch_dict_lex['y_target'])
+                    class_loss_lex = class_loss_func(y_pred_lex, batch_dict_lex['y_target'])
                     loss_t_lex = class_loss_lex.item()
                     running_loss_val += (loss_t_lex - running_loss_lex) / (batch_index + 1)
 
                     # compute the accuracy
-                    acc_t_lex = self.accuracy_fever(y_pred, batch_dict_lex['y_target'])
+                    acc_t_lex = self.accuracy_fever(y_pred_lex, batch_dict_lex['y_target'])
                     running_acc_val += (acc_t_lex - running_acc_lex) / (batch_index + 1)
 
                     val_bar.set_postfix(loss=running_loss_val,

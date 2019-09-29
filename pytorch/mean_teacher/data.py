@@ -231,7 +231,7 @@ def relabel_dataset_nlp(dataset, args):
     return labeled_ids, unlabeled_idxs
 
 
-def get_all_label_indices(dataset, args):
+def get_all_label_indices(dataset):
 
     #this command returns all the labels and its corresponding indices eg:[198,2]
     all_labels = list(enumerate(dataset.get_labels()))

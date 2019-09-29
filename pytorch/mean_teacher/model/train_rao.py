@@ -228,9 +228,7 @@ class Trainer():
 
                     # -----------------------------------------
                     # compute the accuracy
-                    y_pred_labels = self.calculate_argmax_list(y_pred_logit)
-                    y_pred_labels = torch.FloatTensor(y_pred_labels)
-                    acc_t = self.compute_accuracy(y_pred_labels, batch_dict1['y_target'])
+                    
 
                     acc_t = self.accuracy_fever(y_pred_logit, batch_dict1['y_target'])
                     running_acc += (acc_t - running_acc) / (batch_index + 1)
@@ -254,9 +252,7 @@ class Trainer():
 
                 # setup: batch generator, set loss and acc to 0; set eval mode on
                 dataset.set_split('val')
-                # batch_generator1 = generate_batches(dataset,
-                #                                    batch_size=args_in.batch_size,
-                #                                    device=args_in.device)
+
 
                 batch_generator1 = generate_batches(dataset,workers=args_in.workers,batch_size=args_in.batch_size,device=args_in.device,shuffle=False)
 
@@ -273,11 +269,6 @@ class Trainer():
                     loss = class_loss_func(y_pred_logit, batch_dict1['y_target'])
                     loss_t = loss.item()
                     running_loss += (loss_t - running_loss) / (batch_index + 1)
-
-                    # compute the accuracy
-                    y_pred_labels = self.calculate_argmax_list(y_pred_logit)
-                    y_pred_labels = torch.FloatTensor(y_pred_labels)
-                    acc_t = self.compute_accuracy(y_pred_logit, batch_dict1['y_target'])
 
 
                     acc_t = self.accuracy_fever(y_pred_logit, batch_dict1['y_target'])

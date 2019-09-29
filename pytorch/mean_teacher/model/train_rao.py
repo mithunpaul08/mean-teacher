@@ -137,16 +137,16 @@ class Trainer():
 
                 # setup: batch generator, set class_loss_lex and acc to 0, set train mode on
                 dataset.set_split('train_lex')
-                batch_generator1 = generate_batches(dataset,
-                                                   batch_size=args_in.batch_size,
-                                                   device=args_in.device)
+                batch_generator1 = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
+                                                    device=args_in.device)
                 no_of_batches_lex = int(len(dataset) / args_in.batch_size)
 
                 dataset.set_split('train_delex')
 
-                batch_generator2 = generate_batches(dataset,
-                                                    batch_size=args_in.batch_size,
+                batch_generator2 = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
                                                     device=args_in.device)
+
+
                 no_of_batches_delex = int(len(dataset) / args_in.batch_size)
 
                 running_loss_lex = 0.0
@@ -235,15 +235,13 @@ class Trainer():
 
 
                     # compute the accuracy for lex data
-                    y_pred_labels_lex=self.calculate_argmax_list(y_pred_lex)
-                    y_pred_labels_lex = torch.FloatTensor(y_pred_labels_lex)
-                    acc_t_lex = self.compute_accuracy(y_pred_labels_lex, batch_dict_lex['y_target'])
+
+                    acc_t_lex = self.accuracy_fever(y_pred_lex, batch_dict_lex['y_target'])
                     running_acc_lex += (acc_t_lex - running_acc_lex) / (batch_index + 1)
 
                     # compute the accuracy for delex data
-                    y_pred_labels_delex = self.calculate_argmax_list(y_pred_delex)
-                    y_pred_labels_delex = torch.FloatTensor(y_pred_labels_delex)
-                    acc_t_delex = self.compute_accuracy(y_pred_labels_delex, batch_dict_delex['y_target'])
+
+                    acc_t_delex = self.accuracy_fever(y_pred_delex, batch_dict_delex['y_target'])
                     running_acc_delex += (acc_t_delex - running_acc_delex) / (batch_index + 1)
 
                     # update bar
@@ -251,12 +249,9 @@ class Trainer():
                                           acc=running_acc_lex,
                                           epoch=epoch_index)
                     train_bar.update()
-                    self._LOG.info(f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches_lex} \t combined_loss:{round(running_loss_lex,2)} \t running_acc_delex:{round(running_acc_delex,2)} ")
+                    LOG.info(
+                        f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches} \t moving_avg_train_loss:{round(running_loss,2)} \t moving_avg_train_accuracy:{round(running_acc,2)} ")
 
-                lr = self.get_learning_rate(input_optimizer)
-                self._LOG.debug(f"value of learning rate now  for input_optimizer is:{lr}")
-                lr = self.get_learning_rate(inter_atten_optimizer)
-                self._LOG.debug(f"value of learning rate now  for inter_atten_optimizer is:{lr}")
 
                 train_state_in['train_loss'].append(running_loss_lex)
                 train_state_in['train_acc'].append(running_acc_lex)
@@ -265,9 +260,8 @@ class Trainer():
 
                 # setup: batch generator, set class_loss_lex and acc to 0; set eval mode on
                 dataset.set_split('val_delex')
-                batch_generator1 = generate_batches(dataset,
-                                                   batch_size=args_in.batch_size,
-                                                   device=args_in.device)
+                batch_generator1 = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
+                                                    device=args_in.device, shuffle=False)
                 running_loss_lex = 0.
                 running_acc_lex = 0.
                 classifier.eval()
@@ -283,17 +277,15 @@ class Trainer():
                     running_loss_lex += (loss_t_lex - running_loss_lex) / (batch_index + 1)
 
                     # compute the accuracy
-                    y_pred_labels_lex = self.calculate_argmax_list(y_pred_lex)
-                    y_pred_labels_lex = torch.FloatTensor(y_pred_labels_lex)
-                    acc_t_lex = self.compute_accuracy(y_pred_labels_lex, batch_dict_lex['y_target'])
+                    acc_t_lex = self.accuracy_fever(y_pred_lex, batch_dict_lex['y_target'])
                     running_acc_lex += (acc_t_lex - running_acc_lex) / (batch_index + 1)
 
                     val_bar.set_postfix(loss=running_loss_lex,
                                         acc=running_acc_lex,
                                         epoch=epoch_index)
                     val_bar.update()
-                    self._LOG.info(
-                        f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches_lex} \t moving_avg_val_loss:{round(running_loss_lex,2)} \t moving_avg_val_accuracy:{round(running_acc_lex,2)} ")
+                    LOG.info(
+                        f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches} \t moving_avg_val_loss:{round(running_loss,2)} \t moving_avg_val_accuracy:{round(running_acc,2)} ")
 
                 train_state_in['val_loss'].append(running_loss_lex)
                 train_state_in['val_acc'].append(running_acc_lex)
@@ -322,36 +314,6 @@ class Trainer():
         except KeyboardInterrupt:
             print("Exiting loop")
 
-
-
-        # uncomment to compute the class_loss_lex & accuracy on the test set using the best available model
-        #
-        # classifier.load_state_dict(torch.load(train_state_in['model_filename']))
-        # classifier = classifier.to(args_in.device)
-        #
-        # dataset.set_split('test')
-        # batch_generator1 = generate_batches(dataset,
-        #                                    batch_size=args_in.batch_size,
-        #                                    device=args_in.device)
-        # running_loss_lex = 0.
-        # running_acc_lex = 0.
-        # classifier.eval()
-        #
-        # for batch_index, batch_dict in enumerate(batch_generator1):
-        #     # compute the output
-        #     y_pred_lex = classifier(batch_dict['x_claim'], batch_dict['x_evidence'])
-        #
-        #
-        #     # compute the class_loss_lex
-        #     class_loss_lex = class_loss_func(y_pred_lex, batch_dict['y_target'].float())
-        #     loss_t_lex = class_loss_lex.item()
-        #     running_loss_lex += (loss_t_lex - running_loss_lex) / (batch_index + 1)
-        #
-        #     # compute the accuracy
-        #     acc_t_lex = self.compute_accuracy(y_pred_lex, batch_dict['y_target'])
-        #     running_acc_lex += (acc_t_lex - running_acc_lex) / (batch_index + 1)
-        #train_state_in['test_loss'] = running_loss_lex
-        #train_state_in['test_acc'] = running_acc_lex
-        self._LOG.info(f"{self._current_time:}Val class_loss_lex at end of all epochs: {(train_state_in['val_loss'])}")
-        self._LOG.info(f"{self._current_time:}Val accuracy at end of all epochs: {(train_state_in['val_acc'])}")
+    LOG.info(f"{self._current_time:}Val loss at end of all epochs: {(train_state_in['val_loss'])}")
+    LOG.info(f"{self._current_time:}Val accuracy at end of all epochs: {(train_state_in['val_acc'])}")
 

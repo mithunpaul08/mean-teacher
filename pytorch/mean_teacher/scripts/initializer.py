@@ -40,7 +40,8 @@ class Initializer():
             early_stopping_criteria=5,
             learning_rate=0.005,
             num_epochs=500,
-            seed=1337,
+            seed=256,
+            random_seed=20,
             weight_decay=5e-5,
             Adagrad_init=0,
 
@@ -61,11 +62,9 @@ class Initializer():
             update_pretrained_wordemb=False,
             cuda=True,
 
-
-            #workers=4,
-            log_level='DEBUG',
-            use_gpu=True,
-            consistency_type="mse"
+            log_level='INFO',
+            use_gpu=True
+            #consistency_type="mse"
         )
         args.use_glove = True
         if args.expand_filepaths_to_save_dir:

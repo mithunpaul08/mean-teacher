@@ -37,6 +37,11 @@ class VectorizerWithEmbedding(object):
 
         return out_vector
 
+    def update_word_count(self, sentence,word_counts):
+            for word in sentence.split(" "):
+                #if word not in string.punctuation:
+                    word_counts[word] += 1
+            return word_counts
 
     @classmethod
     def create_vocabulary(cls, claim_ev_lex, claim_ev_delex, cutoff=25):
@@ -50,17 +55,17 @@ class VectorizerWithEmbedding(object):
 
         claim_ev_vocab = SequenceVocabulary()
         word_counts = Counter()
-        for claim, ev in zip(claim_ev_lex.claim, claim_ev_lex.evidence):
-            combined_claim_ev = claim + ""+ ev
-            for word in combined_claim_ev.split(" "):
-                if word not in string.punctuation:
-                    word_counts[word] += 1
+        for claim in (claim_ev_lex.claim):
+            word_counts=cls.update_word_count(cls,claim,word_counts)
+        for ev in (claim_ev_lex.evidence):
+            word_counts=cls.update_word_count(cls, ev,word_counts)
 
-        for claim, ev in zip(claim_ev_delex.claim, claim_ev_delex.evidence):
-            combined_claim_ev = claim + ev
-            for word in combined_claim_ev.split(" "):
-                if word not in string.punctuation:
-                    word_counts[word] += 1
+
+        for claim in (claim_ev_delex.claim):
+            word_counts=cls.update_word_count(cls,claim,word_counts)
+        for ev in (claim_ev_delex.evidence):
+            word_counts=cls.update_word_count(cls, ev,word_counts)
+
 
         for word, count in word_counts.items():
             # removing cutoff for the time being- to check if it increases accuracy

@@ -1,18 +1,37 @@
 from mean_teacher.modules.rao_datasets import RTEDataset
 from mean_teacher.model.train_rao import Trainer
 from mean_teacher.scripts.initializer import Initializer
-from mean_teacher.utils.utils_rao import make_embedding_matrix,create_model
+from mean_teacher.utils.utils_rao import make_embedding_matrix,create_model,set_seed_everywhere
 from mean_teacher.utils.logger import LOG
 from mean_teacher.model import architectures
 import os
 import logging
 import time
-
+import random
+import torch
+import numpy as np
 
 
 initializer=Initializer()
 command_line_args = initializer.parse_commandline_args()
 args=initializer.set_parameters()
+
+set_seed_everywhere(args.seed, args.cuda)
+
+random_seed = args.random_seed
+random.seed(random_seed)
+np.random.seed(random_seed)
+LOG.setLevel(args.log_level)
+
+
+torch.backends.cudnn.deterministic = True
+if torch.cuda.is_available():
+    torch.manual_seed(args.random_seed)
+    torch.cuda.manual_seed(args.random_seed)
+    LOG.info(f"found that cuda is available and hence setting the manual seed as {args.random_seed} ")
+else:
+    torch.manual_seed(args.random_seed)
+    LOG.info(f"found that cuda is not available and hence setting the manual seed as {args.random_seed} ")
 
 LOG.setLevel(args.log_level)
 

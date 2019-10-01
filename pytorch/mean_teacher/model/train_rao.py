@@ -89,9 +89,8 @@ class Trainer():
 
     def compute_accuracy(self,y_pred, y_target):
         y_target = y_target.cpu()
-        y_pred_indices = (torch.sigmoid(y_pred) > 0.5).cpu().long()  # .max(dim=1)[1]
-        n_correct = torch.eq(y_pred_indices, y_target).sum().item()
-        return n_correct / len(y_pred_indices) * 100
+        n_correct = torch.eq(y_pred, y_target.float()).sum().item()
+        return n_correct / len(y_pred) * 100
 
     def get_learning_rate(self,optimizer):
         for param_group in optimizer.param_groups:
@@ -234,12 +233,21 @@ class Trainer():
 
                     # compute the accuracy for lex data
 
-                    acc_t_lex = self.accuracy_fever(y_pred_lex, batch_dict_lex['y_target'],no_of_batches_lex)
+                    y_pred_labels = self.calculate_argmax_list(y_pred_lex)
+                    y_pred_labels = torch.FloatTensor(y_pred_labels)
+                    acc_t_lex = self.compute_accuracy(y_pred_labels, batch_dict_lex['y_target'])
+
+                    #acc_t_lex = self.accuracy_fever(y_pred_lex, batch_dict_lex['y_target'],no_of_batches_lex)
+
                     running_acc_lex += (acc_t_lex - running_acc_lex) / (batch_index + 1)
 
                     # compute the accuracy for delex data
 
-                    acc_t_delex = self.accuracy_fever(y_pred_delex, batch_dict_delex['y_target'],no_of_batches_lex)
+                    y_pred_labels = self.calculate_argmax_list(y_pred_delex)
+                    y_pred_labels = torch.FloatTensor(y_pred_labels)
+                    acc_t_delex = self.compute_accuracy(y_pred_labels, batch_dict_lex['y_target'])
+
+                    #acc_t_delex = self.accuracy_fever(y_pred_delex, batch_dict_delex['y_target'],no_of_batches_lex)
                     running_acc_delex += (acc_t_delex - running_acc_delex) / (batch_index + 1)
 
                     # update bar
@@ -270,15 +278,19 @@ class Trainer():
 
                 for batch_index, batch_dict_lex in enumerate(batch_generator_val):
                     # compute the output
-                    y_pred_lex = classifier_student2(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
+                    y_pred_val = classifier_student2(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
 
                     # step 3. compute the class_loss_lex
-                    class_loss_lex = class_loss_func(y_pred_lex, batch_dict_lex['y_target'])
+                    class_loss_lex = class_loss_func(y_pred_val, batch_dict_lex['y_target'])
                     loss_t_lex = class_loss_lex.item()
                     running_loss_val += (loss_t_lex - running_loss_lex) / (batch_index + 1)
 
                     # compute the accuracy
-                    acc_t_lex = self.accuracy_fever(y_pred_lex, batch_dict_lex['y_target'],no_of_batches_lex)
+                    y_pred_labels_val = self.calculate_argmax_list(y_pred_val)
+                    y_pred_labels_val = torch.FloatTensor(y_pred_labels_val)
+                    acc_t_lex = self.compute_accuracy(y_pred_labels_val, batch_dict_lex['y_target'])
+
+                    #acc_t_lex = self.accuracy_fever(y_pred_lex, batch_dict_lex['y_target'],no_of_batches_lex)
                     running_acc_val += (acc_t_lex - running_acc_lex) / (batch_index + 1)
 
                     val_bar.set_postfix(loss=running_loss_val,

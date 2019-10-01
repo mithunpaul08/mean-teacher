@@ -69,11 +69,10 @@ class Trainer():
 
         return train_state
 
-    def accuracy_fever(self,predicted_labels, gold_labels):
+    def accuracy_fever(self,predicted_labels, gold_labels,no_of_batches_lex):
         m = nn.Softmax()
         output_sftmax = m(predicted_labels)
-        NO_LABEL = -1
-        labeled_minibatch_size = max(gold_labels.ne(NO_LABEL).sum(), 1e-8)
+        labeled_minibatch_size = no_of_batches_lex
         _, pred = output_sftmax.topk(1, 1, True, True)
 
         # gold labels and predictions are in transposes (eg:1x15 vs 15x1). so take a transpose to correct it.
@@ -235,12 +234,12 @@ class Trainer():
 
                     # compute the accuracy for lex data
 
-                    acc_t_lex = self.accuracy_fever(y_pred_lex, batch_dict_lex['y_target'])
+                    acc_t_lex = self.accuracy_fever(y_pred_lex, batch_dict_lex['y_target'],no_of_batches_lex)
                     running_acc_lex += (acc_t_lex - running_acc_lex) / (batch_index + 1)
 
                     # compute the accuracy for delex data
 
-                    acc_t_delex = self.accuracy_fever(y_pred_delex, batch_dict_delex['y_target'])
+                    acc_t_delex = self.accuracy_fever(y_pred_delex, batch_dict_delex['y_target'],no_of_batches_lex)
                     running_acc_delex += (acc_t_delex - running_acc_delex) / (batch_index + 1)
 
                     # update bar
@@ -279,7 +278,7 @@ class Trainer():
                     running_loss_val += (loss_t_lex - running_loss_lex) / (batch_index + 1)
 
                     # compute the accuracy
-                    acc_t_lex = self.accuracy_fever(y_pred_lex, batch_dict_lex['y_target'])
+                    acc_t_lex = self.accuracy_fever(y_pred_lex, batch_dict_lex['y_target'],no_of_batches_lex)
                     running_acc_val += (acc_t_lex - running_acc_lex) / (batch_index + 1)
 
                     val_bar.set_postfix(loss=running_loss_val,

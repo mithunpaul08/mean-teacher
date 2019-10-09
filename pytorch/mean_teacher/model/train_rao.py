@@ -188,6 +188,7 @@ class Trainer():
                     loss = class_loss_func(y_pred_logit, batch_dict1['y_target'])
                     loss_t = loss.item()
                     running_loss += (loss_t - running_loss) / (batch_index + 1)
+                    comet_value_updater.log_metric("running_loss_per_batch", running_loss,step=batch_index)
 
                     # step 4. use loss to produce gradients
                     loss.backward()

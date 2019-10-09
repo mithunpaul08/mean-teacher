@@ -14,7 +14,7 @@ import numpy as np
 
 # Create an comet_value_updater value for comet.ml
 comet_value_updater = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT",
-                                 project_name="rte-decomp-attention", workspace="mithunpaul08")
+                            project_name="rte-decomp-attention", workspace="mithunpaul08",auto_output_logging="simple")
 import torch
 
 

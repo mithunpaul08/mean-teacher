@@ -12,9 +12,9 @@ import numpy as np
 
 
 
-# Create an experiment value for comet.ml
-experiment = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT",
-                                project_name="rte-decomp-attention", workspace="mithunpaul08")
+# Create an comet_value_updater value for comet.ml
+comet_value_updater = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT",
+                                 project_name="rte-decomp-attention", workspace="mithunpaul08")
 import torch
 
 
@@ -24,7 +24,7 @@ args=initializer.set_parameters()
 
 # for drawing graphs on comet:
 hyper_params=vars(args)
-experiment.log_parameters(hyper_params)
+comet_value_updater.log_parameters(hyper_params)
 
 
 
@@ -80,4 +80,4 @@ classifier = create_model(logger_object=LOG,args_in=args,num_classes_in=len(vect
                           ,word_vocab_embed=embeddings,word_vocab_size=num_features,wordemb_size_in=embedding_size)
 
 train_rte=Trainer()
-train_rte.train(args,classifier,dataset)
+train_rte.train(args,classifier,dataset,comet_value_updater)

@@ -206,7 +206,7 @@ class Trainer():
 
                     acc_t = self.accuracy_fever(y_pred_logit, batch_dict1['y_target'])
                     running_acc += (acc_t - running_acc) / (batch_index + 1)
-                    comet_value_updater.log_metric("accuracy", acc_t, step=batch_index)
+                    comet_value_updater.log_metric("accuracy", running_acc, step=batch_index)
 
                     # update bar
                     train_bar.set_postfix(loss=running_loss,

@@ -12,8 +12,8 @@ class Initializer():
     def __init__(self):
         self._args=Namespace()
         # Create an experiment value for comet
-        self._experiment = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT",
-                                project_name="rte-1-student-decomposable-attention", workspace="help")
+        experiment = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT",
+                                project_name="rte-decomp-attention", workspace="mithunpaul08")
 
     def set_parameters(self):
 

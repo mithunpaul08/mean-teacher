@@ -22,3 +22,4 @@ data-local/images
 results
 transient
 data-local/*
+/data

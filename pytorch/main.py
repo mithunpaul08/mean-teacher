@@ -1,21 +1,32 @@
+from comet_ml import Experiment
+
 from mean_teacher.modules.rao_datasets import RTEDataset
 from mean_teacher.model.train_rao import Trainer
 from mean_teacher.scripts.initializer import Initializer
 from mean_teacher.utils.utils_rao import make_embedding_matrix,create_model,set_seed_everywhere
+
 from mean_teacher.utils.logger import LOG
-from mean_teacher.model import architectures
-import os
-import logging
 import time
 import random
-import torch
 import numpy as np
 
+
+
+# Create an comet_value_updater value for comet.ml
+comet_value_updater = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT",
+                            project_name="rte-decomp-attention", workspace="mithunpaul08",auto_output_logging="simple")
+import torch
 
 
 initializer=Initializer()
 command_line_args = initializer.parse_commandline_args()
 args=initializer.set_parameters()
+
+# for drawing graphs on comet:
+hyper_params=vars(args)
+comet_value_updater.log_parameters(hyper_params)
+
+
 
 
 set_seed_everywhere(args.seed, args.cuda)
@@ -69,4 +80,4 @@ classifier = create_model(logger_object=LOG,args_in=args,num_classes_in=len(vect
                           ,word_vocab_embed=embeddings,word_vocab_size=num_features,wordemb_size_in=embedding_size)
 
 train_rte=Trainer()
-train_rte.train(args,classifier,dataset)
+train_rte.train(args,classifier,dataset,comet_value_updater)

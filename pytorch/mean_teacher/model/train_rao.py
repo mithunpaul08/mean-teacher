@@ -8,6 +8,7 @@ from tqdm import tqdm,tqdm_notebook
 from torch.nn import functional as F
 from mean_teacher.utils.logger import LOG
 
+
 class Trainer():
     def __init__(self):
         self._current_time={time.strftime("%c")}
@@ -105,7 +106,7 @@ class Trainer():
             list_labels_pred.append(indices.data.item())
         return list_labels_pred
 
-    def train(self, args_in,classifier,dataset):
+    def train(self, args_in,classifier,dataset,comet_value_updater):
         classifier = classifier.to(args_in.device)
 
         if torch.cuda.is_available():
@@ -187,38 +188,12 @@ class Trainer():
                     loss = class_loss_func(y_pred_logit, batch_dict1['y_target'])
                     loss_t = loss.item()
                     running_loss += (loss_t - running_loss) / (batch_index + 1)
+                    comet_value_updater.log_metric("running_loss_per_batch", running_loss,step=batch_index)
 
                     # step 4. use loss to produce gradients
                     loss.backward()
 
-                    #step 4.5 this is specific to decomposable attention
-                    # grad_norm = 0.
-                    # para_norm = 0.
-                    # for m in classifier.input_encoder.modules():
-                    #     if isinstance(m, nn.Linear):
-                    #         grad_norm += m.weight.grad.data.norm() ** 2
-                    #         para_norm += m.weight.data.norm() ** 2
-                    #         if m.bias:
-                    #             grad_norm += m.bias.grad.data.norm() ** 2
-                    #             para_norm += m.bias.data.norm() ** 2
-                    #
-                    # for m in classifier.inter_atten.modules():
-                    #     if isinstance(m, nn.Linear):
-                    #         grad_norm += m.weight.grad.data.norm() ** 2
-                    #         para_norm += m.weight.data.norm() ** 2
-                    #         if m.bias is not None:
-                    #             grad_norm += m.bias.grad.data.norm() ** 2
-                    #             para_norm += m.bias.data.norm() ** 2
-                    #
-                    # shrinkage = args_in.max_grad_norm / grad_norm
-                    # if shrinkage < 1:
-                    #     for m in classifier.input_encoder.modules():
-                    #         if isinstance(m, nn.Linear):
-                    #             m.weight.grad.data = m.weight.grad.data * shrinkage
-                    #     for m in classifier.inter_atten.modules():
-                    #         if isinstance(m, nn.Linear):
-                    #             m.weight.grad.data = m.weight.grad.data * shrinkage
-                    #             m.bias.grad.data = m.bias.grad.data * shrinkage
+
 
 
                     # step 5. use optimizer to take gradient step
@@ -232,6 +207,7 @@ class Trainer():
 
                     acc_t = self.accuracy_fever(y_pred_logit, batch_dict1['y_target'])
                     running_acc += (acc_t - running_acc) / (batch_index + 1)
+                    comet_value_updater.log_metric("avg_accuracy_train_per_batch", running_acc, step=batch_index)
 
                     # update bar
                     train_bar.set_postfix(loss=running_loss,
@@ -248,6 +224,8 @@ class Trainer():
                 train_state_in['train_loss'].append(running_loss)
                 train_state_in['train_acc'].append(running_acc)
 
+                comet_value_updater.log_metric("avg_accuracy_train_per_epoch", running_acc, step=epoch_index)
+
                 # Iterate over val dataset
 
                 # setup: batch generator, set loss and acc to 0; set eval mode on
@@ -261,25 +239,28 @@ class Trainer():
                 classifier.eval()
                 no_of_batches = int(len(dataset) / args_in.batch_size)
 
-                for batch_index, batch_dict1 in enumerate(batch_generator1):
+                for batch_index_dev, batch_dict1 in enumerate(batch_generator1):
                     # compute the output
                     y_pred_logit = classifier(batch_dict1['x_claim'], batch_dict1['x_evidence'])
 
                     # step 3. compute the loss
                     loss = class_loss_func(y_pred_logit, batch_dict1['y_target'])
                     loss_t = loss.item()
-                    running_loss += (loss_t - running_loss) / (batch_index + 1)
+                    running_loss += (loss_t - running_loss) / (batch_index_dev + 1)
 
 
                     acc_t = self.accuracy_fever(y_pred_logit, batch_dict1['y_target'])
-                    running_acc += (acc_t - running_acc) / (batch_index + 1)
+                    running_acc += (acc_t - running_acc) / (batch_index_dev + 1)
 
                     val_bar.set_postfix(loss=running_loss,
                                         acc=running_acc,
                                         epoch=epoch_index)
                     val_bar.update()
                     LOG.info(
-                        f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches} \t moving_avg_val_loss:{round(running_loss,2)} \t moving_avg_val_accuracy:{round(running_acc,2)} ")
+                        f"epoch:{epoch_index} \t batch:{batch_index_dev}/{no_of_batches} \t moving_avg_val_loss:{round(running_loss,2)} \t moving_avg_val_accuracy:{round(running_acc,2)} ")
+                    comet_value_updater.log_metric("avg_accuracy_dev_per_batch", running_acc, step=batch_index_dev)
+
+                comet_value_updater.log_metric("avg_accuracy_dev_per_epoch", running_acc, step=epoch_index)
 
                 train_state_in['val_loss'].append(running_loss)
                 train_state_in['val_acc'].append(running_acc)
@@ -323,7 +304,7 @@ class Trainer():
         # running_acc = 0.
         # classifier.eval()
         #
-        # for batch_index, batch_dict in enumerate(batch_generator1):
+        # for batch_index_dev, batch_dict in enumerate(batch_generator1):
         #     # compute the output
         #     y_pred_logit = classifier(batch_dict['x_claim'], batch_dict['x_evidence'])
         #
@@ -331,11 +312,11 @@ class Trainer():
         #     # compute the loss
         #     loss = class_loss_func(y_pred_logit, batch_dict['y_target'].float())
         #     loss_t = loss.item()
-        #     running_loss += (loss_t - running_loss) / (batch_index + 1)
+        #     running_loss += (loss_t - running_loss) / (batch_index_dev + 1)
         #
         #     # compute the accuracy
         #     acc_t = self.compute_accuracy(y_pred_logit, batch_dict['y_target'])
-        #     running_acc += (acc_t - running_acc) / (batch_index + 1)
+        #     running_acc += (acc_t - running_acc) / (batch_index_dev + 1)
         #train_state_in['test_loss'] = running_loss
         #train_state_in['test_acc'] = running_acc
         LOG.info(f"{self._current_time:}Val loss at end of all epochs: {(train_state_in['val_loss'])}")

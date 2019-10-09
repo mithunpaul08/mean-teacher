@@ -8,6 +8,8 @@ from tqdm import tqdm,tqdm_notebook
 from torch.nn import functional as F
 from mean_teacher.utils.logger import LOG
 
+
+
 class Trainer():
     def __init__(self):
         self._current_time={time.strftime("%c")}
@@ -232,6 +234,7 @@ class Trainer():
 
                     acc_t = self.accuracy_fever(y_pred_logit, batch_dict1['y_target'])
                     running_acc += (acc_t - running_acc) / (batch_index + 1)
+                    experiment.log_metric("accuracy", correct / total, step=step)
 
                     # update bar
                     train_bar.set_postfix(loss=running_loss,

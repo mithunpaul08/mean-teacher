@@ -1,4 +1,4 @@
-from comet_ml import Experiment
+
 from mean_teacher.modules.rao_datasets import RTEDataset
 from mean_teacher.model.train_rao import Trainer
 from mean_teacher.scripts.initializer import Initializer
@@ -9,9 +9,8 @@ import random
 import torch
 import numpy as np
 
-# Create an experiment value for comet
-experiment = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT",
-                        project_name="rte-1-student-decomposable-attention", workspace="help")
+
+
 
 
 initializer=Initializer()
@@ -19,9 +18,8 @@ command_line_args = initializer.parse_commandline_args()
 args=initializer.set_parameters()
 
 # for drawing graphs on comet:
-hyper_params = {"learning_rate": 0.5, "steps": 100000, "batch_size": 50}
 hyper_params=vars(args)
-experiment.log_parameters(hyper_params)
+initializer._experiment.log_parameters(hyper_params)
 
 
 

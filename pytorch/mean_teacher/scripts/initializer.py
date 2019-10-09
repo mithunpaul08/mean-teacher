@@ -1,4 +1,3 @@
-from comet_ml import Experiment
 from argparse import Namespace
 import torch
 import os
@@ -11,9 +10,6 @@ from mean_teacher.modules.rao_datasets import RTEDataset
 class Initializer():
     def __init__(self):
         self._args=Namespace()
-        # Create an experiment value for comet
-        experiment = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT",
-                                project_name="rte-decomp-attention", workspace="mithunpaul08")
 
     def set_parameters(self):
 

@@ -12,6 +12,7 @@ class Initializer():
         self._args=Namespace()
 
     def set_parameters(self):
+
         args = Namespace(
             # Data and Path information
             frequency_cutoff=5,

@@ -250,6 +250,8 @@ class Trainer():
                     loss = class_loss_func(y_pred_logit, batch_dict1['y_target'])
                     loss_t = loss.item()
                     running_loss += (loss_t - running_loss) / (batch_index_dev + 1)
+                    if (comet_value_updater is not None):
+                        comet_value_updater.log_metric("running_dev_loss_per_batch", running_loss,step=batch_index_dev)
 
 
                     acc_t = self.accuracy_fever(y_pred_logit, batch_dict1['y_target'])

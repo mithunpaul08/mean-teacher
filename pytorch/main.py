@@ -20,8 +20,7 @@ args=initializer.set_parameters()
 
 
 # for drawing graphs on comet:
-comet_value_updater = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT",
-                            project_name="rte-decomp-attention", workspace="mithunpaul08",auto_output_logging="simple")
+comet_value_updater = ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT",previous_experiment="e43d95fe433e4e6d8451809e4b06a052")
 hyper_params=vars(args)
 comet_value_updater.log_parameters(hyper_params)
 

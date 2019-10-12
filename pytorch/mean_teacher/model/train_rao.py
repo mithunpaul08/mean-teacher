@@ -14,7 +14,7 @@ class Trainer():
         self._current_time={time.strftime("%c")}
 
     def make_train_state(self,args):
-        return {'stop_early': False,
+        return {'stop_early': True,
                 'early_stopping_step': 0,
                 'early_stopping_best_val': 1e8,
                 'learning_rate': args.learning_rate,
@@ -43,7 +43,7 @@ class Trainer():
 
         # Save one model at least
         if train_state['epoch_index'] == 0:
-            torch.save(model.state_dict(), train_state['model_filename'])
+            torch.save(model.state_dict(), train_state['model_filename']+"_e"+str(train_state['epoch_index'])+".pth")
             train_state['stop_early'] = False
 
         # Save model if performance improved
@@ -58,10 +58,13 @@ class Trainer():
             else:
                 # Save the best model
                 if loss_t < train_state['early_stopping_best_val']:
-                    torch.save(model.state_dict(), train_state['model_filename'])
+                    torch.save(model.state_dict(), train_state['model_filename']+"_e"+str(train_state['epoch_index'])+".pth")
 
                 # Reset early stopping step
                 train_state['early_stopping_step'] = 0
+
+                #todo mithun: this line wasn't there. confirm with marco- also the value of early_stopping_best_val was 1e8
+                #train_state['early_stopping_best_val']=loss_t
 
             # Stop early ?
             train_state['stop_early'] = \
@@ -152,9 +155,6 @@ class Trainer():
 
                 # setup: batch generator, set loss and acc to 0, set train mode on
                 dataset.set_split('train')
-                #(dataset, batch_size, shuffle=True,
-                     #drop_last=True, device="cpu",workers=1):
-                #
                 batch_generator1 = generate_batches(dataset,workers=args_in.workers,batch_size=args_in.batch_size,device=args_in.device)
 
 
@@ -188,7 +188,8 @@ class Trainer():
                     loss = class_loss_func(y_pred_logit, batch_dict1['y_target'])
                     loss_t = loss.item()
                     running_loss += (loss_t - running_loss) / (batch_index + 1)
-                    comet_value_updater.log_metric("running_loss_per_batch", running_loss,step=batch_index)
+                    if (comet_value_updater is not None):
+                        comet_value_updater.log_metric("running_loss_per_batch", running_loss,step=batch_index)
 
                     # step 4. use loss to produce gradients
                     loss.backward()
@@ -207,7 +208,8 @@ class Trainer():
 
                     acc_t = self.accuracy_fever(y_pred_logit, batch_dict1['y_target'])
                     running_acc += (acc_t - running_acc) / (batch_index + 1)
-                    comet_value_updater.log_metric("avg_accuracy_train_per_batch", running_acc, step=batch_index)
+                    if (comet_value_updater is not None):
+                        comet_value_updater.log_metric("avg_accuracy_train_per_batch", running_acc, step=batch_index)
 
                     # update bar
                     train_bar.set_postfix(loss=running_loss,
@@ -224,7 +226,8 @@ class Trainer():
                 train_state_in['train_loss'].append(running_loss)
                 train_state_in['train_acc'].append(running_acc)
 
-                comet_value_updater.log_metric("avg_accuracy_train_per_epoch", running_acc, step=epoch_index)
+                if (comet_value_updater is not None):
+                    comet_value_updater.log_metric("avg_accuracy_train_per_epoch", running_acc, step=epoch_index)
 
                 # Iterate over val dataset
 
@@ -258,9 +261,11 @@ class Trainer():
                     val_bar.update()
                     LOG.info(
                         f"epoch:{epoch_index} \t batch:{batch_index_dev}/{no_of_batches} \t moving_avg_val_loss:{round(running_loss,2)} \t moving_avg_val_accuracy:{round(running_acc,2)} ")
-                    comet_value_updater.log_metric("avg_accuracy_dev_per_batch", running_acc, step=batch_index_dev)
+                    if(comet_value_updater is not None):
+                        comet_value_updater.log_metric("avg_accuracy_dev_per_batch", running_acc, step=batch_index_dev)
 
-                comet_value_updater.log_metric("avg_accuracy_dev_per_epoch", running_acc, step=epoch_index)
+                if (comet_value_updater is not None):
+                    comet_value_updater.log_metric("avg_accuracy_dev_per_epoch", running_acc, step=epoch_index)
 
                 train_state_in['val_loss'].append(running_loss)
                 train_state_in['val_acc'].append(running_acc)
@@ -276,7 +281,7 @@ class Trainer():
                 epoch_bar.update()
 
                 if train_state_in['stop_early']:
-                    break
+                     break
 
                 train_bar.n = 0
                 val_bar.n = 0

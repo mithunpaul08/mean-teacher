@@ -16,7 +16,7 @@ class Initializer():
         args = Namespace(
             # Data and Path information
             frequency_cutoff=5,
-            model_state_file='model.pth',
+            model_state_file='model',
             # for laptop
             fever_train_local='train/fever_train_split_fourlabels.jsonl',
             fever_dev_local='dev/fever_dev_split_fourlabels.jsonl',

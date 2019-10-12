@@ -1,4 +1,3 @@
-from comet_ml import Experiment
 
 from mean_teacher.modules.rao_datasets import RTEDataset
 from mean_teacher.model.train_rao import Trainer
@@ -12,21 +11,24 @@ import numpy as np
 
 
 
-# Create an comet_value_updater value for comet.ml
-comet_value_updater = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT",
-                            project_name="rte-decomp-attention", workspace="mithunpaul08",auto_output_logging="simple")
-import torch
 
 
 initializer=Initializer()
 command_line_args = initializer.parse_commandline_args()
 args=initializer.set_parameters()
 
-# for drawing graphs on comet:
-hyper_params=vars(args)
-comet_value_updater.log_parameters(hyper_params)
+comet_value_updater=None
 
+if(command_line_args.run_on_server == True):
+    from comet_ml import Experiment
+    # for drawing graphs on comet:
+    comet_value_updater = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT",
+                                project_name="rte-decomp-attention", workspace="mithunpaul08",auto_output_logging="simple")
+    hyper_params=vars(args)
+    comet_value_updater.log_parameters(hyper_params)
 
+#comet has to be intialized before torch
+import torch
 
 
 set_seed_everywhere(args.seed, args.cuda)

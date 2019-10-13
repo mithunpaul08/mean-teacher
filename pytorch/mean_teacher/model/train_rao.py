@@ -277,9 +277,6 @@ class Trainer():
                 train_state_in = self.update_train_state( args=args_in, model=classifier,
                                                       train_state=train_state_in)
 
-                #scheduler1.step(train_state_in['val_loss'][-1])
-                #scheduler2.step(train_state_in['val_loss'][-1])
-
                 train_bar.n = 0
                 val_bar.n = 0
                 epoch_bar.update()
@@ -293,41 +290,42 @@ class Trainer():
 
                 LOG.info(f"epoch:{epoch_index}\tval_loss_end_of_epoch:{round(running_loss,4)}\tval_accuracy_end_of_epoch:{round(running_acc,4)} ")
                 time.sleep(10)
-                
+
+            LOG.info(f"{self._current_time:}Val loss at end of all epochs: {(train_state_in['val_loss'])}")
+            LOG.info(f"{self._current_time:}Val accuracy at end of all epochs: {(train_state_in['val_acc'])}")
 
         except KeyboardInterrupt:
             print("Exiting loop")
 
+    def test(self, args_in, classifier, dataset, comet_value_updater):
+
+        #classifier.load_state_dict(torch.load(args_in.trained_model_path))
+        #classifier = classifier.to(args_in.device)
+
+        dataset.set_split('test')
+        batch_generator1 = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
+                                            device=args_in.device, shuffle=False)
+
+        running_loss = 0.
+        running_acc = 0.
+        classifier.eval()
+
+        for batch_index_dev, batch_dict in enumerate(batch_generator1):
+            # compute the output
+            y_pred_logit = classifier(batch_dict['x_claim'], batch_dict['x_evidence'])
 
 
-        # uncomment to compute the loss & accuracy on the test set using the best available model
-        #
-        # classifier.load_state_dict(torch.load(train_state_in['model_filename']))
-        # classifier = classifier.to(args_in.device)
-        #
-        # dataset.set_split('test')
-        # batch_generator1 = generate_batches(dataset,
-        #                                    batch_size=args_in.batch_size,
-        #                                    device=args_in.device)
-        # running_loss = 0.
-        # running_acc = 0.
-        # classifier.eval()
-        #
-        # for batch_index_dev, batch_dict in enumerate(batch_generator1):
-        #     # compute the output
-        #     y_pred_logit = classifier(batch_dict['x_claim'], batch_dict['x_evidence'])
-        #
-        #
-        #     # compute the loss
-        #     loss = class_loss_func(y_pred_logit, batch_dict['y_target'].float())
-        #     loss_t = loss.item()
-        #     running_loss += (loss_t - running_loss) / (batch_index_dev + 1)
-        #
-        #     # compute the accuracy
-        #     acc_t = self.compute_accuracy(y_pred_logit, batch_dict['y_target'])
-        #     running_acc += (acc_t - running_acc) / (batch_index_dev + 1)
-        #train_state_in['test_loss'] = running_loss
-        #train_state_in['test_acc'] = running_acc
-        LOG.info(f"{self._current_time:}Val loss at end of all epochs: {(train_state_in['val_loss'])}")
-        LOG.info(f"{self._current_time:}Val accuracy at end of all epochs: {(train_state_in['val_acc'])}")
+            # compute the loss
+            loss = class_loss_func(y_pred_logit, batch_dict['y_target'].float())
+            loss_t = loss.item()
+            running_loss += (loss_t - running_loss) / (batch_index_dev + 1)
+
+            # compute the accuracy
+            acc_t = self.compute_accuracy(y_pred_logit, batch_dict['y_target'])
+            running_acc += (acc_t - running_acc) / (batch_index_dev + 1)
+        train_state_in['test_loss'] = running_loss
+        train_state_in['test_acc'] = running_acc
+
+        LOG.info(f"{self._current_time:}test loss : {(train_state_in['test_acc'])}")
+
 

@@ -81,7 +81,7 @@ class RTEDataset(Dataset):
 
 
     @classmethod
-    def load_dataset_and_create_vocabulary(cls, train_file, dev_file, args):
+    def load_dataset_and_create_vocabulary(cls, train_file, dev_file, test_file, args):
         """Load dataset and make a new vectorizer from scratch
 
         Args:
@@ -97,7 +97,13 @@ class RTEDataset(Dataset):
         fever_lex_dev_df = cls.truncate_data(fever_lex_dev_df, args.truncate_words_length)
         fever_lex_dev_df['split'] = "val"
 
-        frames = [fever_lex_train_df, fever_lex_dev_df]
+        fever_lex_test_df = pd.read_json(test_file, lines=True)
+        fever_lex_test_df = cls.truncate_data(fever_lex_test_df, args.truncate_words_length)
+        fever_lex_test_df['split'] = "test"
+
+
+
+        frames = [fever_lex_train_df, fever_lex_dev_df,fever_lex_test_df]
         combined_train_dev_test_with_split_column_df = pd.concat(frames)
         cls.labels=fever_lex_train_df.label
 

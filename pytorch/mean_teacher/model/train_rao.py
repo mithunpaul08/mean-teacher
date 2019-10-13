@@ -114,19 +114,12 @@ class Trainer():
 
         if torch.cuda.is_available():
             class_loss_func = nn.CrossEntropyLoss(size_average=True).cuda()
-            #todo: use this code below instead when doing semi supervised :
-            # class_loss_func = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cuda()
         else:
             class_loss_func = nn.CrossEntropyLoss(size_average=True).cpu()
 
-        #optimizer = optim.Adam(classifier.parameters(), lr=args_in.learning_rate)
         input_optimizer, inter_atten_optimizer = initialize_double_optimizers(classifier, args_in)
 
         LOG.debug(f"going to get into ReduceLROnPlateau ")
-        #scheduler1 = optim.lr_scheduler.ReduceLROnPlateau(optimizer=input_optimizer,mode='min', factor=0.5,patience=1)
-        #scheduler2 = optim.lr_scheduler.ReduceLROnPlateau(optimizer=inter_atten_optimizer, mode='min', factor=0.5, patience=1)
-
-
 
 
         train_state_in = self.make_train_state(args_in)
@@ -314,19 +307,23 @@ class Trainer():
         for batch_index_dev, batch_dict in enumerate(batch_generator1):
             # compute the output
             y_pred_logit = classifier(batch_dict['x_claim'], batch_dict['x_evidence'])
-
+            if torch.cuda.is_available():
+                class_loss_func = nn.CrossEntropyLoss(size_average=True).cuda()
+            else:
+                class_loss_func = nn.CrossEntropyLoss(size_average=True).cpu()
 
             # compute the loss
-            loss = class_loss_func(y_pred_logit, batch_dict['y_target'].float())
+            loss = class_loss_func(y_pred_logit, batch_dict['y_target'])
             loss_t = loss.item()
             running_loss += (loss_t - running_loss) / (batch_index_dev + 1)
 
-            # compute the accuracy
-            acc_t = self.compute_accuracy(y_pred_logit, batch_dict['y_target'])
+            acc_t = self.accuracy_fever(y_pred_logit, batch_dict['y_target'])
             running_acc += (acc_t - running_acc) / (batch_index_dev + 1)
+
+        train_state_in = self.make_train_state(args_in)
         train_state_in['test_loss'] = running_loss
         train_state_in['test_acc'] = running_acc
 
-        LOG.info(f"{self._current_time:}test loss : {(train_state_in['test_acc'])}")
+        LOG.info(f"{self._current_time:} test_acc : {(train_state_in['test_acc'])}")
 
 

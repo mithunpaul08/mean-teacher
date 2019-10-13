@@ -23,6 +23,8 @@ class Initializer():
             # for laptop
             fever_train_local='train/fever_train_split_fourlabels.jsonl',
             fever_dev_local='dev/fever_dev_split_fourlabels.jsonl',
+            fever_test_local='test/fever_test_lex_fourlabels.jsonl',
+
 
             #for server
             fever_train_server='train/fever_train_split_fourlabels.jsonl',
@@ -121,9 +123,10 @@ class Initializer():
         glove_filepath_in = self._args.glove_filepath_local
         fever_train_input_file = os.path.join(data_dir, self._args.fever_train_local)
         fever_dev_input_file = os.path.join(data_dir, self._args.fever_dev_local)
+        fever_test_input_file = os.path.join(data_dir, self._args.fever_test_local)
 
         if (command_line_args.run_on_server == True):
             glove_filepath_in = self._args.glove_filepath_server
             fever_train_input_file = os.path.join(self._args.data_dir_server, self._args.fever_train_server)
             fever_dev_input_file = os.path.join(self._args.data_dir_server, self._args.fever_dev_server)
-        return glove_filepath_in,fever_train_input_file,fever_dev_input_file
+        return glove_filepath_in,fever_train_input_file,fever_dev_input_file,fever_test_input_file

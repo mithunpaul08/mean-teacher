@@ -48,7 +48,7 @@ else:
 
 current_time={time.strftime("%c")}
 
-glove_filepath_in,fever_train_input_file,fever_dev_input_file=initializer.get_file_paths(command_line_args)
+glove_filepath_in,fever_train_input_file,fever_dev_input_file,fever_test_input_file=initializer.get_file_paths(command_line_args)
 LOG.info(f"{current_time} loading glove from path:{glove_filepath_in}")
 LOG.debug(f"value of fever_train_input_file is :{fever_train_input_file}")
 LOG.debug(f"value of fever_dev_input_file is :{fever_dev_input_file}")
@@ -60,7 +60,7 @@ if args.reload_from_files:
                                                               args.vectorizer_file)
 else:
     # create dataset and vectorizer
-    dataset = RTEDataset.load_dataset_and_create_vocabulary(fever_train_input_file, fever_dev_input_file,args)
+    dataset = RTEDataset.load_dataset_and_create_vocabulary(fever_train_input_file, fever_dev_input_file,fever_test_input_file,args)
     dataset.save_vectorizer(args.vectorizer_file)
 vectorizer = dataset.get_vectorizer()
 

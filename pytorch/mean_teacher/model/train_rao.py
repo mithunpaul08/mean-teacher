@@ -299,8 +299,9 @@ class Trainer():
 
     def test(self, args_in, classifier, dataset, comet_value_updater):
 
-        #classifier.load_state_dict(torch.load(args_in.trained_model_path))
-        #classifier = classifier.to(args_in.device)
+        classifier = classifier.to(args_in.device)
+        classifier.load_state_dict(torch.load(args_in.trained_model_path,map_location=torch.device(args_in.device)))
+
 
         dataset.set_split('test')
         batch_generator1 = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,

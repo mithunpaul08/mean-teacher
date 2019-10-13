@@ -80,17 +80,11 @@ else:
 num_features=len(vectorizer.claim_ev_vocab)
 
 train_rte=Trainer()
-if args.run_type == "train":
 
-    classifier = create_model(logger_object=LOG,args_in=args,num_classes_in=len(vectorizer.label_vocab)
+classifier = create_model(logger_object=LOG,args_in=args,num_classes_in=len(vectorizer.label_vocab)
                               ,word_vocab_embed=embeddings,word_vocab_size=num_features,wordemb_size_in=embedding_size)
 
-
+if args.run_type == "train":
     train_rte.train(args,classifier,dataset,comet_value_updater)
 elif args.run_type=="test":
-    if(command_line_args.run_on_server==True):
-        classifier=torch.load(args.trained_model_path)
-    else:
-        classifier = torch.load(args.trained_model_path,map_location=torch.device('cpu'))
-
     train_rte.test(args,classifier,dataset,comet_value_updater)

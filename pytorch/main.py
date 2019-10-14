@@ -56,7 +56,7 @@ LOG.debug(f"value of fever_dev_input_file is :{fever_dev_input_file}")
 
 if args.reload_from_files:
     # training from a checkpoint
-    dataset = RTEDataset.load_dataset_and_load_vectorizer(args.fever_lex_train,
+    dataset = RTEDataset.load_dataset_and_load_vectorizer(fever_train_input_file,
                                                               args.vectorizer_file)
 else:
     # create dataset and vectorizer

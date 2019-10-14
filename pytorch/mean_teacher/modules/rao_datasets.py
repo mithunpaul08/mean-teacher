@@ -121,9 +121,7 @@ class RTEDataset(Dataset):
         Returns:
             an instance of ReviewDataset
         """
-        print(f"just before reading file {input_file}")
-        review_df = cls.read_rte_data(input_file)
-
+        review_df = pd.read_json(input_file, lines=True)
         vectorizer = cls.load_vectorizer_only(vectorizer_filepath)
         return cls(review_df, vectorizer)
 

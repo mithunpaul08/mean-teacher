@@ -14,8 +14,8 @@ class Initializer():
     def set_parameters(self):
 
         args = Namespace(
-            #type of run: train (which includes dev validation), test
-            run_type="val",
+            #type of run: train (which includes val validation also),val, test
+            run_type="test",
             trained_model_path="model_storage/ch3/yelp/best_model.pth",
             # Data and Path information
             frequency_cutoff=5,

@@ -71,7 +71,7 @@ class VectorizerWithEmbedding(object):
             # if count > cutoff:
                 claim_ev_vocab.add_token(word)
 
-        labels_vocab = Vocabulary(add_unk=False)
+        labels_vocab = Vocabulary(add_unk=True)
         for label in sorted(set(claim_ev_df.label)):
             labels_vocab.add_token(label)
         LOG.debug(f"size of claim_ev_vocab is {len(claim_ev_vocab)}")
@@ -82,8 +82,8 @@ class VectorizerWithEmbedding(object):
 
     @classmethod
     def from_serializable(cls, contents):
-        claim_ev_vocab_ser = SequenceVocabulary.from_serializable(contents['claim_ev_vocab_ser'])
-        label_vocab_ser = SequenceVocabulary.from_serializable(contents['label_vocab_ser'])
+        claim_ev_vocab_ser = SequenceVocabulary.from_serializable(contents['claim_ev_vocab'])
+        label_vocab_ser = SequenceVocabulary.from_serializable(contents['label_vocab'])
         return cls(claim_ev_vocab=claim_ev_vocab_ser, labels_vocab=label_vocab_ser)
 
     def to_serializable(self):

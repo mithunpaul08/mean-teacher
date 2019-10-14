@@ -87,4 +87,7 @@ classifier = create_model(logger_object=LOG,args_in=args,num_classes_in=len(vect
 if args.run_type == "train":
     train_rte.train(args,classifier,dataset,comet_value_updater)
 elif args.run_type=="test":
-    train_rte.test(args,classifier,dataset,comet_value_updater)
+    train_rte.test(args,classifier,dataset,comet_value_updater,"test")
+elif args.run_type == "val":
+    train_rte.test(args, classifier, dataset, comet_value_updater, "val")
+

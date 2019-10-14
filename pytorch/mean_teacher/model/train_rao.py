@@ -290,13 +290,13 @@ class Trainer():
         except KeyboardInterrupt:
             print("Exiting loop")
 
-    def test(self, args_in, classifier, dataset, comet_value_updater):
+    def test(self, args_in, classifier, dataset, comet_value_updater,split_to_test):
 
         classifier = classifier.to(args_in.device)
         classifier.load_state_dict(torch.load(args_in.trained_model_path,map_location=torch.device(args_in.device)))
 
 
-        dataset.set_split('test')
+        dataset.set_split(split_to_test)
         batch_generator1 = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
                                             device=args_in.device, shuffle=False)
 
@@ -324,6 +324,7 @@ class Trainer():
         train_state_in['test_loss'] = running_loss
         train_state_in['test_acc'] = running_acc
 
-        LOG.info(f"{self._current_time:} test_acc : {(train_state_in['test_acc'])}")
+        LOG.info(f" test_accuracy : {(train_state_in['test_acc'])}")
+        print(f" test_accuracy : {(train_state_in['test_acc'])}")
 
 

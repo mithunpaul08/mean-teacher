@@ -29,6 +29,7 @@ class Initializer():
             #for server
             fever_train_server='train/fever_train_split_fourlabels.jsonl',
             fever_dev_server='dev/fever_dev_split_fourlabels.jsonl',
+            fever_test_server='test/fever_test_lex_fourlabels.jsonl',
             data_dir_local='../data/rte/fever',
             data_dir_server='data/rte/fever',
             save_dir='model_storage/ch3/yelp/',
@@ -129,4 +130,5 @@ class Initializer():
             glove_filepath_in = self._args.glove_filepath_server
             fever_train_input_file = os.path.join(self._args.data_dir_server, self._args.fever_train_server)
             fever_dev_input_file = os.path.join(self._args.data_dir_server, self._args.fever_dev_server)
+            fever_test_input_file = os.path.join(self._args.data_dir_server, self._args.fever_test_server)
         return glove_filepath_in,fever_train_input_file,fever_dev_input_file,fever_test_input_file

@@ -89,6 +89,16 @@ class RTEDataset(Dataset):
         Returns:
             an instance of ReviewDataset
         """
+
+        assert os.path.exists(train_file) is True
+        assert os.path.exists(dev_file) is True
+        assert os.path.exists(test_file) is True
+
+        assert os.path.isfile(train_file) is True
+        assert os.path.isfile(dev_file) is True
+        assert os.path.isfile(test_file) is True
+
+
         fever_lex_train_df = pd.read_json(train_file, lines=True)
         fever_lex_train_df=cls.truncate_data(fever_lex_train_df, args.truncate_words_length)
         fever_lex_train_df['split'] = "train"

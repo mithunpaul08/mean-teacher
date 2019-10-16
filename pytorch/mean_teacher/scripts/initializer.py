@@ -16,7 +16,11 @@ class Initializer():
         args = Namespace(
             #type of run: train (which includes val validation also),val, test
             run_type="test",
+            database_to_train_with="fever",
+            database_to_test_with="fnc",
             trained_model_path="model_storage/best_model.pth",
+
+
             # Data and Path information
             frequency_cutoff=5,
             model_state_file='model',
@@ -35,9 +39,7 @@ class Initializer():
             fever_test_server='fever/test/fever_test_lex_fourlabels.jsonl',
             fnc_test_server="fnc/test/fn_test_split_fourlabels.jsonl",
 
-            #file to test with if loading model
-            database_to_train_with="fever",
-            database_to_test_with="fnc",
+
 
             save_dir='model_storage/',
             vectorizer_file='vectorizer.json',

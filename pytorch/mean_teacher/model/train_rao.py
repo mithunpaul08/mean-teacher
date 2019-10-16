@@ -57,8 +57,7 @@ class Trainer():
             # Loss decreased
             else:
                 # Save the best model
-                if loss_t < train_state['early_stopping_best_val']:
-                    torch.save(model.state_dict(), train_state['model_filename']+"_e"+str(train_state['epoch_index'])+".pth")
+                torch.save(model.state_dict(), train_state['model_filename']+"_e"+str(train_state['epoch_index'])+".pth")
 
                 # Reset early stopping step
                 train_state['early_stopping_step'] = 0
@@ -66,7 +65,7 @@ class Trainer():
                 #todo mithun: this line makes the early stopping best val as the current loss.
                 #  this is later used to check if if the loss has increased from what it was an epoch before
                 # this line wasn't there in rao code. confirm with marco- also the value of early_stopping_best_val was 1e8
-                #train_state['early_stopping_best_val']=loss_t
+                train_state['early_stopping_best_val']=loss_t
 
             # Stop early ?
             train_state['stop_early'] = \

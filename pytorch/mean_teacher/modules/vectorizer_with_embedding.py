@@ -71,7 +71,7 @@ class VectorizerWithEmbedding(object):
             # if count > cutoff:
                 claim_ev_vocab.add_token(word)
 
-        labels_vocab = Vocabulary(add_unk=True)
+        labels_vocab = Vocabulary(add_unk=False)
         for label in sorted(set(claim_ev_df.label)):
             labels_vocab.add_token(label)
         LOG.debug(f"size of claim_ev_vocab is {len(claim_ev_vocab)}")

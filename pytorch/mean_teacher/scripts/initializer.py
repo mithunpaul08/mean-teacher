@@ -37,7 +37,7 @@ class Initializer():
 
             #file to test with if loading model
             database_to_train_with="fever",
-            database_to_test_with="fever",
+            database_to_test_with="fnc",
 
             save_dir='model_storage/',
             vectorizer_file='vectorizer.json',

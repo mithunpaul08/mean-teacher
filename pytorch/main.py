@@ -20,7 +20,11 @@ args=initializer.set_parameters()
 
 
 # for drawing graphs on comet:
-comet_value_updater = ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT",previous_experiment="e43d95fe433e4e6d8451809e4b06a052")
+if (command_line_args.run_on_server == True):
+    comet_value_updater = ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT",previous_experiment="e43d95fe433e4e6d8451809e4b06a052")
+else:
+    comet_value_updater =  ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT",previous_experiment="1ea3afdd06244cde82a77957d05670b5")
+
 hyper_params=vars(args)
 comet_value_updater.log_parameters(hyper_params)
 
@@ -48,7 +52,7 @@ else:
 
 current_time={time.strftime("%c")}
 
-glove_filepath_in,fever_train_input_file,fever_dev_input_file,fever_test_input_file=initializer.get_file_paths(command_line_args)
+glove_filepath_in, fever_train_input_file, fever_dev_input_file, test_input_file=initializer.get_file_paths(command_line_args)
 LOG.info(f"{current_time} loading glove from path:{glove_filepath_in}")
 LOG.debug(f"value of fever_train_input_file is :{fever_train_input_file}")
 LOG.debug(f"value of fever_dev_input_file is :{fever_dev_input_file}")
@@ -60,7 +64,7 @@ if args.reload_from_files:
                                                               args.vectorizer_file)
 else:
     # create dataset and vectorizer
-    dataset = RTEDataset.load_dataset_and_create_vocabulary(fever_train_input_file, fever_dev_input_file,fever_test_input_file,args)
+    dataset = RTEDataset.load_dataset_and_create_vocabulary(fever_train_input_file, fever_dev_input_file, test_input_file, args)
     dataset.save_vectorizer(args.vectorizer_file)
 vectorizer = dataset.get_vectorizer()
 
@@ -87,7 +91,7 @@ classifier = create_model(logger_object=LOG,args_in=args,num_classes_in=len(vect
 if args.run_type == "train":
     train_rte.train(args,classifier,dataset,comet_value_updater)
 elif args.run_type=="test":
-    train_rte.test(args,classifier,dataset,comet_value_updater,"test")
+    train_rte.test(args,classifier,dataset,"test")
 elif args.run_type == "val":
-    train_rte.test(args, classifier, dataset, comet_value_updater, "val")
+    train_rte.test(args,classifier, dataset, "val")
 

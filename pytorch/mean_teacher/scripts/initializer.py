@@ -15,24 +15,31 @@ class Initializer():
 
         args = Namespace(
             #type of run: train (which includes val validation also),val, test
-            run_type="train",
-            trained_model_path="model_storage/ch3/yelp/best_model.pth",
+            run_type="test",
+            trained_model_path="model_storage/best_model.pth",
             # Data and Path information
             frequency_cutoff=5,
             model_state_file='model',
             # for laptop
-            fever_train_local='train/fever_train_split_fourlabels.jsonl',
-            fever_dev_local='dev/fever_dev_split_fourlabels.jsonl',
-            fever_test_local='test/fever_test_lex_fourlabels.jsonl',
+            data_dir_local='../data/rte',
+            fever_train_local='fever/train/fever_train_split_fourlabels.jsonl',
+            fever_dev_local='fever/dev/fever_dev_split_fourlabels.jsonl',
+            fever_test_local='fever/test/fever_test_lex_fourlabels.jsonl',
+            fnc_test_local="fnc/test/fn_test_split_fourlabels.jsonl",
 
 
             #for server
-            fever_train_server='train/fever_train_split_fourlabels.jsonl',
-            fever_dev_server='dev/fever_dev_split_fourlabels.jsonl',
-            fever_test_server='test/fever_test_lex_fourlabels.jsonl',
-            data_dir_local='../data/rte/fever',
-            data_dir_server='data/rte/fever',
-            save_dir='model_storage/ch3/yelp/',
+            data_dir_server='data/rte',
+            fever_train_server='fever/train/fever_train_split_fourlabels.jsonl',
+            fever_dev_server='fever/dev/fever_dev_split_fourlabels.jsonl',
+            fever_test_server='fever/test/fever_test_lex_fourlabels.jsonl',
+            fnc_test_server="fnc/test/fn_test_split_fourlabels.jsonl",
+
+            #file to test with if loading model
+            database_to_train_with="fever",
+            database_to_test_with="fever",
+
+            save_dir='model_storage/',
             vectorizer_file='vectorizer.json',
             glove_filepath_local='/Users/mordor/research/glove/glove.840B.300d.txt',
             glove_filepath_server='/work/mithunpaul/glove/glove.840B.300d.txt',
@@ -121,14 +128,26 @@ class Initializer():
         '''
 
         data_dir = self._args.data_dir_local
-        glove_filepath_in = self._args.glove_filepath_local
-        fever_train_input_file = os.path.join(data_dir, self._args.fever_train_local)
-        fever_dev_input_file = os.path.join(data_dir, self._args.fever_dev_local)
-        fever_test_input_file = os.path.join(data_dir, self._args.fever_test_local)
+
 
         if (command_line_args.run_on_server == True):
             glove_filepath_in = self._args.glove_filepath_server
             fever_train_input_file = os.path.join(self._args.data_dir_server, self._args.fever_train_server)
             fever_dev_input_file = os.path.join(self._args.data_dir_server, self._args.fever_dev_server)
             fever_test_input_file = os.path.join(self._args.data_dir_server, self._args.fever_test_server)
-        return glove_filepath_in,fever_train_input_file,fever_dev_input_file,fever_test_input_file
+            fnc_test_input_file = os.path.join(self._args.data_dir_server, self._args.fnc_test_server)
+
+        else:
+            glove_filepath_in = self._args.glove_filepath_local
+            fever_train_input_file = os.path.join(data_dir, self._args.fever_train_local)
+            fever_dev_input_file = os.path.join(data_dir, self._args.fever_dev_local)
+            fever_test_input_file = os.path.join(data_dir, self._args.fever_test_local)
+            fnc_test_input_file = os.path.join(data_dir, self._args.fnc_test_local)
+
+        if (self._args.database_to_test_with == "fnc"):
+            test_input_file = fnc_test_input_file
+        elif (self._args.database_to_test_with == "fever"):
+            test_input_file = fever_test_input_file
+
+
+        return glove_filepath_in,fever_train_input_file,fever_dev_input_file,test_input_file

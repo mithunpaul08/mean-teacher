@@ -1,6 +1,6 @@
 from mean_teacher.utils.utils_rao import generate_batches,initialize_double_optimizers,update_optimizer_state
 from mean_teacher.modules.rao_datasets import RTEDataset
-import time
+import time,os
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -63,7 +63,9 @@ class Trainer():
                 # Reset early stopping step
                 train_state['early_stopping_step'] = 0
 
-                #todo mithun: this line wasn't there. confirm with marco- also the value of early_stopping_best_val was 1e8
+                #todo mithun: this line makes the early stopping best val as the current loss.
+                #  this is later used to check if if the loss has increased from what it was an epoch before
+                # this line wasn't there in rao code. confirm with marco- also the value of early_stopping_best_val was 1e8
                 #train_state['early_stopping_best_val']=loss_t
 
             # Stop early ?
@@ -290,19 +292,19 @@ class Trainer():
         except KeyboardInterrupt:
             print("Exiting loop")
 
-    def test(self, args_in, classifier, dataset, comet_value_updater,split_to_test):
+    def test(self, args_in,classifier, dataset,split_to_test):
 
-        classifier = classifier.to(args_in.device)
-        classifier.load_state_dict(torch.load(args_in.trained_model_path,map_location=torch.device(args_in.device)))
-
-
+        #classifier = model.load.to(args_in.device)
+        if os.path.getsize(args_in.trained_model_path) > 0:
+            classifier.load_state_dict(torch.load(args_in.trained_model_path,map_location=torch.device(args_in.device)))
+        classifier.eval()
         dataset.set_split(split_to_test)
         batch_generator1 = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
                                             device=args_in.device, shuffle=False)
 
         running_loss = 0.
         running_acc = 0.
-        classifier.eval()
+
 
         for batch_index_dev, batch_dict in enumerate(batch_generator1):
             # compute the output

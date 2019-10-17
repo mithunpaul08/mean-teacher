@@ -14,7 +14,7 @@ class Trainer():
         self._current_time={time.strftime("%c")}
 
     def make_train_state(self,args):
-        return {'stop_early': True,
+        return {'stop_early': False,
                 'early_stopping_step': 0,
                 'early_stopping_best_val': 1e8,
                 'learning_rate': args.learning_rate,
@@ -45,6 +45,11 @@ class Trainer():
         if train_state['epoch_index'] == 0:
             torch.save(model.state_dict(), train_state['model_filename']+"_e"+str(train_state['epoch_index'])+".pth")
             train_state['stop_early'] = False
+            assert type(train_state['val_loss']) is list
+            all_val_loss_length=len(train_state['val_loss'])
+            assert all_val_loss_length > 0
+            loss_t = train_state['val_loss'][all_val_loss_length-1]
+            train_state['early_stopping_best_val'] = loss_t
 
         # Save model if performance improved
         elif train_state['epoch_index'] >= 1:
@@ -54,17 +59,18 @@ class Trainer():
             if loss_t >= train_state['early_stopping_best_val']:
                 # Update step
                 train_state['early_stopping_step'] += 1
+                LOG.info(f"found that val loss {loss_t} is more than the best dev loss value so far which is {train_state['early_stopping_best_val']}. "
+                         f"Increasing patience total value. "
+                         f"of patience now is {train_state['early_stopping_step']}")
             # Loss decreased
             else:
                 # Save the best model
                 torch.save(model.state_dict(), train_state['model_filename']+"_e"+str(train_state['epoch_index'])+".pth")
-
+                LOG.info(
+                    f"found that val loss {loss_t} is less than the best dev loss value so far which is "
+                    f"{train_state['early_stopping_best_val']}.resetting patience=0")
                 # Reset early stopping step
                 train_state['early_stopping_step'] = 0
-
-                #todo mithun: this line makes the early stopping best val as the current loss.
-                #  this is later used to check if if the loss has increased from what it was an epoch before
-                # this line wasn't there in rao code. confirm with marco- also the value of early_stopping_best_val was 1e8
                 train_state['early_stopping_best_val']=loss_t
 
             # Stop early ?
@@ -283,7 +289,7 @@ class Trainer():
                 epoch_bar.update()
 
                 LOG.info(f"epoch:{epoch_index}\tval_loss_end_of_epoch:{round(running_loss,4)}\tval_accuracy_end_of_epoch:{round(running_acc,4)} ")
-                time.sleep(10)
+
 
             LOG.info(f"{self._current_time:}Val loss at end of all epochs: {(train_state_in['val_loss'])}")
             LOG.info(f"{self._current_time:}Val accuracy at end of all epochs: {(train_state_in['val_acc'])}")

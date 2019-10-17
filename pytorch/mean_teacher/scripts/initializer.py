@@ -15,7 +15,7 @@ class Initializer():
 
         args = Namespace(
             #type of run: train (which includes val validation also),val, test
-            run_type="test",
+            run_type="train",
             database_to_train_with="fever",
             database_to_test_with="fnc",
             trained_model_path="model_storage/best_model.pth",

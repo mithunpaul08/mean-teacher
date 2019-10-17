@@ -45,33 +45,34 @@ class Trainer():
         if train_state['epoch_index'] == 0:
             torch.save(model.state_dict(), train_state['model_filename']+"_e"+str(train_state['epoch_index'])+".pth")
             train_state['stop_early'] = False
-            assert type(train_state['val_loss']) is list
-            all_val_loss_length=len(train_state['val_loss'])
-            assert all_val_loss_length > 0
-            loss_t = train_state['val_loss'][all_val_loss_length-1]
-            train_state['early_stopping_best_val'] = loss_t
+            assert type(train_state['val_acc']) is list
+            all_val_acc_length=len(train_state['val_acc'])
+            assert all_val_acc_length > 0
+            acc_current_epoch = train_state['val_acc'][all_val_acc_length-1]
+            train_state['early_stopping_best_val'] = acc_current_epoch
 
         # Save model if performance improved
         elif train_state['epoch_index'] >= 1:
-            loss_tm1, loss_t = train_state['val_loss'][-2:]
+            loss_tm1, acc_current_epoch = train_state['val_acc'][-2:]
 
-            # If loss worsened
-            if loss_t >= train_state['early_stopping_best_val']:
+            # If accuracy decreased
+            if acc_current_epoch <= train_state['early_stopping_best_val']:
                 # Update step
                 train_state['early_stopping_step'] += 1
-                LOG.info(f"found that val loss {loss_t} is more than the best dev loss value so far which is {train_state['early_stopping_best_val']}. "
+                LOG.info(f"found that acc_current_epoch  {acc_current_epoch} is more than or equal to the best dev accuracy value so far which is"
+                         f" {train_state['early_stopping_best_val']}. "
                          f"Increasing patience total value. "
                          f"of patience now is {train_state['early_stopping_step']}")
-            # Loss decreased
+            # accuracy increased
             else:
                 # Save the best model
                 torch.save(model.state_dict(), train_state['model_filename']+"_e"+str(train_state['epoch_index'])+".pth")
                 LOG.info(
-                    f"found that val loss {loss_t} is less than the best dev loss value so far which is "
+                    f"found that acc_current_epoch loss {acc_current_epoch} is less than the best value so far which is "
                     f"{train_state['early_stopping_best_val']}.resetting patience=0")
                 # Reset early stopping step
                 train_state['early_stopping_step'] = 0
-                train_state['early_stopping_best_val']=loss_t
+                train_state['early_stopping_best_val']=acc_current_epoch
 
             # Stop early ?
             train_state['stop_early'] = \

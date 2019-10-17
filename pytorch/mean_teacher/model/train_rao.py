@@ -68,7 +68,7 @@ class Trainer():
                 # Save the best model
                 torch.save(model.state_dict(), train_state['model_filename']+"_e"+str(train_state['epoch_index'])+".pth")
                 LOG.info(
-                    f"found that acc_current_epoch loss {acc_current_epoch} is less than the best value so far which is "
+                    f"found that acc_current_epoch loss {acc_current_epoch} is more than the best accuracy so far which is "
                     f"{train_state['early_stopping_best_val']}.resetting patience=0")
                 # Reset early stopping step
                 train_state['early_stopping_step'] = 0

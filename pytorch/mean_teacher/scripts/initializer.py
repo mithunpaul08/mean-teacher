@@ -59,7 +59,7 @@ class Initializer():
 
             # Runtime options
             expand_filepaths_to_save_dir=True,
-            reload_from_files=False,
+            load_vectorizer=False,
             max_grad_norm=5,
 
 
@@ -106,7 +106,7 @@ class Initializer():
 
     def parse_commandline_args(self):
         parser = argparse.ArgumentParser(description='PyTorch Mean-Teacher Training')
-        parser.add_argument('--run_on_server', default=True, type=self.str2bool, metavar='BOOL',
+        parser.add_argument('--run_on_server', default=False, type=self.str2bool, metavar='BOOL',
                             help='exclude unlabeled examples from the training set')
         parser.add_argument('--run_type', default="train", type=str,
                             help='type of run. options are: train (which includes val validation also),val, test')
@@ -147,24 +147,25 @@ class Initializer():
 
 
 
-        if (command_line_args.database_to_train_with == "fever_lex"):
-            assert train_input_file is not None
-            assert dev_input_file is not None
-            train_input_file = os.path.join(data_dir, command_line_args.fever_train_local_lex)
-            dev_input_file = os.path.join(data_dir, command_line_args.fever_dev_local)
+        #by default let it load train lex files. this is needed for vectorizer. we are not creating vectorizer,
+        #  but even to load vectorizer from disk, rao's code needs train input file
+        train_input_file = os.path.join(data_dir, command_line_args.fever_train_local_lex)
+        dev_input_file = os.path.join(data_dir, command_line_args.fever_dev_local)
+        assert train_input_file is not None
+        assert dev_input_file is not None
 
-        elif (command_line_args.database_to_train_with == "fever_delex"):
-            assert train_input_file is not None
-            assert dev_input_file is not None
+        if (command_line_args.database_to_train_with == "fever_delex"):
             train_input_file = os.path.join(data_dir, command_line_args.fever_train_local_delex)
             dev_input_file=os.path.join(data_dir, command_line_args.fever_dev_local_delex)
+            assert train_input_file is not None
+            assert dev_input_file is not None
 
         if (command_line_args.database_to_test_with == "fnc"):
-            assert test_input_file is not None
             test_input_file = os.path.join(data_dir, command_line_args.fnc_test_local)
-        elif (command_line_args.database_to_test_with == "fever"):
             assert test_input_file is not None
+        elif (command_line_args.database_to_test_with == "fever"):
             test_input_file = os.path.join(data_dir, command_line_args.fever_test_local)
+            assert test_input_file is not None
 
 
 

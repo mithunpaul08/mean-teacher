@@ -21,7 +21,7 @@ args = initializer.parse_commandline_args()
 
 # for drawing graphs on comet:
 if (args.run_on_server == True):
-    comet_value_updater = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT")
+    comet_value_updater = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT",project_name="rte-decomp-attention")
 else:
     comet_value_updater =  ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT",previous_experiment="1ea3afdd06244cde82a77957d05670b5")
 

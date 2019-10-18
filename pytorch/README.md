@@ -17,6 +17,8 @@ pip install jsonlines
 pip install git+ssh://git@github.com/pytorch/vision@c31c3d7e0e68e871d2128c8b731698ed3b11b119
 conda install pytorch-cpu torchvision-cpu -c pytorch *
 wget https://storage.googleapis.com/fact_verification_mithun_files/fever_dev_delexicalized_3labels_26k_no_lists_evidence_not_sents.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/fever_train_delex_oaner_4labels.jsonl  -O data/rte/fever/train/fever_train_delex_oaner_4labels.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/fever_dev_delex_oaner_4labels.jsonl  -O data/rte/fever/dev/fever_dev_delex_oaner_4labels.jsonl
 ```
 
 
@@ -24,7 +26,8 @@ To train on FEVER, run the following command in the folder `pytorch/` :
 
 
 ``` 
-python main.py --run_type train --database_to_train_with fever 
+python main.py --run_type train --database_to_train_with fever_delex
+python main.py --run_type train --database_to_train_with fever_lex 
 ```
 
 To test using the trained model, on FNC dataset, run the following command in the folder `pytorch/` :

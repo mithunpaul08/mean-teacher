@@ -59,7 +59,8 @@ class Trainer():
             if acc_current_epoch <= train_state['early_stopping_best_val']:
                 # Update step
                 train_state['early_stopping_step'] += 1
-                LOG.info(f"found that acc_current_epoch  {acc_current_epoch} is more than or equal to the best dev accuracy value so far which is"
+                LOG.info(f"found that acc_current_epoch  {acc_current_epoch} is less than or equal to the best dev "
+                         f"accuracy value so far which is"
                          f" {train_state['early_stopping_best_val']}. "
                          f"Increasing patience total value. "
                          f"of patience now is {train_state['early_stopping_step']}")

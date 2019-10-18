@@ -26,10 +26,11 @@ class Initializer():
             model_state_file='model',
             # for laptop
             data_dir_local='../data/rte',
-            fever_train_local='fever/train/fever_train_split_fourlabels.jsonl',
-            fever_dev_local='fever/dev/fever_dev_split_fourlabels.jsonl',
+            fever_train_local='mnli/train/mu_letters.jsonl',
+            fever_dev_local='mnli/dev/mu_slate.jsonl',
             fever_test_local='fever/test/fever_test_lex_fourlabels.jsonl',
             fnc_test_local="fnc/test/fn_test_split_fourlabels.jsonl",
+
 
 
             #for server

@@ -27,13 +27,8 @@ else:
 
 hyper_params=vars(args)
 comet_value_updater.log_parameters(hyper_params)
-
-#comet has to be intialized before torch
 import torch
-
-
 set_seed_everywhere(args.seed, args.cuda)
-
 random_seed = args.random_seed
 random.seed(random_seed)
 np.random.seed(random_seed)

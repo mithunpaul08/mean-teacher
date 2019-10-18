@@ -27,6 +27,7 @@ class Initializer():
             fever_test_local='fever/test/fever_test_lex_fourlabels.jsonl',
             fnc_test_local="fnc/test/fn_test_split_fourlabels.jsonl",
             fever_train_local_delex='fever/train/fever_train_delex_oaner_4labels.jsonl',
+            fever_dev_local_delex='fever/dev/fever_dev_delex_oaner_4labels.jsonl',
 
 
 
@@ -105,7 +106,7 @@ class Initializer():
 
     def parse_commandline_args(self):
         parser = argparse.ArgumentParser(description='PyTorch Mean-Teacher Training')
-        parser.add_argument('--run_on_server', default=False, type=self.str2bool, metavar='BOOL',
+        parser.add_argument('--run_on_server', default=True, type=self.str2bool, metavar='BOOL',
                             help='exclude unlabeled examples from the training set')
         parser.add_argument('--run_type', default="train", type=str,
                             help='type of run. options are: train (which includes val validation also),val, test')
@@ -134,6 +135,8 @@ class Initializer():
         cwd=os.getcwd()
         data_dir = os.path.join(cwd,command_line_args.data_dir_local)
         train_input_file=None
+        dev_input_file=None
+        test_input_file=None
 
         if (command_line_args.run_on_server == True):
             glove_filepath_in = command_line_args.glove_filepath_server
@@ -157,8 +160,10 @@ class Initializer():
 
         if (command_line_args.database_to_train_with == "fever_lex"):
             train_input_file = os.path.join(data_dir, command_line_args.fever_train_local_lex)
+
         elif (command_line_args.database_to_train_with == "fever_delex"):
             train_input_file = os.path.join(data_dir, command_line_args.fever_train_local_delex)
+            dev_input_file=os.path.join(data_dir, command_line_args.fever_dev_local_delex)
 
         if (command_line_args.database_to_test_with == "fnc"):
             test_input_file = os.path.join(data_dir, command_line_args.fnc_test_local)
@@ -167,6 +172,7 @@ class Initializer():
 
 
         assert train_input_file is not None
+        assert dev_input_file is not None
         assert test_input_file is not None
 
-        return glove_filepath_in,train_input_file,fever_dev_input_file,test_input_file
+        return glove_filepath_in,train_input_file,dev_input_file,test_input_file

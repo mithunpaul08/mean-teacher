@@ -138,41 +138,37 @@ class Initializer():
         dev_input_file=None
         test_input_file=None
 
+        #local laptop has a dummy/toy glove
+        #todo: download glove using wget
         if (command_line_args.run_on_server == True):
             glove_filepath_in = command_line_args.glove_filepath_server
-            fever_train_input_file = os.path.join(command_line_args.data_dir_server, command_line_args.fever_train_server)
-            fever_train_input_file = os.path.join(command_line_args.data_dir_server,
-                                                  command_line_args.fever_train_server)
-            fever_dev_input_file = os.path.join(command_line_args.data_dir_server, command_line_args.fever_dev_server)
-            fever_test_input_file = os.path.join(command_line_args.data_dir_server, command_line_args.fever_test_server)
-
-            fnc_test_input_file = os.path.join(command_line_args.data_dir_server, command_line_args.fnc_test_server)
-
-
-
-        #on laptop
         else:
-                glove_filepath_in = command_line_args.glove_filepath_local
-                fever_train_input_file = os.path.join(data_dir, command_line_args.fever_train_local_lex)
-                fever_dev_input_file = os.path.join(data_dir, command_line_args.fever_dev_local)
-                fever_test_input_file = os.path.join(data_dir, command_line_args.fever_test_local)
+            glove_filepath_in = command_line_args.glove_filepath_local
+
 
 
         if (command_line_args.database_to_train_with == "fever_lex"):
+            assert train_input_file is not None
+            assert dev_input_file is not None
             train_input_file = os.path.join(data_dir, command_line_args.fever_train_local_lex)
+            dev_input_file = os.path.join(data_dir, command_line_args.fever_dev_local)
 
         elif (command_line_args.database_to_train_with == "fever_delex"):
+            assert train_input_file is not None
+            assert dev_input_file is not None
             train_input_file = os.path.join(data_dir, command_line_args.fever_train_local_delex)
             dev_input_file=os.path.join(data_dir, command_line_args.fever_dev_local_delex)
 
         if (command_line_args.database_to_test_with == "fnc"):
+            assert test_input_file is not None
             test_input_file = os.path.join(data_dir, command_line_args.fnc_test_local)
         elif (command_line_args.database_to_test_with == "fever"):
+            assert test_input_file is not None
             test_input_file = os.path.join(data_dir, command_line_args.fever_test_local)
 
 
-        assert train_input_file is not None
-        assert dev_input_file is not None
-        assert test_input_file is not None
+
+
+
 
         return glove_filepath_in,train_input_file,dev_input_file,test_input_file

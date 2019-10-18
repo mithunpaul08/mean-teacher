@@ -11,25 +11,23 @@ class Initializer():
     def __init__(self):
         self._args=Namespace()
 
-    def set_parameters(self):
+    def set_default_parameters(self):
 
         args = Namespace(
-            #type of run: train (which includes val validation also),val, test
-            run_type="train",
-            database_to_train_with="fever",
-            database_to_test_with="fnc",
-            trained_model_path="model_storage/best_model.pth",
+
 
 
             # Data and Path information
             frequency_cutoff=5,
             best_model_file_name='best_model',
             # for laptop
-            data_dir_local='../data/rte',
-            fever_train_local='fever/train/fever_train_split_fourlabels.jsonl',
+            data_dir_local='data/rte',
+            fever_train_local_lex='fever/train/fever_train_lex_4labels.jsonl',
             fever_dev_local='fever/dev/fever_dev_split_fourlabels.jsonl',
             fever_test_local='fever/test/fever_test_lex_fourlabels.jsonl',
             fnc_test_local="fnc/test/fn_test_split_fourlabels.jsonl",
+            fever_train_local_delex='fever/train/fever_train_delex_oaner_4labels.jsonl',
+
 
 
 
@@ -101,17 +99,23 @@ class Initializer():
         handle_dirs(args.save_dir)
         self._args=args
 
-        return args
 
-    def create_parser(self):
+
+
+
+    def parse_commandline_args(self):
         parser = argparse.ArgumentParser(description='PyTorch Mean-Teacher Training')
         parser.add_argument('--run_on_server', default=False, type=self.str2bool, metavar='BOOL',
                             help='exclude unlabeled examples from the training set')
-
-        return parser
-
-    def parse_commandline_args(self):
-        return self.create_parser().parse_args()
+        parser.add_argument('--run_type', default="train", type=str,
+                            help='type of run. options are: train (which includes val validation also),val, test')
+        parser.add_argument('--database_to_train_with', default="fever", type=str,
+                            help='')
+        parser.add_argument('--database_to_test_with', default="fnc", type=str,
+                            help='')
+        parser.add_argument('--trained_model_path', default="model_storage/best_model.pth", type=str,
+                            help='')
+        return parser.parse_args(namespace=self._args)
 
     def str2bool(self,v):
         if v.lower() in ('yes', 'true', 't', 'y', '1'):
@@ -127,28 +131,42 @@ class Initializer():
         #todo: move this to config file
         :return:
         '''
-
-        data_dir = self._args.data_dir_local
-
+        cwd=os.getcwd()
+        data_dir = os.path.join(cwd,command_line_args.data_dir_local)
+        train_input_file=None
 
         if (command_line_args.run_on_server == True):
-            glove_filepath_in = self._args.glove_filepath_server
-            fever_train_input_file = os.path.join(self._args.data_dir_server, self._args.fever_train_server)
-            fever_dev_input_file = os.path.join(self._args.data_dir_server, self._args.fever_dev_server)
-            fever_test_input_file = os.path.join(self._args.data_dir_server, self._args.fever_test_server)
-            fnc_test_input_file = os.path.join(self._args.data_dir_server, self._args.fnc_test_server)
+            glove_filepath_in = command_line_args.glove_filepath_server
+            fever_train_input_file = os.path.join(command_line_args.data_dir_server, command_line_args.fever_train_server)
+            fever_train_input_file = os.path.join(command_line_args.data_dir_server,
+                                                  command_line_args.fever_train_server)
+            fever_dev_input_file = os.path.join(command_line_args.data_dir_server, command_line_args.fever_dev_server)
+            fever_test_input_file = os.path.join(command_line_args.data_dir_server, command_line_args.fever_test_server)
 
+            fnc_test_input_file = os.path.join(command_line_args.data_dir_server, command_line_args.fnc_test_server)
+
+
+
+        #on laptop
         else:
-            glove_filepath_in = self._args.glove_filepath_local
-            fever_train_input_file = os.path.join(data_dir, self._args.fever_train_local)
-            fever_dev_input_file = os.path.join(data_dir, self._args.fever_dev_local)
-            fever_test_input_file = os.path.join(data_dir, self._args.fever_test_local)
-            fnc_test_input_file = os.path.join(data_dir, self._args.fnc_test_local)
-
-        if (self._args.database_to_test_with == "fnc"):
-            test_input_file = fnc_test_input_file
-        elif (self._args.database_to_test_with == "fever"):
-            test_input_file = fever_test_input_file
+                glove_filepath_in = command_line_args.glove_filepath_local
+                fever_train_input_file = os.path.join(data_dir, command_line_args.fever_train_local_lex)
+                fever_dev_input_file = os.path.join(data_dir, command_line_args.fever_dev_local)
+                fever_test_input_file = os.path.join(data_dir, command_line_args.fever_test_local)
 
 
-        return glove_filepath_in,fever_train_input_file,fever_dev_input_file,test_input_file
+        if (command_line_args.database_to_train_with == "fever_lex"):
+            train_input_file = os.path.join(data_dir, command_line_args.fever_train_local_lex)
+        elif (command_line_args.database_to_train_with == "fever_delex"):
+            train_input_file = os.path.join(data_dir, command_line_args.fever_train_local_delex)
+
+        if (command_line_args.database_to_test_with == "fnc"):
+            test_input_file = os.path.join(data_dir, command_line_args.fnc_test_local)
+        elif (command_line_args.database_to_test_with == "fever"):
+            test_input_file = os.path.join(data_dir, command_line_args.fever_test_local)
+
+
+        assert train_input_file is not None
+        assert test_input_file is not None
+
+        return glove_filepath_in,train_input_file,fever_dev_input_file,test_input_file

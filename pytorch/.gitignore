@@ -2,7 +2,7 @@ custom_emb.txt
 outputs/*
 pytorch/outputs/train_dev_per_epoch_accuracy.csv
 pytorch/outputs/vocabulary_train.txt
-
+*.jsonl
 __pycache__
 outputs
 results
@@ -15,7 +15,6 @@ results
 ../.idea/*
 ../.idea/*.xml
 *.iml
-data
 data-local/workdir
 data-local/images
 *.pyc

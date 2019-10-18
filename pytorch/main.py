@@ -14,13 +14,13 @@ import numpy as np
 
 
 initializer=Initializer()
-command_line_args = initializer.parse_commandline_args()
-args=initializer.set_parameters()
+initializer.set_default_parameters()
+args = initializer.parse_commandline_args()
 
 
 
 # for drawing graphs on comet:
-if (command_line_args.run_on_server == True):
+if (args.run_on_server == True):
     comet_value_updater = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT")
 else:
     comet_value_updater =  ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT",previous_experiment="1ea3afdd06244cde82a77957d05670b5")
@@ -52,7 +52,7 @@ else:
 
 current_time={time.strftime("%c")}
 
-glove_filepath_in, fever_train_input_file, fever_dev_input_file, test_input_file=initializer.get_file_paths(command_line_args)
+glove_filepath_in, fever_train_input_file, fever_dev_input_file, test_input_file=initializer.get_file_paths(args)
 LOG.info(f"{current_time} loading glove from path:{glove_filepath_in}")
 LOG.debug(f"value of fever_train_input_file is :{fever_train_input_file}")
 LOG.debug(f"value of fever_dev_input_file is :{fever_dev_input_file}")

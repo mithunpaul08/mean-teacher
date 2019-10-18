@@ -15,7 +15,7 @@ class Initializer():
 
         args = Namespace(
             #type of run: train (which includes val validation also),val, test
-            run_type="test",
+            run_type="train",
             database_to_train_with="fever",
             database_to_test_with="fnc",
             trained_model_path="model_storage/best_model.pth",
@@ -23,7 +23,7 @@ class Initializer():
 
             # Data and Path information
             frequency_cutoff=5,
-            model_state_file='model',
+            best_model_file_name='best_model',
             # for laptop
             data_dir_local='../data/rte',
             fever_train_local='fever/train/fever_train_split_fourlabels.jsonl',
@@ -62,7 +62,7 @@ class Initializer():
             expand_filepaths_to_save_dir=True,
             reload_from_files=False,
             max_grad_norm=5,
-            #End of rao's parameters
+
 
 
             truncate_words_length=1000,
@@ -84,7 +84,7 @@ class Initializer():
                                                 args.vectorizer_file)
 
             args.model_state_file = os.path.join(args.save_dir,
-                                                 args.model_state_file)
+                                                 args.best_model_file_name)
 
             print("Expanded filepaths: ")
             print("\t{}".format(args.vectorizer_file))
@@ -98,8 +98,6 @@ class Initializer():
 
         args.device = torch.device("cuda" if args.cuda else "cpu")
 
-        # Set seed for reproducibility
-        # set_seed_everywhere(args.seed, args.cuda)
         handle_dirs(args.save_dir)
         self._args=args
 

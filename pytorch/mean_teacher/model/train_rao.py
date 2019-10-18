@@ -43,7 +43,7 @@ class Trainer():
 
         # Save one model at least
         if train_state['epoch_index'] == 0:
-            torch.save(model.state_dict(), train_state['model_filename']+"_e"+str(train_state['epoch_index'])+".pth")
+            torch.save(model.state_dict(), "model"+"_e"+str(train_state['epoch_index'])+".pth")
             train_state['stop_early'] = False
             assert type(train_state['val_acc']) is list
             all_val_acc_length=len(train_state['val_acc'])
@@ -56,8 +56,8 @@ class Trainer():
             loss_tm1, acc_current_epoch = train_state['val_acc'][-2:]
 
             # If accuracy decreased
-            if acc_current_epoch <= train_state['early_stopping_best_val']:
-                # Update step
+            if acc_current_epoch < train_state['early_stopping_best_val']:
+                # increase patience counter
                 train_state['early_stopping_step'] += 1
                 LOG.info(f"found that acc_current_epoch  {acc_current_epoch} is less than or equal to the best dev "
                          f"accuracy value so far which is"
@@ -67,7 +67,7 @@ class Trainer():
             # accuracy increased
             else:
                 # Save the best model
-                torch.save(model.state_dict(), train_state['model_filename']+"_e"+str(train_state['epoch_index'])+".pth")
+                torch.save(model.state_dict(), train_state['model_filename']+".pth")
                 LOG.info(
                     f"found that acc_current_epoch loss {acc_current_epoch} is more than the best accuracy so far which is "
                     f"{train_state['early_stopping_best_val']}.resetting patience=0")

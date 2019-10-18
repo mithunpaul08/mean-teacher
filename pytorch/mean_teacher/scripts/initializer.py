@@ -6,6 +6,7 @@ import argparse
 from mean_teacher.utils.utils_rao import set_seed_everywhere,make_embedding_matrix
 from mean_teacher.utils.utils_rao import handle_dirs
 from mean_teacher.modules.rao_datasets import RTEDataset
+from mean_teacher.utils.logger import LOG
 
 class Initializer():
     def __init__(self):
@@ -74,7 +75,7 @@ class Initializer():
             update_pretrained_wordemb=False,
             cuda=True,
             workers=0,
-            log_level='INFO',
+
             use_gpu=True
         )
         args.use_glove = True
@@ -116,6 +117,8 @@ class Initializer():
                             help='')
         parser.add_argument('--trained_model_path', default="model_storage/best_model.pth", type=str,
                             help='')
+        parser.add_argument('--log_level', default="INFO", type=str,
+                            help='')
         return parser.parse_args(namespace=self._args)
 
     def str2bool(self,v):
@@ -151,6 +154,8 @@ class Initializer():
         #  but even to load vectorizer from disk, rao's code needs train input file
         train_input_file = os.path.join(data_dir, command_line_args.fever_train_local_lex)
         dev_input_file = os.path.join(data_dir, command_line_args.fever_dev_local)
+        LOG.debug(f"train_input_file:{train_input_file}")
+        LOG.debug(f"dev_input_file:{dev_input_file}")
         assert train_input_file is not None
         assert dev_input_file is not None
 

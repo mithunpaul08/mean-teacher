@@ -22,30 +22,29 @@ class Initializer():
             frequency_cutoff=5,
             best_model_file_name='best_model',
             # for laptop
-            data_dir_local='data/rte',
-            fever_train_local_lex='fever/train/fever_train_lex_4labels.jsonl',
-            fever_dev_local='fever/dev/fever_dev_split_fourlabels.jsonl',
-            fever_test_local='fever/test/fever_test_lex_fourlabels.jsonl',
-            fnc_test_local="fnc/test/fn_test_split_fourlabels.jsonl",
-            fever_train_local_delex='fever/train/fever_train_delex_oaner_4labels.jsonl',
-            fever_dev_local_delex='fever/dev/fever_dev_delex_oaner_4labels.jsonl',
+            data_dir_local='data',
+            fever_train_local_lex='rte/fever/train/fever_train_lex_4labels.jsonl',
+            fever_dev_local='rte/fever/dev/fever_dev_split_fourlabels.jsonl',
+            fever_test_local='rte/fever/test/fever_test_lex_fourlabels.jsonl',
+            fnc_test_local="rte/fnc/test/fn_test_split_fourlabels.jsonl",
+            fever_train_local_delex='rte/fever/train/fever_train_delex_oaner_4labels.jsonl',
+            fever_dev_local_delex='rte/fever/dev/fever_dev_delex_oaner_4labels.jsonl',
 
 
 
 
             #for server
-            data_dir_server='data/rte',
-            fever_train_server='fever/train/fever_train_split_fourlabels.jsonl',
-            fever_dev_server='fever/dev/fever_dev_split_fourlabels.jsonl',
-            fever_test_server='fever/test/fever_test_lex_fourlabels.jsonl',
-            fnc_test_server="fnc/test/fn_test_split_fourlabels.jsonl",
+            data_dir_server='data',
+            fever_train_server='rte/fever/train/fever_train_split_fourlabels.jsonl',
+            fever_dev_server='rte/fever/dev/fever_dev_split_fourlabels.jsonl',
+            fever_test_server='rte/fever/test/fever_test_lex_fourlabels.jsonl',
+            fnc_test_server="rte/fnc/test/fn_test_split_fourlabels.jsonl",
 
 
 
             save_dir='model_storage/',
             vectorizer_file='vectorizer.json',
-            glove_filepath_local='/Users/mordor/research/glove/glove.840B.300d.txt',
-            glove_filepath_server='/work/mithunpaul/glove/glove.840B.300d.txt',
+            glove_filepath='glove/glove.840B.300d.txt',
 
 
             # Training hyper parameters
@@ -61,6 +60,7 @@ class Initializer():
             # Runtime options
             expand_filepaths_to_save_dir=True,
             load_vectorizer=False,
+            load_model_from_disk=False,
             max_grad_norm=5,
 
 
@@ -129,52 +129,64 @@ class Initializer():
         else:
             raise argparse.ArgumentTypeError('Boolean value expected.')
 
-    def get_file_paths(self,command_line_args):
+    def join_data_dir_path(self,data_dir,filepath):
+        path = os.path.join(data_dir, filepath)
+        assert os.path.exists(path) is True
+        assert os.path.isfile(path) is True
+        return path
+
+    def get_file_paths(self, args_in):
         '''
         decide the path of the local files based on whether we are running on server or laptop.
         #todo: move this to config file
         :return:
         '''
         cwd=os.getcwd()
-        data_dir = os.path.join(cwd,command_line_args.data_dir_local)
+        data_dir = os.path.join(cwd, args_in.data_dir_local)
         train_input_file=None
         dev_input_file=None
         test_input_file=None
 
-        #local laptop has a dummy/toy glove
-        #todo: download glove using wget
-        if (command_line_args.run_on_server == True):
-            glove_filepath_in = command_line_args.glove_filepath_server
-        else:
-            glove_filepath_in = command_line_args.glove_filepath_local
-
-
-
-        #by default let it load train lex files. this is needed for vectorizer. we are not creating vectorizer,
-        #  but even to load vectorizer from disk, rao's code needs train input file
-        train_input_file = os.path.join(data_dir, command_line_args.fever_train_local_lex)
-        dev_input_file = os.path.join(data_dir, command_line_args.fever_dev_local)
+        train_input_file = self.join_data_dir_path(data_dir, args_in.fever_train_local_lex)
+        dev_input_file = self.join_data_dir_path(data_dir, args_in.fever_dev_local)
         LOG.debug(f"train_input_file:{train_input_file}")
         LOG.debug(f"dev_input_file:{dev_input_file}")
         assert train_input_file is not None
         assert dev_input_file is not None
 
-        if (command_line_args.database_to_train_with == "fever_delex"):
-            train_input_file = os.path.join(data_dir, command_line_args.fever_train_local_delex)
-            dev_input_file=os.path.join(data_dir, command_line_args.fever_dev_local_delex)
+        if(args_in.run_type=="train"):
+            if (args_in.database_to_train_with == "fever_delex"):
+                assert os.path.exists(args_in.fever_train_local_delex) is True
+                assert os.path.isfile(args_in.fever_train_local_delex) is True
+                assert os.path.exists(args_in.fever_dev_local_delex) is True
+                assert os.path.isfile(args_in.fever_dev_local_delex) is True
+                train_input_file = os.path.join(data_dir, args_in.fever_train_local_delex)
+                dev_input_file = os.path.join(data_dir, args_in.fever_dev_local_delex)
+                assert train_input_file is not None
+                assert dev_input_file is not None
+        elif(args_in.run_type=="test"):
+            #vectorizer needs to load train dataset to return its class value
+            train_input_file = test_input_file = self.join_data_dir_path(data_dir,args_in.fever_train_local_lex)
+            LOG.debug(f"train_input_file:{train_input_file}")
             assert train_input_file is not None
-            assert dev_input_file is not None
 
-        if (command_line_args.database_to_test_with == "fnc"):
-            test_input_file = os.path.join(data_dir, command_line_args.fnc_test_local)
-            assert test_input_file is not None
-        elif (command_line_args.database_to_test_with == "fever"):
-            test_input_file = os.path.join(data_dir, command_line_args.fever_test_local)
-            assert test_input_file is not None
+            if (args_in.database_to_test_with == "fnc"):
+                test_input_file = self.join_data_dir_path(data_dir,args_in.fnc_test_local)
+                assert test_input_file is not None
+            elif (args_in.database_to_test_with == "fever"):
+                assert os.path.exists(args_in.fever_test_local) is True
+                assert os.path.isfile(args_in.fever_test_local) is True
+                test_input_file = os.path.join(data_dir, args_in.fever_test_local)
+                assert test_input_file is not None
 
 
+        glove_filepath_in=self.join_data_dir_path(data_dir,args_in.glove_filepath)
 
 
+        assert glove_filepath_in is not None
+        assert train_input_file is not None
+        assert dev_input_file is not None
+        assert test_input_file is not None
 
 
         return glove_filepath_in,train_input_file,dev_input_file,test_input_file

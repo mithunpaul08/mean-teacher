@@ -81,7 +81,7 @@ class RTEDataset(Dataset):
 
 
     @classmethod
-    def load_dataset_and_create_vocabulary(cls, train_file, dev_file, test_file, args):
+    def load_dataset(cls, train_file, dev_file, test_file, args):
         """Load dataset and make a new vectorizer from scratch
 
         Args:
@@ -117,11 +117,24 @@ class RTEDataset(Dataset):
         combined_train_dev_test_with_split_column_df = pd.concat(frames)
         cls.labels=fever_lex_train_df.label
 
-        # todo: uncomment/call and check the function replace_if_PERSON_C1_format has any effect on claims and evidence sentences-mainpulate dataframe
-        return cls(combined_train_dev_test_with_split_column_df, VectorizerWithEmbedding.create_vocabulary(fever_lex_train_df, args.frequency_cutoff))
+
+        return combined_train_dev_test_with_split_column_df,fever_lex_train_df
 
     @classmethod
-    def load_dataset_and_load_vectorizer(cls, input_file, vectorizer_filepath):
+    def create_vocabulary(cls, train_file, dev_file, test_file, args):
+        """Load dataset and make a new vectorizer from scratch
+
+        Args:
+            args (str): all arguments which were create initially.
+        Returns:
+            an instance of ReviewDataset
+        """
+        combined_train_dev_test_with_split_column_df,fever_lex_train_df=cls.load_dataset(train_file, dev_file, test_file, args)
+
+        return cls(combined_train_dev_test_with_split_column_df,
+                   VectorizerWithEmbedding.create_vocabulary(fever_lex_train_df, args.frequency_cutoff))
+    @classmethod
+    def load_dataset_and_load_vectorizer(cls, train_input_file, dev_input_file, test_input_file, args):
         """Load dataset and the corresponding vectorizer.
         Used in the case in the vectorizer has been cached for re-use
 
@@ -131,8 +144,10 @@ class RTEDataset(Dataset):
         Returns:
             an instance of ReviewDataset
         """
-        review_df = pd.read_json(input_file, lines=True)
-        vectorizer = cls.load_vectorizer_only(vectorizer_filepath)
+         #pd.read_json(input_file, lines=True)
+
+        review_df,fever_lex_train_df = cls.load_dataset(train_input_file, dev_input_file, test_input_file,args)
+        vectorizer = cls.load_vectorizer_only(args.vectorizer_file)
         return cls(review_df, vectorizer)
 
     @staticmethod

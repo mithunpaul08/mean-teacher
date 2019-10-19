@@ -99,7 +99,7 @@ class Vocabulary(object):
 
 
 class SequenceVocabulary(Vocabulary):
-    def __init__(self, token_to_idx=None, unk_token="<UNK>",
+    def __init__(self, token_to_idx=None, add_unk=True,unk_token="<UNK>",
                  mask_token="<MASK>", begin_seq_token="<BEGIN>",
                  end_seq_token="<END>"):
 

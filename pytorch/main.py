@@ -10,56 +10,49 @@ import random
 import numpy as np
 
 
+current_time={time.strftime("%c")}
+LOG.info(f"starting the run at {current_time}.")
 
+def initialize_comet(args):
+    # for drawing graphs on comet:
+    if (args.run_on_server == True):
+        comet_value_updater = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", project_name="rte-decomp-attention")
+    else:
+        comet_value_updater = ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT",
+                                                 previous_experiment="1ea3afdd06244cde82a77957d05670b5")
+    return comet_value_updater
 
 
 initializer=Initializer()
 initializer.set_default_parameters()
 args = initializer.parse_commandline_args()
-
-
-
-# for drawing graphs on comet:
-if (args.run_on_server == True):
-    comet_value_updater = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT",project_name="rte-decomp-attention")
-else:
-    comet_value_updater =  ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT",previous_experiment="1ea3afdd06244cde82a77957d05670b5")
-
+comet_value_updater=initialize_comet(args)
 hyper_params=vars(args)
 comet_value_updater.log_parameters(hyper_params)
-import torch
-set_seed_everywhere(args.seed, args.cuda)
-random_seed = args.random_seed
-random.seed(random_seed)
-np.random.seed(random_seed)
+set_seed_everywhere(args)
 LOG.setLevel(args.log_level)
 
-
-torch.backends.cudnn.deterministic = True
-if torch.cuda.is_available():
-    torch.manual_seed(args.random_seed)
-    torch.cuda.manual_seed(args.random_seed)
-    LOG.info(f"found that cuda is available. ALso setting the manual seed as {args.random_seed} ")
-else:
-    torch.manual_seed(args.random_seed)
-    LOG.info(f"found that cuda is not available . ALso setting the manual seed as {args.random_seed} ")
+if args.run_type=="test":
+    args.load_vectorizer=True
+    #args.use_glove=False
+    args.load_model_from_disk=True
 
 
-current_time={time.strftime("%c")}
+glove_filepath_in, train_input_file, dev_input_file, test_input_file=initializer.get_file_paths(args)
 
-glove_filepath_in, fever_train_input_file, fever_dev_input_file, test_input_file=initializer.get_file_paths(args)
-LOG.info(f"{current_time} loading glove from path:{glove_filepath_in}")
-LOG.debug(f"value of fever_train_input_file is :{fever_train_input_file}")
-LOG.debug(f"value of fever_dev_input_file is :{fever_dev_input_file}")
+
+LOG.debug(" glove path:{glove_filepath_in}")
+LOG.debug(f"value of train_input_file is :{train_input_file}")
+LOG.debug(f"value of dev_input_file is :{dev_input_file}")
 
 
 if args.load_vectorizer:
     # training from a checkpoint
-    dataset = RTEDataset.load_dataset_and_load_vectorizer(fever_train_input_file,
-                                                              args.vectorizer_file)
+    dataset = RTEDataset.load_dataset_and_load_vectorizer(train_input_file, dev_input_file, test_input_file,
+                                                          args)
 else:
     # create dataset and vectorizer
-    dataset = RTEDataset.load_dataset_and_create_vocabulary(fever_train_input_file, fever_dev_input_file, test_input_file, args)
+    dataset = RTEDataset.create_vocabulary(train_input_file, dev_input_file, test_input_file, args)
     dataset.save_vectorizer(args.vectorizer_file)
 vectorizer = dataset.get_vectorizer()
 
@@ -90,3 +83,11 @@ elif args.run_type=="test":
 elif args.run_type == "val":
     train_rte.test(args,classifier, dataset, "val")
 
+
+def initialize_comet():
+    # for drawing graphs on comet:
+    if (args.run_on_server == True):
+        comet_value_updater = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", project_name="rte-decomp-attention")
+    else:
+        comet_value_updater = ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT",
+                                                 previous_experiment="1ea3afdd06244cde82a77957d05670b5")

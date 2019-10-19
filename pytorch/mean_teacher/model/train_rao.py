@@ -302,8 +302,11 @@ class Trainer():
     def test(self, args_in,classifier, dataset,split_to_test):
 
         #classifier = model.load.to(args_in.device)
-        if os.path.getsize(args_in.trained_model_path) > 0:
-            classifier.load_state_dict(torch.load(args_in.trained_model_path,map_location=torch.device(args_in.device)))
+        if(args_in.load_model_from_disk):
+            assert os.path.exists(args_in.trained_model_path) is True
+            assert os.path.isfile(args_in.trained_model_path) is True
+            if os.path.getsize(args_in.trained_model_path) > 0:
+                classifier.load_state_dict(torch.load(args_in.trained_model_path,map_location=torch.device(args_in.device)))
         classifier.eval()
         dataset.set_split(split_to_test)
         batch_generator1 = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,

@@ -15,9 +15,6 @@ results
 ../.idea/*
 ../.idea/*.xml
 *.iml
-data-local/workdir
-data-local/images
 *.pyc
 results
 transient
-data-local/*

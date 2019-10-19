@@ -14,14 +14,26 @@ conda create --name rte python=3 numpy scipy pandas nltk tqdm
 source activate rte
 pip install sklearn
 pip install jsonlines
-pip install git+ssh://git@github.com/pytorch/vision@c31c3d7e0e68e871d2128c8b731698ed3b11b119
+pip install git+ssh://git@github.com/pytorch/vision@c31c3d7e0e68e871d2128c8b731698ed3b11b119 *
 conda install pytorch-cpu torchvision-cpu -c pytorch *
+```
+*= pytorch specific. download correct version from pytorch repo
+
+To download data run these command from the folder `pytorch/` :
+
+```
+git clone thisrepo.git
 wget https://storage.googleapis.com/fact_verification_mithun_files/fever_dev_delexicalized_3labels_26k_no_lists_evidence_not_sents.jsonl
 wget https://storage.googleapis.com/fact_verification_mithun_files/fever_train_delex_oaner_4labels.jsonl  -O data/rte/fever/train/fever_train_delex_oaner_4labels.jsonl
 wget https://storage.googleapis.com/fact_verification_mithun_files/fever_dev_delex_oaner_4labels.jsonl  -O data/rte/fever/dev/fever_dev_delex_oaner_4labels.jsonl
 wget https://storage.googleapis.com/fact_verification_mithun_files/fever_train_lex_4labels.jsonl  -O data/rte/fever/train/fever_train_lex_4labels.jsonl
+mkdir -p data
+wget http://nlp.stanford.edu/data/wordvecs/glove.6B.zip
+unzip glove.6B.zip -d data/glove
+rm data/glove/glove.6B.100d.txt
+rm data/glove/glove.6B.200d.txt 
+rm data/glove/glove.6B.50d.txt 
 ```
-
 
 To train on FEVER, run the following command in the folder `pytorch/` :
 

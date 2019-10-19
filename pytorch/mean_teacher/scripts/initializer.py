@@ -44,7 +44,7 @@ class Initializer():
 
             save_dir='model_storage/',
             vectorizer_file='vectorizer.json',
-            glove_filepath='glove/glove.840B.300d.txt',
+            glove_filepath='glove/glove.6B.300d.txt',
 
 
             # Training hyper parameters

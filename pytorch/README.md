@@ -19,6 +19,7 @@ conda install pytorch-cpu torchvision-cpu -c pytorch *
 wget https://storage.googleapis.com/fact_verification_mithun_files/fever_dev_delexicalized_3labels_26k_no_lists_evidence_not_sents.jsonl
 wget https://storage.googleapis.com/fact_verification_mithun_files/fever_train_delex_oaner_4labels.jsonl  -O data/rte/fever/train/fever_train_delex_oaner_4labels.jsonl
 wget https://storage.googleapis.com/fact_verification_mithun_files/fever_dev_delex_oaner_4labels.jsonl  -O data/rte/fever/dev/fever_dev_delex_oaner_4labels.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/fever_train_lex_4labels.jsonl  -O data/rte/fever/train/fever_train_lex_4labels.jsonl
 ```
 
 

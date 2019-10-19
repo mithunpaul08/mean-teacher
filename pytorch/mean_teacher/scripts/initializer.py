@@ -130,6 +130,9 @@ class Initializer():
             raise argparse.ArgumentTypeError('Boolean value expected.')
 
     def join_data_dir_path(self,data_dir,filepath):
+        LOG.debug(f"inside join_data_dir_path.")
+        LOG.debug(f"value of filepath:{filepath}")
+        LOG.debug(f"inside data_dir is:{data_dir}")
         path = os.path.join(data_dir, filepath)
         assert os.path.exists(path) is True
         assert os.path.isfile(path) is True

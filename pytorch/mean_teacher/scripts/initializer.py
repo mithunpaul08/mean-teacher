@@ -145,6 +145,7 @@ class Initializer():
         :return:
         '''
         cwd=os.getcwd()
+        LOG.debug(f"inside get_file_paths(). value of cwd is:{cwd}")
         data_dir = os.path.join(cwd, args_in.data_dir_local)
         train_input_file=None
         dev_input_file=None

@@ -119,6 +119,8 @@ class Initializer():
                             help='')
         parser.add_argument('--log_level', default="INFO", type=str,
                             help='')
+        parser.add_argument('--learning_rate', default=0.005, type=float,
+                            help='')
         return parser.parse_args(namespace=self._args)
 
     def str2bool(self,v):

@@ -44,7 +44,7 @@ class Initializer():
 
             save_dir='model_storage/',
             vectorizer_file='vectorizer.json',
-            glove_filepath='glove/glove.6B.300d.txt',
+            glove_filepath='glove/glove.840B.300d.txt',
 
 
             # Training hyper parameters
@@ -155,6 +155,7 @@ class Initializer():
         assert os.path.exists(data_dir) is True
         train_input_file = self.join_data_dir_path(data_dir, args_in.fever_train_local_lex)
         dev_input_file = self.join_data_dir_path(data_dir, args_in.fever_dev_local)
+        test_input_file = self.join_data_dir_path(data_dir, args_in.fever_test_local)
         LOG.debug(f"train_input_file:{train_input_file}")
         LOG.debug(f"dev_input_file:{dev_input_file}")
         assert train_input_file is not None
@@ -162,12 +163,8 @@ class Initializer():
 
         if(args_in.run_type=="train"):
             if (args_in.database_to_train_with == "fever_delex"):
-                assert os.path.exists(args_in.fever_train_local_delex) is True
-                assert os.path.isfile(args_in.fever_train_local_delex) is True
-                assert os.path.exists(args_in.fever_dev_local_delex) is True
-                assert os.path.isfile(args_in.fever_dev_local_delex) is True
-                train_input_file = os.path.join(data_dir, args_in.fever_train_local_delex)
-                dev_input_file = os.path.join(data_dir, args_in.fever_dev_local_delex)
+                train_input_file=self.join_data_dir_path(data_dir, args_in.fever_train_local_delex)
+                dev_input_file = self.join_data_dir_path(data_dir, args_in.fever_dev_local_delex)
                 assert train_input_file is not None
                 assert dev_input_file is not None
         elif(args_in.run_type=="test"):

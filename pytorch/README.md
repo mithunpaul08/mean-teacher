@@ -28,11 +28,8 @@ wget https://storage.googleapis.com/fact_verification_mithun_files/fever_train_d
 wget https://storage.googleapis.com/fact_verification_mithun_files/fever_dev_delex_oaner_4labels.jsonl  -O data/rte/fever/dev/fever_dev_delex_oaner_4labels.jsonl
 wget https://storage.googleapis.com/fact_verification_mithun_files/fever_train_lex_4labels.jsonl  -O data/rte/fever/train/fever_train_lex_4labels.jsonl
 mkdir -p data
-wget http://nlp.stanford.edu/data/wordvecs/glove.6B.zip
-unzip glove.6B.zip -d data/glove
-rm data/glove/glove.6B.100d.txt
-rm data/glove/glove.6B.200d.txt 
-rm data/glove/glove.6B.50d.txt 
+wget http://nlp.stanford.edu/data/glove.840B.300d.zip
+unzip glove.840B.300d.zip -d data/glove
 ```
 
 To train on FEVER, run the following command in the folder `pytorch/` :

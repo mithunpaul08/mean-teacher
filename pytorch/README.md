@@ -40,7 +40,8 @@ To train on FEVER, run the following command in the folder `pytorch/` :
 
 ``` 
 python main.py --run_type train --database_to_train_with fever_delex
-python main.py --run_type train --database_to_train_with fever_lex 
+python main.py --run_type train --database_to_train_with fever_lex
+python main.py --run_type test --database_to_test_with fnc --log_level DEBUG --run_on_server True  
 ```
 
 To test using the trained model, on FNC dataset, run the following command in the folder `pytorch/` :

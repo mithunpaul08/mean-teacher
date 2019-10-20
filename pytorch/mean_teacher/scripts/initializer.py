@@ -34,11 +34,11 @@ class Initializer():
 
 
             #for server
-            data_dir_server='data',
-            fever_train_server='rte/fever/train/fever_train_split_fourlabels.jsonl',
-            fever_dev_server='rte/fever/dev/fever_dev_split_fourlabels.jsonl',
-            fever_test_server='rte/fever/test/fever_test_lex_fourlabels.jsonl',
-            fnc_test_server="rte/fnc/test/fn_test_split_fourlabels.jsonl",
+            # data_dir_server='data',
+            # fever_train_server='rte/fever/train/fever_train_split_fourlabels.jsonl',
+            # fever_dev_server='rte/fever/dev/fever_dev_split_fourlabels.jsonl',
+            # fever_test_server='rte/fever/test/fever_test_lex_fourlabels.jsonl',
+            # fnc_test_server="rte/fnc/test/fn_test_split_fourlabels.jsonl",
 
 
 
@@ -150,7 +150,7 @@ class Initializer():
         train_input_file=None
         dev_input_file=None
         test_input_file=None
-
+        assert os.path.exists(data_dir) is True
         train_input_file = self.join_data_dir_path(data_dir, args_in.fever_train_local_lex)
         dev_input_file = self.join_data_dir_path(data_dir, args_in.fever_dev_local)
         LOG.debug(f"train_input_file:{train_input_file}")

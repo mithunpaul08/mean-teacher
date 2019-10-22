@@ -33,7 +33,7 @@ set_seed_everywhere(args)
 LOG.setLevel(args.log_level)
 
 if args.run_type=="test":
-    args.load_vectorizer=True
+    #args.load_vectorizer=True
     #args.use_glove=False
     args.load_model_from_disk=True
 

@@ -15,11 +15,9 @@ LOG.info(f"starting the run at {current_time}.")
 
 def initialize_comet(args):
     # for drawing graphs on comet:
-    if (args.run_on_server == True):
+    comet_value_updater=None
+    if(args.run_type=="Train"):
         comet_value_updater = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", project_name="rte-decomp-attention")
-    else:
-        comet_value_updater = ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT",
-                                                 previous_experiment="1ea3afdd06244cde82a77957d05670b5")
     return comet_value_updater
 
 
@@ -27,8 +25,9 @@ initializer=Initializer()
 initializer.set_default_parameters()
 args = initializer.parse_commandline_args()
 comet_value_updater=initialize_comet(args)
-hyper_params=vars(args)
-comet_value_updater.log_parameters(hyper_params)
+if (comet_value_updater) is not None:
+    hyper_params = vars(args)
+    comet_value_updater.log_parameters(hyper_params)
 set_seed_everywhere(args)
 LOG.setLevel(args.log_level)
 
@@ -82,12 +81,3 @@ elif args.run_type=="test":
     train_rte.test(args,classifier,dataset,"test")
 elif args.run_type == "val":
     train_rte.test(args,classifier, dataset, "val")
-
-
-def initialize_comet():
-    # for drawing graphs on comet:
-    if (args.run_on_server == True):
-        comet_value_updater = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", project_name="rte-decomp-attention")
-    else:
-        comet_value_updater = ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT",
-                                                 previous_experiment="1ea3afdd06244cde82a77957d05670b5")

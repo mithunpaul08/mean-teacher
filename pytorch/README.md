@@ -14,47 +14,59 @@ conda create --name rte python=3 numpy scipy pandas nltk tqdm
 source activate rte
 pip install sklearn
 pip install jsonlines
-pip install git+ssh://git@github.com/pytorch/vision@c31c3d7e0e68e871d2128c8b731698ed3b11b119 *
-conda install pytorch-cpu torchvision-cpu -c pytorch *
+pip install git+ssh://git@github.com/pytorch/vision@c31c3d7e0e68e871d2128c8b731698ed3b11b119 **refer note
+conda install pytorch-cpu torchvision-cpu -c pytorch *refer note
 ```
-*= pytorch specific. download correct version from pytorch repo
+**Note**:for pytorch installations get the right command from the pytorch [homepage](https://pytorch.org/) based on your OS and configs.
 
 To download data run these command from the folder `pytorch/` :
 
 ```
 git clone thisrepo.git
-wget https://storage.googleapis.com/fact_verification_mithun_files/fever_dev_delexicalized_3labels_26k_no_lists_evidence_not_sents.jsonl
+mkdir -p data
+mkdir -p data/glove
 wget https://storage.googleapis.com/fact_verification_mithun_files/fever_train_delex_oaner_4labels.jsonl  -O data/rte/fever/train/fever_train_delex_oaner_4labels.jsonl
 wget https://storage.googleapis.com/fact_verification_mithun_files/fever_dev_delex_oaner_split_4labels.jsonl  -O data/rte/fever/dev/fever_dev_delex_oaner_4labels.jsonl
 wget https://storage.googleapis.com/fact_verification_mithun_files/fever_train_lex_4labels.jsonl  -O data/rte/fever/train/fever_train_lex_4labels.jsonl
-mkdir -p data
+wget https://storage.googleapis.com/fact_verification_mithun_files/fever_test_lex_4labels.jsonl -O data/rte/fever/test/fever_test_lex_fourlabels.jsonl
 wget http://nlp.stanford.edu/data/glove.840B.300d.zip
 unzip glove.840B.300d.zip -d data/glove
-wget https://storage.googleapis.com/fact_verification_mithun_files/best_model_fever_lex_82.20.pth  -O model_storage/best_model.pth
-wget https://storage.cloud.google.com/fact_verification_mithun_files/best_model_trained_on_delex_fever_84PercentDevAccuracy.pth -O model_storage/best_model.pth
-wget https://storage.cloud.google.com/fact_verification_mithun_files/vectorizer_delex_lr0.0005_136epochs.json -O model_storage/vectorizer.json
 ```
 
-To train on FEVER, run the following command in the folder `pytorch/` :
 
+#### Testing:
+To test using a model trained on FEVER lexicalized data, and test on FEVER dataset, run the following commands from the folder `pytorch/`. 
+This should give you around 82\% accuracy.
+```
+wget https://storage.googleapis.com/fact_verification_mithun_files/best_model_fever_lex_82.20.pth  -O model_storage/best_model.pth
+python main.py --run_type test --database_to_test_with fever --log_level INFO --run_on_server True --load_vectorizer false  
+```
+
+To test using a model trained on FEVER delexicalized data, and test on FEVER dataset, run the following commands from the folder `pytorch/`. 
+This should give you around 76\% accuracy.
+```
+wget https://storage.googleapis.com/fact_verification_mithun_files/best_model_trained_on_delex_fever_84PercentDevAccuracy.pth -O model_storage/best_model.pth
+wget https://storage.googleapis.com/fact_verification_mithun_files/vectorizer_delex_lr0.0005_136epochs.json -O model_storage/vectorizer.json
+wget https://storage.googleapis.com/fact_verification_mithun_files/fnc_test_delex_oaner_4labels.jsonl -O data/rte/fnc/test/fn_test_split_fourlabels.jsonl
+python main.py --run_type test --database_to_test_with fnc --log_level INFO --run_on_server True --load_vectorizer True  
+```
+
+
+#### Training:
+
+To train on FEVER lexicalized, run the following command in the folder `pytorch/` :
 
 ``` 
-python main.py --run_type train --database_to_train_with fever_delex --learning_rate 0.0005
+python main.py --run_type train --database_to_train_with fever_delex
 python main.py --run_type train --database_to_train_with fever_lex
-python main.py --run_type test --database_to_test_with fnc --log_level DEBUG --run_on_server True  
-```
-
-To test using the trained model, on FNC dataset, run the following command in the folder `pytorch/` :
-```
-python main.py --run_type test --database_to_test_with fever
-
 
 ```
+
 
 ## Notes
 - You can keep track of the training and dev accuracies by doing `tail -f mean_teacher.log` 
-- The trained model will be stored under `/model_storage/ch3/yelp/model.pth ` 
-- for pytorch instinstallation get the right command from the pytorch [homepage](https://pytorch.org/) based on your OS and configs.
+- The trained model will be stored under `/model_storage/best_model.pth ` 
+
 
 - Note that in this particular case the file train_full_with_evi_sents is a collection of all claims and the corresponding
  evidences in the training data of [FEVER](http://fever.ai/) challenge. This is not available in public unlike the FEVER data. 

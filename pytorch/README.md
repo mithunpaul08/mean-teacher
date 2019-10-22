@@ -27,7 +27,6 @@ mkdir -p data
 mkdir -p data/glove
 wget https://storage.googleapis.com/fact_verification_mithun_files/fever_train_delex_oaner_4labels.jsonl  -O data/rte/fever/train/fever_train_delex_oaner_4labels.jsonl
 wget https://storage.googleapis.com/fact_verification_mithun_files/fever_dev_delex_oaner_split_4labels.jsonl  -O data/rte/fever/dev/fever_dev_delex_oaner_4labels.jsonl
-wget https://storage.googleapis.com/fact_verification_mithun_files/fever_train_lex_4labels.jsonl  -O data/rte/fever/train/fever_train_lex_4labels.jsonl
 wget https://storage.googleapis.com/fact_verification_mithun_files/fever_test_lex_4labels.jsonl -O data/rte/fever/test/fever_test_lex_fourlabels.jsonl
 wget http://nlp.stanford.edu/data/glove.840B.300d.zip
 unzip glove.840B.300d.zip -d data/glove
@@ -64,6 +63,8 @@ python main.py --run_type test --database_to_test_with fnc --log_level INFO --ru
 To train on FEVER lexicalized, run the following command in the folder `pytorch/` :
 
 ``` 
+wget https://storage.googleapis.com/fact_verification_mithun_files/fever_train_lex_4labels.jsonl  -O data/rte/fever/train/fever_train_lex_4labels.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/fever_dev_lex_4labels.jsonl  -O data/rte/fever/dev/fever_dev_split_fourlabels.jsonl
 python main.py --run_type train --database_to_train_with fever_delex
 python main.py --run_type train --database_to_train_with fever_lex
 

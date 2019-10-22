@@ -107,8 +107,6 @@ class Initializer():
 
     def parse_commandline_args(self):
         parser = argparse.ArgumentParser(description='PyTorch Mean-Teacher Training')
-        parser.add_argument('--run_on_server', default=False, type=self.str2bool, metavar='BOOL',
-                            help='exclude unlabeled examples from the training set')
         parser.add_argument('--run_type', default="train", type=str,
                             help='type of run. options are: train (which includes val validation also),val, test')
         parser.add_argument('--database_to_train_with', default="fever", type=str,

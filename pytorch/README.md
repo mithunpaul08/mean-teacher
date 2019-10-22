@@ -38,14 +38,14 @@ To test using a model trained on FEVER lexicalized data, and test on FEVER datas
 This should give you around 82\% accuracy.
 ```
 wget https://storage.googleapis.com/fact_verification_mithun_files/best_model_fever_lex_82.20.pth  -O model_storage/best_model.pth
-python main.py --run_type test --database_to_test_with fever --log_level INFO --run_on_server True --load_vectorizer false  
+python main.py --run_type test --database_to_test_with fever --load_vectorizer false  
 ```
 
 To test using a model trained on FEVER lexicalized data, and test on FNC dataset, run the following commands from the folder `pytorch/`. 
 This should give you around 82\% accuracy.
 ```
 wget https://storage.googleapis.com/fact_verification_mithun_files/best_model_fever_lex_82.20.pth  -O model_storage/best_model.pth
-python main.py --run_type test --database_to_test_with fever --log_level INFO --run_on_server True --load_vectorizer false  
+python main.py --run_type test --database_to_test_with fever  --load_vectorizer false  
 ```
 
 To test using a model trained on FEVER delexicalized data, and test on FEVER dataset, run the following commands from the folder `pytorch/`. 
@@ -54,7 +54,7 @@ This should give you around 76\% accuracy.
 wget https://storage.googleapis.com/fact_verification_mithun_files/best_model_trained_on_delex_fever_84PercentDevAccuracy.pth -O model_storage/best_model.pth
 wget https://storage.googleapis.com/fact_verification_mithun_files/vectorizer_delex_lr0.0005_136epochs.json -O model_storage/vectorizer.json
 wget https://storage.googleapis.com/fact_verification_mithun_files/fnc_test_delex_oaner_4labels.jsonl -O data/rte/fnc/test/fn_test_split_fourlabels.jsonl
-python main.py --run_type test --database_to_test_with fnc --log_level INFO --run_on_server True --load_vectorizer True  
+python main.py --run_type test --database_to_test_with fnc --log_level INFO --load_vectorizer True  
 ```
 
 

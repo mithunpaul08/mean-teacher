@@ -13,7 +13,7 @@ LOG.info(f"starting the run at {current_time}.")
 def initialize_comet(args):
     # for drawing graphs on comet:
     comet_value_updater=None
-    if(args.run_type=="Train"):
+    if(args.run_type=="train"):
         comet_value_updater = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", project_name="rte-decomp-attention")
     return comet_value_updater
 

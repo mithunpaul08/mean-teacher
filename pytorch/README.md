@@ -25,18 +25,21 @@ To download data run these command from the folder `pytorch/` :
 git clone thisrepo.git
 wget https://storage.googleapis.com/fact_verification_mithun_files/fever_dev_delexicalized_3labels_26k_no_lists_evidence_not_sents.jsonl
 wget https://storage.googleapis.com/fact_verification_mithun_files/fever_train_delex_oaner_4labels.jsonl  -O data/rte/fever/train/fever_train_delex_oaner_4labels.jsonl
-wget https://storage.googleapis.com/fact_verification_mithun_files/fever_dev_delex_oaner_4labels.jsonl  -O data/rte/fever/dev/fever_dev_delex_oaner_4labels.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/fever_dev_delex_oaner_split_4labels.jsonl  -O data/rte/fever/dev/fever_dev_delex_oaner_4labels.jsonl
 wget https://storage.googleapis.com/fact_verification_mithun_files/fever_train_lex_4labels.jsonl  -O data/rte/fever/train/fever_train_lex_4labels.jsonl
 mkdir -p data
 wget http://nlp.stanford.edu/data/glove.840B.300d.zip
 unzip glove.840B.300d.zip -d data/glove
+wget https://storage.googleapis.com/fact_verification_mithun_files/best_model_fever_lex_82.20.pth  -O model_storage/best_model.pth
+wget https://storage.cloud.google.com/fact_verification_mithun_files/best_model_trained_on_delex_fever_84PercentDevAccuracy.pth -O model_storage/best_model.pth
+wget https://storage.cloud.google.com/fact_verification_mithun_files/vectorizer_delex_lr0.0005_136epochs.json -O model_storage/vectorizer.json
 ```
 
 To train on FEVER, run the following command in the folder `pytorch/` :
 
 
 ``` 
-python main.py --run_type train --database_to_train_with fever_delex
+python main.py --run_type train --database_to_train_with fever_delex --learning_rate 0.0005
 python main.py --run_type train --database_to_train_with fever_lex
 python main.py --run_type test --database_to_test_with fnc --log_level DEBUG --run_on_server True  
 ```

@@ -3,11 +3,8 @@ from mean_teacher.modules.rao_datasets import RTEDataset
 from mean_teacher.model.train_rao import Trainer
 from mean_teacher.scripts.initializer import Initializer
 from mean_teacher.utils.utils_rao import make_embedding_matrix,create_model,set_seed_everywhere
-import os
 from mean_teacher.utils.logger import LOG
 import time
-import random
-import numpy as np
 
 
 current_time={time.strftime("%c")}

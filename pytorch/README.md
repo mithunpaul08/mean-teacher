@@ -42,6 +42,13 @@ wget https://storage.googleapis.com/fact_verification_mithun_files/best_model_fe
 python main.py --run_type test --database_to_test_with fever --log_level INFO --run_on_server True --load_vectorizer false  
 ```
 
+To test using a model trained on FEVER lexicalized data, and test on FNC dataset, run the following commands from the folder `pytorch/`. 
+This should give you around 82\% accuracy.
+```
+wget https://storage.googleapis.com/fact_verification_mithun_files/best_model_fever_lex_82.20.pth  -O model_storage/best_model.pth
+python main.py --run_type test --database_to_test_with fever --log_level INFO --run_on_server True --load_vectorizer false  
+```
+
 To test using a model trained on FEVER delexicalized data, and test on FEVER dataset, run the following commands from the folder `pytorch/`. 
 This should give you around 76\% accuracy.
 ```

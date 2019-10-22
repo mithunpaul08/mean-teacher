@@ -7,6 +7,7 @@ import torch.optim as optim
 from tqdm import tqdm,tqdm_notebook
 from torch.nn import functional as F
 from mean_teacher.utils.logger import LOG
+from mean_teacher.scorers.fnc_scorer import fnc_calculate_score
 
 
 class Trainer():
@@ -329,8 +330,14 @@ class Trainer():
             loss_t = loss.item()
             running_loss += (loss_t - running_loss) / (batch_index_dev + 1)
 
-            acc_t = self.accuracy_fever(y_pred_logit, batch_dict['y_target'])
+            if(args_in.database_to_test_with=="fnc"):
+                acc_t = fnc_calculate_score(y_pred_logit, batch_dict['y_target'])
+            elif (args_in.database_to_test_with=="fever"):
+                acc_t = self.accuracy_fever(y_pred_logit, batch_dict['y_target'])
+
             running_acc += (acc_t - running_acc) / (batch_index_dev + 1)
+
+
 
         train_state_in = self.make_train_state(args_in)
         train_state_in['test_loss'] = running_loss

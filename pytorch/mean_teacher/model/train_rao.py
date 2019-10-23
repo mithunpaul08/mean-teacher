@@ -327,7 +327,8 @@ class Trainer():
         running_acc = 0.
 
         no_of_batches = int(len(dataset) / args_in.batch_size)
-
+        total_predictions=[]
+        total_gold = []
 
         for batch_index_dev, batch_dict in enumerate(batch_generator1):
             # compute the output
@@ -342,18 +343,28 @@ class Trainer():
             loss_t = loss.item()
             running_loss += (loss_t - running_loss) / (batch_index_dev + 1)
 
+
+
             if(args_in.database_to_test_with=="fnc"):
                 predictions_index_labels=self.get_argmax(y_pred_logit.float())
                 predictions_str_labels=self.get_label_strings(vectorizer,predictions_index_labels)
-                acc_t = fnc_preprocess_predictions(batch_dict['y_target'],predictions_str_labels)
+                total_predictions.append(predictions_str_labels)
+                total_gold.append(batch_dict['y_target'])
             elif (args_in.database_to_test_with=="fever"):
                 acc_t = self.accuracy_fever(y_pred_logit, batch_dict['y_target'])
             running_acc += (acc_t - running_acc) / (batch_index_dev + 1)
             LOG.info(
                 f" \t batch:{batch_index_dev}/{no_of_batches} \t moving_avg_val_loss:{round(running_loss,2)} \t moving_avg_val_accuracy:{round(running_acc,2)} ")
+
+
+        if (args_in.database_to_test_with == "fnc"):
+            acc_t = fnc_preprocess_predictions(total_gold, total_predictions)
+        elif (args_in.database_to_test_with == "fever"):
+            acc_t = self.accuracy_fever(y_pred_logit, batch_dict['y_target'])
+
         train_state_in = self.make_train_state(args_in)
         train_state_in['test_loss'] = running_loss
-        train_state_in['test_acc'] = running_acc
+        train_state_in['test_acc'] = acc_t
 
         LOG.info(f" test_accuracy : {(train_state_in['test_acc'])}")
         print(f" test_accuracy : {(train_state_in['test_acc'])}")

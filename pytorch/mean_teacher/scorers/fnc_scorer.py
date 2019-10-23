@@ -53,11 +53,3 @@ def report_score(actual,predicted):
     print("Score: " +str(score) + " out of " + str(best_score) + "\t("+str(score*100/best_score) + "%)")
     return score*100/best_score
 
-'''
-FNC Fully Lex test: 68.99%
-FNC Smart NER test= 65.85%
-Fever Fully Lex test test= 41.47%
-Fever smart NER test= 33.94%
-'''
-def fnc_preprocess_predictions(actual, predicted):
-    return report_score([LABELS[e].lower() for e in actual],predicted)

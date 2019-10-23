@@ -7,7 +7,7 @@ import torch.optim as optim
 from tqdm import tqdm,tqdm_notebook
 from torch.nn import functional as F
 from mean_teacher.utils.logger import LOG
-from mean_teacher.scorers.fnc_scorer import fnc_preprocess_predictions
+from mean_teacher.scorers.fnc_scorer import report_score
 
 
 class Trainer():
@@ -306,10 +306,18 @@ class Trainer():
         except KeyboardInterrupt:
             print("Exiting loop")
 
-    def get_label_strings(self,vectorizer,predictions_index_labels):
+    def get_label_strings_given_vectorizer(self, vectorizer, predictions_index_labels):
         labels_str=[]
         for e in predictions_index_labels[0]:
             labels_str.append(vectorizer.label_vocab.lookup_index(e.item()).lower())
+        return labels_str
+
+
+    def get_label_strings_given_list(self, labels_tensor):
+        LABELS = ['agree', 'disagree', 'discuss', 'unrelated']
+        labels_str=[]
+        for e in labels_tensor:
+            labels_str.append(LABELS[e.item()].lower())
         return labels_str
 
     def test(self, args_in,classifier, dataset,split_to_test,vectorizer):
@@ -343,13 +351,17 @@ class Trainer():
             loss_t = loss.item()
             running_loss += (loss_t - running_loss) / (batch_index_dev + 1)
 
-
+            acc_t=0
 
             if(args_in.database_to_test_with=="fnc"):
                 predictions_index_labels=self.get_argmax(y_pred_logit.float())
-                predictions_str_labels=self.get_label_strings(vectorizer,predictions_index_labels)
-                total_predictions.append(predictions_str_labels)
-                total_gold.append(batch_dict['y_target'])
+                predictions_str_labels=self.get_label_strings_given_vectorizer(vectorizer, predictions_index_labels)
+                gold_str=self.get_label_strings_given_list(batch_dict['y_target'])
+                for e in gold_str:
+                    total_gold.append(e)
+                for e in predictions_str_labels:
+                    total_predictions.append(e)
+
             elif (args_in.database_to_test_with=="fever"):
                 acc_t = self.accuracy_fever(y_pred_logit, batch_dict['y_target'])
             running_acc += (acc_t - running_acc) / (batch_index_dev + 1)
@@ -358,7 +370,8 @@ class Trainer():
 
 
         if (args_in.database_to_test_with == "fnc"):
-            acc_t = fnc_preprocess_predictions(total_gold, total_predictions)
+
+            acc_t = report_score(total_gold, total_predictions)
         elif (args_in.database_to_test_with == "fever"):
             acc_t = self.accuracy_fever(y_pred_logit, batch_dict['y_target'])
 

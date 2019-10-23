@@ -27,7 +27,6 @@ mkdir -p data
 mkdir -p data/glove
 wget https://storage.googleapis.com/fact_verification_mithun_files/fever_train_delex_oaner_4labels.jsonl  -O data/rte/fever/train/fever_train_delex_oaner_4labels.jsonl
 wget https://storage.googleapis.com/fact_verification_mithun_files/fever_dev_delex_oaner_split_4labels.jsonl  -O data/rte/fever/dev/fever_dev_delex_oaner_4labels.jsonl
-wget https://storage.googleapis.com/fact_verification_mithun_files/fever_test_lex_4labels.jsonl -O data/rte/fever/test/fever_test_lex_fourlabels.jsonl
 wget http://nlp.stanford.edu/data/glove.840B.300d.zip
 unzip glove.840B.300d.zip -d data/glove
 ```
@@ -37,15 +36,19 @@ unzip glove.840B.300d.zip -d data/glove
 To test using a model trained on FEVER lexicalized data, and test on FEVER dataset, run the following commands from the folder `pytorch/`. 
 This should give you around 82\% accuracy.
 ```
+wget https://storage.googleapis.com/fact_verification_mithun_files/fever_test_lex_4labels.jsonl -O data/rte/fever/test/fever_test_lex_fourlabels.jsonl
 wget https://storage.googleapis.com/fact_verification_mithun_files/best_model_fever_lex_82.20.pth  -O model_storage/best_model.pth
-python main.py --run_type test --database_to_test_with fever --load_vectorizer false  
+wget https://storage.googleapis.com/fact_verification_mithun_files/vectorizer_fever_lex.json  -O model_storage/vectorizer.json
+python main.py --run_type test --database_to_test_with fever 
 ```
 
-To test using a model trained on FEVER lexicalized data, and test on FNC dataset, run the following commands from the folder `pytorch/`. 
+To test using a model that was trained on FEVER lexicalized data, and test on FNC dataset, run the following commands from the folder `pytorch/`. 
 This should give you around 82\% accuracy.
 ```
 wget https://storage.googleapis.com/fact_verification_mithun_files/best_model_fever_lex_82.20.pth  -O model_storage/best_model.pth
-python main.py --run_type test --database_to_test_with fever  --load_vectorizer false  
+wget https://storage.googleapis.com/fact_verification_mithun_files/vectorizer_fever_lex.json  -O model_storage/vectorizer.json
+wget https://storage.googleapis.com/fact_verification_mithun_files/fn_test_split_fourlabels.jsonl -O data/rte/fnc/test/fn_test_split_fourlabels.jsonl
+python main.py --run_type test --database_to_test_with fnc 
 ```
 
 To test using a model trained on FEVER delexicalized data, and test on FEVER dataset, run the following commands from the folder `pytorch/`. 

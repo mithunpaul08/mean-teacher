@@ -2,19 +2,13 @@
 #Original credit - @bgalbraith
 
 LABELS = ['agree', 'disagree', 'discuss', 'unrelated']
-# LABELS_RELATED = ['unrelated','related']
-#LABELS = ['agree', 'disagree', 'not enough info']
 LABELS_RELATED = ['unrelated','related']
-
-RELATED = LABELS[0:2]
+RELATED = LABELS[0:3]
 
 def score_submission(gold_labels, test_labels):
     score = 0.0
-    # cm = [[0, 0, 0, 0],
-    #       [0, 0, 0, 0],
-    #       [0, 0, 0, 0],
-    #       [0, 0, 0, 0]]
     cm = [[0, 0, 0, 0],
+          [0, 0, 0, 0],
           [0, 0, 0, 0],
           [0, 0, 0, 0]]
 
@@ -22,7 +16,6 @@ def score_submission(gold_labels, test_labels):
         g_stance, t_stance = g, t
         if g_stance == t_stance:
             score += 0.25
-
             if g_stance != 'unrelated':
                 score += 0.50
         if g_stance in RELATED and t_stance in RELATED:
@@ -35,7 +28,7 @@ def score_submission(gold_labels, test_labels):
 
 def print_confusion_matrix(cm):
     lines = []
-    header = "|{:^11}|{:^11}|{:^11}|{:^11}|".format('', *LABELS)
+    header = "|{:^11}|{:^11}|{:^11}|{:^11}|{:^11}|".format('', *LABELS)
     line_len = len(header)
     lines.append("-"*line_len)
     lines.append(header)
@@ -52,9 +45,19 @@ def print_confusion_matrix(cm):
     print('\n'.join(lines))
 
 
-def fnc_calculate_score(actual, predicted):
+def report_score(actual,predicted):
     score,cm = score_submission(actual,predicted)
     best_score, _ = score_submission(actual,actual)
+
+    print_confusion_matrix(cm)
     print("Score: " +str(score) + " out of " + str(best_score) + "\t("+str(score*100/best_score) + "%)")
     return score*100/best_score
 
+'''
+FNC Fully Lex test: 68.99%
+FNC Smart NER test= 65.85%
+Fever Fully Lex test test= 41.47%
+Fever smart NER test= 33.94%
+'''
+def fnc_preprocess_predictions(actual, predicted):
+    return report_score([LABELS[e].lower() for e in actual],predicted)

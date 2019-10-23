@@ -29,8 +29,7 @@ set_seed_everywhere(args)
 LOG.setLevel(args.log_level)
 
 if args.run_type=="test":
-    #args.load_vectorizer=True
-    #args.use_glove=False
+    args.load_vectorizer=True
     args.load_model_from_disk=True
 
 
@@ -75,6 +74,6 @@ classifier = create_model(logger_object=LOG,args_in=args,num_classes_in=len(vect
 if args.run_type == "train":
     train_rte.train(args,classifier,dataset,comet_value_updater)
 elif args.run_type=="test":
-    train_rte.test(args,classifier,dataset,"test")
+    train_rte.test(args,classifier,dataset,"test",vectorizer)
 elif args.run_type == "val":
     train_rte.test(args,classifier, dataset, "val")

@@ -7,7 +7,7 @@ import torch.optim as optim
 from tqdm import tqdm,tqdm_notebook
 from torch.nn import functional as F
 from mean_teacher.utils.logger import LOG
-from mean_teacher.scorers.fnc_scorer import fnc_calculate_score
+from mean_teacher.scorers.fnc_scorer import fnc_preprocess_predictions
 
 
 class Trainer():
@@ -81,6 +81,12 @@ class Trainer():
                 train_state['early_stopping_step'] >= args.early_stopping_criteria
 
         return train_state
+
+    def get_argmax(self,predicted_labels):
+        m = nn.Softmax()
+        output_sftmax = m(predicted_labels)
+        _, pred = output_sftmax.topk(1, 1, True, True)
+        return pred.t()
 
     def accuracy_fever(self,predicted_labels, gold_labels):
         m = nn.Softmax()
@@ -300,9 +306,13 @@ class Trainer():
         except KeyboardInterrupt:
             print("Exiting loop")
 
-    def test(self, args_in,classifier, dataset,split_to_test):
+    def get_label_strings(self,vectorizer,predictions_index_labels):
+        labels_str=[]
+        for e in predictions_index_labels[0]:
+            labels_str.append(vectorizer.label_vocab.lookup_index(e.item()).lower())
+        return labels_str
 
-        #classifier = model.load.to(args_in.device)
+    def test(self, args_in,classifier, dataset,split_to_test,vectorizer):
         if(args_in.load_model_from_disk):
             assert os.path.exists(args_in.trained_model_path) is True
             assert os.path.isfile(args_in.trained_model_path) is True
@@ -315,6 +325,8 @@ class Trainer():
 
         running_loss = 0.
         running_acc = 0.
+
+        no_of_batches = int(len(dataset) / args_in.batch_size)
 
 
         for batch_index_dev, batch_dict in enumerate(batch_generator1):
@@ -331,14 +343,14 @@ class Trainer():
             running_loss += (loss_t - running_loss) / (batch_index_dev + 1)
 
             if(args_in.database_to_test_with=="fnc"):
-                acc_t = fnc_calculate_score(y_pred_logit, batch_dict['y_target'])
+                predictions_index_labels=self.get_argmax(y_pred_logit.float())
+                predictions_str_labels=self.get_label_strings(vectorizer,predictions_index_labels)
+                acc_t = fnc_preprocess_predictions(batch_dict['y_target'],predictions_str_labels)
             elif (args_in.database_to_test_with=="fever"):
                 acc_t = self.accuracy_fever(y_pred_logit, batch_dict['y_target'])
-
             running_acc += (acc_t - running_acc) / (batch_index_dev + 1)
-
-
-
+            LOG.info(
+                f" \t batch:{batch_index_dev}/{no_of_batches} \t moving_avg_val_loss:{round(running_loss,2)} \t moving_avg_val_accuracy:{round(running_acc,2)} ")
         train_state_in = self.make_train_state(args_in)
         train_state_in['test_loss'] = running_loss
         train_state_in['test_acc'] = running_acc

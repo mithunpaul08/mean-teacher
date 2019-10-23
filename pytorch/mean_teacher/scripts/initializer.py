@@ -30,18 +30,6 @@ class Initializer():
             fever_train_local_delex='rte/fever/train/fever_train_delex_oaner_4labels.jsonl',
             fever_dev_local_delex='rte/fever/dev/fever_dev_delex_oaner_4labels.jsonl',
 
-
-
-
-            #for server
-            # data_dir_server='data',
-            # fever_train_server='rte/fever/train/fever_train_split_fourlabels.jsonl',
-            # fever_dev_server='rte/fever/dev/fever_dev_split_fourlabels.jsonl',
-            # fever_test_server='rte/fever/test/fever_test_lex_fourlabels.jsonl',
-            # fnc_test_server="rte/fnc/test/fn_test_split_fourlabels.jsonl",
-
-
-
             save_dir='model_storage/',
             vectorizer_file='vectorizer.json',
             glove_filepath='glove/glove.840B.300d.txt',
@@ -165,21 +153,25 @@ class Initializer():
         assert dev_input_file is not None
 
         if(args_in.run_type=="train"):
+            LOG.debug(f"args_in.run_type==train")
             if (args_in.database_to_train_with == "fever_delex"):
                 train_input_file=self.join_data_dir_path(data_dir, args_in.fever_train_local_delex)
                 dev_input_file = self.join_data_dir_path(data_dir, args_in.fever_dev_local_delex)
                 assert train_input_file is not None
                 assert dev_input_file is not None
         elif(args_in.run_type=="test"):
+            LOG.debug(f"args_in.run_type==test")
             #vectorizer needs to load train dataset to return its class value
-            train_input_file = test_input_file = self.join_data_dir_path(data_dir,args_in.fever_train_local_lex)
+            train_input_file = self.join_data_dir_path(data_dir,args_in.fever_train_local_lex)
             LOG.debug(f"train_input_file:{train_input_file}")
             assert train_input_file is not None
 
             if (args_in.database_to_test_with == "fnc"):
+                LOG.debug(f"args_in.database_to_test_with==fnc")
                 test_input_file = self.join_data_dir_path(data_dir,args_in.fnc_test_local)
                 assert test_input_file is not None
             elif (args_in.database_to_test_with == "fever"):
+                LOG.debug(f"args_in.database_to_test_with==fever")
                 test_input_file = os.path.join(data_dir, args_in.fever_test_local)
                 assert test_input_file is not None
 

@@ -69,6 +69,19 @@ python main.py --run_type train --database_to_train_with fever_delex
 
 ```
 
+
+To train on MNLI lexicalized data run the following command in the folder `pytorch/` :
+
+``` 
+./get_glove.sh
+mkdir -p data/rte/mnli/train/
+mkdir -p data/rte/mnli/dev/
+mkdir -p data/rte/mnli/test/
+wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_letters_train.jsonl -O data/rte/mnli/train/mu_letters_train.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_letters_dev.jsonl  -O data/rte/mnli/dev/mu_letters_dev.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_letters_test.jsonl  -O data/rte/mnli/test/mu_letters_test.jsonl
+python main.py --run_type train --database_to_train_with mnli_letters_lex
+
 ## Notes
 - You can keep track of the training and dev accuracies by doing `tail -f mean_teacher.log` 
 - The trained model will be stored under `/model_storage/best_model.pth ` 

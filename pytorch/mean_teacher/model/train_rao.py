@@ -1,12 +1,13 @@
 from mean_teacher.utils.utils_rao import generate_batches,initialize_double_optimizers,update_optimizer_state
 from mean_teacher.modules.rao_datasets import RTEDataset
-import time
+import time,os
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm,tqdm_notebook
 from torch.nn import functional as F
 from mean_teacher.utils.logger import LOG
+from mean_teacher.scorers.fnc_scorer import report_score
 
 
 class Trainer():
@@ -43,31 +44,49 @@ class Trainer():
 
         # Save one model at least
         if train_state['epoch_index'] == 0:
-            torch.save(model.state_dict(), train_state['model_filename'])
+            torch.save(model.state_dict(), "model"+"_e"+str(train_state['epoch_index'])+".pth")
             train_state['stop_early'] = False
+            assert type(train_state['val_acc']) is list
+            all_val_acc_length=len(train_state['val_acc'])
+            assert all_val_acc_length > 0
+            acc_current_epoch = train_state['val_acc'][all_val_acc_length-1]
+            train_state['early_stopping_best_val'] = acc_current_epoch
 
         # Save model if performance improved
         elif train_state['epoch_index'] >= 1:
-            loss_tm1, loss_t = train_state['val_loss'][-2:]
+            loss_tm1, acc_current_epoch = train_state['val_acc'][-2:]
 
-            # If loss worsened
-            if loss_t >= train_state['early_stopping_best_val']:
-                # Update step
+            # If accuracy decreased
+            if acc_current_epoch < train_state['early_stopping_best_val']:
+                # increase patience counter
                 train_state['early_stopping_step'] += 1
-            # Loss decreased
+                LOG.info(f"found that acc_current_epoch  {acc_current_epoch} is less than or equal to the best dev "
+                         f"accuracy value so far which is"
+                         f" {train_state['early_stopping_best_val']}. "
+                         f"Increasing patience total value. "
+                         f"of patience now is {train_state['early_stopping_step']}")
+            # accuracy increased
             else:
                 # Save the best model
-                if loss_t < train_state['early_stopping_best_val']:
-                    torch.save(model.state_dict(), train_state['model_filename'])
-
+                torch.save(model.state_dict(), train_state['model_filename']+".pth")
+                LOG.info(
+                    f"found that acc_current_epoch loss {acc_current_epoch} is more than the best accuracy so far which is "
+                    f"{train_state['early_stopping_best_val']}.resetting patience=0")
                 # Reset early stopping step
                 train_state['early_stopping_step'] = 0
+                train_state['early_stopping_best_val']=acc_current_epoch
 
             # Stop early ?
             train_state['stop_early'] = \
                 train_state['early_stopping_step'] >= args.early_stopping_criteria
 
         return train_state
+
+    def get_argmax(self,predicted_labels):
+        m = nn.Softmax()
+        output_sftmax = m(predicted_labels)
+        _, pred = output_sftmax.topk(1, 1, True, True)
+        return pred.t()
 
     def accuracy_fever(self,predicted_labels, gold_labels):
         m = nn.Softmax()
@@ -111,19 +130,12 @@ class Trainer():
 
         if torch.cuda.is_available():
             class_loss_func = nn.CrossEntropyLoss(size_average=True).cuda()
-            #todo: use this code below instead when doing semi supervised :
-            # class_loss_func = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cuda()
         else:
             class_loss_func = nn.CrossEntropyLoss(size_average=True).cpu()
 
-        #optimizer = optim.Adam(classifier.parameters(), lr=args_in.learning_rate)
         input_optimizer, inter_atten_optimizer = initialize_double_optimizers(classifier, args_in)
 
         LOG.debug(f"going to get into ReduceLROnPlateau ")
-        #scheduler1 = optim.lr_scheduler.ReduceLROnPlateau(optimizer=input_optimizer,mode='min', factor=0.5,patience=1)
-        #scheduler2 = optim.lr_scheduler.ReduceLROnPlateau(optimizer=inter_atten_optimizer, mode='min', factor=0.5, patience=1)
-
-
 
 
         train_state_in = self.make_train_state(args_in)
@@ -152,9 +164,6 @@ class Trainer():
 
                 # setup: batch generator, set loss and acc to 0, set train mode on
                 dataset.set_split('train')
-                #(dataset, batch_size, shuffle=True,
-                     #drop_last=True, device="cpu",workers=1):
-                #
                 batch_generator1 = generate_batches(dataset,workers=args_in.workers,batch_size=args_in.batch_size,device=args_in.device)
 
 
@@ -188,7 +197,8 @@ class Trainer():
                     loss = class_loss_func(y_pred_logit, batch_dict1['y_target'])
                     loss_t = loss.item()
                     running_loss += (loss_t - running_loss) / (batch_index + 1)
-                    comet_value_updater.log_metric("running_loss_per_batch", running_loss,step=batch_index)
+                    if (comet_value_updater is not None):
+                        comet_value_updater.log_metric("running_loss_per_batch", running_loss,step=batch_index)
 
                     # step 4. use loss to produce gradients
                     loss.backward()
@@ -207,7 +217,8 @@ class Trainer():
 
                     acc_t = self.accuracy_fever(y_pred_logit, batch_dict1['y_target'])
                     running_acc += (acc_t - running_acc) / (batch_index + 1)
-                    comet_value_updater.log_metric("avg_accuracy_train_per_batch", running_acc, step=batch_index)
+                    if (comet_value_updater is not None):
+                        comet_value_updater.log_metric("avg_accuracy_train_per_batch", running_acc, step=batch_index)
 
                     # update bar
                     train_bar.set_postfix(loss=running_loss,
@@ -224,7 +235,8 @@ class Trainer():
                 train_state_in['train_loss'].append(running_loss)
                 train_state_in['train_acc'].append(running_acc)
 
-                comet_value_updater.log_metric("avg_accuracy_train_per_epoch", running_acc, step=epoch_index)
+                if (comet_value_updater is not None):
+                    comet_value_updater.log_metric("avg_accuracy_train_per_epoch", running_acc, step=epoch_index)
 
                 # Iterate over val dataset
 
@@ -249,6 +261,7 @@ class Trainer():
                     running_loss += (loss_t - running_loss) / (batch_index_dev + 1)
 
 
+
                     acc_t = self.accuracy_fever(y_pred_logit, batch_dict1['y_target'])
                     running_acc += (acc_t - running_acc) / (batch_index_dev + 1)
 
@@ -258,9 +271,14 @@ class Trainer():
                     val_bar.update()
                     LOG.info(
                         f"epoch:{epoch_index} \t batch:{batch_index_dev}/{no_of_batches} \t moving_avg_val_loss:{round(running_loss,2)} \t moving_avg_val_accuracy:{round(running_acc,2)} ")
-                    comet_value_updater.log_metric("avg_accuracy_dev_per_batch", running_acc, step=batch_index_dev)
+                    if(comet_value_updater is not None):
+                        comet_value_updater.log_metric("avg_accuracy_dev_per_batch", running_acc, step=batch_index_dev)
 
-                comet_value_updater.log_metric("avg_accuracy_dev_per_epoch", running_acc, step=epoch_index)
+                if (comet_value_updater is not None):
+                    comet_value_updater.log_metric("running_dev_loss_per_epoch", running_loss, step=epoch_index)
+
+                if (comet_value_updater is not None):
+                    comet_value_updater.log_metric("avg_accuracy_dev_per_epoch", running_acc, step=epoch_index)
 
                 train_state_in['val_loss'].append(running_loss)
                 train_state_in['val_acc'].append(running_acc)
@@ -268,57 +286,100 @@ class Trainer():
                 train_state_in = self.update_train_state( args=args_in, model=classifier,
                                                       train_state=train_state_in)
 
-                #scheduler1.step(train_state_in['val_loss'][-1])
-                #scheduler2.step(train_state_in['val_loss'][-1])
-
                 train_bar.n = 0
                 val_bar.n = 0
                 epoch_bar.update()
 
                 if train_state_in['stop_early']:
-                    break
+                     break
 
                 train_bar.n = 0
                 val_bar.n = 0
                 epoch_bar.update()
 
                 LOG.info(f"epoch:{epoch_index}\tval_loss_end_of_epoch:{round(running_loss,4)}\tval_accuracy_end_of_epoch:{round(running_acc,4)} ")
-                time.sleep(10)
-                
+
+
+            LOG.info(f"{self._current_time:}Val loss at end of all epochs: {(train_state_in['val_loss'])}")
+            LOG.info(f"{self._current_time:}Val accuracy at end of all epochs: {(train_state_in['val_acc'])}")
 
         except KeyboardInterrupt:
             print("Exiting loop")
 
+    def get_label_strings_given_vectorizer(self, vectorizer, predictions_index_labels):
+        labels_str=[]
+        for e in predictions_index_labels[0]:
+            labels_str.append(vectorizer.label_vocab.lookup_index(e.item()).lower())
+        return labels_str
 
 
-        # uncomment to compute the loss & accuracy on the test set using the best available model
-        #
-        # classifier.load_state_dict(torch.load(train_state_in['model_filename']))
-        # classifier = classifier.to(args_in.device)
-        #
-        # dataset.set_split('test')
-        # batch_generator1 = generate_batches(dataset,
-        #                                    batch_size=args_in.batch_size,
-        #                                    device=args_in.device)
-        # running_loss = 0.
-        # running_acc = 0.
-        # classifier.eval()
-        #
-        # for batch_index_dev, batch_dict in enumerate(batch_generator1):
-        #     # compute the output
-        #     y_pred_logit = classifier(batch_dict['x_claim'], batch_dict['x_evidence'])
-        #
-        #
-        #     # compute the loss
-        #     loss = class_loss_func(y_pred_logit, batch_dict['y_target'].float())
-        #     loss_t = loss.item()
-        #     running_loss += (loss_t - running_loss) / (batch_index_dev + 1)
-        #
-        #     # compute the accuracy
-        #     acc_t = self.compute_accuracy(y_pred_logit, batch_dict['y_target'])
-        #     running_acc += (acc_t - running_acc) / (batch_index_dev + 1)
-        #train_state_in['test_loss'] = running_loss
-        #train_state_in['test_acc'] = running_acc
-        LOG.info(f"{self._current_time:}Val loss at end of all epochs: {(train_state_in['val_loss'])}")
-        LOG.info(f"{self._current_time:}Val accuracy at end of all epochs: {(train_state_in['val_acc'])}")
+    def get_label_strings_given_list(self, labels_tensor):
+        LABELS = ['agree', 'disagree', 'discuss', 'unrelated']
+        labels_str=[]
+        for e in labels_tensor:
+            labels_str.append(LABELS[e.item()].lower())
+        return labels_str
+
+    def test(self, args_in,classifier, dataset,split_to_test,vectorizer):
+        if(args_in.load_model_from_disk):
+            assert os.path.exists(args_in.trained_model_path) is True
+            assert os.path.isfile(args_in.trained_model_path) is True
+            if os.path.getsize(args_in.trained_model_path) > 0:
+                classifier.load_state_dict(torch.load(args_in.trained_model_path,map_location=torch.device(args_in.device)))
+        classifier.eval()
+        dataset.set_split(split_to_test)
+        batch_generator1 = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
+                                            device=args_in.device, shuffle=False)
+
+        running_loss = 0.
+        running_acc = 0.
+
+        no_of_batches = int(len(dataset) / args_in.batch_size)
+        total_predictions=[]
+        total_gold = []
+
+        for batch_index_dev, batch_dict in enumerate(batch_generator1):
+            # compute the output
+            y_pred_logit = classifier(batch_dict['x_claim'], batch_dict['x_evidence'])
+            if torch.cuda.is_available():
+                class_loss_func = nn.CrossEntropyLoss(size_average=True).cuda()
+            else:
+                class_loss_func = nn.CrossEntropyLoss(size_average=True).cpu()
+
+            # compute the loss
+            loss = class_loss_func(y_pred_logit, batch_dict['y_target'])
+            loss_t = loss.item()
+            running_loss += (loss_t - running_loss) / (batch_index_dev + 1)
+
+            acc_t=0
+
+            if(args_in.database_to_test_with=="fnc"):
+                predictions_index_labels=self.get_argmax(y_pred_logit.float())
+                predictions_str_labels=self.get_label_strings_given_vectorizer(vectorizer, predictions_index_labels)
+                gold_str=self.get_label_strings_given_list(batch_dict['y_target'])
+                for e in gold_str:
+                    total_gold.append(e)
+                for e in predictions_str_labels:
+                    total_predictions.append(e)
+
+            elif (args_in.database_to_test_with=="fever"):
+                acc_t = self.accuracy_fever(y_pred_logit, batch_dict['y_target'])
+            running_acc += (acc_t - running_acc) / (batch_index_dev + 1)
+            LOG.info(
+                f" \t batch:{batch_index_dev}/{no_of_batches} \t moving_avg_val_loss:{round(running_loss,2)} \t moving_avg_val_accuracy:{round(running_acc,2)} ")
+
+
+        if (args_in.database_to_test_with == "fnc"):
+
+            acc_t = report_score(total_gold, total_predictions)
+        elif (args_in.database_to_test_with == "fever"):
+            acc_t = self.accuracy_fever(y_pred_logit, batch_dict['y_target'])
+
+        train_state_in = self.make_train_state(args_in)
+        train_state_in['test_loss'] = running_loss
+        train_state_in['test_acc'] = acc_t
+
+        LOG.info(f" test_accuracy : {(train_state_in['test_acc'])}")
+        print(f" test_accuracy : {(train_state_in['test_acc'])}")
+
 

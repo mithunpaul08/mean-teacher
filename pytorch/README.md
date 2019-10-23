@@ -23,37 +23,27 @@ To download data run these command from the folder `pytorch/` :
 
 ```
 git clone thisrepo.git
-
-wget https://storage.googleapis.com/fact_verification_mithun_files/fever_train_delex_oaner_4labels.jsonl  -O data/rte/fever/train/fever_train_delex_oaner_4labels.jsonl
-wget https://storage.googleapis.com/fact_verification_mithun_files/fever_dev_delex_oaner_split_4labels.jsonl  -O data/rte/fever/dev/fever_dev_delex_oaner_4labels.jsonl
 ```
 
 
 #### Testing:
-To test using a model trained on FEVER lexicalized data, and test on FEVER dataset, run the following commands from the folder `pytorch/`. 
-This should give you around 82\% accuracy.
-```
-wget https://storage.googleapis.com/fact_verification_mithun_files/fever_test_lex_4labels.jsonl -O data/rte/fever/test/fever_test_lex_fourlabels.jsonl
-wget https://storage.googleapis.com/fact_verification_mithun_files/best_model_fever_lex_82.20.pth  -O model_storage/best_model.pth
-wget https://storage.googleapis.com/fact_verification_mithun_files/vectorizer_fever_lex.json  -O model_storage/vectorizer.json
-python main.py --run_type test --database_to_test_with fever 
-```
 
-To test using a model that was trained on FEVER lexicalized data, and test on FNC dataset, run the following commands from the folder `pytorch/`. 
-This should give you around 82\% accuracy.
+To test using a model that was trained on FEVER lexicalized data, and test on FNC dataset, run the 
+following commands from the folder `pytorch/`. 
+
 ```
-./get_data.sh
+./get_data_lex.sh
 ./get_glove_small.sh
+./get_model_lex.sh
 python main.py --run_type test --database_to_test_with fnc 
 ```
 
-To test using a model trained on FEVER delexicalized data, and test on FEVER dataset, run the following commands from the folder `pytorch/`. 
-This should give you around 76\% accuracy.
+To test using a model trained on FEVER delexicalized data (mentioned as OANER in the paper), and test on FNC dataset, run the following commands from the folder `pytorch/`. 
 ```
-wget https://storage.googleapis.com/fact_verification_mithun_files/best_model_trained_on_delex_fever_84PercentDevAccuracy.pth -O model_storage/best_model.pth
-wget https://storage.googleapis.com/fact_verification_mithun_files/vectorizer_delex_lr0.0005_136epochs.json -O model_storage/vectorizer.json
-wget https://storage.googleapis.com/fact_verification_mithun_files/fnc_test_delex_oaner_4labels.jsonl -O data/rte/fnc/test/fn_test_split_fourlabels.jsonl
-python main.py --run_type test --database_to_test_with fnc --log_level INFO --load_vectorizer True  
+./get_data_delex.sh
+./get_glove_small.sh
+./get_model_delex.sh
+python main.py --run_type test --database_to_test_with fnc 
 ```
 
 
@@ -63,14 +53,21 @@ To train on FEVER lexicalized, run the following command in the folder `pytorch/
 
 ``` 
 ./get_glove.sh
-./get_data.sh
-wget https://storage.googleapis.com/fact_verification_mithun_files/fever_train_lex_4labels.jsonl  -O data/rte/fever/train/fever_train_lex_4labels.jsonl
-wget https://storage.googleapis.com/fact_verification_mithun_files/fever_dev_lex_4labels.jsonl  -O data/rte/fever/dev/fever_dev_split_fourlabels.jsonl
-python main.py --run_type train --database_to_train_with fever_delex
+./get_data_lex.sh
 python main.py --run_type train --database_to_train_with fever_lex
 
 ```
 
+
+To train on FEVER delexicalized data (mentioned as OANER in the paper), run the following command in the folder `pytorch/` :
+
+``` 
+./get_glove.sh
+wget https://storage.googleapis.com/fact_verification_mithun_files/fever_train_delex_oaner_4labels.jsonl  -O data/rte/fever/train/fever_train_delex_oaner_4labels.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/fever_dev_delex_oaner_split_4labels.jsonl  -O data/rte/fever/dev/fever_dev_delex_oaner_4labels.jsonl
+python main.py --run_type train --database_to_train_with fever_delex
+
+```
 
 ## Notes
 - You can keep track of the training and dev accuracies by doing `tail -f mean_teacher.log` 

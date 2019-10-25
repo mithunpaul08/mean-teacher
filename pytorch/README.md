@@ -91,7 +91,7 @@ mkdir -p data/rte/mnli/test/
 wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_train.jsonl -O data/rte/mnli/train/mu_train_lex.jsonl
 wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_matched.jsonl  -O data/rte/mnli/dev/mu_matched_lex_dev.jsonl
 wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_mismatched.jsonl  -O data/rte/mnli/test/mu_mismatched_lex_test.jsonl
-python main.py --run_type train --database_to_train_with mnli_letters_lex
+python main.py --run_type train --database_to_train_with mnli_lex
 ```
 
 

@@ -29,10 +29,9 @@ class Initializer():
             fnc_test_local="rte/fnc/test/fn_test_split_fourlabels.jsonl",
             fever_train_local_delex='rte/fever/train/fever_train_delex_oaner_4labels.jsonl',
             fever_dev_local_delex='rte/fever/dev/fever_dev_delex_oaner_4labels.jsonl',
-            mnli_train_lex='rte/mnli/train/mu_train.jsonl',
-            mnli_mismatched_test_lex='rte/mnli/test/mu_mismatched.jsonl',
-            #never test on the test partition. using dev for tuning.
-            mnli_matched_dev_lex='rte/mnli/dev/mu_matched.jsonl',
+            mnli_train_lex='rte/mnli/train/mu_train_lex.jsonl',
+            mnli_matched_dev_lex='rte/mnli/dev/mu_matched_lex_dev.jsonl',
+            mnli_mismatched_test_lex='rte/mnli/test/mu_mismatched_lex_test.jsonl',
 
 
             save_dir='model_storage/',

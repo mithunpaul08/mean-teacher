@@ -115,6 +115,8 @@ class Initializer():
                             help='usually set to true during testing only. load vectorizer saved during training. if set to false during testing, will create a vectorizer'
                                  'based on the file provided under database_to_train_with ')
 
+        parser.add_argument('--very_first_run', default=False, type=self.str2bool, metavar='BOOL',
+                            help='this is for updating graph on comet.ml. If its second time onwards, you can use ExistingExperiment, hence. ')
 
         return parser.parse_args(namespace=self._args)
 

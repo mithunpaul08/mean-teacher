@@ -7,6 +7,7 @@ import pandas as pd
 import random
 from mean_teacher.utils.utils_valpola import export
 import os
+from tqdm import tqdm
 
 # @export
 # def fever():
@@ -79,6 +80,21 @@ class RTEDataset(Dataset):
             row.evidence = cls.truncate_words(row.evidence, tr_len)
         return data_dataframe
 
+    @classmethod
+    def remove_mnli_dash_labels(self,args,df):
+        """
+        #in mnli some labels are tagged as -. drop them.
+        :param args:
+        :param df: modified dataframe
+        :return:
+        """
+        if ("mnli" in args.database_to_train_with):
+            df = df.set_index("label")
+            df= df.drop("-", axis=0)
+            df = df.reset_index()
+        assert df is not None
+        return df
+
 
     @classmethod
     def load_dataset(cls, train_file, dev_file, test_file, args):
@@ -99,26 +115,28 @@ class RTEDataset(Dataset):
         assert os.path.isfile(test_file) is True
 
 
-        fever_lex_train_df = pd.read_json(train_file, lines=True)
-        fever_lex_train_df=cls.truncate_data(fever_lex_train_df, args.truncate_words_length)
-        fever_lex_train_df['split'] = "train"
+        train_df = pd.read_json(train_file, lines=True)
+        train_df=cls.truncate_data(train_df, args.truncate_words_length)
+        train_df['split'] = "train"
 
-        fever_lex_dev_df = pd.read_json(dev_file, lines=True)
-        fever_lex_dev_df = cls.truncate_data(fever_lex_dev_df, args.truncate_words_length)
-        fever_lex_dev_df['split'] = "val"
+        dev_df = pd.read_json(dev_file, lines=True)
+        dev_df=cls.remove_mnli_dash_labels(args,dev_df)
+        dev_df = cls.truncate_data(dev_df, args.truncate_words_length)
+        dev_df['split'] = "val"
 
-        fever_lex_test_df = pd.read_json(test_file, lines=True)
-        fever_lex_test_df = cls.truncate_data(fever_lex_test_df, args.truncate_words_length)
-        fever_lex_test_df['split'] = "test"
+        test_df = pd.read_json(test_file, lines=True)
+        test_df = cls.remove_mnli_dash_labels(args, test_df)
+        test_df = cls.truncate_data(test_df, args.truncate_words_length)
+        test_df['split'] = "test"
 
 
 
-        frames = [fever_lex_train_df, fever_lex_dev_df,fever_lex_test_df]
+        frames = [train_df, dev_df,test_df]
         combined_train_dev_test_with_split_column_df = pd.concat(frames)
-        cls.labels=fever_lex_train_df.label
+        cls.labels=train_df.label
 
 
-        return combined_train_dev_test_with_split_column_df,fever_lex_train_df
+        return combined_train_dev_test_with_split_column_df,train_df
 
     @classmethod
     def create_vocabulary(cls, train_file, dev_file, test_file, args):

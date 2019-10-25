@@ -29,11 +29,10 @@ class Initializer():
             fnc_test_local="rte/fnc/test/fn_test_split_fourlabels.jsonl",
             fever_train_local_delex='rte/fever/train/fever_train_delex_oaner_4labels.jsonl',
             fever_dev_local_delex='rte/fever/dev/fever_dev_delex_oaner_4labels.jsonl',
-            mnli_letters_train_lex='rte/mnli/train/mu_letters_train.jsonl',
-            mnli_letters_dev_lex='rte/mnli/dev/mu_letters_dev.jsonl',
-            mnli_letters_test_lex='rte/mnli/test/mu_letters_test.jsonl',
+            mnli_train_lex='rte/mnli/train/mu_train.jsonl',
+            mnli_mismatched_test_lex='rte/mnli/test/mu_mismatched.jsonl',
             #never test on the test partition. using dev for tuning.
-            mnli_telephone_dev_lex='rte/mnli/dev/mu_telephone_dev.jsonl',
+            mnli_matched_dev_lex='rte/mnli/dev/mu_matched.jsonl',
 
 
             save_dir='model_storage/',
@@ -165,10 +164,10 @@ class Initializer():
                 dev_input_file = self.join_data_dir_path(data_dir, args_in.fever_dev_local_delex)
                 assert train_input_file is not None
                 assert dev_input_file is not None
-            elif (args_in.database_to_train_with == "mnli_letters_lex"):
-                train_input_file=self.join_data_dir_path(data_dir, args_in.mnli_letters_train_lex)
-                dev_input_file = self.join_data_dir_path(data_dir, args_in.mnli_letters_dev_lex)
-                test_input_file = self.join_data_dir_path(data_dir, args_in.mnli_letters_test_lex)
+            elif (args_in.database_to_train_with == "mnli_lex"):
+                train_input_file=self.join_data_dir_path(data_dir, args_in.mnli_train_lex)
+                dev_input_file = self.join_data_dir_path(data_dir, args_in.mnli_matched_dev_lex)
+                test_input_file = self.join_data_dir_path(data_dir, args_in.mnli_mismatched_test_lex)
                 assert train_input_file is not None
                 assert dev_input_file is not None
                 assert test_input_file is not None
@@ -189,7 +188,7 @@ class Initializer():
                 assert test_input_file is not None
             elif (args_in.database_to_test_with == "mnli"):
                 # never test on the test partition. using dev for tuning.
-                LOG.debug(f"args_in.database_to_test_with==mnli")
+                LOG.debug(f"args_in.database_to_test_with==mnli_lex")
                 test_input_file = os.path.join(data_dir, args_in.mnli_telephone_dev_lex)
                 assert test_input_file is not None
 

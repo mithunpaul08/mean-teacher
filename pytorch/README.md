@@ -47,6 +47,16 @@ python main.py --run_type test --database_to_test_with fnc
 ```
 
 
+To test using a model trained on [MNLI](https://www.nyu.edu/projects/bowman/multinli/) lexicalized data and test on cross domain within MNLI mismatched
+```
+./get_glove_small.sh
+wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_telephone_dev.jsonl -O data/rte/mnli/dev/mu_telephone_dev.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/best_model_trained_on_lex_mnli_letters_4241percent.jsonl -O model_storage/best_model.pth
+wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/vectorizer_mnli_lex_letters.json -O model_storage/vectorizer.json
+python main.py --run_type test --database_to_test_with mnli
+```
+
+
 #### Training:
 
 To train on FEVER lexicalized, run the following command in the folder `pytorch/` :
@@ -74,13 +84,16 @@ To train on MNLI lexicalized data run the following command in the folder `pytor
 
 ``` 
 ./get_glove.sh
+mkdir -p data/rte/mnli/
 mkdir -p data/rte/mnli/train/
 mkdir -p data/rte/mnli/dev/
 mkdir -p data/rte/mnli/test/
-wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_letters_train.jsonl -O data/rte/mnli/train/mu_letters_train.jsonl
-wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_letters_dev.jsonl  -O data/rte/mnli/dev/mu_letters_dev.jsonl
-wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_letters_test.jsonl  -O data/rte/mnli/test/mu_letters_test.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_train.jsonl -O data/rte/mnli/train/mu_train_lex.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_matched.jsonl  -O data/rte/mnli/dev/mu_matched_lex_dev.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_mismatched.jsonl  -O data/rte/mnli/test/mu_mismatched_lex_test.jsonl
 python main.py --run_type train --database_to_train_with mnli_letters_lex
+```
+
 
 ## Notes
 - You can keep track of the training and dev accuracies by doing `tail -f mean_teacher.log` 

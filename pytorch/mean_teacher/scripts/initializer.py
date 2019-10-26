@@ -187,10 +187,10 @@ class Initializer():
                 LOG.debug(f"args_in.database_to_test_with==fever")
                 test_input_file = os.path.join(data_dir, args_in.fever_test_local)
                 assert test_input_file is not None
-            elif (args_in.database_to_test_with == "mnli"):
+            elif (args_in.database_to_test_with == "mnli_lex"):
                 # never test on the test partition. using dev for tuning.
                 LOG.debug(f"args_in.database_to_test_with==mnli_lex")
-                test_input_file = os.path.join(data_dir, args_in.mnli_telephone_dev_lex)
+                test_input_file = os.path.join(data_dir, args_in.mnli_mismatched_test_lex)
                 assert test_input_file is not None
 
 

@@ -46,6 +46,43 @@ To test using a model trained on FEVER delexicalized data (mentioned as OANER in
 python main.py --run_type test --database_to_test_with fnc 
 ```
 
+To test using allenlp:
+
+```
+conda create --name rte python=3 
+source activate rte
+brew install npm
+cd allennlp-simple-server-visualization/demo/
+npm start
+``` 
+This should open browser and run the GUI in localhost:3000.
+
+Now go back to the GUI on `localhost:3000` and type in a sample claim and evidence in the claim and 
+ evidence text fields and click `Run`. This is now testing on
+one claim and evidence.
+
+Now open another terminal and do:
+```
+conda create --name rte_run python=3 
+source activate rte_run
+cd allennlp-as-a-library-example/
+pip install -r requirements.txt
+python -m allennlp.service.server_simple \
+  --archive-path tests/fixtures/FeverModels/FullyLexicalized/decomposable_attention.tar.gz \
+  --predictor drwiki-te\
+  --include-package my_library \
+  --title "Academic Paper Classifier" \
+  --field-name title \
+  --field-name paperAbstract
+```
+If every thing runs fine you will see `Model loaded, serving demo on port 8000`
+
+To test on a FNC model, don't enter anything in the claim and evidence text fields. Just click `Run`
+
+```
+python fnc_official_scorer.py 
+```
+
 
 #### Training:
 

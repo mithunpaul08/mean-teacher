@@ -150,7 +150,11 @@ python main.py --run_type train --database_to_train_with fever_delex
 
  - I personally like/trust `pip install ` instead of `conda install`  because the repos of pip are more comprehensive
 
- - The code expects to find the data in specific directories inside the data-local directory.  For example some sample training and dev is kept here: `pytorch/data-local/rte/fever/`. Also you will have to replace the sample data with the the actual [train](https://drive.google.com/open?id=1bA32_zRn8V2voPmb1sN5YbLcVFo6KBWf) and [dev](https://drive.google.com/open?id=1xb6QHfMQUI3Q44DQZNVL481rYyMGN-sR) files from google drive
+ - The code expects to find the data in specific directories inside the data directory.  For example some sample training and dev is kept here: `pytorch/data-local/rte/fever/`. Also you will have to replace the sample data with the the actual [train](https://drive.google.com/open?id=1bA32_zRn8V2voPmb1sN5YbLcVFo6KBWf) and [dev](https://drive.google.com/open?id=1xb6QHfMQUI3Q44DQZNVL481rYyMGN-sR) files from google drive
 
-
- - The code for decomposable attention is forked from [here](https://github.com/libowen2121/SNLI-decomposable-attention)
+Acknolwedgements/adaptations based on:
+- [allennlp](https://github.com/allenai/allennlp)
+- [libowen](https://github.com/libowen2121/SNLI-decomposable-attention)
+- [recognai](https://github.com/recognai/get_started_with_deep_learning_for_text_with_allennlp)
+- [fever_baseline_code](https://github.com/sheffieldnlp/fever-naacl-2018)
+- [fever_scorer](https://github.com/sheffieldnlp/fever-scorer)

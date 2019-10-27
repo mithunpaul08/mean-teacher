@@ -1,7 +1,8 @@
 
-# Fact Verification using Mean Teacher in PyTorch
-
-Here we will take the output of the tagging process and feed it as input to a [decomposable attention](https://arxiv.org/pdf/1606.01933.pdf) based neural network model.
+# Fact Verification 
+In this folder a [decomposable attention](https://arxiv.org/pdf/1606.01933.pdf) based neural network model will be trained and tested
+on the lexicalized and delexicalized/masked files. Ideally this will be the second step in the entire pipeline, 
+the first step being the data masking done from the folder nn/
 
  
 
@@ -51,12 +52,19 @@ To test using a model trained on [MNLI](https://www.nyu.edu/projects/bowman/mult
 ```
 ./get_glove_small.sh
 wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_telephone_dev.jsonl -O data/rte/mnli/dev/mu_telephone_dev.jsonl
-wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/best_model_trained_on_lex_mnli_letters_4241percent.jsonl -O model_storage/best_model.pth
+wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/best_model_trained_on_lex_mnli_letters_4241percent.jsonl -O mli_test_lex.jsonl/best_model.pth
 wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/vectorizer_mnli_lex_letters.json -O model_storage/vectorizer.json
 python main.py --run_type test --database_to_test_with mnli
 ```
 
-
+To test using a model trained on [MNLI](https://www.nyu.edu/projects/bowman/multinli/) lexicalized data and test on 
+cross domain within [MEDNLI](https://physionet.org/content/mednli/1.0.0/)
+```
+./get_glove_small.sh
+mkdir -p data/rte/mednli/test
+wget https://storage.googleapis.com/fact_verification_mithun_files/mednli_converted_claim_ev_format/mli_test_lex.jsonl -O data/rte/mednli/test/mli_test_lex.jsonl
+python main.py --run_type test --database_to_test_with mnli
+```'
 #### Training:
 
 To train on FEVER lexicalized, run the following command in the folder `pytorch/` :

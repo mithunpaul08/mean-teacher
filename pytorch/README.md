@@ -48,12 +48,13 @@ python main.py --run_type test --database_to_test_with fnc
 ```
 
 
-To test using a model trained on [MNLI](https://www.nyu.edu/projects/bowman/multinli/) lexicalized data and test on cross domain within MNLI mismatched
+To test using a model trained on [MNLI](https://www.nyu.edu/projects/bowman/multinli/) 
+lexicalized data and test on cross domain within MNLI mismatched
 ```
 ./get_glove_small.sh
-wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_telephone_dev.jsonl -O data/rte/mnli/dev/mu_telephone_dev.jsonl
-wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/best_model_trained_on_lex_mnli_letters_4241percent.jsonl -O mli_test_lex.jsonl/best_model.pth
-wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/vectorizer_mnli_lex_letters.json -O model_storage/vectorizer.json
+wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_mismatched.jsonl -O data/rte/mnli/test/mu_mismatched_lex_test.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/trained_models/MNLI_models/best_model_trained_on_mnli_lex.pth -O model_storage/best_model.pth
+wget https://storage.googleapis.com/fact_verification_mithun_files/trained_models/MNLI_models/vectorizer_trained_on_mnli_lex.json -O model_storage/vectorizer.json
 python main.py --run_type test --database_to_test_with mnli
 ```
 

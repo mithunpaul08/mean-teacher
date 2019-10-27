@@ -88,10 +88,11 @@ class RTEDataset(Dataset):
         :param df: modified dataframe
         :return:
         """
-        if ("mnli" in args.database_to_train_with):
-            df = df.set_index("label")
-            df= df.drop("-", axis=0)
-            df = df.reset_index()
+        if ("mnli" in args.database_to_train_with) or ("mnli" in args.database_to_test_with):
+            if("-" in df.values):
+                df = df.set_index("label")
+                df= df.drop("-", axis=0)
+                df = df.reset_index()
         assert df is not None
         return df
 

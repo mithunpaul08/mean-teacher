@@ -32,6 +32,8 @@ class Initializer():
             mnli_train_lex='rte/mnli/train/mu_train_lex.jsonl',
             mnli_matched_dev_lex='rte/mnli/dev/mu_matched_lex_dev.jsonl',
             mnli_mismatched_test_lex='rte/mnli/test/mu_mismatched_lex_test.jsonl',
+            mednli_test_lex='rte/mednli/test/mednli_test_lex.jsonl',
+            mednli_dev_lex='rte/mednli/dev/mednli_dev_lex.jsonl',
 
 
             save_dir='model_storage/',
@@ -188,9 +190,12 @@ class Initializer():
                 test_input_file = os.path.join(data_dir, args_in.fever_test_local)
                 assert test_input_file is not None
             elif (args_in.database_to_test_with == "mnli_lex"):
-                # never test on the test partition. using dev for tuning.
                 LOG.debug(f"args_in.database_to_test_with==mnli_lex")
                 test_input_file = os.path.join(data_dir, args_in.mnli_mismatched_test_lex)
+                assert test_input_file is not None
+            elif (args_in.database_to_test_with == "mednli_lex"):
+                LOG.debug(f"args_in.database_to_test_with==mnli_lex")
+                test_input_file = os.path.join(data_dir, args_in.mednli_dev_lex)
                 assert test_input_file is not None
 
 

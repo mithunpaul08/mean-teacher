@@ -55,17 +55,19 @@ lexicalized data and test on cross domain within MNLI mismatched
 wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_mismatched.jsonl -O data/rte/mnli/test/mu_mismatched_lex_test.jsonl
 wget https://storage.googleapis.com/fact_verification_mithun_files/trained_models/MNLI_models/best_model_trained_on_mnli_lex.pth -O model_storage/best_model.pth
 wget https://storage.googleapis.com/fact_verification_mithun_files/trained_models/MNLI_models/vectorizer_trained_on_mnli_lex.json -O model_storage/vectorizer.json
-python main.py --run_type test --database_to_test_with mnli
+python main.py --run_type test --database_to_test_with mnli_lex
 ```
 
 To test using a model trained on [MNLI](https://www.nyu.edu/projects/bowman/multinli/) lexicalized data and test on 
 cross domain within [MEDNLI](https://physionet.org/content/mednli/1.0.0/)
 ```
 ./get_glove_small.sh
-mkdir -p data/rte/mednli/test
-wget https://storage.googleapis.com/fact_verification_mithun_files/mednli_converted_claim_ev_format/mli_test_lex.jsonl -O data/rte/mednli/test/mli_test_lex.jsonl
-python main.py --run_type test --database_to_test_with mnli
-```'
+mkdir -p data/rte/mednli/dev
+wget https://storage.googleapis.com/fact_verification_mithun_files/mednli_converted_claim_ev_format/mli_dev_lex.jsonl -O data/rte/mednli/dev/mednli_dev_lex.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/trained_models/MNLI_models/best_model_trained_on_mnli_lex.pth -O model_storage/best_model.pth
+wget https://storage.googleapis.com/fact_verification_mithun_files/trained_models/MNLI_models/vectorizer_trained_on_mnli_lex.json -O model_storage/vectorizer.json
+python main.py --run_type test --database_to_test_with mednli_lex
+```
 #### Training:
 
 To train on FEVER lexicalized, run the following command in the folder `pytorch/` :

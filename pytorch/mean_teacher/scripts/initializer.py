@@ -31,7 +31,7 @@ class Initializer():
             fever_dev_local_delex='rte/fever/dev/fever_dev_delex_oaner_4labels.jsonl',
             mnli_train_lex='rte/mnli/train/mu_train_lex.jsonl',
             mnli_matched_dev_lex='rte/mnli/dev/mu_matched_lex_dev.jsonl',
-            mnli_mismatched_test_lex='rte/mnli/test/mu_mismatched_lex_test.jsonl',
+            mnli_mismatched_test_lex='rte/mednli/test/mli_test_lex.jsonl',
 
 
             save_dir='model_storage/',

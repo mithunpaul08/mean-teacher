@@ -1,3 +1,4 @@
+*.gz
 data/rte/fever/train/*.jsonl
 data/rte/fnc/test/*.jsonl
 *.pth

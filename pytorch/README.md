@@ -46,7 +46,7 @@ To test using a model trained on FEVER delexicalized data (mentioned as OANER in
 python main.py --run_type test --database_to_test_with fnc 
 ```
 
-To test using allenlp:
+To test using Allennlp based code:
 
 ```
 conda create --name rte python=3 
@@ -57,10 +57,6 @@ npm start
 ``` 
 This should open browser and run the GUI in localhost:3000.
 
-Now go back to the GUI on `localhost:3000` and type in a sample claim and evidence in the claim and 
- evidence text fields and click `Run`. This is now testing on
-one claim and evidence.
-
 Now open another terminal and do:
 ```
 conda create --name rte_run python=3 
@@ -68,21 +64,56 @@ source activate rte_run
 cd allennlp-as-a-library-example/
 pip install -r requirements.txt
 python -m allennlp.service.server_simple \
-  --archive-path tests/fixtures/FeverModels/FullyLexicalized/decomposable_attention.tar.gz \
+  --archive-path tests/fixtures/FeverModels/Smart_NER/decomposable_attention.tar.gz \
   --predictor drwiki-te\
   --include-package my_library \
   --title "Academic Paper Classifier" \
   --field-name title \
   --field-name paperAbstract
 ```
-If every thing runs fine you will see `Model loaded, serving demo on port 8000`
+If every thing runs fine you will see `Model loaded, serving demo on port 8000`. Now go back to the browser window
+`localhost:3000` and just click `Run` (don't enter anything in the claim or evidence fields). This will start testing on the 
+given test file. Once the testing is completed you will see an output in the browser with attention weights and labels of the final
+input (takes around 15 mins in a MacBookPro with OSX Mojave, 8GB RAM, Intel core i5.)
 
-To test on a FNC model, don't enter anything in the claim and evidence text fields. Just click `Run`
+Now enter:
 
 ```
 python fnc_official_scorer.py 
 ```
 
+That should give an output that looks like:
+
+```-------------------------------------------------------------
+|           |   agree   | disagree  |  discuss  | unrelated |
+-------------------------------------------------------------
+|   agree   |    396    |    86     |    469    |    52     |
+-------------------------------------------------------------
+| disagree  |    101    |    35     |    183    |    33     |
+-------------------------------------------------------------
+|  discuss  |   1124    |    239    |    943    |    161    |
+-------------------------------------------------------------
+| unrelated |    681    |    345    |   3171    |   6037    |
+-------------------------------------------------------------
+Score: 3433.75 out of 6380.5	(53.81631533578873%)
+```
+### Testing with other models and masking strategies:
+To test with a  model (that was trained on the same FEVER dataset) that was trained using a different masking strategy 
+you have to change the corresponding directory path in the command line argument for `--archive-path` to any of the following.
+
+- FullyLexicalized
+- NoNER
+- SSTagged
+- SimpleNER
+- Smart_NER
+
+ For example to test with a model that was trained on FEVER dataset but using OANer+SSTagged model the `--archive-path` will be:
+
+`tests/fixtures/FeverModels/SSTagged/decomposable_attention.tar.gz`
+
+Similary to test with a model that was trained on FNC, `--archive-path` will be:
+
+`tests/fixtures/FNCModels/SSTagged/decomposable_attention.tar.gz`
 
 #### Training:
 

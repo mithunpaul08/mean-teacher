@@ -99,12 +99,24 @@ mkdir -p data/rte/mnli/
 mkdir -p data/rte/mnli/train/
 mkdir -p data/rte/mnli/dev/
 mkdir -p data/rte/mnli/test/
-wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_train.jsonl -O data/rte/mnli/train/mu_train_lex.jsonl
-wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_matched.jsonl  -O data/rte/mnli/dev/mu_matched_lex_dev.jsonl
-wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_mismatched.jsonl  -O data/rte/mnli/test/mu_mismatched_lex_test.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_train.jsonl -O data/rte/mnli/train/mnli_train.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_matched.jsonl  -O data/rte/mnli/dev/mnli_dev.jsonl
 python main.py --run_type train --database_to_train_with mnli_lex
 ```
+## Note: To train on other data input files, you just need to replace the corresponding file names with the list given below.
+train partition of mnli delexicalized with oaner: mnli_train_delex_oaner.jsonl
 
+dev partition of mnli delexicalized with oaner : mnli_dev_delex_oaner
+
+For example if you want to train (and dev) on a delexicalized-with-oaner-MNLI the corresponding commands 
+(only ones that will be different) will be:
+
+```
+wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mnli_train_delex_oaner.jsonl -O data/rte/mnli/train/mnli_train.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mnli_dev_delex_oaner.jsonl  -O data/rte/mnli/dev/mnli_dev.jsonl
+
+
+```
 
 ## Notes
 - You can keep track of the training and dev accuracies by doing `tail -f mean_teacher.log` 

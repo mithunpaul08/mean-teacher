@@ -34,6 +34,9 @@ class Initializer():
             mnli_mismatched_test_lex='rte/mnli/test/mu_mismatched_lex_test.jsonl',
             mednli_test_lex='rte/mednli/test/mednli_test_lex.jsonl',
             mednli_dev_lex='rte/mednli/dev/mednli_dev_lex.jsonl',
+            mednli_dev_delex='rte/mednli/dev/mednli_dev_delex_oaner.jsonl',
+
+
 
 
             save_dir='model_storage/',
@@ -195,7 +198,7 @@ class Initializer():
                 assert test_input_file is not None
             elif (args_in.database_to_test_with == "mednli_lex"):
                 LOG.debug(f"args_in.database_to_test_with==mnli_lex")
-                test_input_file = os.path.join(data_dir, args_in.mednli_dev_lex)
+                test_input_file = os.path.join(data_dir, args_in.mednli_dev_delex)
                 assert test_input_file is not None
 
 

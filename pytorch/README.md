@@ -68,7 +68,24 @@ wget https://storage.googleapis.com/fact_verification_mithun_files/trained_model
 wget https://storage.googleapis.com/fact_verification_mithun_files/trained_models/MNLI_models/vectorizer_trained_on_mnli_lex.json -O model_storage/vectorizer.json
 python main.py --run_type test --database_to_test_with mednli_lex
 ```
-#### Training:
+
+#### Note: To test on other data input files, you just need to replace the corresponding file names with the list given below.
+train partition of mednli delexicalized with oaner: mnli_train_delex_oaner.jsonl
+
+dev partition of mnli delexicalized with oaner : mnli_dev_delex_oaner
+
+For example if you want to the dev partition of delexicalized-with-oaner-MedNLI dataset  using a model that was trained on 
+ delexicalized-with-oaner-MNLI, the corresponding commands 
+(only ones that will be different) will be:
+
+
+```
+wget https://storage.googleapis.com/fact_verification_mithun_files/mednli_converted_claim_ev_format/mednli_dev_delex_oaner.jsonl -O data/rte/mednli/dev/mednli_dev.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/trained_models/MNLI_models/best_model_trained_on_mnli_delex_oaner.pth -O model_storage/best_model.pth
+wget https://storage.googleapis.com/fact_verification_mithun_files/trained_models/MNLI_models/vectorizer_trained_on_mnli_delex_oaner.json -O model_storage/vectorizer.json
+```
+
+### Training:
 
 To train on FEVER lexicalized, run the following command in the folder `pytorch/` :
 
@@ -114,8 +131,6 @@ For example if you want to train (and dev) on a delexicalized-with-oaner-MNLI th
 ```
 wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mnli_train_delex_oaner.jsonl -O data/rte/mnli/train/mnli_train.jsonl
 wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mnli_dev_delex_oaner.jsonl  -O data/rte/mnli/dev/mnli_dev.jsonl
-
-
 ```
 
 ## Notes

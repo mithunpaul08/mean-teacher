@@ -1,3 +1,4 @@
+*.gz
 .idea
 # Temporary directories
 results

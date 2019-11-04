@@ -21,6 +21,9 @@ npm start
 ``` 
 This should open browser and run the GUI in `localhost:3000`.
 
+**Note**: All these commands are for OSX.
+ Replace with corresponding packages based on your OS. Eg: replace `brew install` with `pip install`
+
 Now open another terminal and do:
 ```
 conda create --name rte_runner python=3.6

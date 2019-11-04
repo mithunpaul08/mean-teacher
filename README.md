@@ -1,62 +1,185 @@
-# refer readme under pytorch/readme.md
+
+# Cross Domain Fact Verification: Training and Testing
+
+Here we will take the output of the tagging process and feed it as input to a [decomposable attention](https://arxiv.org/pdf/1606.01933.pdf) based neural network model.
+This code is based on the baseline code used in FEVER1.0
+shared task.
+
  
-# Mean teachers are better role models
 
-[Paper](https://arxiv.org/abs/1703.01780) ---- [NIPS 2017 poster](nips_2017_poster.pdf) ---- [NIPS 2017 spotlight slides](nips_2017_slides.pdf) ---- [Blog post](https://thecuriousaicompany.com/mean-teacher/)
+#### Testing:
 
-By Antti Tarvainen, Harri Valpola ([The Curious AI Company](https://thecuriousaicompany.com/))
+To test using Allennlp based code:
 
-## Approach
+```
+conda create --name rte python=3 
+source activate rte
+brew install npm
+git clone this_repo
+cd eval/allennlp-simple-server-visualization/demo/
+npm start
+``` 
+This should open browser and run the GUI in `localhost:3000`.
 
-Mean Teacher is a simple method for semi-supervised learning. It consists of the following steps:
+Now open another terminal and do:
+```
+conda create --name rte_runner python=3.6
+source activate rte_runner
+cd allennlp-as-a-library-example/
+pip install -r requirements.txt
+mkdir -p tests/fixtures/trained_models/
+wget https://storage.googleapis.com/fact_verification_mithun_files/trained_models/FeverModels/Smart_NER/decomposable_attention.tar.gz -O tests/fixtures/trained_models/decomposable_attention.tar.gz
+wget https://storage.googleapis.com/fact_verification_mithun_files/fnc_test_delex_oaner_4labels.jsonl -O my_library/predictors/test_files/delexicalized_input_file.jsonl
+python -m allennlp.service.server_simple \
+  --archive-path tests/fixtures/trained_models/decomposable_attention.tar.gz \
+  --predictor drwiki-te\
+  --include-package my_library \
+  --title "Academic Paper Classifier" \
+  --field-name title \
+  --field-name paperAbstract
+```
 
-1. Take a supervised architecture and make a copy of it. Let's call the original model the **student** and the new one the **teacher**.
-2. At each training step, use the same minibatch as inputs to both the student and the teacher but add random augmentation or noise to the inputs separately.
-3. Add an additional *consistency cost* between the student and teacher outputs (after softmax).
-4. Let the optimizer update the student weights normally.
-5. Let the teacher weights be an exponential moving average (EMA) of the student weights. That is, after each training step, update the teacher weights a little bit toward the student weights.
+**Note:** Python for this conda environment(rte_runner) has to be exactly `python 3.6` to be compatible with the right Allennlp versions.
 
-Our contribution is the last step. Laine and Aila [\[paper\]](https://arxiv.org/abs/1610.02242) used shared parameters between the student and the teacher, or used a temporal ensemble of teacher predictions. In comparison, Mean Teacher is more accurate and applicable to large datasets.
+If every thing runs fine you will see `Model loaded, serving demo on port 8000`. Now go back to the browser window
+`localhost:3000` , refresh the page and just click `Run` (don't enter anything in the claim or evidence fields). 
+If everything thing runs fine you will see a rotating circle on your right half of the screen. It means
+it has started doing predictions on the 
+given test file. Once the prediction cycle is completed you will see an output in the browser with attention weights and labels of the final
+input data point (takes around 15 mins in a MacBookPro with OSX Mojave, 8GB RAM, Intel core i5). The predicted file is 
+stored in the same location as:`predictions.jsonl`
 
-![Mean Teacher model](mean_teacher.png)
+Now enter:
 
-Mean Teacher works well with modern architectures. Combining Mean Teacher with ResNets, we improved the state of the art in semi-supervised learning on the ImageNet and CIFAR-10 datasets.
+```
+python fnc_official_scorer.py 
+```
 
-ImageNet using 10% of the labels | top-5 validation error
----------------------------------|------------------------
-Variational Auto-Encoder [\[paper\]](https://arxiv.org/abs/1609.08976) | 35.42 ± 0.90
-Mean Teacher ResNet-152          |  **9.11 ± 0.12**
-All labels, state of the art [\[paper\]](https://arxiv.org/pdf/1709.01507.pdf) |  3.79
+That should give an output that looks like:
 
-CIFAR-10 using 4000 labels   | test error
------------------------------|-----------
-CT-GAN [\[paper\]](https://openreview.net/forum?id=SJx9GQb0-) | 9.98 ± 0.21
-Mean Teacher ResNet-26	     | **6.28 ± 0.15**
-All labels, state of the art [\[paper\]](https://arxiv.org/abs/1705.07485) | 2.86
+```-------------------------------------------------------------
+|           |   agree   | disagree  |  discuss  | unrelated |
+-------------------------------------------------------------
+|   agree   |    396    |    86     |    469    |    52     |
+-------------------------------------------------------------
+| disagree  |    101    |    35     |    183    |    33     |
+-------------------------------------------------------------
+|  discuss  |   1124    |    239    |    943    |    161    |
+-------------------------------------------------------------
+| unrelated |    681    |    345    |   3171    |   6037    |
+-------------------------------------------------------------
+Score: 3433.75 out of 6380.5	(53.81631533578873%)
+```
+### Testing with other models and masking strategies:
+To test with a  model (that was trained on the **same** FEVER dataset) that was trained using a different masking strategy 
+you have to change the corresponding  path in the wget command to any of the following.
+
+**Trained  models:**
+- FullyLexicalized
+- NoNER
+- SSTagged
+- Smart_NER
+
+**Masked files:**
+- fn_test_split_fourlabels.jsonl
+- fnc_test_smartner_sstags_merged.jsonl
+
+For example to test with a **Trained FEVER model:** that was trained on FEVER dataset which was delexicalized
+ using OANer+SSTagged masking, the `wget` will change to:
+
+```
+wget https://storage.googleapis.com/fact_verification_mithun_files/trained_models/FeverModels/SSTagged/decomposable_attention.tar.gz -O tests/fixtures/trained_models/decomposable_attention.tar.gz
+```
+In this case the test file also has to be the correspondingly delexicalized version, in this case is FNC-OANer+SSTagged
+which can be retrieved as:
+```
+wget https://storage.googleapis.com/fact_verification_mithun_files/fnc_test_smartner_sstags_merged.jsonl -O my_library/predictors/test_files/delexicalized_input_file.jsonl
+```
 
 
-## Implementation
+### To test without Allennlp
+ 
+Here is a version of the same code which runs without AllenNLP. To install the dependencies and prepare the datasets 
+do the following commands:
 
-There are two implementations, one for TensorFlow and one for PyTorch.
-The PyTorch version is probably easier to adapt to your needs,
-since it follows typical PyTorch idioms, and there's a natural place to
-add your model and dataset. Let me know if anything needs clarification.
+```
+conda create --name rte python=3 numpy scipy pandas nltk tqdm
+source activate rte
+pip install sklearn
+pip install jsonlines
+```
+`pip install git+ssh://git@github.com/pytorch/vision@c31c3d7e0e68e871d2128c8b731698ed3b11b119` **refer note
 
-Regarding the results in the paper, the experiments using a traditional
-ConvNet architecture were run with the TensorFlow version.
-The experiments using residual networks were run with the PyTorch version.
+`conda install pytorch-cpu torchvision-cpu -c pytorch` *refer note
+
+**Note**: for pytorch installations get the right command from the pytorch [homepage](https://pytorch.org/) based on your OS and configs.
+```
+git clone thisrepo.git
+```
+
+To download data run these command from the folder `eval_noalnlp/` :
 
 
-## Tips for choosing hyperparameters and other tuning
 
-Mean Teacher introduces two new hyperparameters: EMA decay rate and consistency cost weight. The optimal value for each of these depends on the dataset, the model, and the composition of the minibatches. You will also need to choose how to interleave unlabeled samples and labeled samples in minibatches.
 
-Here are some rules of thumb to get you started:
+To test using a model that was trained on FEVER lexicalized data, and test on FNC dataset:`. 
 
-* If you are working on a new dataset, it may be easiest to start with only labeled data and do pure supervised training. Then when you are happy with the architecture and hyperparameters, add mean teacher. The same network should work well, although you may want to tune down regularization such as weight decay that you have used with small data.
-* Mean Teacher needs some noise in the model to work optimally. In practice, the best noise is probably random input augmentations. Use whatever relevant augmentations you can think of: the algorithm will train the model to be invariant to them.
-* It's useful to dedicate a portion of each minibatch for labeled examples. Then the supervised training signal is strong enough early on to train quickly and prevent getting stuck into uncertainty. In the PyTorch examples we have a quarter or a half of the minibatch for the labeled examples and the rest for the unlabeled. (See [TwoStreamBatchSampler](pytorch/mean_teacher/data.py#L98) in Pytorch code.)
-* For EMA decay rate 0.999 seems to be a good starting point.
-* You can use either MSE or KL-divergence as the consistency cost function. For KL-divergence, a good consistency cost weight is often between 1.0 and 10.0. For MSE, it seems to be between the number of classes and the number of classes squared. On small datasets we saw MSE getting better results, but KL always worked pretty well too.
-* It may help to ramp up the consistency cost in the beginning over the first few epochs until the teacher network starts giving good predictions. 
-* An additional trick we used in the PyTorch examples: Have two seperate logit layers at the top level. Use one for classification of labeled examples and one for predicting the teacher output. And then have an additional cost between the logits of these two predictions. The intent is the same as with the consistency cost rampup: in the beginning the teacher output may be wrong, so loosen the link between the classification prediction and the consistency cost. (See the [--logit-distance-cost](https://github.com/CuriousAI/mean-teacher/blob/master/pytorch/mean_teacher/cli.py#L65-L66) argument in the PyTorch implementation.)
+```
+cd eval_noalnlp
+./get_data_lex.sh
+./get_glove_small.sh
+./get_model_lex.sh
+python main.py --run_type test --database_to_test_with fnc 
+```
+
+To test using a model trained on FEVER delexicalized data (mentioned as OANER in the paper), and test on FNC dataset, run the following commands from the folder `pytorch/`. 
+```
+./get_data_delex.sh
+./get_glove_small.sh
+./get_model_delex.sh
+python main.py --run_type test --database_to_test_with fnc 
+```
+
+
+#### Training:
+
+To train on FEVER lexicalized, run the following command in the folder `pytorch/` :
+
+``` 
+./get_glove.sh
+./get_data_lex.sh
+python main.py --run_type train --database_to_train_with fever_lex
+
+```
+
+
+To train on FEVER delexicalized data (mentioned as OANER in the paper), run the following command in the folder `pytorch/` :
+
+``` 
+./get_glove.sh
+wget https://storage.googleapis.com/fact_verification_mithun_files/fever_train_delex_oaner_4labels.jsonl  -O data/rte/fever/train/fever_train_delex_oaner_4labels.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/fever_dev_delex_oaner_split_4labels.jsonl  -O data/rte/fever/dev/fever_dev_delex_oaner_4labels.jsonl
+python main.py --run_type train --database_to_train_with fever_delex
+
+```
+
+##### Notes:
+- You can keep track of the training and dev accuracies by doing `tail -f mean_teacher.log` 
+- The trained model will be stored under `/model_storage/best_model.pth ` 
+- Note that in this particular case the file train_full_with_evi_sents is a collection of all claims and the corresponding
+ evidences in the training data of [FEVER](http://fever.ai/) challenge. This is not available in public unlike the FEVER data. 
+ This is the output of the IR module of FEVER baseline [code](http://fever.ai/task.html).
+- The glove file kept at `data/glove/glove.840B.300d.txt` is a very small version of the actual glove file. You might want to replace it with the actual 840B [glove file](https://nlp.stanford.edu/projects/glove/)
+- I personally like/trust `pip install ` instead of `conda install`  because the repos of pip are more comprehensive
+
+ 
+
+##### Acknolwedgements/code adaptations based on:
+- [allennlp](https://github.com/allenai/allennlp)
+- [libowen](https://github.com/libowen2121/SNLI-decomposable-attention)
+- [recognai](https://github.com/recognai/get_started_with_deep_learning_for_text_with_allennlp)
+- [fever_baseline_code](https://github.com/sheffieldnlp/fever-naacl-2018)
+- [fnc_baseline code](https://github.com/FakeNewsChallenge/fnc-1)
+
+##### Disclaimer: 
+Though we have tried our best, it is possible that there might be bugs or broken links. Please get in touch with **mithunpaul@email.arizona.edu** if you can't get something to run.

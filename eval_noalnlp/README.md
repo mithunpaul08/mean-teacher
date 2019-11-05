@@ -15,6 +15,7 @@ conda create --name rte python=3 numpy scipy pandas nltk tqdm
 source activate rte
 pip install sklearn
 pip install jsonlines
+pip install comet
 pip install git+ssh://git@github.com/pytorch/vision@c31c3d7e0e68e871d2128c8b731698ed3b11b119 **refer note
 conda install pytorch-cpu torchvision-cpu -c pytorch *refer note
 ```
@@ -38,6 +39,7 @@ following commands from the folder `pytorch/`.
 ./get_model_lex.sh
 python main.py --run_type test --database_to_test_with fnc 
 ```
+Note: to debug you can pass `--log_level DEBUG`
 
 To test using a model trained on FEVER delexicalized data (mentioned as OANER in the paper), and test on FNC dataset, run the following commands from the folder `pytorch/`. 
 ```
@@ -52,10 +54,14 @@ To test using a model trained on [MNLI](https://www.nyu.edu/projects/bowman/mult
 lexicalized data and test on cross domain within MNLI mismatched
 ```
 ./get_glove_small.sh
-wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_mismatched.jsonl -O data/rte/mnli/test/mu_mismatched_lex_test.jsonl
+./create_data_folders.sh 
+wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_train.jsonl -O data/rte/train_input_file.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_matched.jsonl  -O data/rte/dev_input_file.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_mismatched.jsonl -O data/rte/test_input_file.jsonl
+
 wget https://storage.googleapis.com/fact_verification_mithun_files/trained_models/MNLI_models/best_model_trained_on_mnli_lex.pth -O model_storage/best_model.pth
 wget https://storage.googleapis.com/fact_verification_mithun_files/trained_models/MNLI_models/vectorizer_trained_on_mnli_lex.json -O model_storage/vectorizer.json
-python main.py --run_type test --database_to_test_with mnli_lex
+python main.py --run_type test
 ```
 
 To test using a model trained on [MNLI](https://www.nyu.edu/projects/bowman/multinli/) lexicalized data and test on 
@@ -69,12 +75,13 @@ wget https://storage.googleapis.com/fact_verification_mithun_files/trained_model
 python main.py --run_type test --database_to_test_with mednli_lex
 ```
 
-#### Note: To test on other data input files, you just need to replace the corresponding file names with the list given below.
-train partition of mednli delexicalized with oaner: mnli_train_delex_oaner.jsonl
+#### Note: To test on other data input files, you just need to replace the corresponding file names in the first wget command
+with one from the list given below.
+- train partition of mednli delexicalized with oaner: mnli_train_delex_oaner.jsonl
+- dev partition of mnli delexicalized with oaner : mnli_dev_delex_oaner
+- dev partition of mnli (aka matched partition) which is lexicalized  : mu_matched.jsonl
 
-dev partition of mnli delexicalized with oaner : mnli_dev_delex_oaner
-
-For example if you want to the dev partition of delexicalized-with-oaner-MedNLI dataset  using a model that was trained on 
+For example if you want to evaluate on the dev partition of delexicalized-with-oaner-MedNLI dataset  using a model that was trained on 
  delexicalized-with-oaner-MNLI, the corresponding commands 
 (only ones that will be different) will be:
 
@@ -84,6 +91,8 @@ wget https://storage.googleapis.com/fact_verification_mithun_files/mednli_conver
 wget https://storage.googleapis.com/fact_verification_mithun_files/trained_models/MNLI_models/best_model_trained_on_mnli_delex_oaner.pth -O model_storage/best_model.pth
 wget https://storage.googleapis.com/fact_verification_mithun_files/trained_models/MNLI_models/vectorizer_trained_on_mnli_delex_oaner.json -O model_storage/vectorizer.json
 ```
+
+
 
 ### Training:
 

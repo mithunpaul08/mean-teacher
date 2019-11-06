@@ -49,30 +49,44 @@ To test using a model trained on FEVER delexicalized data (mentioned as OANER in
 python main.py --run_type test --database_to_test_with fnc 
 ```
 
-
 To test using a model trained on [MNLI](https://www.nyu.edu/projects/bowman/multinli/) 
-lexicalized data and test on cross domain within MNLI mismatched
+lexicalized data and to test it on in-domain within MNLI (aka matched set)
+use these commands below. You should get an accuracy of 60.95365387338904%
 ```
 ./get_glove_small.sh
-./create_data_folders.sh 
+./create_data_folders.sh 	
+wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_train.jsonl -O data/rte/train_input_file.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_matched.jsonl  -O data/rte/dev_input_file.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_matched.jsonl -O data/rte/test_input_file.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/trained_models/MNLI_models/best_model_trained_on_mnli_lex.pth -O model_storage/best_model.pth
+wget https://storage.googleapis.com/fact_verification_mithun_files/trained_models/MNLI_models/vectorizer_trained_on_mnli_lex.json -O model_storage/vectorizer.json
+python main.py --run_type test --database_to_test_with mnli
+```
+
+To test using a model trained on [MNLI](https://www.nyu.edu/projects/bowman/multinli/) 
+lexicalized data and to test it on cross domain within MNLI (aka mismatched set)
+use these commands below. You should get an acuracy of 61.434659090909086%
+```
+./get_glove_small.sh
+./create_data_folders.sh 	
 wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_train.jsonl -O data/rte/train_input_file.jsonl
 wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_matched.jsonl  -O data/rte/dev_input_file.jsonl
 wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_mismatched.jsonl -O data/rte/test_input_file.jsonl
-
 wget https://storage.googleapis.com/fact_verification_mithun_files/trained_models/MNLI_models/best_model_trained_on_mnli_lex.pth -O model_storage/best_model.pth
 wget https://storage.googleapis.com/fact_verification_mithun_files/trained_models/MNLI_models/vectorizer_trained_on_mnli_lex.json -O model_storage/vectorizer.json
 python main.py --run_type test --database_to_test_with mnli
 ```
 
 To test using a model trained on [MNLI](https://www.nyu.edu/projects/bowman/multinli/) lexicalized data and test on 
-cross domain within [MEDNLI](https://physionet.org/content/mednli/1.0.0/)
+cross domain within [MEDNLI](https://physionet.org/content/mednli/1.0.0/) use the commands below. you should get an accuracy of 51.47652511961722%
 ```
-./get_glove_small.sh
-mkdir -p data/rte/mednli/dev
-wget https://storage.googleapis.com/fact_verification_mithun_files/mednli_converted_claim_ev_format/mli_dev_lex.jsonl -O data/rte/mednli/dev/mednli_dev_lex.jsonl
+./get_glove_small.sh		
+wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_train.jsonl -O data/rte/train_input_file.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_mismatched.jsonl -O data/rte/dev_input_file.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/mednli_converted_claim_ev_format/mednli_dev_lex.jsonl -O data/rte/test_input_file.jsonl
 wget https://storage.googleapis.com/fact_verification_mithun_files/trained_models/MNLI_models/best_model_trained_on_mnli_lex.pth -O model_storage/best_model.pth
 wget https://storage.googleapis.com/fact_verification_mithun_files/trained_models/MNLI_models/vectorizer_trained_on_mnli_lex.json -O model_storage/vectorizer.json
-python main.py --run_type test --database_to_test_with mednli_lex
+python main.py --run_type test --database_to_test_with mednli
 ```
 
 #### Note: To test on other data input files, you just need to replace the corresponding file names in the first wget command
@@ -82,14 +96,18 @@ with one from the list given below.
 - dev partition of mnli (aka matched partition) which is lexicalized  : mu_matched.jsonl
 
 For example if you want to evaluate on the dev partition of delexicalized-with-oaner-MedNLI dataset  using a model that was trained on 
- delexicalized-with-oaner-MNLI, the corresponding commands 
-(only ones that will be different) will be:
+ delexicalized-with-oaner-MNLI, the corresponding commands will be as below. You
+ should get an accuracy of 51.57371411483255%
 
 
 ```
-wget https://storage.googleapis.com/fact_verification_mithun_files/mednli_converted_claim_ev_format/mednli_dev_delex_oaner.jsonl -O data/rte/mednli/dev/mednli_dev.jsonl
+./get_glove_small.sh		
+wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_train.jsonl -O data/rte/train_input_file.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_mismatched.jsonl -O data/rte/dev_input_file.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/mednli_converted_claim_ev_format/mednli_dev_delex_oaner.jsonl -O data/rte/test_input_file.jsonl
 wget https://storage.googleapis.com/fact_verification_mithun_files/trained_models/MNLI_models/best_model_trained_on_mnli_delex_oaner.pth -O model_storage/best_model.pth
 wget https://storage.googleapis.com/fact_verification_mithun_files/trained_models/MNLI_models/vectorizer_trained_on_mnli_delex_oaner.json -O model_storage/vectorizer.json
+python main.py --run_type test --database_to_test_with mednli
 ```
 
 Similarly commands to download a model that was trained on mnli data (which was

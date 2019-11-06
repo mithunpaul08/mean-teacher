@@ -117,6 +117,7 @@ class RTEDataset(Dataset):
 
 
         train_df = pd.read_json(train_file, lines=True)
+        train_df = cls.remove_mnli_dash_labels(args, train_df)
         train_df=cls.truncate_data(train_df, args.truncate_words_length)
         train_df['split'] = "train"
 

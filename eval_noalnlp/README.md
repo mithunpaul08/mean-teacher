@@ -61,7 +61,7 @@ wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_misma
 
 wget https://storage.googleapis.com/fact_verification_mithun_files/trained_models/MNLI_models/best_model_trained_on_mnli_lex.pth -O model_storage/best_model.pth
 wget https://storage.googleapis.com/fact_verification_mithun_files/trained_models/MNLI_models/vectorizer_trained_on_mnli_lex.json -O model_storage/vectorizer.json
-python main.py --run_type test
+python main.py --run_type test --database_to_test_with mnli
 ```
 
 To test using a model trained on [MNLI](https://www.nyu.edu/projects/bowman/multinli/) lexicalized data and test on 

@@ -106,20 +106,22 @@ wget https://storage.googleapis.com/fact_verification_mithun_files/trained_model
 python main.py --run_type test --database_to_test_with mnli
 ```
 
-Similarly commands to download a model that was trained on mnli data (which was
+Commands to download a model that was trained on mnli data (which was
  delexicalized using OANER)
 and to evaluate on delexicalized out of domain dev of mnli (aka `mismatched` partition as per mnli nomenclature) which was also
  delexicalized using OANER use the commands below. (you should get an accuracy of)
 ```
 ./get_glove_small.sh		
 wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_train.jsonl -O data/rte/train_input_file.jsonl
-wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_mismatched.jsonl -O data/rte/test_input_file.jsonl
-wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mnli_dev_mismatched_delex_oaner.jsonl  -O data/rte/dev_input_file.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mu_mismatched.jsonl -O data/rte/dev_input_file.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mnli_dev_mismatched_delex_oaner.jsonl -O data/rte/test_input_file.jsonl
+ 
 wget https://storage.googleapis.com/fact_verification_mithun_files/trained_models/MNLI_models/best_model_trained_on_mnli_delex_oaner.pth -O model_storage/best_model.pth
 wget https://storage.googleapis.com/fact_verification_mithun_files/trained_models/MNLI_models/vectorizer_trained_on_mnli_delex_oaner.json -O model_storage/vectorizer.json
 python main.py --run_type test --database_to_test_with mnli
 ```
-
+Note: In all these commands the  2 wgets which download the train and dev files
+ are dummy and is needed due to a design choice related to pandas data frames.
 
 ### Training:
 

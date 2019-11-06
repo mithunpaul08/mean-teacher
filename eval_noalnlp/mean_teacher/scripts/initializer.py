@@ -145,11 +145,6 @@ class Initializer():
         return path
 
     def get_file_paths(self, args_in):
-        '''
-        decide the path of the local files based on whether we are running on server or laptop.
-        #todo: move this to config file
-        :return:
-        '''
         cwd=os.getcwd()
         LOG.debug(f"inside get_file_paths(). value of cwd is:{cwd}")
         data_dir = os.path.join(cwd, args_in.data_dir_local)
@@ -161,45 +156,6 @@ class Initializer():
         LOG.debug(f"dev_input_file:{dev_input_file}")
         assert train_input_file is not None
         assert dev_input_file is not None
-
-        # if(args_in.run_type=="train"):
-        #     LOG.debug(f"args_in.run_type==train")
-        #     if (args_in.database_to_train_with == "fever_delex"):
-        #         train_input_file=self.join_data_dir_path(data_dir, args_in.fever_train_local_delex)
-        #         dev_input_file = self.join_data_dir_path(data_dir, args_in.fever_dev_local_delex)
-        #         assert train_input_file is not None
-        #         assert dev_input_file is not None
-        #     elif (args_in.database_to_train_with == "mnli_lex"):
-        #         train_input_file=self.join_data_dir_path(data_dir, args_in.mnli_train_lex)
-        #         dev_input_file = self.join_data_dir_path(data_dir, args_in.mnli_matched_dev_lex)
-        #         test_input_file = self.join_data_dir_path(data_dir, args_in.mnli_mismatched_test_lex)
-        #         assert train_input_file is not None
-        #         assert dev_input_file is not None
-        #         assert test_input_file is not None
-        # elif(args_in.run_type=="test"):
-        #     LOG.debug(f"args_in.run_type==test")
-        #     #vectorizer needs to load any random dataset to return its class value- bad design choices
-        #     train_input_file = self.join_data_dir_path(data_dir,args_in.fever_train_local_lex)
-        #     LOG.debug(f"train_input_file:{train_input_file}")
-        #     assert train_input_file is not None
-        #
-        #     if (args_in.database_to_test_with == "fnc"):
-        #         LOG.debug(f"args_in.database_to_test_with==fnc")
-        #         test_input_file = self.join_data_dir_path(data_dir,args_in.fnc_test_local)
-        #         assert test_input_file is not None
-        #     elif (args_in.database_to_test_with == "fever"):
-        #         LOG.debug(f"args_in.database_to_test_with==fever")
-        #         test_input_file = os.path.join(data_dir, args_in.fever_test_local)
-        #         assert test_input_file is not None
-        #     elif (args_in.database_to_test_with == "mnli_lex"):
-        #         LOG.debug(f"args_in.database_to_test_with==mnli_lex")
-        #         test_input_file = os.path.join(data_dir, args_in.mnli_mismatched_test_lex)
-        #         assert test_input_file is not None
-        #     elif (args_in.database_to_test_with == "mednli_lex"):
-        #         LOG.debug(f"args_in.database_to_test_with==mnli_lex")
-        #         test_input_file = os.path.join(data_dir, args_in.mednli_dev)
-        #         assert test_input_file is not None
-
 
         glove_filepath_in=self.join_data_dir_path(data_dir,args_in.glove_filepath)
 

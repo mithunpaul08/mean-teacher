@@ -143,6 +143,7 @@ Note: In all these commands the  2 wgets which download the train and dev files
 
 ### Training:
 
+#### To train using decomposable attention
 To train on FEVER lexicalized, run the following command in the folder `pytorch/` :
 
 ``` 
@@ -188,6 +189,50 @@ For example if you want to train (and dev) on a delexicalized-with-oaner-MNLI th
 wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mnli_train_delex_oaner.jsonl -O data/rte/mnli/train/mnli_train.jsonl
 wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mnli_dev_delex_oaner.jsonl  -O data/rte/mnli/dev/mnli_dev.jsonl
 ```
+#### To train using ESIM 
+
+You can use the [code](https://github.com/nyu-mll/multiNLI) released by New York University for 
+training using ESIM. Just follow instructions as given there.
+
+Only changes are, once you create a data folder and download mnli, glove and snli data (as instructed by them), you will have to replace
+the MNLI files with our delexicalized ones. You can use the following commands for that.
+
+```
+wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mnli_train_delex_oaner_mnli_format.jsonl -O data/multinli_0.9/multinli_0.9_train.jsonl 
+wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mnli_dev_matched_delex_oaner_mnli_format.jsonl -O data/multinli_0.9/multinli_0.9_dev_matched.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/mnli/mnli_dev_mismatched_delex_oaner_mnli_format.jsonl -O data/multinli_0.9/multinli_0.9_dev_mismatched.jsonl
+```
+
+and then you can start training with the train command they have mentioned
+for ESIM i.e,:
+
+```PYTHONPATH=$PYTHONPATH:. python train_mnli.py esim petModel-1 --keep_rate 0.9 --alpha 0 --emb_train```
+
+Note : If you are using the official ESIM you are expected to run training first (which usually takes 36 hours+) before you can test
+anything. Instead refer to `test with ESIM` section below
+
+
+#### To test using ESIM 
+
+##### To test using an ESIM model that was trained on delexicalized MNLI data and to test on matched and mismatched mnli partitions
+
+Note: You would have already got these numbers as the output of training if you were running training.
+
+Steps
+- clone from our [fork](https://github.com/mithunpaul08/multiNLI) of ESIM which has bug fixes in testing.
+- wget the respective trained model as given below
+- unzip the tar.gz into `logs/`  `Eg:., tar -zxvf best_model_mnli_delex.tar.gz`
+- run with
+` PYTHONPATH=$PYTHONPATH:. python train_mnli.py esim petModel-1 --keep_rate 0.9 --alpha 0 --emb_train --test`
+
+
+#### list of WGETs for trained models
+- for model trained on delexicalized mnli
+- for model trained on lexicalized mnli
+
+#### To test on a dataset other than mnli
+
+
 
 ## Notes
 - You can keep track of the training and dev accuracies by doing `tail -f mean_teacher.log` 

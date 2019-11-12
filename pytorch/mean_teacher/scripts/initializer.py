@@ -16,22 +16,22 @@ class Initializer():
             frequency_cutoff=5,
             model_state_file='model.pth',
             # for laptop
-            fever_lex_train_local='train/fever_train_lex_3labels_400_smartner_3labels_no_lists_evidence_not_sents.jsonl',
-            fever_lex_dev_local='dev/fever_dev_lex_3labels_100_no_lists_evidence_not_sents.jsonl',
-            fever_delex_train_local='train/fever_train_delex_smartner_400_3labels_no_lists_evidence_not_sents.jsonl',
-            fever_delex_dev_local='dev/fever_dev_delexicalized_3labels_100_no_lists_evidence_not_sents.jsonl',
+            fever_lex_train_local='train/fever_train_lex.jsonl',
+            fever_lex_dev_local='dev/fever_dev_lex.jsonl',
+            fever_delex_train_local='train/fever_train_delex.jsonl',
+            fever_delex_dev_local='dev/fever_dev_delex.jsonl',
 
             #for server
-            fever_lex_train_server='train/fever_train_lex_3labels_119k_smartner_3labels_no_lists_evidence_not_sents.jsonl',
-            fever_lex_dev_server='dev/fever_dev_lex_3labels_26k_no_lists_evidence_not_sents.jsonl',
-            fever_delex_train_server='train/fever_train_delex_smartner_119k_3labels_no_lists_evidence_not_sents.jsonl',
-            fever_delex_dev_server='dev/fever_dev_delexicalized_3labels_26k_no_lists_evidence_not_sents.jsonl',
+            fever_lex_train_server='train/fever_train_lex.jsonl',
+            fever_lex_dev_server='dev/fever_dev_lex.jsonl',
+            fever_delex_train_server='train/fever_train_delex.jsonl',
+            fever_delex_dev_server='dev/fever_dev_delex.jsonl',
 
             data_dir_local='data-local/rte/fever',
             data_dir_server='data-local/rte/fever',
             save_dir='model_storage/ch3/yelp/',
             vectorizer_file='vectorizer.json',
-            glove_filepath_local='/Users/mordor/research/glove/glove.840B.300d.txt',
+            glove_filepath_local='data-local/glove/glove.840B.300d.txt',
             glove_filepath_server='/work/mithunpaul/glove/glove.840B.300d.txt',
 
 

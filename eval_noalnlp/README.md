@@ -220,17 +220,25 @@ Note: You would have already got these numbers as the output of training if you 
 
 Steps
 - clone from our [fork](https://github.com/mithunpaul08/multiNLI) of ESIM which has bug fixes in testing.
+- wget the respective data set as given below
 - wget the respective trained model as given below
 - unzip the tar.gz into `logs/`  `Eg:., tar -zxvf best_model_mnli_delex.tar.gz`
 - run with
-` PYTHONPATH=$PYTHONPATH:. python train_mnli.py esim petModel-1 --keep_rate 0.9 --alpha 0 --emb_train --test`
+`PYTHONPATH=$PYTHONPATH:. python train_mnli.py esim petModel-1 --keep_rate 0.9 --alpha 0 --emb_train --test`
 
 
 #### list of WGETs for trained models
-- for model trained on delexicalized mnli
+- for model trained on delexicalized mnli:
+ `wget https://storage.googleapis.com/trained_models/MNLI_models/best_model_mnli_delex_esim.tar.gz`
 - for model trained on lexicalized mnli
+`wget https://storage.googleapis.com/trained_models/MNLI_models/best_model_mnli_lex_esim.tar.gz`
 
-#### To test on a dataset other than mnli
+#### list of WGETs for test partitions
+
+- for mednli dev data 
+`wget https://storage.googleapis.com/fact_verification_mithun_files/mednli_converted_claim_ev_format/mednli_dev_delex_oaner_mnli_format.jsonl -O data/multinli_0.9/multinli_0.9_dev_matched.jsonl`
+
+Note: This is a hack. By r  enaming mednli dev as dev-matched of mnli we don't need to make any code changes.
 
 
 

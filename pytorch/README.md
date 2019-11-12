@@ -39,7 +39,7 @@ Note that in this particular case the file train_full_with_evi_sents is a collec
 To train on FEVER, run e.g.:
 
 
-``` python main.py --run_on_server True
+``` python main.py
 ```
 
 ### Latest status as of Nov 12th 2019 1am.

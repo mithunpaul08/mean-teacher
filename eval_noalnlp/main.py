@@ -14,7 +14,11 @@ def initialize_comet(args):
     # for drawing graphs on comet:
     comet_value_updater=None
     if(args.run_type=="train"):
-        comet_value_updater = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", project_name="rte-decomp-attention")
+        if(args.very_first_run==True):
+            comet_value_updater = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", project_name="rte-decomp-attention")
+        else:
+            comet_value_updater = ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", previous_experiment="80c6e42f6d8e417d86906a6423345a05")
+
     return comet_value_updater
 
 

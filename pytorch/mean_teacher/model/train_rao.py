@@ -122,6 +122,8 @@ class Trainer():
 
         input_optimizer_classifier_student1, inter_atten_optimizer_classifier_student1 = initialize_double_optimizers(
             classifier_student1, args_in)
+        input_optimizer_classifier_student2, inter_atten_optimizer_classifier_student2 = initialize_double_optimizers(
+            classifier_student2, args_in)
 
 
         #scheduler1 = optim.lr_scheduler.ReduceLROnPlateau(optimizer=input_optimizer_classifier_student1,mode='min', factor=0.5,patience=1)
@@ -187,11 +189,15 @@ class Trainer():
                     # step 1. zero the gradients
                     input_optimizer_classifier_student1.zero_grad()
                     inter_atten_optimizer_classifier_student1.zero_grad()
+                    input_optimizer_classifier_student2.zero_grad()
+                    inter_atten_optimizer_classifier_student2.zero_grad()
 
 
                     #this code is from the libowen code base we are using for decomposable attention
                     if epoch_index == 0 and args_in.optimizer == 'adagrad':
                         update_optimizer_state(input_optimizer_classifier_student1, inter_atten_optimizer_classifier_student1, args_in)
+                        update_optimizer_state(input_optimizer_classifier_student2,
+                                               inter_atten_optimizer_classifier_student2, args_in)
 
 
 
@@ -221,6 +227,8 @@ class Trainer():
                     #optimizer.step()
                     input_optimizer_classifier_student1.step()
                     inter_atten_optimizer_classifier_student1.step()
+                    input_optimizer_classifier_student2.step()
+                    inter_atten_optimizer_classifier_student2.step()
 
 
 

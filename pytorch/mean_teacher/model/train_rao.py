@@ -303,7 +303,7 @@ class Trainer():
                                         epoch=epoch_index)
                     val_bar.update()
                     LOG.info(
-                        f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches_lex} \t moving_avg_val_loss:{round(running_loss_val,2)} \t moving_avg_val_accuracy:{round(running_acc_val,2)} ")
+                        f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches_lex} \t acc_t_lex:{round(acc_t_lex,2)} \t moving_avg_val_accuracy:{round(running_acc_val,2)} ")
 
                 train_state_in['val_loss'].append(running_loss_lex)
                 train_state_in['val_acc'].append(running_acc_lex)

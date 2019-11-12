@@ -113,12 +113,6 @@ class Initializer():
             raise argparse.ArgumentTypeError('Boolean value expected.')
 
     def get_file_paths(self,command_line_args):
-        '''
-        decide the path of the local files based on whether we are running on server or laptop.
-        #todo: move this to config file
-        :return:
-        '''
-
         data_dir = self._args.data_dir_local
         glove_filepath_in = self._args.glove_filepath_local
         fever_lex_train_input_file = os.path.join(os.getcwd(),data_dir, self._args.fever_lex_train_local)
@@ -127,11 +121,11 @@ class Initializer():
         fever_delex_dev_input_file = os.path.join(os.getcwd(),data_dir, self._args.fever_delex_dev_local)
 
 
-        if (command_line_args.run_on_server == True):
-            glove_filepath_in = self._args.glove_filepath_server
-            fever_lex_train_input_file = os.path.join(self._args.data_dir_server, self._args.fever_lex_train_server)
-            fever_lex_dev_input_file = os.path.join(self._args.data_dir_server, self._args.fever_lex_dev_server)
-            fever_delex_train_input_file = os.path.join(self._args.data_dir_server, self._args.fever_delex_train_server)
-            fever_delex_dev_input_file = os.path.join(self._args.data_dir_server, self._args.fever_delex_dev_server)
+        # if (command_line_args.run_on_server == True):
+        #     glove_filepath_in = self._args.glove_filepath_server
+        #     fever_lex_train_input_file = os.path.join(self._args.data_dir_server, self._args.fever_lex_train_server)
+        #     fever_lex_dev_input_file = os.path.join(self._args.data_dir_server, self._args.fever_lex_dev_server)
+        #     fever_delex_train_input_file = os.path.join(self._args.data_dir_server, self._args.fever_delex_train_server)
+        #     fever_delex_dev_input_file = os.path.join(self._args.data_dir_server, self._args.fever_delex_dev_server)
 
         return glove_filepath_in,fever_lex_train_input_file,fever_lex_dev_input_file,fever_delex_train_input_file,fever_delex_dev_input_file

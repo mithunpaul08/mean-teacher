@@ -42,7 +42,9 @@ To train on FEVER, run e.g.:
 ``` python main.py --run_on_server True
 ```
 
-Latest status as of Nov 11th 2019.
-
-Ran using python main.py command above. Runs lex and delex training 3724 batches (119197/32) However only till epoch 0. Also val accuracy is negative. that is a
+### Latest status as of Nov 12th 2019 1am.
+- Data files are getting downloaded correctly using the commands above.
+- Ran using python main.py command above. 
+- Runs lex and delex training 3724 batches (119197/32) 
+- However only till epoch 0. Also val accuracy is negative. that is a
 big problem.

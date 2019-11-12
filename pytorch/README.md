@@ -20,7 +20,7 @@ conda install pytorch-cpu torchvision-cpu -c pytorch *
 *PS: I personally like/trust `pip install *` instead of `conda install` * because the repos of pip are more comprehensive
 
 
-Run these commands from pytorch/ :
+Run these commands from folder `pytorch/` :
 
 ```
 mkdir -p data/rte/fever/train/

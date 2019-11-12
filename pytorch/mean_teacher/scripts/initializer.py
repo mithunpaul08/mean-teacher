@@ -27,11 +27,11 @@ class Initializer():
             fever_delex_train_server='train/fever_train_delex.jsonl',
             fever_delex_dev_server='dev/fever_dev_delex.jsonl',
 
-            data_dir_local='data-local/rte/fever',
-            data_dir_server='data-local/rte/fever',
+            data_dir_local='data/rte/fever',
+            data_dir_server='data/rte/fever',
             save_dir='model_storage/ch3/yelp/',
             vectorizer_file='vectorizer.json',
-            glove_filepath_local='data-local/glove/glove.840B.300d.txt',
+            glove_filepath_local='data/glove/glove.840B.300d.txt',
             glove_filepath_server='/work/mithunpaul/glove/glove.840B.300d.txt',
 
 

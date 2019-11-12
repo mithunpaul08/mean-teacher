@@ -20,13 +20,17 @@ conda install pytorch-cpu torchvision-cpu -c pytorch *
 *PS: I personally like/trust `pip install *` instead of `conda install` * because the repos of pip are more comprehensive
 
 
-The code expects to find the data in specific directories inside the data-local directory. So do remember to 
- add the data before you run the code.
- 
- For example the data for RTE-FEVER is kept here:
+Run these commands from pytorch/ :
 
 ```
-/data-local/rte/fever/train/train_full_with_evi_sents.jsonl
+mkdir -p data/rte/fever/train/
+mkdir -p data/rte/fever/dev/
+wget https://storage.googleapis.com/fact_verification_mithun_files/fever_train_lex_4labels.jsonl -O data/rte/fever/train/fever_train_lex.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/fever_train_delex_oaner_4labels.jsonl -O data/rte/fever/train/fever_train_delex.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/fever_dev_lex_4labels.jsonl -O data/rte/fever/dev/fever_dev_lex.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/fever_dev_delex_oaner_split_4labels.jsonl -O data/rte/fever/dev/fever_dev_delex.jsonl
+ 
+
 ```
 Note that in this particular case the file train_full_with_evi_sents is a collection of all claims and the corresponding
  evidences in the training data of [FEVER](http://fever.ai/) challenge. This is not available in public unlike the FEVER data. 

@@ -1,3 +1,6 @@
+from comet_ml import Experiment,ExistingExperiment
+import torch
+
 from mean_teacher.modules.rao_datasets import RTEDataset
 from mean_teacher.model.train_rao import Trainer
 from mean_teacher.scripts.initializer import Initializer
@@ -8,9 +11,9 @@ import os
 import logging
 import time
 import random
-import torch
 import numpy as np
-from comet_ml import Experiment,ExistingExperiment
+
+
 current_time={time.strftime("%c")}
 LOG.info(f"starting the run at {current_time}.")
 
@@ -24,11 +27,15 @@ def initialize_comet(args):
             comet_value_updater = ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", previous_experiment="80c6e42f6d8e417d86906a6423345a05")
 
     return comet_value_updater
+
 initializer=Initializer()
-command_line_args = initializer.parse_commandline_args()
-args=initializer.set_parameters()
+
+
+args = initializer.parse_commandline_args()
 
 comet_value_updater=initialize_comet(args)
+import torch
+initializer.set_default_parameters()
 if (comet_value_updater) is not None:
     hyper_params = vars(args)
     comet_value_updater.log_parameters(hyper_params)

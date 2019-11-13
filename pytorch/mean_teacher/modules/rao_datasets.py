@@ -1,6 +1,7 @@
 # ### The Dataset
 
 import json
+import torch
 from torch.utils.data import Dataset, DataLoader
 from  .vectorizer_with_embedding import VectorizerWithEmbedding
 import pandas as pd

@@ -1,16 +1,19 @@
 from argparse import Namespace
-import torch
 import os
+
 import argparse
 from mean_teacher.utils.utils_rao import set_seed_everywhere,make_embedding_matrix
 from mean_teacher.utils.utils_rao import handle_dirs
 from mean_teacher.modules.rao_datasets import RTEDataset
+import torch
+
 
 class Initializer():
     def __init__(self):
         self._args=Namespace()
 
-    def set_parameters(self):
+    def set_default_parameters(self):
+
         args = Namespace(
             # Data and Path information
             frequency_cutoff=5,
@@ -66,6 +69,7 @@ class Initializer():
             log_level='INFO',
             use_gpu=True,
             consistency_type="mse"
+
         )
         args.use_glove = True
         if args.expand_filepaths_to_save_dir:
@@ -98,6 +102,8 @@ class Initializer():
         parser = argparse.ArgumentParser(description='PyTorch Mean-Teacher Training')
         parser.add_argument('--very_first_run', default=False, type=self.str2bool, metavar='BOOL',
                             help='used in comet graphing to decide if this has to go into an existing graph or create a new graph')
+        parser.add_argument('--run_type', default="train", type=str,
+                            help='type of run. options are: train (which includes val validation also),val, test')
         return parser
 
     def parse_commandline_args(self):

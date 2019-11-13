@@ -42,9 +42,8 @@ To train on FEVER, run e.g.:
 ``` python main.py
 ```
 
-### Latest status as of Nov 12th 2019 1am.
-- Data files are getting downloaded correctly using the commands above.
-- Ran using python main.py command above. 
-- Runs lex and delex training 3724 batches (119197/32) 
-- However only till epoch 0. Also val accuracy is negative. that is a
-big problem.
+### Latest status as of Nov 12th 2019 4pm.
+- fixed negative val accuracy problem. But every epoch now
+has exactly same val accuracies..looks like classifier2 is not learning
+training loss and accuracies have improved though
+ INFO:main:92     :2882/3724      running_loss_lex:11.61      running_acc_lex:86.18   running_loss_delex:35.5     running_acc_delex:55.06

@@ -22,6 +22,7 @@ class Initializer():
             frequency_cutoff=5,
             best_model_file_name='best_model',
             # for laptop
+
             data_dir_local='data',
             fever_train_local_lex='rte/fever/train/fever_train_lex_4labels.jsonl',
             fever_dev_local='rte/fever/dev/fever_dev_split_fourlabels.jsonl',
@@ -42,6 +43,7 @@ class Initializer():
 
 
             save_dir='model_storage/',
+
             vectorizer_file='vectorizer.json',
             glove_filepath='glove/glove.840B.300d.txt',
 

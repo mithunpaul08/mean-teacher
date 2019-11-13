@@ -65,7 +65,8 @@ class Initializer():
 
             log_level='INFO',
             use_gpu=True,
-            consistency_type="mse"
+            consistency_type="mse",
+            very_first_run=False
         )
         args.use_glove = True
         if args.expand_filepaths_to_save_dir:

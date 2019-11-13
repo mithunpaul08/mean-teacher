@@ -1,67 +1,56 @@
-from comet_ml import Experiment
-
+from comet_ml import Experiment,ExistingExperiment
 from mean_teacher.modules.rao_datasets import RTEDataset
 from mean_teacher.model.train_rao import Trainer
 from mean_teacher.scripts.initializer import Initializer
 from mean_teacher.utils.utils_rao import make_embedding_matrix,create_model,set_seed_everywhere
-
 from mean_teacher.utils.logger import LOG
 import time
-import random
-import numpy as np
-
-
-
-# Create an comet_value_updater value for comet.ml
-comet_value_updater = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT",
-                            project_name="rte-decomp-attention", workspace="mithunpaul08",auto_output_logging="simple")
-import torch
-
-
-initializer=Initializer()
-command_line_args = initializer.parse_commandline_args()
-args=initializer.set_parameters()
-
-# for drawing graphs on comet:
-hyper_params=vars(args)
-comet_value_updater.log_parameters(hyper_params)
-
-
-
-
-set_seed_everywhere(args.seed, args.cuda)
-
-random_seed = args.random_seed
-random.seed(random_seed)
-np.random.seed(random_seed)
-LOG.setLevel(args.log_level)
-
-
-torch.backends.cudnn.deterministic = True
-if torch.cuda.is_available():
-    torch.manual_seed(args.random_seed)
-    torch.cuda.manual_seed(args.random_seed)
-    LOG.info(f"found that cuda is available and hence setting the manual seed as {args.random_seed} ")
-else:
-    torch.manual_seed(args.random_seed)
-    LOG.info(f"found that cuda is not available and hence setting the manual seed as {args.random_seed} ")
 
 
 current_time={time.strftime("%c")}
+LOG.info(f"starting the run at {current_time}.")
 
-glove_filepath_in,fever_train_input_file,fever_dev_input_file=initializer.get_file_paths(command_line_args)
-LOG.info(f"{current_time} loading glove from path:{glove_filepath_in}")
+def initialize_comet(args):
+    # for drawing graphs on comet:
+    comet_value_updater=None
+    if(args.run_type=="train"):
+        comet_value_updater = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", project_name="rte-decomp-attention")
+    return comet_value_updater
 
 
-if args.reload_from_files:
+initializer=Initializer()
+initializer.set_default_parameters()
+args = initializer.parse_commandline_args()
+comet_value_updater=initialize_comet(args)
+if (comet_value_updater) is not None:
+    hyper_params = vars(args)
+    comet_value_updater.log_parameters(hyper_params)
+set_seed_everywhere(args)
+LOG.setLevel(args.log_level)
+
+if args.run_type=="test":
+    args.load_vectorizer=True
+    args.load_model_from_disk=True
+
+
+glove_filepath_in, train_input_file, dev_input_file, test_input_file=initializer.get_file_paths(args)
+
+
+LOG.debug(" glove path:{glove_filepath_in}")
+LOG.debug(f"value of train_input_file is :{train_input_file}")
+LOG.debug(f"value of dev_input_file is :{dev_input_file}")
+
+
+if args.load_vectorizer:
     # training from a checkpoint
-    dataset = RTEDataset.load_dataset_and_load_vectorizer(args.fever_lex_train,
-                                                              args.vectorizer_file)
+    dataset = RTEDataset.load_dataset_and_load_vectorizer(train_input_file, dev_input_file, test_input_file,
+                                                          args)
 else:
     # create dataset and vectorizer
-    dataset = RTEDataset.load_dataset_and_create_vocabulary(fever_train_input_file, fever_dev_input_file,args)
+    dataset = RTEDataset.create_vocabulary(train_input_file, dev_input_file, test_input_file, args)
     dataset.save_vectorizer(args.vectorizer_file)
 vectorizer = dataset.get_vectorizer()
+
 
 # taking embedding size from user initially, but will get replaced by original embedding size if its loaded
 embedding_size=args.embedding_size
@@ -76,8 +65,15 @@ else:
     embeddings = None
 
 num_features=len(vectorizer.claim_ev_vocab)
-classifier = create_model(logger_object=LOG,args_in=args,num_classes_in=len(vectorizer.label_vocab)
-                          ,word_vocab_embed=embeddings,word_vocab_size=num_features,wordemb_size_in=embedding_size)
 
 train_rte=Trainer()
-train_rte.train(args,classifier,dataset,comet_value_updater)
+
+classifier = create_model(logger_object=LOG,args_in=args,num_classes_in=len(vectorizer.label_vocab)
+                              ,word_vocab_embed=embeddings,word_vocab_size=num_features,wordemb_size_in=embedding_size)
+
+if args.run_type == "train":
+    train_rte.train(args,classifier,dataset,comet_value_updater)
+elif args.run_type=="test":
+    train_rte.test(args,classifier,dataset,"test",vectorizer)
+elif args.run_type == "val":
+    train_rte.test(args,classifier, dataset, "val")

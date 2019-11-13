@@ -14,22 +14,65 @@ conda create --name rte python=3 numpy scipy pandas nltk tqdm
 source activate rte
 pip install sklearn
 pip install jsonlines
-pip install git+ssh://git@github.com/pytorch/vision@c31c3d7e0e68e871d2128c8b731698ed3b11b119
-conda install pytorch-cpu torchvision-cpu -c pytorch *
+pip install git+ssh://git@github.com/pytorch/vision@c31c3d7e0e68e871d2128c8b731698ed3b11b119 **refer note
+conda install pytorch-cpu torchvision-cpu -c pytorch *refer note
+```
+**Note**:for pytorch installations get the right command from the pytorch [homepage](https://pytorch.org/) based on your OS and configs.
+
+To download data run these command from the folder `pytorch/` :
+
+```
+git clone thisrepo.git
 ```
 
 
-To train on FEVER, run the following command in the folder `pytorch/` :
+#### Testing:
 
+To test using a model that was trained on FEVER lexicalized data, and test on FNC dataset, run the 
+following commands from the folder `pytorch/`. 
+
+```
+./get_data_lex.sh
+./get_glove_small.sh
+./get_model_lex.sh
+python main.py --run_type test --database_to_test_with fnc 
+```
+
+To test using a model trained on FEVER delexicalized data (mentioned as OANER in the paper), and test on FNC dataset, run the following commands from the folder `pytorch/`. 
+```
+./get_data_delex.sh
+./get_glove_small.sh
+./get_model_delex.sh
+python main.py --run_type test --database_to_test_with fnc 
+```
+
+
+#### Training:
+
+To train on FEVER lexicalized, run the following command in the folder `pytorch/` :
 
 ``` 
-python main.py --run_on_server TRUE
+./get_glove.sh
+./get_data_lex.sh
+python main.py --run_type train --database_to_train_with fever_lex
+
+```
+
+
+To train on FEVER delexicalized data (mentioned as OANER in the paper), run the following command in the folder `pytorch/` :
+
+``` 
+./get_glove.sh
+wget https://storage.googleapis.com/fact_verification_mithun_files/fever_train_delex_oaner_4labels.jsonl  -O data/rte/fever/train/fever_train_delex_oaner_4labels.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/fever_dev_delex_oaner_split_4labels.jsonl  -O data/rte/fever/dev/fever_dev_delex_oaner_4labels.jsonl
+python main.py --run_type train --database_to_train_with fever_delex
+
 ```
 
 ## Notes
 - You can keep track of the training and dev accuracies by doing `tail -f mean_teacher.log` 
-- The trained model will be stored under `/model_storage/ch3/yelp/model.pth ` 
-- for pytorch instinstallation get the right command from the pytorch [homepage](https://pytorch.org/) based on your OS and configs.
+- The trained model will be stored under `/model_storage/best_model.pth ` 
+
 
 - Note that in this particular case the file train_full_with_evi_sents is a collection of all claims and the corresponding
  evidences in the training data of [FEVER](http://fever.ai/) challenge. This is not available in public unlike the FEVER data. 

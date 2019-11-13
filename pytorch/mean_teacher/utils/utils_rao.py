@@ -3,19 +3,34 @@ import torch
 import os
 import re
 import mmap
-from torch.utils.data import Dataset, DataLoader
+import torch
+from torch.utils.data import  DataLoader
 from tqdm import tqdm
-import sys
+import random
 from mean_teacher.model import architectures
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
+from mean_teacher.utils.logger import LOG
 
 # #### General utilities
 
-def set_seed_everywhere(seed, cuda):
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    if cuda:
-        torch.cuda.manual_seed_all(seed)
+def set_seed_everywhere(args):
+    np.random.seed(args.seed)
+    torch.manual_seed(args.seed)
+    if args.cuda:
+        torch.cuda.manual_seed_all(args.seed)
+    random_seed = args.random_seed
+    random.seed(random_seed)
+    np.random.seed(random_seed)
+
+    torch.backends.cudnn.deterministic = True
+    if torch.cuda.is_available():
+        torch.manual_seed(args.random_seed)
+        torch.cuda.manual_seed(args.random_seed)
+        LOG.info(f"found that cuda is available. ALso setting the manual seed as {args.random_seed} ")
+    else:
+        torch.manual_seed(args.random_seed)
+        LOG.info(f"found that cuda is not available . ALso setting the manual seed as {args.random_seed} ")
+
 
 def handle_dirs(dirpath):
     if not os.path.exists(dirpath):
@@ -33,10 +48,6 @@ def generate_batches(dataset,workers,batch_size,device ,shuffle=True,
     A generator function which wraps the PyTorch DataLoader. It will
       ensure each tensor is on the write device location.
     """
-
-
-
-    # dataloader = DataLoader(dataset=dataset, batch_size=batch_size,shuffle=shuffle, drop_last=drop_last)
     if(shuffle==True):
         labeled_idxs = dataset.get_all_label_indices(dataset)
         sampler = SubsetRandomSampler(labeled_idxs)

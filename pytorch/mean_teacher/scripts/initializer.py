@@ -65,8 +65,7 @@ class Initializer():
 
             log_level='INFO',
             use_gpu=True,
-            consistency_type="mse",
-            very_first_run=False
+            consistency_type="mse"
         )
         args.use_glove = True
         if args.expand_filepaths_to_save_dir:
@@ -97,9 +96,8 @@ class Initializer():
 
     def create_parser(self):
         parser = argparse.ArgumentParser(description='PyTorch Mean-Teacher Training')
-        parser.add_argument('--run_on_server', default=False, type=self.str2bool, metavar='BOOL',
-                            help='exclude unlabeled examples from the training set')
-
+        parser.add_argument('--very_first_run', default=False, type=self.str2bool, metavar='BOOL',
+                            help='used in comet graphing to decide if this has to go into an existing graph or create a new graph')
         return parser
 
     def parse_commandline_args(self):
@@ -121,12 +119,5 @@ class Initializer():
         fever_delex_train_input_file = os.path.join(os.getcwd(),data_dir, self._args.fever_delex_train_local)
         fever_delex_dev_input_file = os.path.join(os.getcwd(),data_dir, self._args.fever_delex_dev_local)
 
-
-        # if (command_line_args.run_on_server == True):
-        #     glove_filepath_in = self._args.glove_filepath_server
-        #     fever_lex_train_input_file = os.path.join(self._args.data_dir_server, self._args.fever_lex_train_server)
-        #     fever_lex_dev_input_file = os.path.join(self._args.data_dir_server, self._args.fever_lex_dev_server)
-        #     fever_delex_train_input_file = os.path.join(self._args.data_dir_server, self._args.fever_delex_train_server)
-        #     fever_delex_dev_input_file = os.path.join(self._args.data_dir_server, self._args.fever_delex_dev_server)
 
         return glove_filepath_in,fever_lex_train_input_file,fever_lex_dev_input_file,fever_delex_train_input_file,fever_delex_dev_input_file

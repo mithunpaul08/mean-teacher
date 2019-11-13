@@ -103,7 +103,7 @@ class Trainer():
             list_labels_pred.append(indices.data.item())
         return list_labels_pred
 
-    def train(self, args_in, classifier_student1,classifier_student2, dataset):
+    def train(self, args_in, classifier_student1,classifier_student2, dataset,comet_value_updater):
         classifier_student1 = classifier_student1.to(args_in.device)
         classifier_student2 = classifier_student2.to(args_in.device)
 
@@ -212,10 +212,18 @@ class Trainer():
                     loss_t_lex = class_loss_lex.item()
                     running_loss_lex += (loss_t_lex - running_loss_lex) / (batch_index + 1)
 
+                    if (comet_value_updater is not None):
+                        comet_value_updater.log_metric("running_loss_lex", running_loss_lex, step=batch_index)
+
                     # step 3.1 compute the class_loss_delex
                     class_loss_delex = class_loss_func(y_pred_delex, batch_dict_delex['y_target'])
                     loss_t_delex = class_loss_delex.item()
                     running_loss_delex += (loss_t_delex - running_loss_delex) / (batch_index + 1)
+
+                    if (comet_value_updater is not None):
+                        comet_value_updater.log_metric("running_loss_delex", running_loss_delex, step=batch_index)
+
+
 
                     # step 4. use combined classification loss to produce gradients
                     #combined_class_loss=class_loss_lex+class_loss_delex
@@ -271,6 +279,18 @@ class Trainer():
                 train_state_in['train_loss'].append(running_loss_lex)
                 train_state_in['train_acc'].append(running_acc_lex)
 
+                if (comet_value_updater is not None):
+                    comet_value_updater.log_metric("lex_loss_train_per_epoch", running_loss_lex, step=epoch_index)
+                if (comet_value_updater is not None):
+                    comet_value_updater.log_metric("delex_loss_train_per_epoch", running_acc_delex,
+                                                   step=epoch_index)
+                if (comet_value_updater is not None):
+                    comet_value_updater.log_metric("avg_lex_accuracy_train_per_epoch", running_acc_lex,
+                                                   step=epoch_index)
+                if (comet_value_updater is not None):
+                    comet_value_updater.log_metric("avg_delex_accuracy_train_per_epoch", running_acc_delex,
+                                                   step=epoch_index)
+
                 # Iterate over val dataset
 
                 # setup: batch generator, set class_loss_lex and acc to 0; set eval mode on
@@ -297,12 +317,17 @@ class Trainer():
                     acc_t = self.compute_accuracy(y_pred_labels_val, batch_dict['y_target'])
                     running_acc_val += (acc_t - running_acc_val) / (batch_index + 1)
 
+                    if (comet_value_updater is not None):
+                        comet_value_updater.log_metric("running_acc_dev_per_batch", running_acc, step=running_acc_val)
 
                     LOG.info(
                         f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches_lex} \t acc_t:{round(acc_t,2)} \t moving_avg_val_accuracy:{round(running_acc_val,2)} ")
 
                 train_state_in['val_loss'].append(running_loss_val)
-                train_state_in['val_acc'].append(running_acc_lex)
+                train_state_in['val_acc'].append(running_acc_val)
+
+                if (comet_value_updater is not None):
+                    comet_value_updater.log_metric("running_acc_dev_per_epoch", running_acc, step=running_acc_val)
 
                 train_state_in = self.update_train_state(args=args_in, model=classifier_student2,
                                                          train_state=train_state_in)

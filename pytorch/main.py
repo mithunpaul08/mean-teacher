@@ -10,14 +10,31 @@ import time
 import random
 import torch
 import numpy as np
+from comet_ml import Experiment,ExistingExperiment
+current_time={time.strftime("%c")}
+LOG.info(f"starting the run at {current_time}.")
 
+def initialize_comet(args):
+    # for drawing graphs on comet:
+    comet_value_updater=None
+    if(args.run_type=="train"):
+        if(args.very_first_run==True):
+            comet_value_updater = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", project_name="rte-decomp-attention")
+        else:
+            comet_value_updater = ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", previous_experiment="80c6e42f6d8e417d86906a6423345a05")
 
+    return comet_value_updater
 initializer=Initializer()
 command_line_args = initializer.parse_commandline_args()
 args=initializer.set_parameters()
 
-set_seed_everywhere(args.seed, args.cuda)
+comet_value_updater=initialize_comet(args)
+if (comet_value_updater) is not None:
+    hyper_params = vars(args)
+    comet_value_updater.log_parameters(hyper_params)
 
+
+set_seed_everywhere(args.seed, args.cuda)
 random_seed = args.random_seed
 random.seed(random_seed)
 np.random.seed(random_seed)
@@ -72,4 +89,4 @@ classifier_student2 = create_model(logger_object=LOG,args_in=args,num_classes_in
                           ,word_vocab_embed=embeddings,word_vocab_size=num_features,wordemb_size_in=embedding_size)
 
 train_rte=Trainer(LOG)
-train_rte.train(args,classifier_student1,classifier_student2,dataset)
+train_rte.train(args,classifier_student1,classifier_student2,dataset,comet_value_updater)

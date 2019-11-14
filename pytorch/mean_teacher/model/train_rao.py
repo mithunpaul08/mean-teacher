@@ -212,8 +212,6 @@ class Trainer():
                     loss_t_lex = class_loss_lex.item()
                     running_loss_lex += (loss_t_lex - running_loss_lex) / (batch_index + 1)
 
-                    if (comet_value_updater is not None):
-                        comet_value_updater.log_metric("running_loss_lex", running_loss_lex, step=batch_index)
 
                     # step 3.1 compute the class_loss_delex
                     class_loss_delex = class_loss_func(y_pred_delex, batch_dict_delex['y_target'])
@@ -222,6 +220,9 @@ class Trainer():
 
                     if (comet_value_updater is not None):
                         comet_value_updater.log_metric("delex_training_loss_per_batch", loss_t_delex, step=batch_index)
+                    if (comet_value_updater is not None):
+                            comet_value_updater.log_metric("average_delex_training_loss_across_batches", running_loss_delex,
+                                                           step=batch_index)
 
 
 
@@ -284,7 +285,7 @@ class Trainer():
                 if (comet_value_updater is not None):
                     comet_value_updater.log_metric("delex_training_loss_per_epoch", running_loss_delex,
                                                    step=epoch_index)
-                
+
                 # Iterate over val dataset
 
                 # setup: batch generator, set class_loss_lex and acc to 0; set eval mode on

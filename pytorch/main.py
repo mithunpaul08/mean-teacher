@@ -64,7 +64,7 @@ LOG.setLevel(args.log_level)
 current_time={time.strftime("%c")}
 
 glove_filepath_in, fever_lex_train_input_file, fever_lex_dev_input_file, fever_delex_train_input_file, \
-fever_delex_dev_input_file=initializer.get_file_paths(command_line_args)
+fever_delex_dev_input_file=initializer.get_file_paths(args)
 LOG.info(f"{current_time} loading glove from path:{glove_filepath_in}")
 
 

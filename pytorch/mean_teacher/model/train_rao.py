@@ -120,8 +120,8 @@ class Trainer():
         else:
             class_loss_func = nn.CrossEntropyLoss(size_average=False).cpu()
 
-        input_optimizer_classifier_student1, inter_atten_optimizer_classifier_student1 = initialize_double_optimizers(
-            classifier_student1, args_in)
+        # input_optimizer_classifier_student1, inter_atten_optimizer_classifier_student1 = initialize_double_optimizers(
+        #     classifier_student1, args_in)
         input_optimizer_classifier_student2, inter_atten_optimizer_classifier_student2 = initialize_double_optimizers(
             classifier_student2, args_in)
 
@@ -189,15 +189,15 @@ class Trainer():
 
                     # --------------------------------------
                     # step 1. zero the gradients
-                    input_optimizer_classifier_student1.zero_grad()
-                    inter_atten_optimizer_classifier_student1.zero_grad()
+                    # input_optimizer_classifier_student1.zero_grad()
+                    # inter_atten_optimizer_classifier_student1.zero_grad()
                     input_optimizer_classifier_student2.zero_grad()
                     inter_atten_optimizer_classifier_student2.zero_grad()
 
 
                     #this code is from the libowen code base we are using for decomposable attention
                     if epoch_index == 0 and args_in.optimizer == 'adagrad':
-                        update_optimizer_state(input_optimizer_classifier_student1, inter_atten_optimizer_classifier_student1, args_in)
+                        #update_optimizer_state(input_optimizer_classifier_student1, inter_atten_optimizer_classifier_student1, args_in)
                         update_optimizer_state(input_optimizer_classifier_student2,
                                                inter_atten_optimizer_classifier_student2, args_in)
 
@@ -228,15 +228,16 @@ class Trainer():
                     # step 4. use combined classification loss to produce gradients
                     #combined_class_loss=class_loss_lex+class_loss_delex
 
-                    consistency_loss = consistency_criterion(y_pred_lex, y_pred_delex)
-                    combined_loss=consistency_loss+class_loss_lex
-                    combined_loss.backward()
+                    #consistency_loss = consistency_criterion(y_pred_lex, y_pred_delex)
+                    #combined_loss=consistency_loss+class_loss_lex
+                    #combined_loss.backward()
+                    class_loss_delex.backward()
 
 
                     # step 5. use optimizer to take gradient step
                     #optimizer.step()
-                    input_optimizer_classifier_student1.step()
-                    inter_atten_optimizer_classifier_student1.step()
+                    #input_optimizer_classifier_student1.step()
+                    #inter_atten_optimizer_classifier_student1.step()
                     input_optimizer_classifier_student2.step()
                     inter_atten_optimizer_classifier_student2.step()
 
@@ -271,9 +272,9 @@ class Trainer():
                                           epoch=epoch_index)
                     train_bar.update()
                     LOG.info(
-                        f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t classification_loss_lex:{round(running_loss_lex,2)}"
-                        f" \t running_acc_lex:{round(running_acc_lex,2) } \t consistency_loss:"
-                        f"{(consistency_loss)} \t running_acc_delex:{round(running_acc_delex,2)} ")
+                        f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
+                        f"classification_loss_lex:{round(running_loss_lex,2)}\t classification_loss_delex:{round(running_loss_delex,2)}"
+                        f" \t running_acc_lex:{round(running_acc_lex,2) }  \t running_acc_delex:{round(running_acc_delex,2)} ")
 
 
                 train_state_in['train_loss'].append(running_loss_lex)

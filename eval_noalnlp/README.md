@@ -225,7 +225,8 @@ Steps
 - unzip the tar.gz into `logs/`  `Eg:., tar -zxvf best_model_mnli_delex.tar.gz`
 - run with
 `PYTHONPATH=$PYTHONPATH:. python train_mnli.py esim petModel-1 --keep_rate 0.9 --alpha 0 --emb_train --test`
-
+note: The name of the run has to be exactly same that you used for training. i.e the below command will give an error saying trained model not found
+ PYTHONPATH=$PYTHONPATH:. python train_mnli.py esim `mithun-lex-esim` --alpha 0 --emb_train --test
 
 #### list of WGETs for trained models
 - for model trained on delexicalized mnli:
@@ -238,7 +239,8 @@ Steps
 - for mednli dev data 
 `wget https://storage.googleapis.com/fact_verification_mithun_files/mednli_converted_claim_ev_format/mednli_dev_delex_oaner_mnli_format.jsonl -O data/multinli_0.9/multinli_0.9_dev_matched.jsonl`
 
-Note: This is a hack. By r  enaming mednli dev as dev-matched of mnli we don't need to make any code changes.
+
+Note: This is a hack. By renaming mednli dev as dev-matched of mnli we don't need to make any code changes.
 
 
 

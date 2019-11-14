@@ -99,6 +99,7 @@ class Initializer():
         return args
 
     def create_parser(self):
+
         parser = argparse.ArgumentParser(description='PyTorch Mean-Teacher Training')
         parser.add_argument('--very_first_run', default=False, type=self.str2bool, metavar='BOOL',
                             help='used in comet graphing to decide if this has to go into an existing graph or create a new graph')
@@ -107,7 +108,7 @@ class Initializer():
         return parser
 
     def parse_commandline_args(self):
-        return self.create_parser().parse_args()
+        return self.create_parser().parse_args(namespace=self._args)
 
     def str2bool(self,v):
         if v.lower() in ('yes', 'true', 't', 'y', '1'):

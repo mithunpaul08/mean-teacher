@@ -42,6 +42,9 @@ To train on FEVER, run e.g.:
 ``` python main.py
 ```
 
+Notes to self:
+
+If you get: the import torch before comet error again. fixed it by forcefully upgrading to new version using pip install --no-cache-dir --upgrade comet_ml"
 ### Latest status as of Nov 12th 2019 4pm.
 - fixed negative val accuracy problem. But every epoch now
 has exactly same val accuracies..looks like classifier2 is not learning

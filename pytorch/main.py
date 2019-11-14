@@ -24,18 +24,20 @@ def initialize_comet(args):
         if(args.very_first_run==True):
             comet_value_updater = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", project_name="rte-decomp-attention")
         else:
-            comet_value_updater = ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", previous_experiment="80c6e42f6d8e417d86906a6423345a05")
+            comet_value_updater = ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", previous_experiment="74cf9e3531814abcb8733a5973f3413a")
 
     return comet_value_updater
 
 initializer=Initializer()
-
-
+initializer.set_default_parameters()
 args = initializer.parse_commandline_args()
+
+
+
 
 comet_value_updater=initialize_comet(args)
 import torch
-initializer.set_default_parameters()
+
 if (comet_value_updater) is not None:
     hyper_params = vars(args)
     comet_value_updater.log_parameters(hyper_params)

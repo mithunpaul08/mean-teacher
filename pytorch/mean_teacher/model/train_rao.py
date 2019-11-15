@@ -303,7 +303,7 @@ class Trainer():
                     comet_value_updater.log_metric("delex_training_loss_across_batches", running_loss_delex,
                                                    step=epoch_index)
                 if (comet_value_updater is not None):
-                    comet_value_updater.log_metric("training_accuracy_lexicalized", running_acc_delex,
+                    comet_value_updater.log_metric("training_accuracy_delexicalized", running_acc_delex,
                                                    step=epoch_index)
 
 

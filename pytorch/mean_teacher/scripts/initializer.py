@@ -101,7 +101,7 @@ class Initializer():
     def create_parser(self):
 
         parser = argparse.ArgumentParser(description='PyTorch Mean-Teacher Training')
-        parser.add_argument('--very_first_run', default=False, type=self.str2bool, metavar='BOOL',
+        parser.add_argument('--very_first_run', default=True, type=self.str2bool, metavar='BOOL',
                             help='used in comet graphing to decide if this has to go into an existing graph or create a new graph')
         parser.add_argument('--run_type', default="train", type=str,
                             help='type of run. options are: train (which includes val validation also),val, test')

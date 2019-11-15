@@ -45,8 +45,6 @@ To train on FEVER, run e.g.:
 Notes to self:
 
 If you get: the import torch before comet error again. fixed it by forcefully upgrading to new version using pip install --no-cache-dir --upgrade comet_ml"
-### Latest status as of Nov 12th 2019 4pm.
-- fixed negative val accuracy problem. But every epoch now
-has exactly same val accuracies..looks like classifier2 is not learning
-training loss and accuracies have improved though
- INFO:main:92     :2882/3724      running_loss_lex:11.61      running_acc_lex:86.18   running_loss_delex:35.5     running_acc_delex:55.06
+### Latest status as of Nov 14th 2019 10pm.
+- trying out one model at a time. tried delex yday, loss was dropping and val accuracy of 86.3%. however training accuracy was low. weird
+- now trying to see if lexicaliezd model alone drops loss.

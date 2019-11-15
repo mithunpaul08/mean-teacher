@@ -273,16 +273,30 @@ class Trainer():
                     #     f"classification_loss_lex:{round(running_loss_lex,2)}\t classification_loss_delex:{round(running_loss_delex,2)}"
                     #     f" \t running_acc_lex:{round(running_acc_lex,2) }  \t running_acc_delex:{round(running_acc_delex,2)} ")
 
+                    LOG.info(
+                            f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
+                            f"training_loss_lex_per_batch:{round(running_loss_lex,2)}\t"
+                            f" \t training_accuracy_lex_per_batch:{round(running_acc_lex,2) }")
+
                     # update bar
                     train_bar.set_postfix(loss=running_loss_lex,
                                           acc=running_acc_lex,
                                           epoch=epoch_index)
                     train_bar.update()
 
-                LOG.info(f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t training_classification_loss_lex:{round(running_loss_lex,2)} \t training_accuracy_lexicalized:{round(running_acc_lex,2)}")
+                LOG.info(f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
+                         f"training_classification_loss_lex:{round(running_loss_lex,2)} \t training_accuracy_lexicalized:{round(running_acc_lex,2)}")
 
                 train_state_in['train_acc'].append(running_acc_lex)
                 train_state_in['train_loss'].append(running_loss_lex)
+
+                if (comet_value_updater is not None):
+                    comet_value_updater.log_metric("training_classification_loss_lex_per_epoch", running_loss_lex,
+                                                   step=epoch_index)
+
+                if (comet_value_updater is not None):
+                    comet_value_updater.log_metric("training_accuracy_lexicalized", running_acc_lex,
+                                                   step=epoch_index)
 
                 # all classifier2 related code. third set. i.e all steps per epoch
                 # if (comet_value_updater is not None):
@@ -298,12 +312,16 @@ class Trainer():
                                                     device=args_in.device, shuffle=False)
                 running_loss_val = 0.
                 running_acc_val = 0.
-                classifier_student2.eval()
+
+                classifier_student1.eval()
+                #classifier_student2.eval()
+
                 no_of_batches_lex = int(len(dataset) / args_in.batch_size)
 
                 for batch_index, batch_dict in enumerate(batch_generator_val):
                     # compute the output
-                    y_pred_val = classifier_student2(batch_dict['x_claim'], batch_dict['x_evidence'])
+                    y_pred_val = classifier_student1(batch_dict['x_claim'], batch_dict['x_evidence'])
+                    #y_pred_val = classifier_student2(batch_dict['x_claim'], batch_dict['x_evidence'])
 
                     # step 3. compute the class_loss
                     class_loss = class_loss_func(y_pred_val, batch_dict['y_target'])

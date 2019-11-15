@@ -105,7 +105,7 @@ class Trainer():
 
     def train(self, args_in, classifier_student1,classifier_student2, dataset,comet_value_updater):
         classifier_student1 = classifier_student1.to(args_in.device)
-        classifier_student2 = classifier_student2.to(args_in.device)
+        #classifier_student2 = classifier_student2.to(args_in.device)
 
 
         if args_in.consistency_type == 'mse':
@@ -120,10 +120,8 @@ class Trainer():
         else:
             class_loss_func = nn.CrossEntropyLoss(size_average=False).cpu()
 
-        # input_optimizer_classifier_student1, inter_atten_optimizer_classifier_student1 = initialize_double_optimizers(
-        #     classifier_student1, args_in)
-        input_optimizer_classifier_student2, inter_atten_optimizer_classifier_student2 = initialize_double_optimizers(
-            classifier_student2, args_in)
+        input_optimizer_classifier_student1, inter_atten_optimizer_classifier_student1 = initialize_double_optimizers(classifier_student1, args_in)
+        #input_optimizer_classifier_student2, inter_atten_optimizer_classifier_student2 = initialize_double_optimizers(classifier_student2, args_in)
 
 
         #scheduler1 = optim.lr_scheduler.ReduceLROnPlateau(optimizer=input_optimizer_classifier_student1,mode='min', factor=0.5,patience=1)
@@ -171,7 +169,7 @@ class Trainer():
                 no_of_batches_delex = int(len(dataset) / args_in.batch_size)
 
                 running_loss = 0.0
-                running_acc = 0.0
+                #running_acc = 0.0
                 running_loss_lex = 0.0
                 running_acc_lex = 0.0
                 running_loss_delex = 0.0
@@ -189,23 +187,23 @@ class Trainer():
 
                     # --------------------------------------
                     # step 1. zero the gradients
-                    # input_optimizer_classifier_student1.zero_grad()
-                    # inter_atten_optimizer_classifier_student1.zero_grad()
-                    input_optimizer_classifier_student2.zero_grad()
-                    inter_atten_optimizer_classifier_student2.zero_grad()
+                    input_optimizer_classifier_student1.zero_grad()
+                    inter_atten_optimizer_classifier_student1.zero_grad()
+
 
 
                     #this code is from the libowen code base we are using for decomposable attention
                     if epoch_index == 0 and args_in.optimizer == 'adagrad':
-                        #update_optimizer_state(input_optimizer_classifier_student1, inter_atten_optimizer_classifier_student1, args_in)
-                        update_optimizer_state(input_optimizer_classifier_student2,
-                                               inter_atten_optimizer_classifier_student2, args_in)
+                        update_optimizer_state(input_optimizer_classifier_student1, inter_atten_optimizer_classifier_student1, args_in)
+
+
+
 
 
 
                     # step 2. compute the output
                     y_pred_lex = classifier_student1(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
-                    y_pred_delex = classifier_student2(batch_dict_delex['x_claim'], batch_dict_delex['x_evidence'])
+
 
                     # step 3.1 compute the class_loss_lex
                     class_loss_lex = class_loss_func(y_pred_lex, batch_dict_lex['y_target'])
@@ -213,17 +211,24 @@ class Trainer():
                     running_loss_lex += (loss_t_lex - running_loss_lex) / (batch_index + 1)
 
 
+
+
+                    #all classifier2 related code (the one which feeds off delexicalized data). all steps before .backward()
+                    #input_optimizer_classifier_student2.zero_grad()
+                    #inter_atten_optimizer_classifier_student2.zero_grad()
+                    #if epoch_index == 0 and args_in.optimizer == 'adagrad':
+                    # update_optimizer_state(input_optimizer_classifier_student2,inter_atten_optimizer_classifier_student2, args_in)
+                    # y_pred_delex = classifier_student2(batch_dict_delex['x_claim'], batch_dict_delex['x_evidence'])
                     # step 3.1 compute the class_loss_delex
-                    class_loss_delex = class_loss_func(y_pred_delex, batch_dict_delex['y_target'])
-                    loss_t_delex = class_loss_delex.item()
-                    running_loss_delex += (loss_t_delex - running_loss_delex) / (batch_index + 1)
-
-                    if (comet_value_updater is not None):
-                        comet_value_updater.log_metric("delex_training_loss_per_batch", loss_t_delex, step=batch_index)
-                    if (comet_value_updater is not None):
-                            comet_value_updater.log_metric("average_delex_training_loss_across_batches", running_loss_delex,
-                                                           step=batch_index)
-
+                    # class_loss_delex = class_loss_func(y_pred_delex, batch_dict_delex['y_target'])
+                    # loss_t_delex = class_loss_delex.item()
+                    # running_loss_delex += (loss_t_delex - running_loss_delex) / (batch_index + 1)
+                    # if (comet_value_updater is not None):
+                    #     comet_value_updater.log_metric("delex_training_loss_per_batch", loss_t_delex, step=batch_index)
+                    # if (comet_value_updater is not None):
+                    #         comet_value_updater.log_metric("average_delex_training_loss_across_batches", running_loss_delex,
+                    #                                        step=batch_index)
+                    # class_loss_delex.backward()
 
 
                     # step 4. use combined classification loss to produce gradients
@@ -232,15 +237,15 @@ class Trainer():
                     #consistency_loss = consistency_criterion(y_pred_lex, y_pred_delex)
                     #combined_loss=consistency_loss+class_loss_lex
                     #combined_loss.backward()
-                    class_loss_delex.backward()
+
+                    class_loss_lex.backward()
+
 
 
                     # step 5. use optimizer to take gradient step
                     #optimizer.step()
-                    #input_optimizer_classifier_student1.step()
-                    #inter_atten_optimizer_classifier_student1.step()
-                    input_optimizer_classifier_student2.step()
-                    inter_atten_optimizer_classifier_student2.step()
+                    input_optimizer_classifier_student1.step()
+                    inter_atten_optimizer_classifier_student1.step()
 
 
 
@@ -253,43 +258,42 @@ class Trainer():
                     y_pred_labels = self.calculate_argmax_list(y_pred_lex)
                     y_pred_labels = torch.FloatTensor(y_pred_labels)
                     acc_t_lex = self.compute_accuracy(y_pred_labels, batch_dict_lex['y_target'])
-
-                    #acc_t_lex = self.accuracy_fever(y_pred_lex, batch_dict_lex['y_target'],no_of_batches_lex)
-
                     running_acc_lex += (acc_t_lex - running_acc_lex) / (batch_index + 1)
 
-                    # compute the accuracy for delex data
-
-                    y_pred_labels_delex = self.calculate_argmax_list(y_pred_delex)
-                    y_pred_labels_delex = torch.FloatTensor(y_pred_labels_delex)
-                    acc_t_delex = self.compute_accuracy(y_pred_labels_delex, batch_dict_lex['y_target'])
-
-                    #acc_t_delex = self.accuracy_fever(y_pred_delex, batch_dict_delex['y_target'],no_of_batches_lex)
-                    running_acc_delex += (acc_t_delex - running_acc_delex) / (batch_index + 1)
+                    #all classifier2 related code. second set. i.e all steps per batch after .backward()
+                    # input_optimizer_classifier_student2.step()
+                    # inter_atten_optimizer_classifier_student2.step()
+                    #  compute the accuracy for delex data
+                    # y_pred_labels_delex = self.calculate_argmax_list(y_pred_delex)
+                    # y_pred_labels_delex = torch.FloatTensor(y_pred_labels_delex)
+                    # #acc_t_delex = self.compute_accuracy(y_pred_labels_delex, batch_dict_lex['y_target'])
+                    # running_acc_delex += (acc_t_delex - running_acc_delex) / (batch_index + 1)
+                    # LOG.info(
+                    #     f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
+                    #     f"classification_loss_lex:{round(running_loss_lex,2)}\t classification_loss_delex:{round(running_loss_delex,2)}"
+                    #     f" \t running_acc_lex:{round(running_acc_lex,2) }  \t running_acc_delex:{round(running_acc_delex,2)} ")
 
                     # update bar
                     train_bar.set_postfix(loss=running_loss_lex,
                                           acc=running_acc_lex,
                                           epoch=epoch_index)
                     train_bar.update()
-                    LOG.info(
-                        f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
-                        f"classification_loss_lex:{round(running_loss_lex,2)}\t classification_loss_delex:{round(running_loss_delex,2)}"
-                        f" \t running_acc_lex:{round(running_acc_lex,2) }  \t running_acc_delex:{round(running_acc_delex,2)} ")
 
+                LOG.info(f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t training_classification_loss_lex:{round(running_loss_lex,2)} \t training_accuracy_lexicalized:{round(running_acc_lex,2)}")
 
-                train_state_in['train_loss'].append(running_loss_lex)
                 train_state_in['train_acc'].append(running_acc_lex)
+                train_state_in['train_loss'].append(running_loss_lex)
 
-
-                if (comet_value_updater is not None):
-                    comet_value_updater.log_metric("delex_training_loss_per_epoch", running_loss_delex,
-                                                   step=epoch_index)
+                # all classifier2 related code. third set. i.e all steps per epoch
+                # if (comet_value_updater is not None):
+                #     comet_value_updater.log_metric("delex_training_loss_per_epoch", running_loss_delex,
+                #                                    step=epoch_index)
+                #dataset.set_split('val_delex')
 
                 # Iterate over val dataset
 
                 # setup: batch generator, set class_loss_lex and acc to 0; set eval mode on
-                dataset.set_split('val_delex')
+                dataset.set_split('val_lex')
                 batch_generator_val = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
                                                     device=args_in.device, shuffle=False)
                 running_loss_val = 0.
@@ -313,16 +317,16 @@ class Trainer():
                     running_acc_val += (acc_t - running_acc_val) / (batch_index + 1)
 
                     if (comet_value_updater is not None):
-                        comet_value_updater.log_metric("running_acc_dev_per_batch", running_acc, step=running_acc_val)
+                        comet_value_updater.log_metric("running_acc_dev_per_batch", running_acc_val, step=batch_index)
 
                     LOG.info(
-                        f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches_lex} \t acc_t:{round(acc_t,2)} \t moving_avg_val_accuracy:{round(running_acc_val,2)} ")
+                        f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches_lex} \t per_batch_accuracy_dev_set:{round(acc_t,2)} \t moving_avg_val_accuracy:{round(running_acc_val,2)} ")
 
                 train_state_in['val_loss'].append(running_loss_val)
                 train_state_in['val_acc'].append(running_acc_val)
 
                 if (comet_value_updater is not None):
-                    comet_value_updater.log_metric("running_acc_dev_per_epoch", running_acc, step=running_acc_val)
+                    comet_value_updater.log_metric("running_acc_dev_per_epoch", running_acc_val, step=epoch_index)
 
                 train_state_in = self.update_train_state(args=args_in, model=classifier_student2,
                                                          train_state=train_state_in)

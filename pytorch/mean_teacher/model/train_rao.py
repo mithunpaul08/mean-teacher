@@ -180,8 +180,8 @@ class Trainer():
 
                 no_of_batches_delex = int(len(dataset) / args_in.batch_size)
 
-                running_loss = 0.0
-                #running_acc = 0.0
+                running_consistency_loss = 0.0
+
                 running_loss_lex = 0.0
                 running_acc_lex = 0.0
                 running_loss_delex = 0.0
@@ -238,8 +238,11 @@ class Trainer():
 
 
                     # step 4. use combined classification loss to produce gradients
-                    combined_class_loss=class_loss_lex+class_loss_delex
                     consistency_loss = consistency_criterion(y_pred_lex, y_pred_delex)
+                    consistency_loss_value = consistency_loss.item()
+                    running_consistency_loss += (consistency_loss_value - running_consistency_loss) / (batch_index + 1)
+                    combined_class_loss=class_loss_lex+class_loss_delex
+
                     combined_loss=consistency_loss+combined_class_loss
                     combined_loss.backward()
                     #class_loss_lex.backward()
@@ -274,8 +277,9 @@ class Trainer():
                         running_acc_delex += (acc_t_delex - running_acc_delex) / (batch_index + 1)
                         LOG.info(
                             f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
-                            f"classification_loss_lex:{round(running_loss_lex,2)}\t classification_loss_delex:{round(running_loss_delex,2)}"
-                            f" \t running_acc_lex:{round(running_acc_lex,2) }  \t running_acc_delex:{round(running_acc_delex,2)} ")
+                            f"classification_loss_lex:{round(running_loss_lex,2)}\t classification_loss_delex:{round(running_loss_delex,2)} "
+                            f"\t consistency_loss:{round(running_consistency_loss)}"
+                            f" \t running_acc_lex:{round(running_acc_lex,2) }  \t running_acc_delex:{round(running_acc_delex,2)}  ")
                     else:
 
                         LOG.info(
@@ -318,6 +322,11 @@ class Trainer():
                         comet_value_updater.log_metric("training_accuracy_delexicalized per epoch", running_acc_delex,
                                                        step=epoch_index)
 
+                        if (comet_value_updater is not None):
+                            comet_value_updater.log_metric("running_consistency_loss per epoch",
+                                                           running_consistency_loss,
+                                                           step=epoch_index)
+
 
 
                 # Iterate over val dataset
@@ -351,7 +360,7 @@ class Trainer():
                     # step 3. compute the class_loss
                     class_loss = class_loss_func(y_pred_val, batch_dict['y_target'])
                     loss_t = class_loss.item()
-                    running_loss_val += (loss_t - running_loss) / (batch_index + 1)
+                    running_loss_val += (loss_t - running_loss_val) / (batch_index + 1)
 
                     # compute the accuracy
                     y_pred_labels_val = self.calculate_argmax_list(y_pred_val)

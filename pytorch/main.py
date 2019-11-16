@@ -21,7 +21,7 @@ def initialize_comet(args):
     # for drawing graphs on comet:
     comet_value_updater=None
     if(args.run_type=="train"):
-        if(args.very_first_run==True):
+        if(args.create_new_comet_graph==True):
             comet_value_updater = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", project_name="rte-decomp-attention")
         else:
             comet_value_updater = ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", previous_experiment="74cf9e3531814abcb8733a5973f3413a")

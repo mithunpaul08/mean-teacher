@@ -78,7 +78,7 @@ class Trainer():
                 train_state['early_stopping_step'] >= args.early_stopping_criteria
 
         return train_state
-    
+
     def accuracy_fever(self,predicted_labels, gold_labels,no_of_batches_lex):
         m = nn.Softmax()
         output_sftmax = m(predicted_labels)
@@ -239,9 +239,9 @@ class Trainer():
 
                     # step 4. use combined classification loss to produce gradients
                     combined_class_loss=class_loss_lex+class_loss_delex
-                    #consistency_loss = consistency_criterion(y_pred_lex, y_pred_delex)
-                    #combined_loss=consistency_loss+class_loss_lex
-                    combined_class_loss.backward()
+                    consistency_loss = consistency_criterion(y_pred_lex, y_pred_delex)
+                    combined_loss=consistency_loss+combined_class_loss
+                    combined_loss.backward()
                     #class_loss_lex.backward()
 
 

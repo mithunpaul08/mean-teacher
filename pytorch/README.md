@@ -39,8 +39,10 @@ Note that in this particular case the file train_full_with_evi_sents is a collec
 To train on FEVER, run e.g.:
 
 
-``` python main.py
+``` python main.py --add_second_student True
 ```
+
+Note: if using only one student, remove `--add_second_student True`
 
 Notes to self:
 

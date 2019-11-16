@@ -54,11 +54,13 @@ torch.backends.cudnn.deterministic = True
 if torch.cuda.is_available():
     torch.manual_seed(args.random_seed)
     torch.cuda.manual_seed(args.random_seed)
-    LOG.info(f"found that cuda is available and hence setting the manual seed as {args.random_seed} ")
+    LOG.info(f"found that cuda is available")
+
 else:
     torch.manual_seed(args.random_seed)
-    LOG.info(f"found that cuda is not available and hence setting the manual seed as {args.random_seed} ")
+    LOG.info(f"found that cuda is not available")
 
+LOG.info(f"setting the manual seed as {args.random_seed} ")
 LOG.setLevel(args.log_level)
 
 current_time={time.strftime("%c")}

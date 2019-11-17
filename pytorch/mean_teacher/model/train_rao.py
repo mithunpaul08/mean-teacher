@@ -278,7 +278,7 @@ class Trainer():
                         LOG.info(
                             f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
                             f"classification_loss_lex:{round(running_loss_lex,2)}\t classification_loss_delex:{round(running_loss_delex,2)} "
-                            f"\t consistency_loss:{round(running_consistency_loss)}"
+                            f"\t consistency_loss:{round(running_consistency_loss,6)}"
                             f" \t running_acc_lex:{round(running_acc_lex,2) }  \t running_acc_delex:{round(running_acc_delex,2)}  ")
                     else:
 

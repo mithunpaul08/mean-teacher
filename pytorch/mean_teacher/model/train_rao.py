@@ -243,7 +243,7 @@ class Trainer():
                     running_consistency_loss += (consistency_loss_value - running_consistency_loss) / (batch_index + 1)
 
                     combined_class_loss=class_loss_lex+class_loss_delex
-                    combined_loss=(100000*consistency_loss)+(class_loss_lex)
+                    combined_loss=(10000*consistency_loss)+(class_loss_lex)
                     combined_loss.backward()
 
 

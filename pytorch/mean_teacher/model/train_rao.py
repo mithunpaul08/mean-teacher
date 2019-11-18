@@ -54,7 +54,7 @@ class Trainer():
             loss_tm1, acc_current_epoch = train_state['val_acc'][-2:]
 
             # If accuracy decreased
-            if acc_current_epoch < train_state['early_stopping_best_val']:
+            if acc_current_epoch <= train_state['early_stopping_best_val']:
                 # increase patience counter
                 train_state['early_stopping_step'] += 1
                 LOG.info(f"found that acc_current_epoch  {acc_current_epoch} is less than or equal to the best dev "
@@ -371,7 +371,7 @@ class Trainer():
                         comet_value_updater.log_metric("running_acc_dev_per_batch", running_acc_val, step=batch_index)
 
                     LOG.info(
-                        f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches_lex} \t per_batch_accuracy_dev_set:{round(acc_t,2)} \t moving_avg_val_accuracy:{round(running_acc_val,2)} ")
+                        f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches_lex} \t per_batch_accuracy_dev_set:{round(acc_t,4)} \t moving_avg_val_accuracy:{round(running_acc_val,4)} ")
 
                 train_state_in['val_loss'].append(running_loss_val)
                 train_state_in['val_acc'].append(running_acc_val)

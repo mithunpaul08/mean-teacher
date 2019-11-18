@@ -107,6 +107,10 @@ class Initializer():
                             help='type of run. options are: train (which includes val validation also),val, test')
         parser.add_argument('--add_second_student', default="train", type=self.str2bool,
                             help='for experiments. eg:running one student at a time')
+        parser.add_argument('--consistency_weight', default=16, type=int,
+                            help='for experiments. eg:running one student at a time')
+
+
         return parser
 
     def parse_commandline_args(self):

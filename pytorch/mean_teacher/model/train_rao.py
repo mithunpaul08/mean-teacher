@@ -130,6 +130,8 @@ class Trainer():
 
         input_optimizer_classifier_student1, inter_atten_optimizer_classifier_student1 = initialize_double_optimizers(classifier_student1, args_in)
 
+        input_optimizer_classifier_student2=None
+        inter_atten_optimizer_classifier_student2=None
         if(args_in.add_second_student==True):
             #classifier_student2 = classifier_student2.to(args_in.device)
             input_optimizer_classifier_student2, inter_atten_optimizer_classifier_student2 = initialize_double_optimizers(classifier_student2, args_in)
@@ -241,11 +243,13 @@ class Trainer():
                     loss_t_lex = class_loss_lex.item()
                     running_loss_lex += (loss_t_lex - running_loss_lex) / (batch_index + 1)
 
-
-
+                    combined_class_loss = class_loss_lex
+                    consistency_loss=0
 
                     #all classifier2 related code (the one which feeds off delexicalized data). all steps before .backward()
                     if (args_in.add_second_student == True):
+                        assert input_optimizer_classifier_student2 is not None
+                        assert inter_atten_optimizer_classifier_student2 is not None
                         input_optimizer_classifier_student2.zero_grad()
                         inter_atten_optimizer_classifier_student2.zero_grad()
                         if epoch_index == 0 and args_in.optimizer == 'adagrad':
@@ -255,13 +259,13 @@ class Trainer():
                         loss_t_delex = class_loss_delex.item()
                         running_loss_delex += (loss_t_delex - running_loss_delex) / (batch_index + 1)
 
+                        # step 4. use combined classification loss to produce gradients
+                        consistency_loss = consistency_criterion(y_pred_lex, y_pred_delex)
+                        consistency_loss_value = consistency_loss.item()
+                        running_consistency_loss += (consistency_loss_value - running_consistency_loss) / (batch_index + 1)
+                        combined_class_loss=class_loss_lex+class_loss_delex
 
-                    # step 4. use combined classification loss to produce gradients
-                    consistency_loss = consistency_criterion(y_pred_lex, y_pred_delex)
-                    consistency_loss_value = consistency_loss.item()
-                    running_consistency_loss += (consistency_loss_value - running_consistency_loss) / (batch_index + 1)
 
-                    combined_class_loss=class_loss_lex+class_loss_delex
                     combined_loss=(args_in.consistency_weight*consistency_loss)+(combined_class_loss)
                     combined_loss.backward()
 
@@ -312,13 +316,6 @@ class Trainer():
                                           epoch=epoch_index)
                     train_bar.update()
 
-                # LOG.info(f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
-                #          f"training_classification_loss_lex:{round(running_loss_lex,2)} \t training_accuracy_lexicalized:{round(running_acc_lex,2)}")
-
-                # LOG.info(
-                #     f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
-                #     f"classification_loss_lex:{round(running_loss_lex,2)}\t classification_loss_delex:{round(running_loss_delex,2)}"
-                #     f" \t running_acc_lex:{round(running_acc_lex,2) }  \t running_acc_delex:{round(running_acc_delex,2)} ")
 
                 train_state_in['train_acc'].append(running_acc_lex)
                 train_state_in['train_loss'].append(running_loss_lex)

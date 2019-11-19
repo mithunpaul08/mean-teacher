@@ -108,7 +108,7 @@ class Initializer():
                             help='type of run. options are: train (which includes val validation also),val, test')
         parser.add_argument('--add_second_student', default="False", type=self.str2bool,
                             help='for experiments. eg:running one student at a time')
-        parser.add_argument('--consistency_weight', default=16, type=int,
+        parser.add_argument('--consistency_weight', default=1, type=int,
                             help='for weighted average in the loss function')
         parser.add_argument('--use_semi_supervised', default="False", type=self.str2bool,
                             help='make a certain percentage of gold labels as -1')

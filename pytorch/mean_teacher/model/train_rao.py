@@ -1,4 +1,4 @@
-from mean_teacher.utils.utils_rao import generate_batches,initialize_double_optimizers,update_optimizer_state
+from mean_teacher.utils.utils_rao import generate_batches,initialize_double_optimizers,update_optimizer_state,generate_batches_for_semi_supervised
 from mean_teacher.utils import losses
 import time
 import torch
@@ -115,7 +115,7 @@ class Trainer():
 
     def train(self, args_in, classifier_student1,classifier_student2, dataset,comet_value_updater):
         classifier_student1 = classifier_student1.to(args_in.device)
-        #classifier_student2 = classifier_student2.to(args_in.device)
+
 
 
         if args_in.consistency_type == 'mse':
@@ -131,6 +131,7 @@ class Trainer():
         input_optimizer_classifier_student1, inter_atten_optimizer_classifier_student1 = initialize_double_optimizers(classifier_student1, args_in)
 
         if(args_in.add_second_student==True):
+            #classifier_student2 = classifier_student2.to(args_in.device)
             input_optimizer_classifier_student2, inter_atten_optimizer_classifier_student2 = initialize_double_optimizers(classifier_student2, args_in)
 
 
@@ -166,15 +167,35 @@ class Trainer():
 
                 # setup: batch generator, set class_loss_lex and acc to 0, set train mode on
                 dataset.set_split('train_lex')
-                batch_generator1 = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
-                                                    device=args_in.device)
-                no_of_batches_lex = int(len(dataset) / args_in.batch_size)
 
+                batch_generator1=None
+                if(args_in.use_semi_supervised==True):
+                    assert args_in.percentage_labels_for_semi_supervised > 0
+                    batch_generator1 = generate_batches_for_semi_supervised(dataset, args_in.percentage_labels_for_semi_supervised, workers=args_in.workers, batch_size=args_in.batch_size,
+                                                        device=args_in.device,mask_value=args_in.NO_LABEL )
+                else:
+                    batch_generator1 = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,device=args_in.device)
+
+                no_of_batches_lex = int(len(dataset)/args_in.batch_size)
+
+                assert batch_generator1 is not None
                 dataset.set_split('train_delex')
 
-                batch_generator2 = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
-                                                    device=args_in.device)
 
+                batch_generator2=None
+                if (args_in.use_semi_supervised == True):
+                    assert args_in.percentage_labels_for_semi_supervised > 0
+                    batch_generator2 = generate_batches_for_semi_supervised(dataset,
+                                                                            args_in.percentage_labels_for_semi_supervised,
+                                                                            workers=args_in.workers,
+                                                                            batch_size=args_in.batch_size,
+                                                                            device=args_in.device,mask_value=args_in.NO_LABEL  )
+
+                else:
+                    batch_generator2 = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
+                                                        device=args_in.device)
+
+                assert batch_generator2 is not None
 
                 no_of_batches_delex = int(len(dataset) / args_in.batch_size)
 

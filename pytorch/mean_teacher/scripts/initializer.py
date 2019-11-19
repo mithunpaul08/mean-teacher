@@ -68,7 +68,8 @@ class Initializer():
 
             log_level='INFO',
             use_gpu=True,
-            consistency_type="mse"
+            consistency_type="mse",
+            NO_LABEL=-1
 
         )
         args.use_glove = True
@@ -105,10 +106,14 @@ class Initializer():
                             help='used in comet graphing to decide if this has to go into an existing graph or create a new graph')
         parser.add_argument('--run_type', default="train", type=str,
                             help='type of run. options are: train (which includes val validation also),val, test')
-        parser.add_argument('--add_second_student', default="train", type=self.str2bool,
+        parser.add_argument('--add_second_student', default="False", type=self.str2bool,
                             help='for experiments. eg:running one student at a time')
         parser.add_argument('--consistency_weight', default=16, type=int,
-                            help='for experiments. eg:running one student at a time')
+                            help='for weighted average in the loss function')
+        parser.add_argument('--use_semi_supervised', default="False", type=self.str2bool,
+                            help='make a certain percentage of gold labels as -1')
+        parser.add_argument('--percentage_labels_for_semi_supervised', default=0, type=int,
+                            help='what percentage of gold labels do you want to hide for semi supervised learning')
 
 
         return parser

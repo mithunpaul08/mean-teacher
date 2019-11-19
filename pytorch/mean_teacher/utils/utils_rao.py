@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 from mean_teacher.model import architectures
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
-
+import math
 
 # #### General utilities
 
@@ -41,7 +41,7 @@ def generate_batches(dataset,workers,batch_size,device ,shuffle=True,
         labeled_idxs = dataset.get_all_label_indices(dataset)
         sampler = SubsetRandomSampler(labeled_idxs)
         batch_sampler_local = BatchSampler(sampler, batch_size, drop_last=True)
-        dataloader=DataLoader(dataset,batch_sampler=batch_sampler_local,num_workers=workers,pin_memory=True,shuffle=True)
+        dataloader=DataLoader(dataset,batch_sampler=batch_sampler_local,num_workers=workers,pin_memory=True)
     else:
         dataloader = DataLoader(dataset,batch_size=batch_size,shuffle=False,pin_memory=True,drop_last=False,num_workers=workers)
 
@@ -50,6 +50,46 @@ def generate_batches(dataset,workers,batch_size,device ,shuffle=True,
         for name, tensor in data_dict.items():
             out_data_dict[name] = data_dict[name].to(device)
         yield out_data_dict
+
+def generate_batches_for_semi_supervised(dataset,percentage_labels_for_semi_supervised,workers,batch_size,device,shuffle=True,
+                     drop_last=True,mask_value=-1 ):
+    '''
+    similar to generate_batches but will mask/replace the labels of certain certain percentage of indices with -1. a
+    :param dataset:
+    :param workers:
+    :param batch_size:
+    :param device:
+    :param shuffle:
+    :param drop_last:
+    :return: BatchSampler
+    '''
+
+
+    if(shuffle==True):
+        labeled_idxs = dataset.get_all_label_indices(dataset)
+        sampler = SubsetRandomSampler(labeled_idxs)
+        batch_sampler_local = BatchSampler(sampler, batch_size, drop_last=True)
+        dataloader=DataLoader(dataset,batch_sampler=batch_sampler_local,num_workers=workers,pin_memory=True)
+    else:
+        dataloader = DataLoader(dataset,batch_size=batch_size,shuffle=False,pin_memory=True,drop_last=False,num_workers=workers)
+
+
+    count_indices_to_mask= math.ceil(batch_size* (percentage_labels_for_semi_supervised)/100)
+    mask=torch.randint(0,batch_size-1,(count_indices_to_mask,))
+
+
+    for data_dict in dataloader:
+        out_data_dict = {}
+        for name, tensor in data_dict.items():
+            if(name=="y_target"):
+                for m in mask:
+                    tensor[m]=mask_value
+                    out_data_dict[name] = data_dict[name].to(device)
+            else:
+                out_data_dict[name] = data_dict[name].to(device)
+
+        yield out_data_dict
+
 
 def get_num_lines(file_path):
 

@@ -201,9 +201,10 @@ class RTEDataset(Dataset):
         all_labels = list(enumerate(dataset.get_labels()))
 
         #note that even though the labels are shuffled up, we are keeping track/returning only the shuffled indices. so it all works out fine.
-        random.shuffle(all_labels)
+        #update: will shuffle  inside dataloader itself
+        #random.shuffle(all_labels)
 
-        #get all the indices alone
+        #get the indices alone and not the labels
         all_indices=[]
         for idx,_  in all_labels:
             all_indices.append(idx)

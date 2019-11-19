@@ -37,13 +37,11 @@ def generate_batches(dataset,workers,batch_size,device ,shuffle=True,
     """
 
 
-
-    # dataloader = DataLoader(dataset=dataset, batch_size=batch_size,shuffle=shuffle, drop_last=drop_last)
     if(shuffle==True):
         labeled_idxs = dataset.get_all_label_indices(dataset)
         sampler = SubsetRandomSampler(labeled_idxs)
         batch_sampler_local = BatchSampler(sampler, batch_size, drop_last=True)
-        dataloader=DataLoader(dataset,batch_sampler=batch_sampler_local,num_workers=workers,pin_memory=True)
+        dataloader=DataLoader(dataset,batch_sampler=batch_sampler_local,num_workers=workers,pin_memory=True,shuffle=True)
     else:
         dataloader = DataLoader(dataset,batch_size=batch_size,shuffle=False,pin_memory=True,drop_last=False,num_workers=workers)
 

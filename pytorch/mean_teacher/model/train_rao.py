@@ -7,7 +7,7 @@ import torch.optim as optim
 from tqdm import tqdm,tqdm_notebook
 from torch.nn import functional as F
 from mean_teacher.utils.logger import LOG
-
+NO_LABEL=-1
 class Trainer():
     def __init__(self,LOG):
         self._LOG=LOG
@@ -124,11 +124,9 @@ class Trainer():
             consistency_criterion = losses.softmax_kl_loss
 
         if torch.cuda.is_available():
-            class_loss_func = nn.CrossEntropyLoss(size_average=False).cuda()
-            #todo: use this code below instead when doing semi supervised :
-            # class_loss_func = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cuda()
+            class_loss_func = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cuda()
         else:
-            class_loss_func = nn.CrossEntropyLoss(size_average=False).cpu()
+            class_loss_func = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cpu()
 
         input_optimizer_classifier_student1, inter_atten_optimizer_classifier_student1 = initialize_double_optimizers(classifier_student1, args_in)
 

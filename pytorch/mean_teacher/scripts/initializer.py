@@ -115,7 +115,7 @@ class Initializer():
         parser.add_argument('--percentage_labels_for_semi_supervised', default=0, type=int,
                             help='what percentage of gold labels do you want to hide for semi supervised learning')
         parser.add_argument('--which_gpu_to_use', default=0, type=int,
-                            help='if you have more than 1 gpus and you know which one you want to run this code on')
+                            help='if you have more than 1 gpus and you know which one you want to run this code on Eg:2')
 
 
         return parser

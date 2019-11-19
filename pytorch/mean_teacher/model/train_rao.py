@@ -133,7 +133,7 @@ class Trainer():
         input_optimizer_classifier_student2=None
         inter_atten_optimizer_classifier_student2=None
         if(args_in.add_second_student==True):
-            #classifier_student2 = classifier_student2.to(args_in.device)
+            classifier_student2 = classifier_student2.to(args_in.device)
             input_optimizer_classifier_student2, inter_atten_optimizer_classifier_student2 = initialize_double_optimizers(classifier_student2, args_in)
 
 

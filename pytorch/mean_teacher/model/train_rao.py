@@ -168,7 +168,7 @@ class Trainer():
                 # Iterate over training dataset
 
                 # setup: batch generator, set class_loss_lex and acc to 0, set train mode on
-                dataset.set_split('train_lex')
+                dataset.set_split('train_delex')
 
                 batch_generator1=None
                 if(args_in.use_semi_supervised==True):
@@ -181,10 +181,11 @@ class Trainer():
                 no_of_batches_lex = int(len(dataset)/args_in.batch_size)
 
                 assert batch_generator1 is not None
-                dataset.set_split('train_delex')
+
 
 
                 batch_generator2=None
+                dataset.set_split('train_delex')
                 if (args_in.use_semi_supervised == True):
                     assert args_in.percentage_labels_for_semi_supervised > 0
                     batch_generator2 = generate_batches_for_semi_supervised(dataset,
@@ -350,7 +351,7 @@ class Trainer():
                 if (args_in.add_second_student == True):
                     dataset.set_split('val_delex')
                 else:
-                    dataset.set_split('val_lex')
+                    dataset.set_split('val_delex')
                 batch_generator_val = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
                                                     device=args_in.device, shuffle=False)
                 running_loss_val = 0.
@@ -358,7 +359,7 @@ class Trainer():
 
 
                 if (args_in.add_second_student == True):
-                    classifier_student2.eval()
+                    classifier_student1.eval()
                 else:
                     classifier_student1.eval()
 

@@ -66,7 +66,7 @@ class Initializer():
             cuda=True,
             workers=0,
 
-            log_level='INFO',
+
             use_gpu=True,
             consistency_type="mse",
             NO_LABEL=-1
@@ -116,6 +116,8 @@ class Initializer():
                             help='what percentage of gold labels do you want to hide for semi supervised learning')
         parser.add_argument('--which_gpu_to_use', default=0, type=int,
                             help='if you have more than 1 gpus and you know which one you want to run this code on Eg:2')
+        parser.add_argument('--log_level', default='INFO', type=str,
+                            help='choice between DEBUG, INFO ,ERROR ,WARNING')
 
 
         return parser

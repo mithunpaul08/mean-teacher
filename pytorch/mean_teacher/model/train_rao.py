@@ -345,12 +345,8 @@ class Trainer():
 
 
                 # Iterate over val dataset
-
-                # setup: batch generator, set class_loss_lex and acc to 0; set eval mode on
-                if (args_in.add_second_student == True):
-                    dataset.set_split('val_delex')
-                else:
-                    dataset.set_split('val_lex')
+                #  we will always test/validate on delexicalized data
+                dataset.set_split('val_delex')
                 batch_generator_val = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
                                                     device=args_in.device, shuffle=False)
                 running_loss_val = 0.

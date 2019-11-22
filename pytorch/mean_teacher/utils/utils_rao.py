@@ -146,7 +146,7 @@ def make_embedding_matrix(glove_filepath, words):
 
     return final_embeddings,embedding_size
 
-def initialize_double_optimizers(model, args):
+def initialize_optimizers(list_models, args):
 
     '''
         The code for decomposable attention we use , utilizes two different optimizers
@@ -154,18 +154,22 @@ def initialize_double_optimizers(model, args):
     :param args:
     :return:
     '''
+    combined_para1= []
+    combined_para2 = []
+    for model in list_models:
+        combined_para1  =   combined_para1  + list(model.para1)
+        combined_para2  =   combined_para2  + list(model.para2)
+
     input_optimizer = None
     inter_atten_optimizer = None
-    para1 = model.para1
-    para2 = model.para2
+
     if args.optimizer == 'adagrad':
-        input_optimizer = torch.optim.Adagrad(para1, lr=args.learning_rate, weight_decay=args.weight_decay)
-        inter_atten_optimizer = torch.optim.Adagrad(para2, lr=args.learning_rate, weight_decay=args.weight_decay)
+        input_optimizer = torch.optim.Adagrad(combined_para1, lr=args.learning_rate, weight_decay=args.weight_decay)
+        inter_atten_optimizer = torch.optim.Adagrad(combined_para2, lr=args.learning_rate, weight_decay=args.weight_decay)
     elif args.optimizer == 'Adadelta':
-        input_optimizer = torch.optim.Adadelta(para1, lr=args.lr)
-        inter_atten_optimizer = torch.optim.Adadelta(para2, lr=args.lr)
+        input_optimizer = torch.optim.Adadelta(combined_para1, lr=args.lr)
+        inter_atten_optimizer = torch.optim.Adadelta(combined_para2, lr=args.lr)
     else:
-        #LOG.info('No Optimizer.')
         print('No Optimizer.')
         import sys
         sys.exit()

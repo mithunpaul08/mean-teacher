@@ -1,4 +1,4 @@
-from mean_teacher.utils.utils_rao import generate_batches,initialize_double_optimizers,update_optimizer_state,generate_batches_for_semi_supervised
+from mean_teacher.utils.utils_rao import generate_batches,initialize_optimizers,update_optimizer_state,generate_batches_for_semi_supervised
 from mean_teacher.utils import losses
 import time
 import torch
@@ -114,7 +114,7 @@ class Trainer():
         return list_labels_pred
 
     def train(self, args_in, classifier_student1,classifier_student2, dataset,comet_value_updater):
-        classifier_student1 = classifier_student1.to(args_in.device)
+
 
 
 
@@ -128,27 +128,21 @@ class Trainer():
         else:
             class_loss_func = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cpu()
 
-        input_optimizer_classifier_student1, inter_atten_optimizer_classifier_student1 = initialize_double_optimizers(classifier_student1, args_in)
 
-        input_optimizer_classifier_student2=None
-        inter_atten_optimizer_classifier_student2=None
-        if(args_in.add_second_student==True):
+
+
+        if (args_in.add_second_student == True):
             classifier_student2 = classifier_student2.to(args_in.device)
-            input_optimizer_classifier_student2, inter_atten_optimizer_classifier_student2 = initialize_double_optimizers(classifier_student2, args_in)
-
-
-        #scheduler1 = optim.lr_scheduler.ReduceLROnPlateau(optimizer=input_optimizer_classifier_student1,mode='min', factor=0.5,patience=1)
-        #scheduler2 = optim.lr_scheduler.ReduceLROnPlateau(optimizer=inter_atten_optimizer_classifier_student1, mode='min', factor=0.5, patience=1)
-
-
-
+            input_optimizer, inter_atten_optimizer = initialize_optimizers([classifier_student1,classifier_student2], args_in)
+        else:
+            classifier_student1 = classifier_student1.to(args_in.device)
+            input_optimizer, inter_atten_optimizer = initialize_optimizers(
+                [classifier_student1], args_in)
 
         train_state_in = self.make_train_state(args_in)
-
         epoch_bar = tqdm_notebook(desc='training routine',
                                   total=args_in.num_epochs,
                                   position=0)
-
         dataset.set_split('train_lex')
         train_bar = tqdm_notebook(desc='split=train',
                                   total=dataset.get_num_batches(args_in.batch_size),
@@ -181,23 +175,23 @@ class Trainer():
                 no_of_batches_lex = int(len(dataset)/args_in.batch_size)
 
                 assert batch_generator1 is not None
-                dataset.set_split('train_delex')
 
+                if (args_in.add_second_student == True):
+                    dataset.set_split('train_delex')
+                    batch_generator2=None
+                    if (args_in.use_semi_supervised == True):
+                        assert args_in.percentage_labels_for_semi_supervised > 0
+                        batch_generator2 = generate_batches_for_semi_supervised(dataset,
+                                                                                args_in.percentage_labels_for_semi_supervised,
+                                                                                workers=args_in.workers,
+                                                                                batch_size=args_in.batch_size,
+                                                                                device=args_in.device,mask_value=args_in.NO_LABEL  )
 
-                batch_generator2=None
-                if (args_in.use_semi_supervised == True):
-                    assert args_in.percentage_labels_for_semi_supervised > 0
-                    batch_generator2 = generate_batches_for_semi_supervised(dataset,
-                                                                            args_in.percentage_labels_for_semi_supervised,
-                                                                            workers=args_in.workers,
-                                                                            batch_size=args_in.batch_size,
-                                                                            device=args_in.device,mask_value=args_in.NO_LABEL  )
+                    else:
+                        batch_generator2 = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
+                                                            device=args_in.device)
 
-                else:
-                    batch_generator2 = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
-                                                        device=args_in.device)
-
-                assert batch_generator2 is not None
+                    assert batch_generator2 is not None
 
                 no_of_batches_delex = int(len(dataset) / args_in.batch_size)
 
@@ -220,16 +214,15 @@ class Trainer():
 
                     # --------------------------------------
                     # step 1. zero the gradients
-                    input_optimizer_classifier_student1.zero_grad()
-                    inter_atten_optimizer_classifier_student1.zero_grad()
+                    input_optimizer.zero_grad()
+                    inter_atten_optimizer.zero_grad()
 
 
 
-                    #this code is from the libowen code base we are using for decomposable attention
+                    #initializing initial state of the optimizer to start from 0. This should be learned/tuned hyper parameter.
+                    # remove if not having any effect/improvement
                     if epoch_index == 0 and args_in.optimizer == 'adagrad':
-                        update_optimizer_state(input_optimizer_classifier_student1, inter_atten_optimizer_classifier_student1, args_in)
-
-
+                        update_optimizer_state(input_optimizer, inter_atten_optimizer, args_in)
 
 
 
@@ -248,12 +241,6 @@ class Trainer():
 
                     #all classifier2 related code (the one which feeds off delexicalized data). all steps before .backward()
                     if (args_in.add_second_student == True):
-                        assert input_optimizer_classifier_student2 is not None
-                        assert inter_atten_optimizer_classifier_student2 is not None
-                        input_optimizer_classifier_student2.zero_grad()
-                        inter_atten_optimizer_classifier_student2.zero_grad()
-                        if epoch_index == 0 and args_in.optimizer == 'adagrad':
-                            update_optimizer_state(input_optimizer_classifier_student2,inter_atten_optimizer_classifier_student2, args_in)
                         y_pred_delex = classifier_student2(batch_dict_delex['x_claim'], batch_dict_delex['x_evidence'])
                         class_loss_delex = class_loss_func(y_pred_delex, batch_dict_delex['y_target'])
                         loss_t_delex = class_loss_delex.item()
@@ -275,8 +262,8 @@ class Trainer():
 
                     # step 5. use optimizer to take gradient step
                     #optimizer.step()
-                    input_optimizer_classifier_student1.step()
-                    inter_atten_optimizer_classifier_student1.step()
+                    input_optimizer.step()
+                    inter_atten_optimizer.step()
 
 
 
@@ -293,8 +280,6 @@ class Trainer():
 
                     if (args_in.add_second_student == True):
                         #all classifier2 related code. second set. i.e all steps per batch after .backward()
-                        input_optimizer_classifier_student2.step()
-                        inter_atten_optimizer_classifier_student2.step()
                         y_pred_labels_delex = self.calculate_argmax_list(y_pred_delex)
                         y_pred_labels_delex = torch.FloatTensor(y_pred_labels_delex)
                         acc_t_delex = self.compute_accuracy(y_pred_labels_delex, batch_dict_lex['y_target'])
@@ -347,7 +332,7 @@ class Trainer():
 
 
                 # Iterate over val dataset
-                #  we will always test/validate on delexicalized data
+                # we will always test/validate on delexicalized data
                 dataset.set_split('val_delex')
                 batch_generator_val = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
                                                     device=args_in.device, shuffle=False)

@@ -119,7 +119,8 @@ class Trainer():
 
 
         if args_in.consistency_type == 'mse':
-            consistency_criterion = losses.softmax_mse_loss
+            #consistency_criterion = losses.softmax_mse_loss
+            consistency_criterion=nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cpu()
         elif args_in.consistency_type == 'kl':
             consistency_criterion = losses.softmax_kl_loss
 
@@ -248,7 +249,8 @@ class Trainer():
                         LOG.debug(f"loss_t_delex={loss_t_delex}\trunning_loss_delex={running_loss_delex}")
 
                         # step 4. use combined classification loss to produce gradients
-                        consistency_loss = consistency_criterion(y_pred_lex, y_pred_delex)
+                        y_pred_delex_labels = self.calculate_argmax_list((y_pred_delex))
+                        consistency_loss = consistency_criterion(y_pred_lex, torch.LongTensor(y_pred_delex_labels))
                         consistency_loss_value = consistency_loss.item()
                         running_consistency_loss += (consistency_loss_value - running_consistency_loss) / (batch_index + 1)
                         combined_class_loss=class_loss_lex+class_loss_delex

@@ -198,6 +198,7 @@ class Trainer():
                 no_of_batches_delex = int(len(dataset) / args_in.batch_size)
 
                 running_consistency_loss = 0.0
+                running_avg_combined_loss=0.0
 
                 running_loss_lex = 0.0
                 running_acc_lex = 0.0
@@ -259,6 +260,7 @@ class Trainer():
 
                     combined_loss=(args_in.consistency_weight*consistency_loss)+(combined_class_loss)
                     combined_loss.backward()
+                    running_avg_combined_loss += (combined_loss.item() - running_avg_combined_loss) / (batch_index + 1)
 
 
 
@@ -311,7 +313,7 @@ class Trainer():
 
 
                 if (comet_value_updater is not None):
-                    comet_value_updater.log_metric("combined_loss", combined_loss,
+                    comet_value_updater.log_metric("combined_loss_per_epoch", running_avg_combined_loss,
                                                    step=epoch_index)
                 if (comet_value_updater is not None):
                     comet_value_updater.log_metric("training_classification_loss_lex_per_epoch", running_loss_lex,

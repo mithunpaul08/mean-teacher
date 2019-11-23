@@ -68,7 +68,7 @@ class Initializer():
 
 
             use_gpu=True,
-            consistency_type="mse",
+            consistency_type="kl",
             NO_LABEL=-1
 
         )

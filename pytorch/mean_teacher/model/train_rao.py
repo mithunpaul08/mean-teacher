@@ -118,16 +118,11 @@ class Trainer():
 
 
 
-        # if args_in.consistency_type == 'mse':
-        #     #consistency_criterion = losses.softmax_mse_loss
-        #     consistency_criterion=nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cpu()
-        # elif args_in.consistency_type == 'kl':
-        #     consistency_criterion = losses.softmax_kl_loss
+        if args_in.consistency_type == 'mse':
+            consistency_criterion = losses.softmax_mse_loss
+        elif args_in.consistency_type == 'kl':
+            consistency_criterion = losses.softmax_kl_loss
 
-        if torch.cuda.is_available():
-            consistency_criterion = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cuda()
-        else:
-            consistency_criterion = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cpu()
 
 
         if torch.cuda.is_available():
@@ -253,21 +248,13 @@ class Trainer():
                         class_loss_delex = class_loss_func(y_pred_delex, batch_dict_delex['y_target'])
                         loss_t_delex = class_loss_delex.item()
                         running_loss_delex += (loss_t_delex - running_loss_delex) / (batch_index + 1)
-                        #LOG.debug(f"loss_t_delex={loss_t_delex}\trunning_loss_delex={running_loss_delex}")
+                        LOG.debug(f"loss_t_delex={loss_t_delex}\trunning_loss_delex={running_loss_delex}")
 
-                        # step 4. use combined classification loss to produce gradients
-                        y_pred_delex_softmax_output = self.calculate_argmax_list((y_pred_delex))
-
-                        if torch.cuda.is_available():
-                            y_pred_delex_softmax_output=torch.cuda.LongTensor(y_pred_delex_softmax_output)
-                        else:
-                            y_pred_delex_softmax_output =torch.LongTensor(y_pred_delex_softmax_output)
-                        assert y_pred_delex_softmax_output is not None
-                        consistency_loss = consistency_criterion(y_pred_lex, y_pred_delex_softmax_output)
+                        consistency_loss = consistency_criterion(y_pred_lex, y_pred_delex)
                         consistency_loss_value = consistency_loss.item()
                         running_consistency_loss += (consistency_loss_value - running_consistency_loss) / (batch_index + 1)
                         combined_class_loss=class_loss_lex+class_loss_delex
-                        #LOG.debug(f"consistency_loss_value={consistency_loss_value}\trunning_consistency_loss={running_consistency_loss}")
+                        LOG.debug(f"consistency_loss_value={consistency_loss_value}\trunning_consistency_loss={running_consistency_loss}")
 
 
                     combined_loss=(args_in.consistency_weight*consistency_loss)+(combined_class_loss)

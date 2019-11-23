@@ -290,7 +290,7 @@ class Trainer():
                             f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
                             f"classification_loss_lex:{round(running_loss_lex,2)}\t classification_loss_delex:{round(running_loss_delex,2)} "
                             f"\t consistency_loss:{round(running_consistency_loss,6)}"
-                            f" \t running_acc_lex:{round(running_acc_lex,2) }  \t running_acc_delex:{round(running_acc_delex,2)}  ")
+                            f" \t running_acc_lex:{round(running_acc_lex,4) }  \t running_acc_delex:{round(running_acc_delex,4)} \t combined_loss:{round(combined_loss.item(),6)}  ")
                     else:
 
                         LOG.info(
@@ -309,6 +309,10 @@ class Trainer():
                 train_state_in['train_acc'].append(running_acc_lex)
                 train_state_in['train_loss'].append(running_loss_lex)
 
+
+                if (comet_value_updater is not None):
+                    comet_value_updater.log_metric("combined_loss", combined_loss,
+                                                   step=epoch_index)
                 if (comet_value_updater is not None):
                     comet_value_updater.log_metric("training_classification_loss_lex_per_epoch", running_loss_lex,
                                                    step=epoch_index)

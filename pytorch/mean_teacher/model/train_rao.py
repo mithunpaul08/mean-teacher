@@ -256,8 +256,14 @@ class Trainer():
                         #LOG.debug(f"loss_t_delex={loss_t_delex}\trunning_loss_delex={running_loss_delex}")
 
                         # step 4. use combined classification loss to produce gradients
-                        y_pred_delex_labels = self.calculate_argmax_list((y_pred_delex))
-                        consistency_loss = consistency_criterion(y_pred_lex, torch.LongTensor(y_pred_delex_labels))
+                        y_pred_delex_softmax_output = self.calculate_argmax_list((y_pred_delex))
+
+                        if torch.cuda.is_available():
+                            y_pred_delex_softmax_output=torch.cuda.LongTensor(y_pred_delex_softmax_output)
+                        else:
+                            y_pred_delex_softmax_output =torch.LongTensor(y_pred_delex_softmax_output)
+                        assert y_pred_delex_softmax_output is not None
+                        consistency_loss = consistency_criterion(y_pred_lex, y_pred_delex_softmax_output)
                         consistency_loss_value = consistency_loss.item()
                         running_consistency_loss += (consistency_loss_value - running_consistency_loss) / (batch_index + 1)
                         combined_class_loss=class_loss_lex+class_loss_delex

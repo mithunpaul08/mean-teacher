@@ -17,7 +17,7 @@ def softmax_mse_loss(input_logits, target_logits):
     input_softmax = F.softmax(input_logits, dim=1)
     target_softmax = F.softmax(target_logits, dim=1)
     num_classes = input_logits.size()[1]
-    return F.mse_loss(input_softmax, target_softmax, size_average=False) / num_classes
+    return F.mse_loss(input_softmax, target_softmax) / num_classes
 
 
 def softmax_kl_loss(input_logits, target_logits):

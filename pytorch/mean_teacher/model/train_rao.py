@@ -126,9 +126,9 @@ class Trainer():
 
 
         if torch.cuda.is_available():
-            class_loss_func = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cuda()
+            class_loss_func = nn.CrossEntropyLoss(ignore_index=NO_LABEL).cuda()
         else:
-            class_loss_func = nn.CrossEntropyLoss(size_average=False, ignore_index=NO_LABEL).cpu()
+            class_loss_func = nn.CrossEntropyLoss(ignore_index=NO_LABEL).cpu()
 
 
 

@@ -98,9 +98,10 @@ class Trainer():
         return result2
 
     def compute_accuracy(self,y_pred, y_target):
+        assert len(y_pred)==len(y_target)
         _, y_pred_indices = y_pred.max(dim=1)
         n_correct = torch.eq(y_pred_indices, y_target).sum().item()
-        return n_correct / len(y_pred) * 100
+        return n_correct / len(y_target) * 100
 
     def get_learning_rate(self,optimizer):
         for param_group in optimizer.param_groups:
@@ -278,14 +279,14 @@ class Trainer():
                     # compute the accuracy for lex data
 
 
-                    y_pred_labels = F.softmax(y_pred_lex, dim=1)
-                    acc_t_lex = self.compute_accuracy(y_pred_labels, batch_dict_lex['y_target'])
+                    y_pred_labels_lex_sf = F.softmax(y_pred_lex, dim=1)
+                    acc_t_lex = self.compute_accuracy(y_pred_labels_lex_sf, batch_dict_lex['y_target'])
                     running_acc_lex += (acc_t_lex - running_acc_lex) / (batch_index + 1)
 
+                    # all classifier2 related code to calculate accuracy
                     if (args_in.add_second_student == True):
-                        #all classifier2 related code. second set. i.e all steps per batch after .backward()
-                        y_pred_labels_sf = F.softmax(y_pred_delex, dim=1)
-                        acc_t_delex = self.compute_accuracy(y_pred_labels_sf, batch_dict_lex['y_target'])
+                        y_pred_labels_delex_sf = F.softmax(y_pred_delex, dim=1)
+                        acc_t_delex = self.compute_accuracy(y_pred_labels_delex_sf, batch_dict_lex['y_target'])
                         running_acc_delex += (acc_t_delex - running_acc_delex) / (batch_index + 1)
                         LOG.info(
                             f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
@@ -368,8 +369,8 @@ class Trainer():
                     running_loss_val += (loss_t - running_loss_val) / (batch_index + 1)
 
                     # compute the accuracy
-                    y_pred_labels_sf = F.softmax(y_pred_val, dim=1)
-                    acc_t = self.compute_accuracy(y_pred_labels_sf, batch_dict['y_target'])
+                    y_pred_labels_val_sf = F.softmax(y_pred_val, dim=1)
+                    acc_t = self.compute_accuracy(y_pred_labels_val_sf, batch_dict['y_target'])
                     running_acc_val += (acc_t - running_acc_val) / (batch_index + 1)
 
                     if (comet_value_updater is not None):

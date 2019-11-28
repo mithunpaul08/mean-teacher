@@ -68,7 +68,7 @@ class Initializer():
 
 
             use_gpu=True,
-            consistency_type="kl",
+            consistency_type="mse",
             NO_LABEL=-1
 
         )
@@ -118,6 +118,10 @@ class Initializer():
                             help='if you have more than 1 gpus and you know which one you want to run this code on Eg:2')
         parser.add_argument('--log_level', default='INFO', type=str,
                             help='choice between DEBUG, INFO ,ERROR ,WARNING')
+        parser.add_argument('--consistency_type', default='mse', type=str,
+                            help='choice between kl,mse')
+
+
 
 
         return parser

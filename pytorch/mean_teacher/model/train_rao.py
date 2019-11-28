@@ -99,7 +99,6 @@ class Trainer():
 
     def compute_accuracy(self,y_pred, y_target):
         _, y_pred_indices = y_pred.max(dim=1)
-        y_target = y_target.cpu()
         n_correct = torch.eq(y_pred_indices, y_target).sum().item()
         return n_correct / len(y_pred) * 100
 

@@ -161,6 +161,27 @@ class RTEDataset(Dataset):
     def __len__(self):
         return self._target_size
 
+
+    def get_all_claim_evidence(self, dataset_split_df):
+        """
+        This is equivalent of __getitem__. However this is used when you want the whole data together and NOT through
+        batches/batch generator
+
+        :param dataset_split_df:
+        Returns:
+            A list of claims, list of evidences
+        """
+
+        all_claims_vectorized=[]
+        all_evidence_vectorized = []
+        all_gold_labels = []
+        for index,row in dataset_split_df.iterrows():
+            all_data_vectorized=self.__getitem__(index)
+            all_claims_vectorized.append(all_data_vectorized["x_claim"])
+            all_evidence_vectorized.append(all_data_vectorized["x_evidence"])
+            all_gold_labels.append(all_data_vectorized["y_target"])
+        return all_claims_vectorized,all_evidence_vectorized,all_gold_labels
+
     def __getitem__(self, index):
         """the primary entry point method for PyTorch datasets
 

@@ -331,6 +331,48 @@ class Trainer():
                 dataset.set_split('train_lex')
                 teacher_lex_predictions,gold_labels= self.predict(dataset,args_in,classifier_student1,vectorizer.label_vocab)
                 student_delex_predictions,gold_labels = self.predict(dataset, args_in, classifier_student2,vectorizer.label_vocab)
+
+                teacher_lex_same_as_gold=0
+                student_delex_same_as_gold = 0
+                student_teacher_match=0
+                student_teacher_match_but_not_same_as_gold = 0
+                student_teacher_match_and_same_as_gold = 0
+                student_delex_same_as_gold_but_teacher_is_different = 0
+                teacher_lex_same_as_gold_but_student_is_different=0
+                for student, teacher, gold in zip(student_delex_predictions[0],teacher_lex_predictions[0],gold_labels[0]):
+                    if teacher==gold:
+                        teacher_lex_same_as_gold+=1
+                        if not student==teacher:
+                                teacher_lex_same_as_gold_but_student_is_different+=1
+                    if student==gold:
+                        student_delex_same_as_gold+=1
+                        if not student == teacher:
+                            student_delex_same_as_gold_but_teacher_is_different+=1
+
+                    if teacher==student:
+                        student_teacher_match+=1
+                        if not teacher==gold:
+                            student_teacher_match_but_not_same_as_gold+=1
+                        else:
+                            student_teacher_match_and_same_as_gold += 1
+
+                LOG.info(
+                    f"epoch:{epoch_index}")
+                LOG.info(
+                    f"teacher_lex_same_as_gold:{teacher_lex_same_as_gold})")
+                LOG.info(
+                    f"student_delex_same_as_gold:{student_delex_same_as_gold})")
+                LOG.info(
+                    f"student_teacher_match:{student_teacher_match})")
+                LOG.info(
+                    f"student_teacher_match_but_not_same_as_gold:{student_teacher_match_but_not_same_as_gold})")
+                LOG.info(
+                    f"student_teacher_match_and_same_as_gold:{student_teacher_match_and_same_as_gold})")
+                LOG.info(
+                    f"student_delex_same_as_gold_but_teacher_is_different:{student_delex_same_as_gold_but_teacher_is_different})")
+                LOG.info(
+                    f"teacher_lex_same_as_gold_but_student_is_different:{teacher_lex_same_as_gold_but_student_is_different})")
+
                 LOG.info(
                     f"teacher_lex_predictions:{teacher_lex_predictions})")
 
@@ -339,6 +381,7 @@ class Trainer():
 
                 LOG.info(
                     f"gold_labels:{gold_labels})")
+
 
 
                 if (comet_value_updater is not None):

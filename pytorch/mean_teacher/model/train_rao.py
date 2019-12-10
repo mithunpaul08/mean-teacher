@@ -120,12 +120,15 @@ class Trainer():
                                                  device=args_in.device,workers=0)
 
         predicted_labels=[]
+        gold_labels=[]
         for batch_dict_lex in batch_generator_total:
             y_pred_lex = classifier(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
             y_pred_labels_lex_sf = F.softmax(y_pred_lex, dim=1)
             _, y_pred_indices = y_pred_labels_lex_sf.max(dim=1)
-            predicted_labels=[vocab.lookup_index(y) for y in y_pred_indices.tolist()]
-        return predicted_labels
+            predicted_labels.append([vocab.lookup_index(y) for y in y_pred_indices.tolist()])
+            gold=batch_dict_lex['y_target']
+            gold_labels.append([vocab.lookup_index(y) for y in gold.tolist()])
+        return predicted_labels,gold_labels
 
     def train(self, args_in, classifier_student1,classifier_student2, dataset,comet_value_updater,vectorizer):
 
@@ -326,9 +329,9 @@ class Trainer():
 
                 #for debugging: make the model predict at the end of every epoch
                 dataset.set_split('train_lex')
-                teacher_lex_predictions= self.predict(dataset,args_in,classifier_student1,vectorizer.label_vocab)
-                student_delex_predictions = self.predict(dataset, args_in, classifier_student2,vectorizer.label_vocab)
-                gold_labels=dataset.get_all_label_indices(dataset)
+                teacher_lex_predictions,gold_labels= self.predict(dataset,args_in,classifier_student1,vectorizer.label_vocab)
+                student_delex_predictions,gold_labels = self.predict(dataset, args_in, classifier_student2,vectorizer.label_vocab)
+
 
 
 

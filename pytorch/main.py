@@ -100,4 +100,4 @@ classifier_student2 = create_model(logger_object=LOG,args_in=args,num_classes_in
                           ,word_vocab_embed=embeddings,word_vocab_size=num_features,wordemb_size_in=embedding_size)
 
 train_rte=Trainer(LOG)
-train_rte.train(args,classifier_student1,classifier_student2,dataset,comet_value_updater)
+train_rte.train(args,classifier_student1,classifier_student2,dataset,comet_value_updater,vectorizer)

@@ -114,7 +114,20 @@ class Trainer():
             list_labels_pred.append(indices.data.item())
         return list_labels_pred
 
-    def train(self, args_in, classifier_student1,classifier_student2, dataset,comet_value_updater):
+
+    def predict(self,dataset,args_in,classifier,vocab):
+        batch_generator_total = generate_batches(dataset, batch_size=len(dataset),
+                                                 device=args_in.device,workers=0)
+
+        predicted_labels=[]
+        for batch_dict_lex in batch_generator_total:
+            y_pred_lex = classifier(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
+            y_pred_labels_lex_sf = F.softmax(y_pred_lex, dim=1)
+            _, y_pred_indices = y_pred_labels_lex_sf.max(dim=1)
+            predicted_labels=[vocab.lookup_index(y) for y in y_pred_indices.tolist()]
+        return predicted_labels
+
+    def train(self, args_in, classifier_student1,classifier_student2, dataset,comet_value_updater,vectorizer):
 
 
 
@@ -312,18 +325,11 @@ class Trainer():
                 train_state_in['train_loss'].append(running_loss_lex)
 
                 #for debugging: make the model predict at the end of every epoch
-
                 dataset.set_split('train_lex')
-                batch_generator_total = generate_batches(dataset, workers=args_in.workers,batch_size=len(dataset) ,
-                                                            device=args_in.device)
-                for  batch_dict_lex in batch_generator_total:
-                    y_pred_lex = classifier_student1(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
-
-
+                teacher_lex_predictions= self.predict(dataset,args_in,classifier_student1,vectorizer.label_vocab)
+                student_delex_predictions = self.predict(dataset, args_in, classifier_student2,vectorizer.label_vocab)
                 gold_labels=dataset.get_all_label_indices(dataset)
 
-                all_claims_vectorized, all_evidence_vectorized, all_gold_labels=dataset.get_all_claim_evidence(dataset.train_lex_df)
-                y_pred_lex = classifier_student1(all_claims_vectorized, all_evidence_vectorized)
 
 
                 if (comet_value_updater is not None):

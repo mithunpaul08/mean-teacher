@@ -228,7 +228,7 @@ class Trainer():
 
 
 
-                for batch_index, (batch_dict_lex,batch_dict_delex) in enumerate(zip(batch_generator1,batch_generator2)):
+                for batch_index, (batch_dict_lex,batch_dict_delex) in enumerate(tqdm(zip(batch_generator1,batch_generator2),desc="training_batches",total=no_of_batches_delex)):
 
                     # the training routine is these 5 steps:
 
@@ -266,13 +266,13 @@ class Trainer():
                         class_loss_delex = class_loss_func(y_pred_delex, batch_dict_delex['y_target'])
                         loss_t_delex = class_loss_delex.item()
                         running_loss_delex += (loss_t_delex - running_loss_delex) / (batch_index + 1)
-                        LOG.debug(f"loss_t_delex={loss_t_delex}\trunning_loss_delex={running_loss_delex}")
+                        #LOG.debug(f"loss_t_delex={loss_t_delex}\trunning_loss_delex={running_loss_delex}")
 
                         consistency_loss = consistency_criterion(y_pred_lex, y_pred_delex)
                         consistency_loss_value = consistency_loss.item()
                         running_consistency_loss += (consistency_loss_value - running_consistency_loss) / (batch_index + 1)
                         combined_class_loss=class_loss_lex+class_loss_delex
-                        LOG.debug(f"consistency_loss_value={consistency_loss_value}\trunning_consistency_loss={running_consistency_loss}")
+                        #LOG.debug(f"consistency_loss_value={consistency_loss_value}\trunning_consistency_loss={running_consistency_loss}")
 
 
                     combined_loss=(args_in.consistency_weight*consistency_loss)+(combined_class_loss)
@@ -327,11 +327,16 @@ class Trainer():
                 train_state_in['train_acc'].append(running_acc_lex)
                 train_state_in['train_loss'].append(running_loss_lex)
 
-                #for debugging: make the model predict at the end of every epoch
+                #for debugging: make the model predict on training data at the end of every epoch
                 dataset.set_split('train_lex')
                 teacher_lex_predictions,gold_labels= self.predict(dataset,args_in,classifier_student1,vectorizer.label_vocab)
+                dataset.set_split('train_delex')
                 student_delex_predictions,gold_labels = self.predict(dataset, args_in, classifier_student2,vectorizer.label_vocab)
 
+
+
+
+                #for debugging. print different classes/combinations of predictions to check which model is learning more.
                 teacher_lex_same_as_gold=0
                 student_delex_same_as_gold = 0
                 student_teacher_match=0
@@ -356,58 +361,62 @@ class Trainer():
                         else:
                             student_teacher_match_and_same_as_gold += 1
 
+                accuracy_teacher_model = 100*teacher_lex_same_as_gold/len(teacher_lex_predictions[0])
+                accuracy_student_model = 100*student_delex_same_as_gold / len(teacher_lex_predictions[0])
+
                 LOG.info(
                     f"epoch:{epoch_index}")
                 LOG.info(
-                    f"teacher_lex_same_as_gold:{teacher_lex_same_as_gold})")
+                    f"Training_accuracy_teacher_model at the end of {epoch_index}:{accuracy_teacher_model}")
                 LOG.info(
-                    f"student_delex_same_as_gold:{student_delex_same_as_gold})")
+                    f"Training_accuracy_student_model at the end of {epoch_index}:{accuracy_student_model}")
                 LOG.info(
-                    f"student_teacher_match:{student_teacher_match})")
+                    f"teacher_lex_same_as_gold:{teacher_lex_same_as_gold}")
                 LOG.info(
-                    f"student_teacher_match_but_not_same_as_gold:{student_teacher_match_but_not_same_as_gold})")
+                    f"student_delex_same_as_gold:{student_delex_same_as_gold}")
                 LOG.info(
-                    f"student_teacher_match_and_same_as_gold:{student_teacher_match_and_same_as_gold})")
+                    f"student_teacher_match:{student_teacher_match}")
                 LOG.info(
-                    f"student_delex_same_as_gold_but_teacher_is_different:{student_delex_same_as_gold_but_teacher_is_different})")
+                    f"student_teacher_match_but_not_same_as_gold:{student_teacher_match_but_not_same_as_gold}")
                 LOG.info(
-                    f"teacher_lex_same_as_gold_but_student_is_different:{teacher_lex_same_as_gold_but_student_is_different})")
-
+                    f"student_teacher_match_and_same_as_gold:{student_teacher_match_and_same_as_gold}")
                 LOG.info(
-                    f"teacher_lex_predictions:{teacher_lex_predictions})")
-
+                    f"student_delex_same_as_gold_but_teacher_is_different:{student_delex_same_as_gold_but_teacher_is_different}")
                 LOG.info(
+                    f"teacher_lex_same_as_gold_but_student_is_different:{teacher_lex_same_as_gold_but_student_is_different}")
+                LOG.debug(
+                    f"teacher_lex_predictions:{teacher_lex_predictions}")
+                LOG.debug(
                     f"student_delex_predictions:{student_delex_predictions})")
-
-                LOG.info(
+                LOG.debug(
                     f"gold_labels:{gold_labels})")
 
 
 
-                if (comet_value_updater is not None):
-                    comet_value_updater.log_metric("combined_loss_per_epoch", running_avg_combined_loss,
-                                                   step=epoch_index)
-                if (comet_value_updater is not None):
-                    comet_value_updater.log_metric("training_classification_loss_lex_per_epoch", running_loss_lex,
-                                                   step=epoch_index)
+                # if (comet_value_updater is not None):
+                #     comet_value_updater.log_metric("combined_loss_per_epoch", running_avg_combined_loss,
+                #                                    step=epoch_index)
+                # if (comet_value_updater is not None):
+                #     comet_value_updater.log_metric("training_classification_loss_lex_per_epoch", running_loss_lex,
+                #                                    step=epoch_index)
 
                 if (comet_value_updater is not None):
-                    comet_value_updater.log_metric("training_accuracy_lexicalized per epoch", running_acc_lex,
+                    comet_value_updater.log_metric("accuracy_teacher_model per epoch", accuracy_teacher_model,
                                                    step=epoch_index)
 
 
                 if (args_in.add_second_student == True):
+                    # if (comet_value_updater is not None):
+                    #     comet_value_updater.log_metric("delex_training_loss per epoch", running_loss_delex,
+                    #                                    step=epoch_index)
                     if (comet_value_updater is not None):
-                        comet_value_updater.log_metric("delex_training_loss per epoch", running_loss_delex,
-                                                       step=epoch_index)
-                    if (comet_value_updater is not None):
-                        comet_value_updater.log_metric("training_accuracy_delexicalized per epoch", running_acc_delex,
+                        comet_value_updater.log_metric("accuracy_student_model per epoch", accuracy_student_model,
                                                        step=epoch_index)
 
-                        if (comet_value_updater is not None):
-                            comet_value_updater.log_metric("running_consistency_loss per epoch",
-                                                           running_consistency_loss,
-                                                           step=epoch_index)
+                        # if (comet_value_updater is not None):
+                        #     comet_value_updater.log_metric("running_consistency_loss per epoch",
+                        #                                    running_consistency_loss,
+                        #                                    step=epoch_index)
 
 
 
@@ -427,7 +436,7 @@ class Trainer():
 
                 no_of_batches_lex = int(len(dataset) / args_in.batch_size)
 
-                for batch_index, batch_dict in enumerate(batch_generator_val):
+                for batch_index, batch_dict in enumerate(tqdm(batch_generator_val,desc="dev_batches",total=no_of_batches_delex)):
                     # compute the output
 
                     if (args_in.add_second_student == True):
@@ -475,8 +484,9 @@ class Trainer():
 
                 LOG.info(
                     f" val_accuracy_end_of_epoch:{round(running_acc_val,2)} ")
-                time.sleep(10)
-                
+                LOG.info(
+                    f"****************end of epoch {epoch_index}*********************")
+
 
         except KeyboardInterrupt:
             print("Exiting loop")

@@ -116,7 +116,7 @@ class Trainer():
 
 
     def predict(self,dataset,args_in,classifier,vocab):
-        batch_generator_total = generate_batches(dataset, batch_size=args_in.batch_size,
+        batch_generator_total = generate_batches(dataset, batch_size=len(dataset),
                                                  device=args_in.device,workers=0)
 
         predicted_labels=[]
@@ -304,14 +304,14 @@ class Trainer():
                         y_pred_labels_delex_sf = F.softmax(y_pred_delex, dim=1)
                         acc_t_delex = self.compute_accuracy(y_pred_labels_delex_sf, batch_dict_lex['y_target'])
                         running_acc_delex += (acc_t_delex - running_acc_delex) / (batch_index + 1)
-                        LOG.info(
+                        LOG.debug(
                             f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
                             f"classification_loss_lex:{round(running_loss_lex,2)}\t classification_loss_delex:{round(running_loss_delex,2)} "
                             f"\t consistency_loss:{round(running_consistency_loss,6)}"
                             f" \t running_acc_lex:{round(running_acc_lex,4) }  \t running_acc_delex:{round(running_acc_delex,4)} \t combined_loss:{round(combined_loss.item(),6)}  ")
                     else:
 
-                        LOG.info(
+                        LOG.debug(
                             f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
                             f"training_loss_lex_per_batch:{round(running_loss_lex,2)}\t"
                             f" \t training_accuracy_lex_per_batch:{round(running_acc_lex,2) }")
@@ -344,22 +344,21 @@ class Trainer():
                 student_teacher_match_and_same_as_gold = 0
                 student_delex_same_as_gold_but_teacher_is_different = 0
                 teacher_lex_same_as_gold_but_student_is_different=0
-                for student_outer_list, teacher_outer_list, gold_outer_list in zip(student_delex_predictions,teacher_lex_predictions,gold_labels):
-                    for student, teacher, gold in zip(student_outer_list,teacher_outer_list,gold_outer_list]):
-                        if teacher==gold:
-                            teacher_lex_same_as_gold+=1
-                            if not student==teacher:
+                for student, teacher, gold in zip(student_delex_predictions[0],teacher_lex_predictions[0],gold_labels[0]):
+                    if teacher==gold:
+                        teacher_lex_same_as_gold+=1
+                        if not student==teacher:
                                 teacher_lex_same_as_gold_but_student_is_different+=1
-                        if student==gold:
-                            student_delex_same_as_gold+=1
-                            if not student == teacher:
+                    if student==gold:
+                        student_delex_same_as_gold+=1
+                        if not student == teacher:
                             student_delex_same_as_gold_but_teacher_is_different+=1
 
-                        if teacher==student:
-                            student_teacher_match+=1
-                            if not teacher==gold:
-                                student_teacher_match_but_not_same_as_gold+=1
-                            else:
+                    if teacher==student:
+                        student_teacher_match+=1
+                        if not teacher==gold:
+                            student_teacher_match_but_not_same_as_gold+=1
+                        else:
                             student_teacher_match_and_same_as_gold += 1
 
                 accuracy_teacher_model = 100*teacher_lex_same_as_gold/len(teacher_lex_predictions[0])

@@ -116,7 +116,7 @@ class Trainer():
 
 
     def predict(self,dataset,args_in,classifier,vocab):
-        batch_generator_total = generate_batches(dataset, batch_size=len(dataset),
+        batch_generator_total = generate_batches(dataset, batch_size=args_in.batch_size,
                                                  device=args_in.device,workers=0)
 
         predicted_labels=[]
@@ -128,7 +128,9 @@ class Trainer():
             predicted_labels.append([vocab.lookup_index(y) for y in y_pred_indices.tolist()])
             gold=batch_dict_lex['y_target']
             gold_labels.append([vocab.lookup_index(y) for y in gold.tolist()])
-        return predicted_labels,gold_labels
+        predicted_labels_flat_list = [item for sublist in predicted_labels for item in sublist]
+        gold_labels_flat_list = [item for sublist in gold_labels for item in sublist]
+        return predicted_labels_flat_list,gold_labels_flat_list
 
     def train(self, args_in, classifier_student1,classifier_student2, dataset,comet_value_updater,vectorizer):
 
@@ -344,7 +346,7 @@ class Trainer():
                 student_teacher_match_and_same_as_gold = 0
                 student_delex_same_as_gold_but_teacher_is_different = 0
                 teacher_lex_same_as_gold_but_student_is_different=0
-                for student, teacher, gold in zip(student_delex_predictions[0],teacher_lex_predictions[0],gold_labels[0]):
+                for student, teacher, gold in tqdm(zip(student_delex_predictions,teacher_lex_predictions,gold_labels),desc="predicting on train",total=len(student_delex_predictions[0])):
                     if teacher==gold:
                         teacher_lex_same_as_gold+=1
                         if not student==teacher:
@@ -361,8 +363,8 @@ class Trainer():
                         else:
                             student_teacher_match_and_same_as_gold += 1
 
-                accuracy_teacher_model = 100*teacher_lex_same_as_gold/len(teacher_lex_predictions[0])
-                accuracy_student_model = 100*student_delex_same_as_gold / len(teacher_lex_predictions[0])
+                accuracy_teacher_model = 100*teacher_lex_same_as_gold/len(teacher_lex_predictions)
+                accuracy_student_model = 100*student_delex_same_as_gold / len(teacher_lex_predictions)
 
                 LOG.info(
                     f"epoch:{epoch_index}")

@@ -119,9 +119,11 @@ class Trainer():
         batch_generator_total = generate_batches(dataset, batch_size=args_in.batch_size,
                                                  device=args_in.device,workers=0)
 
+        import math
+        no_of_batches=math.floor(len(dataset)/args_in.batch_size)
         predicted_labels=[]
         gold_labels=[]
-        for batch_dict_lex in batch_generator_total:
+        for batch_dict_lex in tqdm(batch_generator_total,desc="predicting on training",total=no_of_batches):
             y_pred_lex = classifier(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
             y_pred_labels_lex_sf = F.softmax(y_pred_lex, dim=1)
             _, y_pred_indices = y_pred_labels_lex_sf.max(dim=1)
@@ -309,7 +311,7 @@ class Trainer():
                         LOG.debug(
                             f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
                             f"classification_loss_lex:{round(running_loss_lex,2)}\t classification_loss_delex:{round(running_loss_delex,2)} "
-                            f"\t consistency_loss:{round(running_consistency_loss,6)}"
+                            f"\t consistencyloss:{round(running_consistency_loss,6)}"
                             f" \t running_acc_lex:{round(running_acc_lex,4) }  \t running_acc_delex:{round(running_acc_delex,4)} \t combined_loss:{round(combined_loss.item(),6)}  ")
                     else:
 
@@ -346,7 +348,7 @@ class Trainer():
                 student_teacher_match_and_same_as_gold = 0
                 student_delex_same_as_gold_but_teacher_is_different = 0
                 teacher_lex_same_as_gold_but_student_is_different=0
-                for student, teacher, gold in tqdm(zip(student_delex_predictions,teacher_lex_predictions,gold_labels),desc="predicting on train",total=len(student_delex_predictions[0])):
+                for student, teacher, gold in tqdm(zip(student_delex_predictions,teacher_lex_predictions,gold_labels),desc="calculating accuracy on training",total=len(student_delex_predictions[0])):
                     if teacher==gold:
                         teacher_lex_same_as_gold+=1
                         if not student==teacher:

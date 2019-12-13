@@ -102,7 +102,8 @@ class Trainer():
         assert len(y_pred)==len(y_target)
         _, y_pred_indices = y_pred.max(dim=1)
         n_correct = torch.eq(y_pred_indices, y_target).sum().item()
-        return n_correct / len(y_target) * 100
+        accuracy=n_correct / len(y_target) * 100
+        return n_correct,accuracy,y_pred_indices
 
     def get_learning_rate(self,optimizer):
         for param_group in optimizer.param_groups:
@@ -115,8 +116,8 @@ class Trainer():
             list_labels_pred.append(indices.data.item())
         return list_labels_pred
 
-    def calculate_percentage(self,value):
-        return (100*value/self.number_of_datapoints)
+    def calculate_percentage(self, numerator,denominator):
+        return (100 * numerator / denominator)
 
     def predict(self,dataset,args_in,classifier,vocab):
         batch_generator_total = generate_batches(dataset, batch_size=args_in.batch_size,
@@ -136,6 +137,42 @@ class Trainer():
         predicted_labels_flat_list = [item for sublist in predicted_labels for item in sublist]
         gold_labels_flat_list = [item for sublist in gold_labels for item in sublist]
         return predicted_labels_flat_list,gold_labels_flat_list
+
+    def calculate_label_overlap_between_teacher_and_student_predictions(self,teacher_lex_predictions,student_delex_predictions,gold_labels):
+        teacher_lex_same_as_gold = 0
+        student_delex_same_as_gold = 0
+        student_teacher_match = 0
+        student_teacher_match_but_not_same_as_gold = 0
+        student_teacher_match_and_same_as_gold = 0
+        student_delex_same_as_gold_but_teacher_is_different = 0
+        teacher_lex_same_as_gold_but_student_is_different = 0
+        assert len(student_delex_predictions)== len(teacher_lex_predictions) == len(gold_labels)
+        for student, teacher, gold in tqdm(zip(student_delex_predictions, teacher_lex_predictions, gold_labels),
+                                           desc="calculate_label_overlap_between_teacher_and_student_predictions",
+                                           total=len(student_delex_predictions)):
+            if teacher == gold:
+                teacher_lex_same_as_gold += 1
+                if not student == teacher:
+                    teacher_lex_same_as_gold_but_student_is_different += 1
+            if student == gold:
+                student_delex_same_as_gold += 1
+                if not student == teacher:
+                    student_delex_same_as_gold_but_teacher_is_different += 1
+
+            if teacher == student:
+                student_teacher_match += 1
+                if not teacher == gold:
+                    student_teacher_match_but_not_same_as_gold += 1
+                else:
+                    student_teacher_match_and_same_as_gold += 1
+
+        return teacher_lex_same_as_gold , \
+               student_delex_same_as_gold,\
+        student_teacher_match ,\
+        student_teacher_match_but_not_same_as_gold ,\
+        student_teacher_match_and_same_as_gold ,\
+        student_delex_same_as_gold_but_teacher_is_different,\
+        teacher_lex_same_as_gold_but_student_is_different
 
     def train(self, args_in, classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer):
 
@@ -231,9 +268,9 @@ class Trainer():
                 classifier_teacher_lex.train()
                 classifier_student_delex.train()
 
-
-
-
+                total_right_predictions_teacher_lex=0
+                total_right_predictions_student_delex = 0
+                total_gold_label_count=0
 
                 for batch_index, (batch_dict_lex,batch_dict_delex) in enumerate(tqdm(zip(batch_generator1,batch_generator2),desc="training_batches",total=no_of_batches_delex)):
 
@@ -256,6 +293,7 @@ class Trainer():
 
                     # step 2. compute the output
                     y_pred_lex = classifier_teacher_lex(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
+                    total_gold_label_count=total_gold_label_count+len(batch_dict_lex['y_target'])
 
 
                     # step 3.1 compute the class_loss_lex
@@ -303,13 +341,15 @@ class Trainer():
 
 
                     y_pred_labels_lex_sf = F.softmax(y_pred_lex, dim=1)
-                    acc_t_lex = self.compute_accuracy(y_pred_labels_lex_sf, batch_dict_lex['y_target'])
+                    count_of_right_predictions_teacher_lex_per_batch, acc_t_lex,teacher_predictions_by_label_class = self.compute_accuracy(y_pred_labels_lex_sf, batch_dict_lex['y_target'])
+                    total_right_predictions_teacher_lex=total_right_predictions_teacher_lex+count_of_right_predictions_teacher_lex_per_batch
                     running_acc_lex += (acc_t_lex - running_acc_lex) / (batch_index + 1)
 
                     # all classifier2 related code to calculate accuracy
                     if (args_in.add_second_student == True):
                         y_pred_labels_delex_sf = F.softmax(y_pred_delex, dim=1)
-                        acc_t_delex = self.compute_accuracy(y_pred_labels_delex_sf, batch_dict_lex['y_target'])
+                        right_predictions_student_delex_per_batch,acc_t_delex,student_predictions_by_label_class = self.compute_accuracy(y_pred_labels_delex_sf, batch_dict_lex['y_target'])
+                        total_right_predictions_student_delex=total_right_predictions_student_delex+right_predictions_student_delex_per_batch
                         running_acc_delex += (acc_t_delex - running_acc_delex) / (batch_index + 1)
                         LOG.debug(
                             f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
@@ -322,7 +362,59 @@ class Trainer():
                             f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
                             f"training_loss_lex_per_batch:{round(running_loss_lex,2)}\t"
                             f" \t training_accuracy_lex_per_batch:{round(running_acc_lex,2) }")
+                    assert len(teacher_predictions_by_label_class)>0
+                    assert len(student_predictions_by_label_class) > 0
+                    assert len(batch_dict_lex['y_target']) > 0
 
+                    teacher_lex_same_as_gold, \
+                    student_delex_same_as_gold,\
+                    student_teacher_match, \
+                    student_teacher_match_but_not_same_as_gold, \
+                    student_teacher_match_and_same_as_gold, \
+                    student_delex_same_as_gold_but_teacher_is_different, \
+                    teacher_lex_same_as_gold_but_student_is_different   =   self.calculate_label_overlap_between_teacher_and_student_predictions(teacher_predictions_by_label_class,student_predictions_by_label_class,batch_dict_lex['y_target'])
+
+
+                    teacher_lex_same_as_gold_percent = self.calculate_percentage(teacher_lex_same_as_gold, args_in.batch_size)
+                    student_delex_same_as_gold_percent = self.calculate_percentage(student_delex_same_as_gold, args_in.batch_size)
+                    student_teacher_match_percent = self.calculate_percentage(student_teacher_match, args_in.batch_size)
+                    student_teacher_match_but_not_same_as_gold_percent = self.calculate_percentage(
+                        student_teacher_match_but_not_same_as_gold, args_in.batch_size)
+                    student_teacher_match_and_same_as_gold_percent = self.calculate_percentage(
+                        student_teacher_match_and_same_as_gold, args_in.batch_size)
+                    student_delex_same_as_gold_but_teacher_is_different_percent = self.calculate_percentage(
+                        student_delex_same_as_gold_but_teacher_is_different, args_in.batch_size)
+                    teacher_lex_same_as_gold_but_student_is_different_percent = self.calculate_percentage(teacher_lex_same_as_gold_but_student_is_different, args_in.batch_size)
+
+                    if (comet_value_updater is not None):
+                        comet_value_updater.log_metric("accuracy_teacher_model", acc_t_lex,
+                                                       step=batch_index)
+                        comet_value_updater.log_metric("accuracy_student_model", acc_t_delex,
+                                                       step=batch_index)
+                        comet_value_updater.log_metric("student_teacher_match_percent", student_teacher_match_percent,
+                                                       step=batch_index)
+                        comet_value_updater.log_metric("student_teacher_match_but_not_same_as_gold_percent",
+                                                       student_teacher_match_but_not_same_as_gold_percent,
+                                                       step=batch_index)
+                        comet_value_updater.log_metric("student_teacher_match_and_same_as_gold_percent",
+                                                       student_teacher_match_and_same_as_gold_percent,
+                                                       step=batch_index)
+                        comet_value_updater.log_metric("student_delex_same_as_gold_but_teacher_is_different_percent",
+                                                       student_delex_same_as_gold_but_teacher_is_different_percent,
+                                                       step=batch_index)
+                        comet_value_updater.log_metric("teacher_lex_same_as_gold_but_student_is_different_percent",
+                                                       teacher_lex_same_as_gold_but_student_is_different_percent,
+                                                       step=batch_index)
+                        comet_value_updater.log_metric("combined_loss_per_epoch", combined_loss.item(),
+                                                           step=batch_index)
+                        comet_value_updater.log_metric("training_classification_loss_teacher_lex_per_batch",
+                                                       loss_t_lex,
+                                                           step=batch_index)
+                        comet_value_updater.log_metric("delex_training_loss per epoch", loss_t_delex,
+                                                               step=batch_index)
+                        comet_value_updater.log_metric("consistency_loss_value per epoch",
+                                                               consistency_loss_value,
+                                                               step=batch_index)
 
                     # update bar
                     train_bar.set_postfix(loss=running_loss_lex,
@@ -336,10 +428,17 @@ class Trainer():
                     f"\t consistencyloss:{round(running_consistency_loss,6)}"
                     f" \t running_acc_lex:{round(running_acc_lex,4) }  \t running_acc_delex:{round(running_acc_delex,4)} \t combined_loss:{round(combined_loss.item(),6)}  ")
 
+                import sys
+                print("end of epoch1 quitting")
+                sys.exit(1)
                 train_state_in['train_acc'].append(running_acc_lex)
                 train_state_in['train_loss'].append(running_loss_lex)
 
                 #for debugging: make the model predict on training data at the end of every epoch
+
+                self.number_of_datapoints = total_gold_label_count
+                accuracy_teacher_model_by_per_batch_prediction = self.calculate_percentage(total_right_predictions_teacher_lex,self.number_of_datapoints)
+
                 dataset.set_split('train_lex')
                 teacher_lex_predictions,gold_labels= self.predict(dataset, args_in, classifier_teacher_lex, vectorizer.label_vocab)
                 dataset.set_split('train_delex')
@@ -348,58 +447,22 @@ class Trainer():
 
 
 
-                #for debugging. print different classes/combinations of predictions to check which model is learning more.
-                teacher_lex_same_as_gold=0
-                student_delex_same_as_gold = 0
-                student_teacher_match=0
-                student_teacher_match_but_not_same_as_gold = 0
-                student_teacher_match_and_same_as_gold = 0
-                student_delex_same_as_gold_but_teacher_is_different = 0
-                teacher_lex_same_as_gold_but_student_is_different=0
-                for student, teacher, gold in tqdm(zip(student_delex_predictions,teacher_lex_predictions,gold_labels),desc="calculating accuracy on training",total=len(student_delex_predictions[0])):
-                    if teacher==gold:
-                        teacher_lex_same_as_gold+=1
-                        if not student==teacher:
-                                teacher_lex_same_as_gold_but_student_is_different+=1
-                    if student==gold:
-                        student_delex_same_as_gold+=1
-                        if not student == teacher:
-                            student_delex_same_as_gold_but_teacher_is_different+=1
-
-                    if teacher==student:
-                        student_teacher_match+=1
-                        if not teacher==gold:
-                            student_teacher_match_but_not_same_as_gold+=1
-                        else:
-                            student_teacher_match_and_same_as_gold += 1
-
-                assert len(teacher_lex_predictions) == len(student_delex_predictions)
-                accuracy_teacher_model = 100*teacher_lex_same_as_gold/len(teacher_lex_predictions)
-                accuracy_student_model = 100*student_delex_same_as_gold / len(teacher_lex_predictions)
-                self.number_of_datapoints=len(student_delex_predictions)
 
 
-                teacher_lex_same_as_gold_percent = self.calculate_percentage(teacher_lex_same_as_gold)
-                student_delex_same_as_gold_percent = self.calculate_percentage(student_delex_same_as_gold)
-                student_teacher_match_percent = self.calculate_percentage(student_teacher_match)
-                student_teacher_match_but_not_same_as_gold_percent = self.calculate_percentage(student_teacher_match_but_not_same_as_gold)
-                student_teacher_match_and_same_as_gold_percent = self.calculate_percentage(
-                    student_teacher_match_and_same_as_gold)
-                student_delex_same_as_gold_but_teacher_is_different_percent = self.calculate_percentage(
-                    student_delex_same_as_gold_but_teacher_is_different)
-                teacher_lex_same_as_gold_but_student_is_different_percent = self.calculate_percentage(
-                    teacher_lex_same_as_gold_but_student_is_different)
 
-                LOG.info(
-                    f"epoch:{epoch_index}")
-                LOG.info(
-                    f"Training_accuracy_teacher_model at the end of {epoch_index}:{accuracy_teacher_model}")
                 LOG.info(
                     f"running_acc_lex by old method at the end of {epoch_index}:{running_acc_lex}")
                 LOG.info(
-                    f"Training_accuracy_student_model at the end of {epoch_index}:{accuracy_student_model}")
+                    f"accuracy_teacher_model_by_per_batch_prediction at the end of epoch{epoch_index}:{accuracy_teacher_model_by_per_batch_prediction}")
+
                 LOG.info(
                     f"acc_t_delex by old method {epoch_index}:{acc_t_delex}")
+
+
+
+                LOG.info(
+                    f"epoch:{epoch_index}")
+
 
 
                 LOG.info(f" teacher_lex_same_as_gold_percent:{teacher_lex_same_as_gold_percent}")

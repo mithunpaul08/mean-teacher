@@ -311,14 +311,14 @@ class Trainer():
                         y_pred_labels_delex_sf = F.softmax(y_pred_delex, dim=1)
                         acc_t_delex = self.compute_accuracy(y_pred_labels_delex_sf, batch_dict_lex['y_target'])
                         running_acc_delex += (acc_t_delex - running_acc_delex) / (batch_index + 1)
-                        LOG.debug(
+                        LOG.info(
                             f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
                             f"classification_loss_lex:{round(running_loss_lex,2)}\t classification_loss_delex:{round(running_loss_delex,2)} "
                             f"\t consistencyloss:{round(running_consistency_loss,6)}"
                             f" \t running_acc_lex:{round(running_acc_lex,4) }  \t running_acc_delex:{round(running_acc_delex,4)} \t combined_loss:{round(combined_loss.item(),6)}  ")
                     else:
 
-                        LOG.debug(
+                        LOG.info(
                             f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
                             f"training_loss_lex_per_batch:{round(running_loss_lex,2)}\t"
                             f" \t training_accuracy_lex_per_batch:{round(running_acc_lex,2) }")
@@ -390,7 +390,11 @@ class Trainer():
                 LOG.info(
                     f"Training_accuracy_teacher_model at the end of {epoch_index}:{accuracy_teacher_model}")
                 LOG.info(
+                    f"running_acc_lex by old method at the end of {epoch_index}:{running_acc_lex}")
+                LOG.info(
                     f"Training_accuracy_student_model at the end of {epoch_index}:{accuracy_student_model}")
+                LOG.info(
+                    f"acc_t_delex by old method {epoch_index}:{acc_t_delex}")
 
 
                 LOG.info(f" teacher_lex_same_as_gold_percent:{teacher_lex_same_as_gold_percent}")
@@ -423,26 +427,26 @@ class Trainer():
                                                    step=epoch_index)
 
 
-                # if (comet_value_updater is not None):
-                #     comet_value_updater.log_metric("combined_loss_per_epoch", running_avg_combined_loss,
-                #                                    step=epoch_index)
-                # if (comet_value_updater is not None):
-                #     comet_value_updater.log_metric("training_classification_loss_lex_per_epoch", running_loss_lex,
-                #                                    step=epoch_index)
+                if (comet_value_updater is not None):
+                    comet_value_updater.log_metric("combined_loss_per_epoch", running_avg_combined_loss,
+                                                   step=epoch_index)
+                if (comet_value_updater is not None):
+                    comet_value_updater.log_metric("training_classification_loss_lex_per_epoch", running_loss_lex,
+                                                   step=epoch_index)
 
 
                 if (args_in.add_second_student == True):
-                    # if (comet_value_updater is not None):
-                    #     comet_value_updater.log_metric("delex_training_loss per epoch", running_loss_delex,
-                    #                                    step=epoch_index)
+                    if (comet_value_updater is not None):
+                        comet_value_updater.log_metric("delex_training_loss per epoch", running_loss_delex,
+                                                       step=epoch_index)
                     if (comet_value_updater is not None):
                         comet_value_updater.log_metric("accuracy_student_model per epoch", accuracy_student_model,
                                                        step=epoch_index)
 
-                        # if (comet_value_updater is not None):
-                        #     comet_value_updater.log_metric("running_consistency_loss per epoch",
-                        #                                    running_consistency_loss,
-                        #                                    step=epoch_index)
+                    if (comet_value_updater is not None):
+                        comet_value_updater.log_metric("running_consistency_loss per epoch",
+                                                       running_consistency_loss,
+                                                       step=epoch_index)
 
 
 

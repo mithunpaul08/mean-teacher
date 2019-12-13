@@ -311,14 +311,14 @@ class Trainer():
                         y_pred_labels_delex_sf = F.softmax(y_pred_delex, dim=1)
                         acc_t_delex = self.compute_accuracy(y_pred_labels_delex_sf, batch_dict_lex['y_target'])
                         running_acc_delex += (acc_t_delex - running_acc_delex) / (batch_index + 1)
-                        LOG.info(
+                        LOG.debug(
                             f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
                             f"classification_loss_lex:{round(running_loss_lex,2)}\t classification_loss_delex:{round(running_loss_delex,2)} "
                             f"\t consistencyloss:{round(running_consistency_loss,6)}"
                             f" \t running_acc_lex:{round(running_acc_lex,4) }  \t running_acc_delex:{round(running_acc_delex,4)} \t combined_loss:{round(combined_loss.item(),6)}  ")
                     else:
 
-                        LOG.info(
+                        LOG.debug(
                             f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
                             f"training_loss_lex_per_batch:{round(running_loss_lex,2)}\t"
                             f" \t training_accuracy_lex_per_batch:{round(running_acc_lex,2) }")
@@ -330,6 +330,11 @@ class Trainer():
                                           epoch=epoch_index)
                     train_bar.update()
 
+                LOG.info(
+                    f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
+                    f"classification_loss_lex:{round(running_loss_lex,2)}\t classification_loss_delex:{round(running_loss_delex,2)} "
+                    f"\t consistencyloss:{round(running_consistency_loss,6)}"
+                    f" \t running_acc_lex:{round(running_acc_lex,4) }  \t running_acc_delex:{round(running_acc_delex,4)} \t combined_loss:{round(combined_loss.item(),6)}  ")
 
                 train_state_in['train_acc'].append(running_acc_lex)
                 train_state_in['train_loss'].append(running_loss_lex)

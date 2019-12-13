@@ -461,7 +461,7 @@ class Trainer():
                     if (comet_value_updater is not None):
                         comet_value_updater.log_metric("running_acc_dev_per_batch", running_acc_val, step=batch_index)
 
-                    LOG.info(
+                    LOG.debug(
                         f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches_lex} \t per_batch_accuracy_dev_set:{round(acc_t,4)} \t moving_avg_val_accuracy:{round(running_acc_val,4)} ")
 
                 train_state_in['val_loss'].append(running_loss_val)

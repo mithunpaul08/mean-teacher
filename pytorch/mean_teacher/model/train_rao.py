@@ -376,22 +376,22 @@ class Trainer():
                 LOG.info(
                     f"Training_accuracy_student_model at the end of {epoch_index}:{accuracy_student_model}")
                 LOG.info(
-                    f"percentage when teacher_lex_same_as_gold:{100*teacher_lex_same_as_gold/len(student_delex_predictions)}")
+                    f"percentage of datapoints where teacher_lex_same_as_gold:{100*teacher_lex_same_as_gold/len(student_delex_predictions)}")
                 LOG.info(
-                    f"percentage when student_delex_same_as_gold:{100*student_delex_same_as_gold//len(student_delex_predictions)}")
+                    f"percentage of datapoints where student_delex_same_as_gold:{100*student_delex_same_as_gold//len(student_delex_predictions)}")
                 LOG.info(
-                    f"percentage when student_teacher_match:{100*student_teacher_match/len(student_delex_predictions)}")
+                    f"percentage of datapoints where student_teacher_match:{100*student_teacher_match/len(student_delex_predictions)}")
                 LOG.info(
-                    f"percentage when student_teacher_match_but_not_same_as_gold:{100*student_teacher_match_but_not_same_as_gold/len(student_delex_predictions)}")
+                    f"percentage of datapoints where student_teacher_match_but_not_same_as_gold:{100*student_teacher_match_but_not_same_as_gold/len(student_delex_predictions)}")
                 LOG.info(
-                    f"percentage when student_teacher_match_but_not_same_as_gold:{100*student_teacher_match_but_not_same_as_gold/len(student_delex_predictions)}")
+                    f"percentage of datapoints where student_teacher_match_but_not_same_as_gold:{100*student_teacher_match_but_not_same_as_gold/len(student_delex_predictions)}")
                 LOG.info(
-                    f"percentage when student_teacher_match_and_same_as_gold:{100*student_teacher_match_and_same_as_gold/len(student_delex_predictions)}")
+                    f"percentage of datapoints where student_teacher_match_and_same_as_gold:{100*student_teacher_match_and_same_as_gold/len(student_delex_predictions)}")
                 LOG.info(
-                    f"percentage when student_delex_same_as_gold_but_teacher_is_different:{100*student_delex_same_as_gold_but_teacher_is_different/len(student_delex_predictions)}")
+                    f"percentage of datapoints where student_delex_same_as_gold_but_teacher_is_different:{100*student_delex_same_as_gold_but_teacher_is_different/len(student_delex_predictions)}")
 
                 LOG.info(
-                    f"percentage when teacher_lex_same_as_gold_but_student_is_different:{100*teacher_lex_same_as_gold_but_student_is_different/len(student_delex_predictions)}")
+                    f"percentage of datapoints where teacher_lex_same_as_gold_but_student_is_different:{100*teacher_lex_same_as_gold_but_student_is_different/len(student_delex_predictions)}")
 
                 LOG.info(
                     f"percentage right when teacher_lex_same_as_gold_but_student_is_different:{100*teacher_lex_same_as_gold_but_student_is_different/len(student_delex_predictions)}")
@@ -404,38 +404,38 @@ class Trainer():
                     f"gold_labels:{gold_labels})")
 
                 if (comet_value_updater is not None):
-                    comet_value_updater.log_metric("percentage right when teacher_lex_same_as_gold_but_student_is_different per epoch", teacher_lex_same_as_gold_but_student_is_different,
+                    comet_value_updater.log_metric("percentage of datapoints when teacher_lex_same_as_gold_but_student_is_different per epoch", teacher_lex_same_as_gold_but_student_is_different,
 
                                                    step=epoch_index)
                     comet_value_updater.log_metric("accuracy_teacher_model per epoch", accuracy_teacher_model,
                                                    step=epoch_index)
                     comet_value_updater.log_metric(
-                        "percentage when teacher_lex_same_as_gold",
+                        "percentage of datapoints where teacher_lex_same_as_gold",
                         100 * teacher_lex_same_as_gold / len(student_delex_predictions), step=epoch_index)
                     comet_value_updater.log_metric(
-                        "percentage when student_delex_same_as_gold",
+                        "percentage of datapoints where student_delex_same_as_gold",
                         100 * student_delex_same_as_gold // len(student_delex_predictions), step=epoch_index)
                     comet_value_updater.log_metric(
-                        "percentage when student_teacher_match",
+                        "percentage of datapoints where student_teacher_match",
                         100 * student_teacher_match / len(student_delex_predictions), step=epoch_index)
                     comet_value_updater.log_metric(
-                        "percentage when student_teacher_match_but_not_same_as_gold",
+                        "percentage of datapoints where student_teacher_match_but_not_same_as_gold",
                         100 * student_teacher_match_but_not_same_as_gold / len(student_delex_predictions),
                         step=epoch_index)
                     comet_value_updater.log_metric(
-                        "percentage when student_teacher_match_but_not_same_as_gold",
+                        "percentage of datapoints where student_teacher_match_but_not_same_as_gold",
                         100 * student_teacher_match_but_not_same_as_gold / len(student_delex_predictions),
                         step=epoch_index)
                     comet_value_updater.log_metric(
-                        "percentage when student_teacher_match_and_same_as_gold",
+                        "percentage of datapoints where student_teacher_match_and_same_as_gold",
                         100 * student_teacher_match_and_same_as_gold / len(student_delex_predictions), step=epoch_index)
                     comet_value_updater.log_metric(
-                        "percentage when student_delex_same_as_gold_but_teacher_is_different",
+                        "percentage of datapoints where student_delex_same_as_gold_but_teacher_is_different",
                         100 * student_delex_same_as_gold_but_teacher_is_different / len(student_delex_predictions),
                         step=epoch_index)
 
                     comet_value_updater.log_metric(
-                        "percentage when teacher_lex_same_as_gold_but_student_is_different",
+                        "percentage of datapoints where teacher_lex_same_as_gold_but_student_is_different",
                         100 * teacher_lex_same_as_gold_but_student_is_different / len(student_delex_predictions),
                         step=epoch_index)
 

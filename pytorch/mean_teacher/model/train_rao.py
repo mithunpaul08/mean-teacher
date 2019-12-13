@@ -137,7 +137,7 @@ class Trainer():
         gold_labels_flat_list = [item for sublist in gold_labels for item in sublist]
         return predicted_labels_flat_list,gold_labels_flat_list
 
-    def train(self, args_in, classifier_student1,classifier_student2, dataset,comet_value_updater,vectorizer):
+    def train(self, args_in, classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer):
 
 
 
@@ -158,12 +158,12 @@ class Trainer():
 
 
         if (args_in.add_second_student == True):
-            classifier_student2 = classifier_student2.to(args_in.device)
-            input_optimizer, inter_atten_optimizer = initialize_optimizers([classifier_student1,classifier_student2], args_in)
+            classifier_student_delex = classifier_student_delex.to(args_in.device)
+            input_optimizer, inter_atten_optimizer = initialize_optimizers([classifier_teacher_lex, classifier_student_delex], args_in)
         else:
-            classifier_student1 = classifier_student1.to(args_in.device)
+            classifier_teacher_lex = classifier_teacher_lex.to(args_in.device)
             input_optimizer, inter_atten_optimizer = initialize_optimizers(
-                [classifier_student1], args_in)
+                [classifier_teacher_lex], args_in)
 
         train_state_in = self.make_train_state(args_in)
         epoch_bar = tqdm_notebook(desc='training routine',
@@ -228,8 +228,8 @@ class Trainer():
                 running_acc_lex = 0.0
                 running_loss_delex = 0.0
                 running_acc_delex = 0.0
-                classifier_student1.train()
-                classifier_student2.train()
+                classifier_teacher_lex.train()
+                classifier_student_delex.train()
 
 
 
@@ -255,7 +255,7 @@ class Trainer():
 
 
                     # step 2. compute the output
-                    y_pred_lex = classifier_student1(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
+                    y_pred_lex = classifier_teacher_lex(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
 
 
                     # step 3.1 compute the class_loss_lex
@@ -269,7 +269,7 @@ class Trainer():
 
                     #all classifier2 related code (the one which feeds off delexicalized data). all steps before .backward()
                     if (args_in.add_second_student == True):
-                        y_pred_delex = classifier_student2(batch_dict_delex['x_claim'], batch_dict_delex['x_evidence'])
+                        y_pred_delex = classifier_student_delex(batch_dict_delex['x_claim'], batch_dict_delex['x_evidence'])
                         class_loss_delex = class_loss_func(y_pred_delex, batch_dict_delex['y_target'])
                         loss_t_delex = class_loss_delex.item()
                         running_loss_delex += (loss_t_delex - running_loss_delex) / (batch_index + 1)
@@ -341,9 +341,9 @@ class Trainer():
 
                 #for debugging: make the model predict on training data at the end of every epoch
                 dataset.set_split('train_lex')
-                teacher_lex_predictions,gold_labels= self.predict(dataset,args_in,classifier_student1,vectorizer.label_vocab)
+                teacher_lex_predictions,gold_labels= self.predict(dataset, args_in, classifier_teacher_lex, vectorizer.label_vocab)
                 dataset.set_split('train_delex')
-                student_delex_predictions,gold_labels = self.predict(dataset, args_in, classifier_student2,vectorizer.label_vocab)
+                student_delex_predictions,gold_labels = self.predict(dataset, args_in, classifier_student_delex, vectorizer.label_vocab)
 
 
 
@@ -465,9 +465,9 @@ class Trainer():
 
 
                 if (args_in.add_second_student == True):
-                    classifier_student2.eval()
+                    classifier_student_delex.eval()
                 else:
-                    classifier_student1.eval()
+                    classifier_teacher_lex.eval()
 
                 no_of_batches_lex = int(len(dataset) / args_in.batch_size)
 
@@ -475,9 +475,9 @@ class Trainer():
                     # compute the output
 
                     if (args_in.add_second_student == True):
-                        y_pred_val = classifier_student2(batch_dict['x_claim'], batch_dict['x_evidence'])
+                        y_pred_val = classifier_student_delex(batch_dict['x_claim'], batch_dict['x_evidence'])
                     else:
-                        y_pred_val = classifier_student1(batch_dict['x_claim'], batch_dict['x_evidence'])
+                        y_pred_val = classifier_teacher_lex(batch_dict['x_claim'], batch_dict['x_evidence'])
 
                     # step 3. compute the class_loss
                     class_loss = class_loss_func(y_pred_val, batch_dict['y_target'])
@@ -501,7 +501,7 @@ class Trainer():
                 if (comet_value_updater is not None):
                     comet_value_updater.log_metric("running_acc_dev_per_epoch", running_acc_val, step=epoch_index)
 
-                train_state_in = self.update_train_state(args=args_in, model=classifier_student2,
+                train_state_in = self.update_train_state(args=args_in, model=classifier_student_delex,
                                                          train_state=train_state_in)
 
 

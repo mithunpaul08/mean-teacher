@@ -47,22 +47,13 @@ def preprocess_text(text):
     text = re.sub(r"[^a-zA-Z.,!?]+", r" ", text)
     return text
 
-<<<<<<< HEAD:pytorch/mean_teacher/utils/utils_rao.py
 
-
-=======
->>>>>>> master:eval_noalnlp/mean_teacher/utils/utils_rao.py
 def generate_batches(dataset,workers,batch_size,device ,shuffle=True,
                      drop_last=True ):
     """
     A generator function which wraps the PyTorch DataLoader. It will
       ensure each tensor is on the write device location.
     """
-<<<<<<< HEAD:pytorch/mean_teacher/utils/utils_rao.py
-
-
-=======
->>>>>>> master:eval_noalnlp/mean_teacher/utils/utils_rao.py
     if(shuffle==True):
         labeled_idxs = dataset.get_all_label_indices(dataset)
         sampler = SubsetRandomSampler(labeled_idxs)

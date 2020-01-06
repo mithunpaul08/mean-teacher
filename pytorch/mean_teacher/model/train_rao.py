@@ -3,10 +3,11 @@ from mean_teacher.utils import losses
 import time
 import torch
 import torch.nn as nn
-import torch.optim as optim
 from tqdm import tqdm,tqdm_notebook
 from torch.nn import functional as F
 from mean_teacher.utils.logger import LOG
+from mean_teacher.utils import global_variables
+
 NO_LABEL=-1
 class Trainer():
     def __init__(self,LOG):
@@ -174,9 +175,14 @@ class Trainer():
         student_delex_same_as_gold_but_teacher_is_different,\
         teacher_lex_same_as_gold_but_student_is_different
 
+    def update_ema_variables(self,model, ema_model, alpha, global_step):
+        # Use the true average until the exponential average is more correct
+        alpha = min(1 - 1 / (global_step + 1), alpha)
+        for ema_param, param in zip(ema_model.parameters(), model.parameters()):
+            ema_param.data.mul_(alpha).add_(1 - alpha, param.data)
+
+
     def train(self, args_in, classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer):
-
-
 
 
         if args_in.consistency_type == 'mse':
@@ -330,6 +336,9 @@ class Trainer():
                     #optimizer.step()
                     input_optimizer.step()
                     inter_atten_optimizer.step()
+
+                    global_variables.global_step += 1
+                    self.update_ema_variables(classifier_student_delex, classifier_teacher_lex, args.ema_decay, global_step)
 
 
 

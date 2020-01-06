@@ -47,7 +47,16 @@ Note: if using only one student, remove `--add_second_student True`
 
 Notes to self:
 
-If you get: the import torch before comet error again. fixed it by forcefully upgrading to new version using pip install --no-cache-dir --upgrade comet_ml"
-### Latest status as of Nov 14th 2019 10pm.
-- trying out one model at a time. tried delex yday, loss was dropping and val accuracy of 86.3%. however training accuracy was low. weird
-- now trying to see if lexicaliezd model alone drops loss.
+- If you get: the import torch before comet error again. fixed it by forcefully upgrading to new version using pip install --no-cache-dir --upgrade comet_ml"
+- every time you do a fresh run or branch change, do wget from the commands above. Then do a head -100 for each of these files
+```
+head -100 data/rte/fever/train/fever_train_delex.jsonl > temp
+mv temp data/rte/fever/train/fever_train_delex.jsonl
+head -100 data/rte/fever/train/fever_train_lex.jsonl > temp
+mv temp data/rte/fever/train/fever_train_lex.jsonl
+head -20 data/rte/fever/dev/fever_dev_delex.jsonl > temp
+mv temp data/rte/fever/dev/fever_dev_delex.jsonl
+head -20 data/rte/fever/dev/fever_dev_lex.jsonl > temp
+mv temp data/rte/fever/dev/fever_dev_lex.jsonl
+
+```

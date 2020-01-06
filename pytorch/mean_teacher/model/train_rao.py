@@ -148,9 +148,7 @@ class Trainer():
         student_delex_same_as_gold_but_teacher_is_different = 0
         teacher_lex_same_as_gold_but_student_is_different = 0
         assert len(student_delex_predictions)== len(teacher_lex_predictions) == len(gold_labels)
-        for student, teacher, gold in tqdm(zip(student_delex_predictions, teacher_lex_predictions, gold_labels),
-                                           desc="calculate_label_overlap_between_teacher_and_student_predictions",
-                                           total=len(student_delex_predictions)):
+        for student, teacher, gold in (zip(student_delex_predictions, teacher_lex_predictions, gold_labels)):
             if teacher == gold:
                 teacher_lex_same_as_gold += 1
                 if not student == teacher:

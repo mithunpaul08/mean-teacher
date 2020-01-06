@@ -444,15 +444,6 @@ class Trainer():
                 self.number_of_datapoints = total_gold_label_count
                 accuracy_teacher_model_by_per_batch_prediction = self.calculate_percentage(total_right_predictions_teacher_lex,self.number_of_datapoints)
 
-                dataset.set_split('train_lex')
-                teacher_lex_predictions,gold_labels= self.predict(dataset, args_in, classifier_teacher_lex, vectorizer.label_vocab)
-                dataset.set_split('train_delex')
-                student_delex_predictions,gold_labels = self.predict(dataset, args_in, classifier_student_delex, vectorizer.label_vocab)
-
-
-
-
-
 
 
                 LOG.info(

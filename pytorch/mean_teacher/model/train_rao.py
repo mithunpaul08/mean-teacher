@@ -194,7 +194,7 @@ class Trainer():
 
 
 
-        if (args_in.add_student == True):
+        if (args_in.add_second_student == True):
             classifier_student_delex = classifier_student_delex.to(args_in.device)
             input_optimizer, inter_atten_optimizer = initialize_optimizers([classifier_teacher_lex, classifier_student_delex], args_in)
         else:
@@ -239,7 +239,7 @@ class Trainer():
 
                 assert batch_generator1 is not None
 
-                if (args_in.add_student == True):
+                if (args_in.add_second_student == True):
                     dataset.set_split('train_delex')
                     batch_generator2=None
                     if (args_in.use_semi_supervised == True):
@@ -306,7 +306,7 @@ class Trainer():
                     consistency_loss=0
 
                     #all classifier2 related code (the one which feeds off delexicalized data). all steps before .backward()
-                    if (args_in.add_student == True):
+                    if (args_in.add_second_student == True):
                         y_pred_delex = classifier_student_delex(batch_dict_delex['x_claim'], batch_dict_delex['x_evidence'])
                         class_loss_delex = class_loss_func(y_pred_delex, batch_dict_delex['y_target'])
                         loss_t_delex = class_loss_delex.item()
@@ -346,7 +346,7 @@ class Trainer():
                     running_acc_lex += (acc_t_lex - running_acc_lex) / (batch_index + 1)
 
                     # all classifier2 related code to calculate accuracy
-                    if (args_in.add_student == True):
+                    if (args_in.add_second_student == True):
                         y_pred_labels_delex_sf = F.softmax(y_pred_delex, dim=1)
                         right_predictions_student_delex_per_batch,acc_t_delex,student_predictions_by_label_class = self.compute_accuracy(y_pred_labels_delex_sf, batch_dict_lex['y_target'])
                         total_right_predictions_student_delex=total_right_predictions_student_delex+right_predictions_student_delex_per_batch
@@ -428,7 +428,9 @@ class Trainer():
                     f"\t consistencyloss:{round(running_consistency_loss,6)}"
                     f" \t running_acc_lex:{round(running_acc_lex,4) }  \t running_acc_delex:{round(running_acc_delex,4)} \t combined_loss:{round(combined_loss.item(),6)}  ")
 
-
+                import sys
+                print("end of epoch1 quitting")
+                sys.exit(1)
                 train_state_in['train_acc'].append(running_acc_lex)
                 train_state_in['train_loss'].append(running_loss_lex)
 
@@ -501,7 +503,7 @@ class Trainer():
                                                    step=epoch_index)
 
 
-                if (args_in.add_student == True):
+                if (args_in.add_second_student == True):
                     if (comet_value_updater is not None):
                         comet_value_updater.log_metric("delex_training_loss per epoch", running_loss_delex,
                                                        step=epoch_index)
@@ -525,7 +527,7 @@ class Trainer():
                 running_acc_val = 0.
 
 
-                if (args_in.add_student == True):
+                if (args_in.add_second_student == True):
                     classifier_student_delex.eval()
                 else:
                     classifier_teacher_lex.eval()
@@ -535,7 +537,7 @@ class Trainer():
                 for batch_index, batch_dict in enumerate(tqdm(batch_generator_val,desc="dev_batches",total=no_of_batches_delex)):
                     # compute the output
 
-                    if (args_in.add_student == True):
+                    if (args_in.add_second_student == True):
                         y_pred_val = classifier_student_delex(batch_dict['x_claim'], batch_dict['x_evidence'])
                     else:
                         y_pred_val = classifier_teacher_lex(batch_dict['x_claim'], batch_dict['x_evidence'])

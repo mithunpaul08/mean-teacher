@@ -17,6 +17,8 @@ import numpy as np
 current_time={time.strftime("%c")}
 LOG.info(f"starting the run at {current_time}.")
 
+
+
 def initialize_comet(args):
     # for drawing graphs on comet:
     comet_value_updater=None
@@ -93,11 +95,11 @@ else:
     embeddings = None
 
 num_features=len(vectorizer.claim_ev_vocab)
-classifier_student1 = create_model(logger_object=LOG,args_in=args,num_classes_in=len(vectorizer.label_vocab)
-                          ,word_vocab_embed=embeddings,word_vocab_size=num_features,wordemb_size_in=embedding_size)
+classifier_teacher_lex = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
+                                      , word_vocab_embed=embeddings, word_vocab_size=num_features, wordemb_size_in=embedding_size,ema=True)
 
-classifier_student2 = create_model(logger_object=LOG,args_in=args,num_classes_in=len(vectorizer.label_vocab)
-                          ,word_vocab_embed=embeddings,word_vocab_size=num_features,wordemb_size_in=embedding_size)
+classifier_student_delex = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
+                                        , word_vocab_embed=embeddings, word_vocab_size=num_features, wordemb_size_in=embedding_size)
 
 train_rte=Trainer(LOG)
-train_rte.train(args,classifier_student1,classifier_student2,dataset,comet_value_updater,vectorizer)
+train_rte.train(args, classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer)

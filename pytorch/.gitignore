@@ -15,7 +15,7 @@ results
 ../.idea/workspace.xml 
 *.xml
 ../.DS_Store
-.DS_Store
+*.DS_Store
 .idea/*
 ../.idea/*
 ../.idea/*.xml

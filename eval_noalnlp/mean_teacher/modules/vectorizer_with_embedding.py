@@ -47,10 +47,14 @@ class VectorizerWithEmbedding(object):
             return word_counts
 
     @classmethod
+<<<<<<< HEAD:pytorch/mean_teacher/modules/vectorizer_with_embedding.py
+    def create_vocabulary(cls, claim_ev_lex, claim_ev_delex, cutoff=25):
+=======
     def create_vocabulary(cls, claim_ev_df, cutoff=25):
+>>>>>>> master:eval_noalnlp/mean_teacher/modules/vectorizer_with_embedding.py
         """Instantiate the vectorizer from the dataset dataframe
         Args:
-            claim_ev_df (pandas.DataFrame): the review dataset
+            claim_ev_lex (pandas.DataFrame): the review dataset
             cutoff (int): the parameter for frequency-based filtering
         Returns:
             an instance of the ReviewVectorizer
@@ -58,11 +62,23 @@ class VectorizerWithEmbedding(object):
 
         claim_ev_vocab = SequenceVocabulary()
         word_counts = Counter()
+<<<<<<< HEAD:pytorch/mean_teacher/modules/vectorizer_with_embedding.py
+        for claim in (claim_ev_lex.claim):
+            word_counts=cls.update_word_count(cls,claim,word_counts)
+        for ev in (claim_ev_lex.evidence):
+            word_counts=cls.update_word_count(cls, ev,word_counts)
+
+
+        for claim in (claim_ev_delex.claim):
+            word_counts=cls.update_word_count(cls,claim,word_counts)
+        for ev in (claim_ev_delex.evidence):
+=======
 
         for claim in (claim_ev_df.claim):
             word_counts=cls.update_word_count(cls,claim,word_counts)
 
         for ev in (claim_ev_df.evidence):
+>>>>>>> master:eval_noalnlp/mean_teacher/modules/vectorizer_with_embedding.py
             word_counts=cls.update_word_count(cls, ev,word_counts)
 
 
@@ -72,7 +88,7 @@ class VectorizerWithEmbedding(object):
                 claim_ev_vocab.add_token(word)
 
         labels_vocab = Vocabulary(add_unk=False)
-        for label in sorted(set(claim_ev_df.label)):
+        for label in sorted(set(claim_ev_lex.label)):
             labels_vocab.add_token(label)
         LOG.debug(f"size of claim_ev_vocab is {len(claim_ev_vocab)}")
         LOG.debug(f"size of labels_vocab is {len(labels_vocab)}")

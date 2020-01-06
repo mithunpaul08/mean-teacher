@@ -25,3 +25,4 @@ results
 transient
 data-local/*
 /data
+../.DS_Store

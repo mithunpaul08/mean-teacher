@@ -338,7 +338,7 @@ class Trainer():
                     inter_atten_optimizer.step()
 
                     global_variables.global_step += 1
-                    self.update_ema_variables(classifier_student_delex, classifier_teacher_lex, args.ema_decay, global_step)
+                    self.update_ema_variables(classifier_student_delex, classifier_teacher_lex, args_in.ema_decay, global_variables.global_step)
 
 
 

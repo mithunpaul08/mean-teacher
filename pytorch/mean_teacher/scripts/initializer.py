@@ -65,7 +65,7 @@ class Initializer():
             update_pretrained_wordemb=False,
             cuda=True,
             workers=0,
-
+            ema_decay=0.99,
 
             use_gpu=True,
             consistency_type="mse",

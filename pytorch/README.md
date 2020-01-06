@@ -48,7 +48,7 @@ Note: if using only one student, remove `--add_second_student True`
 Notes to self:
 
 - If you get: the import torch before comet error again. fixed it by forcefully upgrading to new version using pip install --no-cache-dir --upgrade comet_ml"
-- every time you do a fresh run or branch change, do wget from the commands above. Then do a head -100 for each of these files
+- every time you do a fresh run or branch change, do wget from the commands above. Then do a head -100 for each of these files as shown below to reduce size
 ```
 head -100 data/rte/fever/train/fever_train_delex.jsonl > temp
 mv temp data/rte/fever/train/fever_train_delex.jsonl

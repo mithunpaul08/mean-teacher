@@ -3,13 +3,11 @@ import torch
 import os
 import re
 import mmap
-<<<<<<< HEAD:pytorch/mean_teacher/utils/utils_rao.py
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from mean_teacher.model import architectures
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
 import math
-=======
 import torch
 from torch.utils.data import  DataLoader
 from tqdm import tqdm
@@ -17,7 +15,6 @@ import random
 from mean_teacher.model import architectures
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
 from mean_teacher.utils.logger import LOG
->>>>>>> master:eval_noalnlp/mean_teacher/utils/utils_rao.py
 
 # #### General utilities
 

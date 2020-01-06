@@ -435,9 +435,7 @@ class Trainer():
                     f"\t consistencyloss:{round(running_consistency_loss,6)}"
                     f" \t running_acc_lex:{round(running_acc_lex,4) }  \t running_acc_delex:{round(running_acc_delex,4)} \t combined_loss:{round(combined_loss.item(),6)}  ")
 
-                import sys
-                print("end of epoch1 quitting")
-                sys.exit(1)
+
                 train_state_in['train_acc'].append(running_acc_lex)
                 train_state_in['train_loss'].append(running_loss_lex)
 
@@ -482,8 +480,8 @@ class Trainer():
 
 
                 if (comet_value_updater is not None):
-                    comet_value_updater.log_metric("accuracy_teacher_model", accuracy_teacher_model,step=epoch_index)
-                    comet_value_updater.log_metric("accuracy_student_model", accuracy_student_model,
+                    comet_value_updater.log_metric("accuracy_teacher_model", accuracy_teacher_model_by_per_batch_prediction,step=epoch_index)
+                    comet_value_updater.log_metric("accuracy_student_model", running_acc_delex,
                                                    step=epoch_index)
                     comet_value_updater.log_metric("teacher_lex_same_as_gold_percent", teacher_lex_same_as_gold_percent,
                                                    step=epoch_index)
@@ -502,23 +500,27 @@ class Trainer():
                                                    step=epoch_index)
 
 
-                if (comet_value_updater is not None):
+
                     comet_value_updater.log_metric("combined_loss_per_epoch", running_avg_combined_loss,
                                                    step=epoch_index)
-                if (comet_value_updater is not None):
+
                     comet_value_updater.log_metric("training_classification_loss_lex_per_epoch", running_loss_lex,
                                                    step=epoch_index)
+                    comet_value_updater.log_metric("training_classification_loss_lex_per_global step", running_loss_lex,
+                                                   step=global_variables.global_step)
 
 
                 if (args_in.add_student == True):
                     if (comet_value_updater is not None):
                         comet_value_updater.log_metric("delex_training_loss per epoch", running_loss_delex,
                                                        step=epoch_index)
-                    if (comet_value_updater is not None):
-                        comet_value_updater.log_metric("accuracy_student_model per epoch", accuracy_student_model,
-                                                       step=epoch_index)
 
-                    if (comet_value_updater is not None):
+                        comet_value_updater.log_metric("accuracy_student_model per epoch", running_acc_delex,
+                                                       step=epoch_index)
+                        comet_value_updater.log_metric("accuracy_student_model per global step", running_acc_delex,
+                                                       step=global_variables.global_step)
+
+
                         comet_value_updater.log_metric("running_consistency_loss per epoch",
                                                        running_consistency_loss,
                                                        step=epoch_index)
@@ -556,7 +558,8 @@ class Trainer():
 
                     # compute the accuracy
                     y_pred_labels_val_sf = F.softmax(y_pred_val, dim=1)
-                    acc_t = self.compute_accuracy(y_pred_labels_val_sf, batch_dict['y_target'])
+                    #acc_t = self.compute_accuracy(y_pred_labels_val_sf, batch_dict['y_target'])
+                    right_predictions, acc_t, predictions_by_label_class = self.compute_accuracy(y_pred_labels_val_sf, batch_dict['y_target'])
                     running_acc_val += (acc_t - running_acc_val) / (batch_index + 1)
 
                     if (comet_value_updater is not None):
@@ -569,7 +572,9 @@ class Trainer():
                 train_state_in['val_acc'].append(running_acc_val)
 
                 if (comet_value_updater is not None):
-                    comet_value_updater.log_metric("running_acc_dev_per_epoch", running_acc_val, step=epoch_index)
+                    comet_value_updater.log_metric("acc_dev_per_epoch", running_acc_val, step=epoch_index)
+                    comet_value_updater.log_metric("acc_dev_per_global_step", running_acc_val, step = global_variables.global_step)
+
 
                 train_state_in = self.update_train_state(args=args_in, model=classifier_student_delex,
                                                          train_state=train_state_in)

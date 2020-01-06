@@ -471,7 +471,7 @@ class Trainer():
 
 
                 if (comet_value_updater is not None):
-                    comet_value_updater.log_metric("accuracy_teacher_model", accuracy_teacher_model_by_per_batch_prediction,step=epoch_index)
+                    comet_value_updater.log_metric("accuracy teacher model across epochs", running_acc_lex,step=epoch_index)
                     comet_value_updater.log_metric("accuracy_student_model", running_acc_delex,
                                                    step=epoch_index)
                     comet_value_updater.log_metric("teacher_lex_same_as_gold_percent", teacher_lex_same_as_gold_percent,

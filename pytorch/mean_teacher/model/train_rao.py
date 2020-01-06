@@ -428,7 +428,7 @@ class Trainer():
                     f"\t consistencyloss:{round(running_consistency_loss,6)}"
                     f" \t running_acc_lex:{round(running_acc_lex,4) }  \t running_acc_delex:{round(running_acc_delex,4)} \t combined_loss:{round(combined_loss.item(),6)}  ")
 
-                
+
                 train_state_in['train_acc'].append(running_acc_lex)
                 train_state_in['train_loss'].append(running_loss_lex)
 

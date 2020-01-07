@@ -32,7 +32,7 @@ class Initializer():
 
             data_dir_local='data/rte/fever',
             data_dir_server='data/rte/fever',
-            save_dir='model_storage/ch3/yelp/',
+            save_dir='model_storage/',
             vectorizer_file='vectorizer.json',
             glove_filepath_local='data/glove/glove.840B.300d.txt',
             glove_filepath_server='/work/mithunpaul/glove/glove.840B.300d.txt',

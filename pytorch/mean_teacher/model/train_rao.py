@@ -67,7 +67,7 @@ class Trainer():
             # accuracy increased
             else:
                 # Save the best model
-                torch.save(model.state_dict(), train_state['model_filename'] + ".pth")
+                torch.save(model.state_dict(), train_state['model_filename'])
                 LOG.info(
                     f"found that acc_current_epoch loss {acc_current_epoch} is more than the best accuracy so far which is "
                     f"{train_state['early_stopping_best_val']}.resetting patience=0")

@@ -40,7 +40,8 @@ wget https://storage.googleapis.com/fact_verification_mithun_files/fever_dev_lex
 
 ./get_glove_small.sh
 ./get_model_lex.sh
-python main.py --run_type test --database_to_test_with fnc 
+python main.py --run_type test --database_to_test_with fnc --log_level DEBUG --which_gpu_to_use 1
+ 
 ```
 Note: to debug you can pass `--log_level DEBUG`
 

@@ -12,6 +12,7 @@ import logging
 import time
 import random
 import numpy as np
+import sys
 
 
 current_time={time.strftime("%c")}
@@ -43,6 +44,7 @@ import torch
 if (comet_value_updater) is not None:
     hyper_params = vars(args)
     comet_value_updater.log_parameters(hyper_params)
+
 
 
 set_seed_everywhere(args.seed, args.cuda)
@@ -102,4 +104,8 @@ classifier_student_delex = create_model(logger_object=LOG, args_in=args, num_cla
                                         , word_vocab_embed=embeddings, word_vocab_size=num_features, wordemb_size_in=embedding_size)
 
 train_rte=Trainer(LOG)
+if(args.load_model_from_disk_and_test):
+    LOG.info(f"{current_time:} Found that need to load model and test using it.")
+    train_rte.test(args,classifier_student_delex, dataset, "val")
+    sys.exit(1)
 train_rte.train(args, classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer)

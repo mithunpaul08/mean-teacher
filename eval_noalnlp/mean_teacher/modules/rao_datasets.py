@@ -97,11 +97,7 @@ class RTEDataset(Dataset):
 
 
     @classmethod
-<<<<<<< HEAD:pytorch/mean_teacher/modules/rao_datasets.py
-    def load_dataset_and_create_vocabulary_for_combined_lex_delex(cls, train_lex_file, dev_lex_file, train_delex_file, dev_delex_file, args):
-=======
     def load_dataset(cls, train_file, dev_file, test_file, args):
->>>>>>> master:eval_noalnlp/mean_teacher/modules/rao_datasets.py
         """Load dataset and make a new vectorizer from scratch
 
         Args:
@@ -109,25 +105,7 @@ class RTEDataset(Dataset):
         Returns:
             an instance of ReviewDataset
         """
-<<<<<<< HEAD:pytorch/mean_teacher/modules/rao_datasets.py
-        fever_lex_train_df = pd.read_json(train_lex_file, lines=True)
-        fever_lex_train_df=cls.truncate_data(fever_lex_train_df, args.truncate_words_length)
-        fever_lex_train_df['split'] = "train_lex"
 
-        fever_lex_dev_df = pd.read_json(dev_lex_file, lines=True)
-        fever_lex_dev_df = cls.truncate_data(fever_lex_dev_df, args.truncate_words_length)
-        fever_lex_dev_df['split'] = "val_lex"
-
-        fever_delex_train_df = pd.read_json(train_delex_file, lines=True)
-        fever_delex_train_df = cls.truncate_data(fever_delex_train_df, args.truncate_words_length)
-        fever_delex_train_df['split'] = "train_delex"
-
-        fever_delex_dev_df = pd.read_json(dev_delex_file, lines=True)
-        fever_delex_dev_df = cls.truncate_data(fever_delex_dev_df, args.truncate_words_length)
-        fever_delex_dev_df['split'] = "val_delex"
-
-        frames = [fever_lex_train_df, fever_lex_dev_df,fever_delex_train_df,fever_delex_dev_df]
-=======
 
         assert os.path.exists(train_file) is True
         assert os.path.exists(dev_file) is True
@@ -156,17 +134,11 @@ class RTEDataset(Dataset):
 
 
         frames = [train_df, dev_df,test_df]
->>>>>>> master:eval_noalnlp/mean_teacher/modules/rao_datasets.py
         combined_train_dev_test_with_split_column_df = pd.concat(frames)
         cls.labels=train_df.label
 
-<<<<<<< HEAD:pytorch/mean_teacher/modules/rao_datasets.py
-        # todo: uncomment/call and check the function replace_if_PERSON_C1_format has any effect on claims and evidence sentences-mainpulate dataframe
-        return cls(combined_train_dev_test_with_split_column_df, VectorizerWithEmbedding.create_vocabulary(fever_lex_train_df,fever_delex_train_df, args.frequency_cutoff))
-=======
 
         return combined_train_dev_test_with_split_column_df,train_df
->>>>>>> master:eval_noalnlp/mean_teacher/modules/rao_datasets.py
 
     @classmethod
     def create_vocabulary(cls, train_file, dev_file, test_file, args):
@@ -231,12 +203,8 @@ class RTEDataset(Dataset):
         """
         self._target_split = split
         self._target_df, self._target_size = self._lookup_dict[split]
-<<<<<<< HEAD:pytorch/mean_teacher/modules/rao_datasets.py
-        self._labels = self._target_df.label
-=======
         self._labels=self._target_df.label
 
->>>>>>> master:eval_noalnlp/mean_teacher/modules/rao_datasets.py
 
     def __len__(self):
         return self._target_size
@@ -296,23 +264,7 @@ class RTEDataset(Dataset):
     def get_labels(self):
          return self._labels
 
-    def get_all_label_indices(self,dataset):
 
-        #this command returns all the labels and its corresponding indices eg:[198,2]
-        all_labels = list(enumerate(dataset.get_labels()))
-
-<<<<<<< HEAD:pytorch/mean_teacher/modules/rao_datasets.py
-        #note that even though the labels are shuffled up, we are keeping track/returning only the shuffled indices. so it all works out fine.
-        random.shuffle(all_labels)
-
-        #get the indices alone and not the labels
-        all_indices=[]
-        for idx,_  in all_labels:
-            all_indices.append(idx)
-        return all_indices
-=======
-    def get_labels(self):
-         return self._labels
 
     def get_all_label_indices(self,dataset):
 
@@ -328,4 +280,3 @@ class RTEDataset(Dataset):
             all_indices.append(idx)
         return all_indices
 
->>>>>>> master:eval_noalnlp/mean_teacher/modules/rao_datasets.py

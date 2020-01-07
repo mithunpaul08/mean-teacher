@@ -51,6 +51,7 @@ class Initializer():
             # Runtime options
             expand_filepaths_to_save_dir=True,
             reload_from_files=False,
+            load_model_from_disk_and_test=False,
             max_grad_norm=5,
             #End of rao's parameters
 

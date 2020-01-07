@@ -150,9 +150,13 @@ class Initializer():
         cwd=os.getcwd()
         LOG.debug(f"inside get_file_paths(). value of cwd is:{cwd}")
         data_dir = os.path.join(cwd, args_in.data_dir_local)
+        LOG.debug(f"inside get_file_paths(). value of data_dir is:{data_dir}")
         assert os.path.exists(data_dir) is True
         train_input_file = self.join_data_dir_path(data_dir, args_in.train_file)
+        LOG.debug(f"inside get_file_paths(). value of train_input_file is:{train_input_file}")
+
         dev_input_file = self.join_data_dir_path(data_dir, args_in.dev_file)
+        LOG.debug(f"inside get_file_paths(). value of train_input_file is:{train_input_file}")
         test_input_file = self.join_data_dir_path(data_dir, args_in.test_file)
         LOG.debug(f"train_input_file:{train_input_file}")
         LOG.debug(f"dev_input_file:{dev_input_file}")

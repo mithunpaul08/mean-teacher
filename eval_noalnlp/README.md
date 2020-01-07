@@ -34,7 +34,10 @@ To test using a model that was trained on FEVER lexicalized data, and test on FN
 following commands from the folder `pytorch/`. 
 
 ```
-./get_data_lex.sh
+wget https://storage.googleapis.com/fact_verification_mithun_files/fever_train_lex_4labels.jsonl  -O data/rte/train_input_file.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/fn_test_split_fourlabels.jsonl -O data/rte/test_input_file.jsonl
+wget https://storage.googleapis.com/fact_verification_mithun_files/fever_dev_lex_3labels_26k_no_lists_evidence_not_sents.jsonl  -O data/rte/dev_input_file.jsonl
+
 ./get_glove_small.sh
 ./get_model_lex.sh
 python main.py --run_type test --database_to_test_with fnc 

@@ -51,8 +51,6 @@ class RTEDataset(Dataset):
         self.set_split('train_lex')
         self._labels = self.train_lex_df.label
 
-        self._labels=self.train_df.label
-
 
 
     @classmethod
@@ -83,6 +81,10 @@ class RTEDataset(Dataset):
     def remove_mnli_dash_labels(self,args,df):
         """
         #in mnli some labels are tagged as -. drop them.
+        Note that the
+            #command line argument database_to_test_with is used only for very dataset specific things. it has nothing
+            # to do with which test file to load.
+
         :param args:
         :param df: modified dataframe
         :return:

@@ -353,6 +353,9 @@ class Trainer():
 
             acc_t=0
 
+            #fnc alone has a different kind of scoring. we are using the official scoring function. Note that the
+            #command line argument database_to_test_with is used only for deciding the scoring function. it has nothing
+            # to do with which test file to load.
             if(args_in.database_to_test_with=="fnc"):
                 predictions_index_labels=self.get_argmax(y_pred_logit.float())
                 predictions_str_labels=self.get_label_strings_given_vectorizer(vectorizer, predictions_index_labels)

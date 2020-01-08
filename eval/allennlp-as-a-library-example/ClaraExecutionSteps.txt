@@ -1,0 +1,334 @@
+SCP From Lectura to clara 
+###########################
+scp *split*.jsonl sandeepsuntwal@clara.cs.arizona.edu:p3/hs/sandeepsuntwal.bak/Desktop/fever-data
+
+scp *split*.jsonl sandeepsuntwal@clara.cs.arizona.edu:/work/sandeepsuntwal/sandeep/github/2019/fever-naacl-2018/data/fever
+
+scp split_four*.jsonl sandeepsuntwal@clara.cs.arizona.edu:/work/sandeepsuntwal/sandeep/github/2019/fever-naacl-2018/data/fever
+
+scp fnc_dev_smartner_sstags-12-May-4Label.jsonl sandeepsuntwal@clara.cs.arizona.edu:/work/sandeepsuntwal/sandeep/github/2019/fever-naacl-2018/data/fever
+
+scp *.jsonl sandeepsuntwal@clara.cs.arizona.edu:/work/sandeepsuntwal/sandeep/github/2019/neuter_ner/data
+
+#Mithun's files copy from lectura to clara
+scp dev_*.jsonl sandeepsuntwal@clara.cs.arizona.edu:/work/sandeepsuntwal/sandeep/github/2019/fever-naacl-2018/data/fever
+scp *.jsonl sandeepsuntwal@clara.cs.arizona.edu:/work/sandeepsuntwal/sandeep/github/2019/fever-naacl-2018/data/fever
+SCP From Clara to Lectura
+###########################
+scp train_ns_rand__converted_db_to_text.jsonl sandeepsuntwal@lectura.cs.arizona.edu:Desktop/fever_data
+scp dev_ns_rand__converted_db_to_text.jsonl sandeepsuntwal@lectura.cs.arizona.edu:/home/sandeepsuntwal/Desktop/fever_data
+scp decomposable_attention.tar.gz sandeepsuntwal@lectura.cs.arizona.edu:Desktop/fn_data
+
+
+PYTHONPATH=src python src/scripts/rte/da/eval_da.py data/fever/fever.db data/models/decomposable_attention.tar.gz data/fever/train.ns.pages.p1.jsonl
+
+scp *Jan*.jsonl sandeepsuntwal@clara.cs.arizona.edu:/work/sandeepsuntwal/sandeep/github/2019/fever-naacl-2018/data/fever
+
+Log of changes:
+/sandeep/github/2019/fever-naacl-2018/src/rte/riedel/data.py
+/sandeep/github/2019/fever-naacl-2018/src/rte/parikh/reader.py
+/sandeep/github/2019/fever-naacl-2018/src/common/dataset/reader.py
+train_da_sandeep.py also changed
+eval_da.py also changed
+
+PYTHONPATH=src python src/scripts/rte/da/train_da_sandeep.py data/fever/fever.db config/fever_nn_ora_sent.json logs/da_nn_sent --cuda-device $CUDA_DEVICE
+
+PYTHONPATH=src python src/scripts/rte/da/train_da_sandeep.py data/fever/fever.db config/fn_nn_ora_sent.json logs/da_nn_sent --cuda-device $CUDA_DEVICE
+
+#for GPU use below line
+export CUDA_DEVICE=0
+
+Fever Model Train:
+PYTHONPATH=src python src/scripts/rte/da/train_da_sandeep.py data/fever/fever.db config/fever_nn_ora_sent.json logs/da_nn_sent --cuda-device $CUDA_DEVICE
+FNC Model Train: 
+PYTHONPATH=src python src/scripts/rte/da/train_da_sandeep.py data/fever/fever.db config/fn_nn_ora_sent.json logs/da_nn_sent --cuda-device $CUDA_DEVICE
+
+PYTHONPATH=src python src/scripts/rte/da/train_da_sandeep_model.py data/fever/fever.db config/fn_nn_ora_sent.json logs/da_nn_sent --cuda-device $CUDA_DEVICE
+#Change the config file.
+Change lines:
+"train_data_path": "data/fever/train_split_fourlabels.jsonl",
+  "validation_data_path": "data/fever/dev_split_fourlabels.jsonl",
+
+cp logs/da_nn_sent/model.tar.gz data/Feb_13_FN/decomposable_attention.tar.gz
+
+PYTHONPATH=src python src/scripts/rte/da/eval_da.py data/fever/fever.db data/fever_fourlabel_model/decomposable_attention.tar.gz data/fever/FourLabel_Fever_dev_converted.jsonl
+
+
+
+PYTHONPATH=src python src/scripts/rte/da/eval_da.py data/fever/fever.db data/fever_fourlabel_model/decomposable_attention.tar.gz data/fever/fn_dev_converted.jsonl
+
+#Feb 13 runs
+
+PYTHONPATH=src python src/scripts/rte/da/eval_da.py data/fever/fever.db data/Feb_13_Fever/decomposable_attention.tar.gz data/fever/FourLabel_Fever_dev_converted.jsonl
+
+PYTHONPATH=src python src/scripts/rte/da/eval_da.py data/fever/fever.db data/Feb_13_Fever/decomposable_attention.tar.gz data/fever/dev_split_fourlabels.jsonl
+
+PYTHONPATH=src python3 src/scripts/rte/da/eval_da.py data/fever/fever.db data/Feb_13_Fever/decomposable_attention.tar.gz data/fever/dev_split_fourlabels.jsonl
+
+PYTHONPATH=src python src/scripts/rte/da/eval_da.py data/fever/fever.db data/Feb_13_Fever/decomposable_attention.tar.gz data/fever/fn_dev_converted.jsonl
+
+#Runs for idf
+PYTHONPATH=src python src/scripts/rte/da/eval_da.py data/fever/fever.db data/Feb_13_Fever/decomposable_attention.tar.gz /work/sandeepsuntwal/sandeep/python-projects/fever-data/shef_original/Jan_2019/FeverFiles/FourLabel_fever_dev_converted_idf_10.jsonl
+
+FNC Model:
+cp logs/da_nn_sent/model.tar.gz data/Feb_13_FN/decomposable_attention.tar.gz
+
+PYTHONPATH=src python src/scripts/rte/da/eval_da.py data/fever/fever.db data/Feb_13_FN/decomposable_attention.tar.gz data/fever/fn_dev_converted.jsonl
+
+PYTHONPATH=src python src/scripts/rte/da/eval_da.py data/fever/fever.db data/Feb_13_FN/decomposable_attention.tar.gz data/fever/FourLabel_Fever_dev_converted_For_FN.jsonl
+
+PYTHONPATH=src python src/scripts/rte/da/eval_da.py data/fever/fever.db data/Feb_13_FN/decomposable_attention.tar.gz data/fever/fn_dev_converted_idf_10.jsonl
+
+PYTHONPATH=src python src/scripts/rte/da/eval_da.py data/fever/fever.db data/Feb_13_FN/decomposable_attention.tar.gz data/fever/fn_dev_converted_idf_20.jsonl
+
+PYTHONPATH=src python src/scripts/rte/da/eval_da.py data/fever/fever.db data/Feb_13_FN/decomposable_attention.tar.gz /work/sandeepsuntwal/sandeep/python-projects/fever-data/shef_original/Jan_2019/FeverFiles/FourLabel_fever_dev_converted_idf_10_for_fn.jsonl
+
+
+
+FN HAS SMALL CASE LABELS: SO CONVERT THAT EACH TIME.....
+
+
+
+#April 10 2019 Runs
+Model-DevFile
+mkdir data/Apr_10_Fever
+cp logs/da_nn_sent_Fever_6_Apr/model.tar.gz data/Apr_10_Fever/decomposable_attention.tar.gz
+
+#This is important naming convention for the below mentioned tests
+Model-DevFile
+#These models and data do not contain NER values of Prepositions codings
+1) Fever-Fever From 90 to (87.4) to .829 with preps, with new embeddings of mithun 87.33
+PYTHONPATH=src python src/scripts/rte/da/eval_da.py data/fever/fever.db data/Apr_10_Fever/decomposable_attention.tar.gz data/fever/fever_dev_mithun_converted.jsonl
+2)Fever-FNC From ... to 34.07 to (51.69) to 0.423
+PYTHONPATH=src python src/scripts/rte/da/eval_da.py data/fever/fever.db data/Apr_10_Fever/decomposable_attention.tar.gz data/fever/fn_dev_mithun_converted.jsonl
+
+What was the old performance?
+Old Fever-Fever: 90. something ~~~ 
+Old: Fever-FNC:
+#Eval command
+PYTHONPATH=src python src/scripts/rte/da/eval_da.py data/fever/fever.db data/Feb_13_Fever/decomposable_attention.tar.gz data/fever/fn_dev_split_fourlabels.jsonl
+
+Train Commands:
+export CUDA_DEVICE=0
+Fever Model Train:
+#Mithun Netured files
+PYTHONPATH=src python src/scripts/rte/da/train_da_sandeep.py data/fever/fever.db config/fever_nn_ora_sent.json logs/da_nn_sent --cuda-device $CUDA_DEVICE
+
+mkdir logs/da_nn_sent_fever_with_preps
+#Started in session 0
+Train:
+PYTHONPATH=src python src/scripts/rte/da/train_da_sandeep.py data/fever/fever.db config/fever_nn_ora_sent_with_preps.json.json logs/da_nn_sent_fever_with_preps_17Apr --cuda-device $CUDA_DEVICE
+#for without preps 17th aprilwith new embeddings
+
+
+
+1) mkdir data/smart_ner_with_embeddings
+ cp logs/da_nn_sent_fever_with_NER_only_17Apr/model.tar.gz data/smart_ner_with_embeddings/decomposable_attention.tar.gz
+ 
+ scp data/smart_ner_with_embeddings/decomposable_attention.tar.gz sandeepsuntwal@lectura.cs.arizona.edu:Desktop/smart_ner_with_embeddings
+ 
+ 2) mkdir data/smart_ner_with_trained_embeddings
+ cp logs/da_nn_sent_fever_with_NER_only_with_train_embeddings_18Apr/model.tar.gz data/smart_ner_with_trained_embeddings/decomposable_attention.tar.gz
+ 
+ scp data/smart_ner_with_trained_embeddings/decomposable_attention.tar.gz sandeepsuntwal@lectura.cs.arizona.edu:Desktop/smart_ner_with_trained_embeddings
+ 
+ 
+ 3) mkdir data/simple_ner
+ cp logs/da_nn_sent_fever_simple_NER_18Apr/model.tar.gz data/simple_ner/decomposable_attention.tar.gz
+ 
+ scp data/simple_ner/decomposable_attention.tar.gz sandeepsuntwal@lectura.cs.arizona.edu:Desktop/simple_ner
+ 
+ 
+ 
+ #This is still training in jenny i guess tmux 0
+ 4) mkdir data/no_ner
+ cp logs/da_nn_sent_fever_no_NER_18Apr_v2/model.tar.gz data/no_ner/decomposable_attention.tar.gz
+
+ scp data/no_ner/decomposable_attention.tar.gz sandeepsuntwal@lectura.cs.arizona.edu:Desktop/no_ner
+ 
+ 
+PYTHONPATH=src python src/scripts/rte/da/train_da_sandeep.py data/fever/fever.db config/fever_nn_ora_sent.json logs/da_nn_sent_fever_with_NER_only_17Apr --cuda-device $CUDA_DEVICE
+
+PYTHONPATH=src python src/scripts/rte/da/eval_da.py data/fever/fever.db data/da_nn_sent_fever_with_NER_only_17Apr/decomposable_attention.tar.gz data/fever/fnc_dev_mithun_converted_for_fever.jsonl
+
+
+#same as above but now we will udpate the embeddings as well.
+
+PYTHONPATH=src python src/scripts/rte/da/train_da_sandeep.py data/fever/fever.db config/fever_nn_ora_sent.json logs/da_nn_sent_fever_with_NER_only_with_train_embeddings_18Apr --cuda-device $CUDA_DEVICE
+
+
+#Train simple NER
+
+PYTHONPATH=src python src/scripts/rte/da/train_da_sandeep.py data/fever/fever.db config/fever_nn_ora_sent_master.json logs/da_nn_sent_fever_simple_NER_18Apr --cuda-device $CUDA_DEVICE
+# Train No NER
+export CUDA_DEVICE=0
+PYTHONPATH=src python src/scripts/rte/da/train_da_sandeep.py data/fever/fever.db config/fever_nn_ora_sent_no_ner.json logs/da_nn_sent_fever_no_NER_18Apr --cuda-device $CUDA_DEVICE
+
+
+
+mkdir data/da_nn_sent_fever_with_NER_only_17Apr
+mkdir data/da_nn_sent_fever_with_NER_only_18Apr
+
+
+cp logs/da_nn_sent_fever_with_NER_only_17Apr/model.tar.gz data/da_nn_sent_fever_with_NER_only_17Apr/decomposable_attention.tar.gz
+
+PYTHONPATH=src python src/scripts/rte/da/eval_da.py data/fever/fever.db data/da_nn_sent_fever_with_NER_only_17Apr/decomposable_attention.tar.gz data/fever/fnc_dev_mithun_converted_for_fever.jsonl
+
+
+Test:
+0.829
+mkdir data/Apr_10_Fever_with_Preps
+cp logs/da_nn_sent_fever_with_preps/model.tar.gz data/Apr_10_Fever_with_Preps/decomposable_attention.tar.gz
+PYTHONPATH=src python src/scripts/rte/da/eval_da.py data/fever/fever.db data/Apr_10_Fever_with_Preps/decomposable_attention.tar.gz data/fever/fever_dev_mithun_with_prep.jsonl
+
+session 0
+
+PYTHONPATH=src python src/scripts/rte/da/eval_da.py data/fever/fever.db data/Apr_10_Fever_with_Preps/decomposable_attention.tar.gz data/fever/fnc_dev_mithun_with_prep.jsonl
+
+
+FNC Model Train: 
+mkdir data/Apr_10_FN_no_Preps
+cp logs/da_nn_sent_fn_no_preps/model.tar.gz data/Apr_10_FN/decomposable_attention.tar.gz
+
+#Session 1
+PYTHONPATH=src python src/scripts/rte/da/train_da_sandeep.py data/fever/fever.db config/fn_nn_ora_sent.json logs/da_nn_sent_fn_no_preps --cuda-device $CUDA_DEVICE
+
+#Session 2	
+PYTHONPATH=src python src/scripts/rte/da/train_da_sandeep.py data/fever/fever.db config/fn_nn_ora_sent_with_preps.json logs/da_nn_sent_fn_with_preps --cuda-device $CUDA_DEVICE
+####################FNC Training EMNLP########33
+Copy train and dev files from lectura to clara
+scp *.jsonl sandeepsuntwal@clara.cs.arizona.edu:/work/sandeepsuntwal/sandeep/github/2019/fever-naacl-2018/data/fever
+
+#1: No NER
+Train:
+Train file:fnc_train_no_ner-2-May.jsonl
+Dev file:fnc_dev_no_ner-2-May.jsonl
+config file: fn_nn_ora_sent-2May.json
+export CUDA_DEVICE=0
+
+PYTHONPATH=src python src/scripts/rte/da/train_da_sandeep.py data/fever/fever.db config/fn_nn_ora_sent-2May.json logs/da_nn_sent_fn_no_ner_2-May --cuda-device $CUDA_DEVICE
+mkdir data/May_2_FN_no_ner
+cp logs/da_nn_sent_fn_no_ner_2-May/model.tar.gz data/May_2_FN_no_ner/decomposable_attention.tar.gz
+scp data/May_2_FN_no_ner/decomposable_attention.tar.gz sandeepsuntwal@lectura.cs.arizona.edu:Desktop/FNC-Files-EMNLP/no-ner
+
+#2: Simple NER
+Train file:fnc_train_simple_ner-2-May.jsonl
+PYTHONPATH=src python src/scripts/rte/da/train_da_sandeep.py data/fever/fever.db config/fn_nn_ora_sent-2May.json logs/da_nn_sent_fn_simple_ner_2-May --cuda-device $CUDA_DEVICE
+mkdir data/May_2_FN_simple_ner
+cp logs/da_nn_sent_fn_simple_ner_2-May/model.tar.gz data/May_2_FN_simple_ner/decomposable_attention.tar.gz
+scp data/May_2_FN_simple_ner/decomposable_attention.tar.gz/decomposable_attention.tar.gz sandeepsuntwal@lectura.cs.arizona.edu:Desktop/FNC-Files-EMNLP/simple-ner
+#2 is not done unable to find model. We'll fi this later.
+
+#3: Smart NER
+PYTHONPATH=src python src/scripts/rte/da/train_da_sandeep.py data/fever/fever.db config/fn_nn_ora_sent-2May.json logs/da_nn_sent_fn_smart_ner_2-May --cuda-device $CUDA_DEVICE
+mkdir data/May_2_FN_smart_ner
+cp logs/da_nn_sent_fn_smart_ner_2-May/model.tar.gz data/May_2_FN_smart_ner/decomposable_attention.tar.gz 
+Copy from clara to lectura
+scp data/May_2_FN_smart_ner/decomposable_attention.tar.gz sandeepsuntwal@lectura.cs.arizona.edu:Desktop/FNC-Files-EMNLP/smart-ner
+
+
+#4: SS+ Smart NER: fn_nn_ora_sent-12May-sstagged.json
+PYTHONPATH=src python src/scripts/rte/da/train_da_sandeep.py data/fever/fever.db config/fn_nn_ora_sent-12May-sstagged.json logs/da_nn_sent_fn_ss_tagged_2-May --cuda-device $CUDA_DEVICE
+mkdir data/May_2_FN_ss_tagged
+cp logs/da_nn_sent_fn_ss_tagged_2-May data/May_2_FN_ss_tagged/decomposable_attention.tar.gz 
+Copy from clara to lectura
+scp data/May_2_FN_ss_tagged/decomposable_attention.tar.gz sandeepsuntwal@lectura.cs.arizona.edu:Desktop/FNC-Files-EMNLP/ss_tagged
+i/p files: fnc_dev_smartner_sstags-12-May-4label.jsonl
+
+
+#12May Runs
+PYTHONPATH=src python src/scripts/rte/da/train_da_sandeep.py data/fever/fever.db config/fn_nn_ora_sent-12May.json logs/da_nn_sent_fn_smart_ner_12-May --cuda-device $CUDA_DEVICE
+
+data/fever/fnc_train_smart_ner-12-May.jsonl",
+  "validation_data_path": "data/fever/fnc_dev_smart_ner-12-May.jsonl
+  
+fn_train_split_fourlabels-12-May.jsonl
+fn_dev_split_fourlabels-12-May.jsonl
+
+PYTHONPATH=src python src/scripts/rte/da/train_da_sandeep.py data/fever/fever.db config/fn_nn_ora_sent-12May-fuly-lex.json logs/da_nn_sent_fn_smart_ner_12-May-fully-lex --cuda-device $CUDA_DEVICE
+scp *.jsonl sandeepsuntwal@clara.cs.arizona.edu:/work/sandeepsuntwal/sandeep/github/2019/fever-naacl-2018/data/fever
+
+PYTHONPATH=src python src/scripts/rte/da/train_da_sandeep.py data/fever/fever.db config/fever_nn_ora_sent-12May.json logs/da_nn_sent_fever_sstagged_12-May-fully-lex --cuda-device $CUDA_DEVICE
+
+
+scp *12*.jsonl sandeepsuntwal@clara.cs.arizona.edu:/work/sandeepsuntwal/sandeep/github/2019/fever-naacl-2018/data/fever
+fnc_dev_smartner_sstags-12-May.jsonl
+fnc_train_smartner_sstags-12-May.jsonl
+PYTHONPATH=src python src/scripts/rte/da/train_da_sandeep.py data/fever/fever.db config/fn_nn_ora_sent-12May-sstagged.json logs/da_nn_sent_fn_sstagged_12-May --cuda-device $CUDA_DEVICE
+
+I have 4 models.
+First, identify the names,
+create folder names with mkdir command
+next move them from their new location to lectura
+from lectura copy to appropriate location in local
+
+1) mkdir data/May_12_FN_3Label_Fully_Lex_Model
+2) mkdir data/May_12_FN_3Label_Smart_NER_Model
+3) mkdir data/May_12_FN_3Label_SS_Tagged_Model
+4) mkdir data/May_12_FEVER_SSTagged_Model
+5) mkdir data/May_12_FN_3Label_No_NER_Model
+6) mkdir data/May_12_FN_3Label_Simple_NER_Model
+
+Input files used: "train_data_path": "data/fever/fnc_train_smart_ner-12-May.jsonl",
+  "validation_data_path": "data/fever/fnc_dev_smart_ner-12-May.jsonl"
+1)cp logs/da_nn_sent_fn_smart_ner_12-May-fully-lex/model.tar.gz data/May_12_FN_3Label_Fully_Lex_Model/decomposable_attention.tar.gz 
+
+2) cp logs/da_nn_sent_fn_smart_ner_12-May/model.tar.gz data/May_12_FN_3Label_Smart_NER_Model/decomposable_attention.tar.gz 
+
+3) cp logs/da_nn_sent_fn_sstagged_12-May/model.tar.gz data/May_12_FN_3Label_SS_Tagged_Model/decomposable_attention.tar.gz 
+
+4) cp logs/da_nn_sent_fever_sstagged_12-May/model.tar.gz data/May_12_FEVER_SSTagged_Model/decomposable_attention.tar.gz 
+
+5) cp logs/da_nn_sent_fn_no_ner_12-May-3Label/model.tar.gz data/May_12_FN_3Label_No_NER_Model/decomposable_attention.tar.gz 
+
+
+6) cp logs/da_nn_sent_fn_simple_ner_12-May-3Label/model.tar.gz data/May_12_FN_3Label_Simple_NER_Model/decomposable_attention.tar.gz 
+
+Copy from clara to lectura
+1) scp data/May_12_FN_3Label_Fully_Lex_Model/decomposable_attention.tar.gz sandeepsuntwal@lectura.cs.arizona.edu:Desktop/FNC-Files-EMNLP/FNC-3-Label-Fully-Lex
+
+2) scp data/May_12_FN_3Label_Smart_NER_Model/decomposable_attention.tar.gz sandeepsuntwal@lectura.cs.arizona.edu:Desktop/FNC-Files-EMNLP/FNC-3-Label-Smart-NER
+
+3)scp data/May_12_FN_3Label_SS_Tagged_Model/decomposable_attention.tar.gz sandeepsuntwal@lectura.cs.arizona.edu:Desktop/FNC-Files-EMNLP/FNC-3-Label-SStagged
+
+4) scp data/May_12_FEVER_SSTagged_Model/decomposable_attention.tar.gz sandeepsuntwal@lectura.cs.arizona.edu:Desktop/Fever-Files-EMNLP/SSTagged
+
+5) scp data/May_12_FN_3Label_No_NER_Model/decomposable_attention.tar.gz sandeepsuntwal@lectura.cs.arizona.edu:Desktop/FNC-Files-EMNLP/FNC-3-Label-No-NER
+
+6) scp data/May_12_FN_3Label_Simple_NER_Model/decomposable_attention.tar.gz sandeepsuntwal@lectura.cs.arizona.edu:Desktop/FNC-Files-EMNLP/FNC-3-Label-Simple-NER
+
+scp *.jsonl sandeepsuntwal@clara.cs.arizona.edu:/work/sandeepsuntwal/sandeep/github/2019/fever-naacl-2018/data/fever
+
+PYTHONPATH=src python src/scripts/rte/da/train_da_sandeep.py data/fever/fever.db config/fn_nn_ora_sent-12May.json logs/da_nn_sent_fn_no_ner_12-May-3Label --cuda-device $CUDA_DEVICE
+
+5) No NER - 3 label FNC 
+
+PYTHONPATH=src python src/scripts/rte/da/train_da_sandeep.py data/fever/fever.db config/fn_nn_ora_sent-12May.json logs/da_nn_sent_fn_simple_ner_12-May-3Label --cuda-device $CUDA_DEVICE
+
+6) Simple NER - 3 label FNC
+3-Label-fnc_dev_simple_ner-12-May.jsonl
+3-Label-fnc_train_simple_ner-12-May.jsonl
+
+
+##########3-Label-Fully-Lex
+PYTHONPATH=src python src/scripts/rte/da/train_da_sandeep_model.py data/fever/fever.db config/fn_nn_ora_sent-2May.json logs/da_nn_sent_fn_simple_ner_2-May/ --cuda-device $CUDA_DEVICE
+
+###################Snopes File#############
+mkdir outputs
+python main_2.py --pyproc_port 8887 --use_docker False --convert_prepositions False --create_smart_NERs True --inputFile data/Snopes_Lex_test.jsonl
+python main.py --pyproc_port 8887 --use_docker False --convert_prepositions False --convert_NERs True  True --inputFile data/Snopes_Lex_test.jsonl
+
+
+#Train Lex model for snopes
+PYTHONPATH=src python src/scripts/rte/da/train_da_sandeep.py data/fever/fever.db config/fn_nn_ora_sent-Snopes.json logs/da_nn_sent_fn_snopes_lex --cuda-device $CUDA_DEVICE
+
+cp fn_nn_ora_sent-12May-fuly-lex.json fn_nn_ora_sent-Snopes.json
+
+###################Politifact File#############
+Copy from lectura to clara:
+scp *dev*.jsonl sandeepsuntwal@clara.cs.arizona.edu:/work/sandeepsuntwal/sandeep/github/2019/fever-naacl-2018/data/politifact
+# Create new config file
+export CUDA_DEVICE=0
+PYTHONPATH=src python src/scripts/rte/da/train_da_sandeep.py data/fever/fever.db config/fn_nn_ora_sent-Politifact.json logs/da_nn_sent_fn_politifact_lex --cuda-device $CUDA_DEVICE
+vim src/rte/riedel/data.py
+src/common/dataset/reader.py

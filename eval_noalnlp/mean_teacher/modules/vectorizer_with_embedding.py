@@ -47,10 +47,11 @@ class VectorizerWithEmbedding(object):
             return word_counts
 
     @classmethod
+
     def create_vocabulary(cls, claim_ev_df, cutoff=25):
         """Instantiate the vectorizer from the dataset dataframe
         Args:
-            claim_ev_df (pandas.DataFrame): the review dataset
+            claim_ev_lex (pandas.DataFrame): the review dataset
             cutoff (int): the parameter for frequency-based filtering
         Returns:
             an instance of the ReviewVectorizer
@@ -58,6 +59,7 @@ class VectorizerWithEmbedding(object):
 
         claim_ev_vocab = SequenceVocabulary()
         word_counts = Counter()
+
 
         for claim in (claim_ev_df.claim):
             word_counts=cls.update_word_count(cls,claim,word_counts)

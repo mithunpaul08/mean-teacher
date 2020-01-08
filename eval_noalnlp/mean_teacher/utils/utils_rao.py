@@ -3,6 +3,11 @@ import torch
 import os
 import re
 import mmap
+from torch.utils.data import DataLoader
+from tqdm import tqdm
+from mean_teacher.model import architectures
+from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
+import math
 import torch
 from torch.utils.data import  DataLoader
 from tqdm import tqdm
@@ -42,6 +47,7 @@ def preprocess_text(text):
     text = re.sub(r"[^a-zA-Z.,!?]+", r" ", text)
     return text
 
+
 def generate_batches(dataset,workers,batch_size,device ,shuffle=True,
                      drop_last=True ):
     """
@@ -61,6 +67,46 @@ def generate_batches(dataset,workers,batch_size,device ,shuffle=True,
         for name, tensor in data_dict.items():
             out_data_dict[name] = data_dict[name].to(device)
         yield out_data_dict
+
+def generate_batches_for_semi_supervised(dataset,percentage_labels_for_semi_supervised,workers,batch_size,device,shuffle=True,
+                     drop_last=True,mask_value=-1 ):
+    '''
+    similar to generate_batches but will mask/replace the labels of certain certain percentage of indices with -1. a
+    :param dataset:
+    :param workers:
+    :param batch_size:
+    :param device:
+    :param shuffle:
+    :param drop_last:
+    :return: BatchSampler
+    '''
+
+
+    if(shuffle==True):
+        labeled_idxs = dataset.get_all_label_indices(dataset)
+        sampler = SubsetRandomSampler(labeled_idxs)
+        batch_sampler_local = BatchSampler(sampler, batch_size, drop_last=True)
+        dataloader=DataLoader(dataset,batch_sampler=batch_sampler_local,num_workers=workers,pin_memory=True)
+    else:
+        dataloader = DataLoader(dataset,batch_size=batch_size,shuffle=False,pin_memory=True,drop_last=False,num_workers=workers)
+
+
+    count_indices_to_mask= math.ceil(batch_size* (percentage_labels_for_semi_supervised)/100)
+    mask=torch.randint(0,batch_size-1,(count_indices_to_mask,))
+
+
+    for data_dict in dataloader:
+        out_data_dict = {}
+        for name, tensor in data_dict.items():
+            if(name=="y_target"):
+                for m in mask:
+                    tensor[m]=mask_value
+                    out_data_dict[name] = data_dict[name].to(device)
+            else:
+                out_data_dict[name] = data_dict[name].to(device)
+
+        yield out_data_dict
+
 
 def get_num_lines(file_path):
 
@@ -116,6 +162,38 @@ def make_embedding_matrix(glove_filepath, words):
             final_embeddings[i, :] = embedding_i
 
     return final_embeddings,embedding_size
+
+def initialize_optimizers(list_models, args):
+
+    '''
+        The code for decomposable attention we use , utilizes two different optimizers
+    :param model:
+    :param args:
+    :return:
+    '''
+    combined_para1= []
+    combined_para2 = []
+    for model in list_models:
+        combined_para1  =   combined_para1  + list(model.para1)
+        combined_para2  =   combined_para2  + list(model.para2)
+
+    input_optimizer = None
+    inter_atten_optimizer = None
+
+    if args.optimizer == 'adagrad':
+        input_optimizer = torch.optim.Adagrad(combined_para1, lr=args.learning_rate, weight_decay=args.weight_decay)
+        inter_atten_optimizer = torch.optim.Adagrad(combined_para2, lr=args.learning_rate, weight_decay=args.weight_decay)
+    elif args.optimizer == 'Adadelta':
+        input_optimizer = torch.optim.Adadelta(combined_para1, lr=args.lr)
+        inter_atten_optimizer = torch.optim.Adadelta(combined_para2, lr=args.lr)
+    else:
+        print('No Optimizer.')
+        import sys
+        sys.exit()
+    assert input_optimizer != None
+    assert inter_atten_optimizer != None
+
+    return input_optimizer,inter_atten_optimizer
 
 def initialize_double_optimizers(model, args):
 
@@ -179,8 +257,10 @@ def create_model(logger_object, args_in,  num_classes_in, word_vocab_embed, word
 
     args_in.device=None
     if(args_in.use_gpu) and torch.cuda.is_available():
-        torch.cuda.set_device(0)
+        logger_object.info("found that GPU is available")
+        torch.cuda.set_device(args_in.which_gpu_to_use)
         args_in.device = torch.device('cuda')
+        logger_object.info(f"will be using gpu number{args_in.which_gpu_to_use}")
     else:
         args_in.device = torch.device('cpu')
 

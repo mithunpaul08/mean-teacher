@@ -353,6 +353,9 @@ class Trainer():
 
             acc_t=0
 
+            #fnc alone has a different kind of scoring. we are using the official scoring function. Note that the
+            #command line argument database_to_test_with is used only for deciding the scoring function. it has nothing
+            # to do with which test file to load.
             if(args_in.database_to_test_with=="fnc"):
                 predictions_index_labels=self.get_argmax(y_pred_logit.float())
                 predictions_str_labels=self.get_label_strings_given_vectorizer(vectorizer, predictions_index_labels)
@@ -361,8 +364,7 @@ class Trainer():
                     total_gold.append(e)
                 for e in predictions_str_labels:
                     total_predictions.append(e)
-
-            elif (args_in.database_to_test_with=="fever"):
+            else:
                 acc_t = self.accuracy_fever(y_pred_logit, batch_dict['y_target'])
             running_acc += (acc_t - running_acc) / (batch_index_dev + 1)
             LOG.info(
@@ -370,14 +372,11 @@ class Trainer():
 
 
         if (args_in.database_to_test_with == "fnc"):
-
-            acc_t = report_score(total_gold, total_predictions)
-        elif (args_in.database_to_test_with == "fever"):
-            acc_t = self.accuracy_fever(y_pred_logit, batch_dict['y_target'])
+            running_acc = report_score(total_gold, total_predictions)
 
         train_state_in = self.make_train_state(args_in)
         train_state_in['test_loss'] = running_loss
-        train_state_in['test_acc'] = acc_t
+        train_state_in['test_acc'] = running_acc
 
         LOG.info(f" test_accuracy : {(train_state_in['test_acc'])}")
         print(f" test_accuracy : {(train_state_in['test_acc'])}")

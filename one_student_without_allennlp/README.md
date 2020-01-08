@@ -1,3 +1,17 @@
+This was the version that was released along with emnlp2019 paper.
+This was merged into one branch called ema2 on Jan 7th 2020. Ideally all this must go into master branch also.
+Folders called one_student* do the same thing; has decomposable attention based classifier for fever. 
+The folder `one_student_with_allennlp` has the decomposable attention based on allennlp code. I don't trust this code, leaving
+it here since it was what was used by sandeep to test on fever. 
+The folder `one_student_without_allennlp` ,  has
+more cleaner execution when it comes to running code. There are commands which download data from cloud using wget
+and the code will run out of the box.
+The folder `student_teacher` meanwhile progressed in a different branch. It now has a teacher student archicture where
+the teacher is an exponential moving average of the student. However its not clean code. As in, it doesn't have any of the
+wget based commands which was created for releasing, which is instead there in the folder `one_student_without_allennlp`.
+Ideally these folders both must be merged into one. But am running into merging issues.so leaving it as is.
+
+
 
 # Fact Verification 
 In this folder a [decomposable attention](https://arxiv.org/pdf/1606.01933.pdf) based neural network model will be trained and tested

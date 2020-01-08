@@ -9,6 +9,11 @@ from mean_teacher.utils.logger import LOG
 from mean_teacher.utils import global_variables
 
 NO_LABEL=-1
+if torch.cuda.is_available():
+    class_loss_func = nn.CrossEntropyLoss(ignore_index=NO_LABEL).cuda()
+else:
+    class_loss_func = nn.CrossEntropyLoss(ignore_index=NO_LABEL).cpu()
+
 class Trainer():
     def __init__(self,LOG):
         self._LOG=LOG
@@ -179,6 +184,33 @@ class Trainer():
         for ema_param, param in zip(ema_model.parameters(), model.parameters()):
             ema_param.data.mul_(alpha).add_(1 - alpha, param.data)
 
+    def eval(self,classifier,args_in,dataset,epoch_index):
+        batch_generator_val = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
+                                               device=args_in.device, shuffle=False)
+        running_loss_val = 0.
+        running_acc_val = 0.
+
+        no_of_batches= int(len(dataset) / args_in.batch_size)
+        for batch_index, batch_dict in enumerate(tqdm(batch_generator_val, desc="dev_batches", total=no_of_batches)):
+            # compute the output
+            y_pred_val = classifier(batch_dict['x_claim'], batch_dict['x_evidence'])
+
+            # step 3. compute the class_loss
+            class_loss = class_loss_func(y_pred_val, batch_dict['y_target'])
+            loss_t = class_loss.item()
+            running_loss_val += (loss_t - running_loss_val) / (batch_index + 1)
+
+            # compute the accuracy
+            y_pred_labels_val_sf = F.softmax(y_pred_val, dim=1)
+            right_predictions, acc_t, predictions_by_label_class = self.compute_accuracy(y_pred_labels_val_sf,
+                                                                                         batch_dict['y_target'])
+            running_acc_val += (acc_t - running_acc_val) / (batch_index + 1)
+
+
+            LOG.debug(
+                f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches} \t per_batch_accuracy_dev_set:{round(acc_t,4)} \t moving_avg_val_accuracy:{round(running_acc_val,4)} ")
+
+            return running_acc_val
 
     def train(self, args_in, classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer):
 
@@ -190,10 +222,7 @@ class Trainer():
 
 
 
-        if torch.cuda.is_available():
-            class_loss_func = nn.CrossEntropyLoss(ignore_index=NO_LABEL).cuda()
-        else:
-            class_loss_func = nn.CrossEntropyLoss(ignore_index=NO_LABEL).cpu()
+
 
 
 
@@ -519,52 +548,23 @@ class Trainer():
 
 
                 # Iterate over val dataset
-                # we will always test/validate on delexicalized data
+                # test on dev with both student and teacher
                 dataset.set_split('val_delex')
-                batch_generator_val = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
-                                                    device=args_in.device, shuffle=False)
-                running_loss_val = 0.
-                running_acc_val = 0.
+                classifier_student_delex.eval()
+                running_acc_val_student= self.eval(classifier_student_delex, args_in, dataset,epoch_index)
+
+                dataset.set_split('val_lex')
+                classifier_teacher_lex.eval()
+                running_acc_val_teacher = self.eval(classifier_teacher_lex, args_in, dataset,epoch_index)
 
 
-                if (args_in.add_student == True):
-                    classifier_student_delex.eval()
-                else:
-                    classifier_teacher_lex.eval()
 
-                no_of_batches_lex = int(len(dataset) / args_in.batch_size)
-
-                for batch_index, batch_dict in enumerate(tqdm(batch_generator_val,desc="dev_batches",total=no_of_batches_delex)):
-                    # compute the output
-
-                    if (args_in.add_student == True):
-                        y_pred_val = classifier_student_delex(batch_dict['x_claim'], batch_dict['x_evidence'])
-                    else:
-                        y_pred_val = classifier_teacher_lex(batch_dict['x_claim'], batch_dict['x_evidence'])
-
-                    # step 3. compute the class_loss
-                    class_loss = class_loss_func(y_pred_val, batch_dict['y_target'])
-                    loss_t = class_loss.item()
-                    running_loss_val += (loss_t - running_loss_val) / (batch_index + 1)
-
-                    # compute the accuracy
-                    y_pred_labels_val_sf = F.softmax(y_pred_val, dim=1)
-                    #acc_t = self.compute_accuracy(y_pred_labels_val_sf, batch_dict['y_target'])
-                    right_predictions, acc_t, predictions_by_label_class = self.compute_accuracy(y_pred_labels_val_sf, batch_dict['y_target'])
-                    running_acc_val += (acc_t - running_acc_val) / (batch_index + 1)
-
-                    if (comet_value_updater is not None):
-                        comet_value_updater.log_metric("running_acc_dev_per_batch", running_acc_val, step=batch_index)
-
-                    LOG.debug(
-                        f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches_lex} \t per_batch_accuracy_dev_set:{round(acc_t,4)} \t moving_avg_val_accuracy:{round(running_acc_val,4)} ")
-
-                train_state_in['val_loss'].append(running_loss_val)
-                train_state_in['val_acc'].append(running_acc_val)
-
-                if (comet_value_updater is not None):
-                    comet_value_updater.log_metric("acc_dev_per_epoch", running_acc_val, step=epoch_index)
-                    comet_value_updater.log_metric("acc_dev_per_global_step", running_acc_val, step = global_variables.global_step)
+                assert comet_value_updater is not None
+                comet_value_updater.log_metric("acc_dev_per_epoch", running_acc_val_student, step=epoch_index)
+                comet_value_updater.log_metric("acc_dev_per_global_step", running_acc_val_student, step = global_variables.global_step)
+                comet_value_updater.log_metric("acc_dev_per_epoch", running_acc_val_teacher, step=epoch_index)
+                comet_value_updater.log_metric("acc_dev_per_global_step", running_acc_val_teacher,
+                                               step=global_variables.global_step)
 
 
                 train_state_in = self.update_train_state(args=args_in, model=classifier_student_delex,
@@ -584,7 +584,9 @@ class Trainer():
                 epoch_bar.update()
 
                 LOG.info(
-                    f" val_accuracy_end_of_epoch:{round(running_acc_val,2)} ")
+                    f" running_acc_val_student_end_of_epoch:{round(running_acc_val_student,2)} ")
+                LOG.info(
+                    f" running_acc_val_teacher_end_of_epoch:{round(running_acc_val_teacher,2)} ")
                 LOG.info(
                     f"****************end of epoch {epoch_index}*********************")
 

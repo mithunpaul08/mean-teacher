@@ -123,7 +123,7 @@ class Initializer():
         parser.add_argument('--which_gpu_to_use', default=0, type=int,
                             help='if you have more than 1 gpus and you know which one you want to run this code on Eg:2')
         parser.add_argument('--load_vectorizer', default=False, type=self.str2bool, metavar='BOOL',
-                            help='usually set to true during testing only. load vectorizer saved during training. if set to false during testing, will create a vectorizer'
+                            help='usually set to true during evaluation only. load vectorizer saved during training. if set to false during evaluation, will create a vectorizer'
                                  'based on the file provided under database_to_train_with ')
 
         parser.add_argument('--very_first_run', default=False, type=self.str2bool, metavar='BOOL',

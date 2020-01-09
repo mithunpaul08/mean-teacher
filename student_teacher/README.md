@@ -60,6 +60,7 @@ Notes:
 
 Notes to self:
 - to run on a laptop use `./get_glove_small.sh`
+- on server dont do `./get_glove.sh` . instead do `cp ~/glove/glove.840B.300d.txt data/glove/glove.840B.300d.txt` 
 - If you get: the import torch before comet error again. fixed it by forcefully upgrading to new version using pip install --no-cache-dir --upgrade comet_ml"
 - in clara its better to use `--which_gpu_to_use 2` since everyone gets assigned gpu0 by default
 - every time you do a fresh run or branch change, do wget from the commands above. Then do a head -100 for each of these files as shown below to reduce size

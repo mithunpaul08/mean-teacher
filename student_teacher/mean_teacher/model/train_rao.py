@@ -287,7 +287,7 @@ class Trainer():
                 no_of_batches_delex = int(len(dataset) / args_in.batch_size)
 
                 running_consistency_loss = 0.0
-                running_avg_combined_loss=0.0
+
 
                 running_loss_lex = 0.0
                 running_acc_lex = 0.0
@@ -332,6 +332,7 @@ class Trainer():
 
                     combined_class_loss = class_loss_lex
                     consistency_loss=0
+                    class_loss_delex=None
 
                     #all classifier2 related code (the one which feeds off delexicalized data). all steps before .backward()
                     if (args_in.add_student == True):
@@ -348,9 +349,15 @@ class Trainer():
                         #LOG.debug(f"consistency_loss_value={consistency_loss_value}\trunning_consistency_loss={running_consistency_loss}")
 
 
-                    combined_loss=(args_in.consistency_weight*consistency_loss)+(combined_class_loss)
-                    combined_loss.backward()
-                    running_avg_combined_loss += (combined_loss.item() - running_avg_combined_loss) / (batch_index + 1)
+
+
+                    #for debug purposes- running student and teacher separately
+                    #combined_loss.backward()
+                    #combined_loss = (args_in.consistency_weight * consistency_loss) + (combined_class_loss)
+                    class_loss_lex.backward()
+                    assert class_loss_delex is not None
+                    class_loss_delex.backward()
+
 
 
 
@@ -387,7 +394,8 @@ class Trainer():
                             f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
                             f"classification_loss_lex:{round(running_loss_lex,2)}\t classification_loss_delex:{round(running_loss_delex,2)} "
                             f"\t consistencyloss:{round(running_consistency_loss,6)}"
-                            f" \t running_acc_lex:{round(running_acc_lex,4) }  \t running_acc_delex:{round(running_acc_delex,4)} \t combined_loss:{round(combined_loss.item(),6)}  ")
+                            f" \t running_acc_lex:{round(running_acc_lex,4) }  \t running_acc_delex:{round(running_acc_delex,4)}   ")
+
                     else:
 
                         LOG.debug(
@@ -437,8 +445,7 @@ class Trainer():
                         comet_value_updater.log_metric("teacher_lex_same_as_gold_but_student_is_different_percent  per batch",
                                                        teacher_lex_same_as_gold_but_student_is_different_percent,
                                                        step=batch_index)
-                        # comet_value_updater.log_metric("combined_loss_per batch", combined_loss.item(),
-                        #                                    step=batch_index)
+
                         # comet_value_updater.log_metric("training_classification_loss_teacher_lex_per_batch",
                         #                                loss_t_lex,
                         #                                    step=batch_index)
@@ -458,7 +465,8 @@ class Trainer():
                     f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
                     f"classification_loss_lex:{round(running_loss_lex,2)}\t classification_loss_delex:{round(running_loss_delex,2)} "
                     f"\t consistencyloss:{round(running_consistency_loss,6)}"
-                    f" \t running_acc_lex:{round(running_acc_lex,4) }  \t running_acc_delex:{round(running_acc_delex,4)} \t combined_loss:{round(combined_loss.item(),6)}  ")
+                    f" \t running_acc_lex:{round(running_acc_lex,4) }  \t running_acc_delex:{round(running_acc_delex,4)}  ")
+
 
 
                 train_state_in['train_acc'].append(running_acc_lex)
@@ -516,9 +524,6 @@ class Trainer():
                                                    step=epoch_index)
 
 
-
-                    comet_value_updater.log_metric("combined_loss_per_epoch", running_avg_combined_loss,
-                                                   step=epoch_index)
 
                     comet_value_updater.log_metric("training_classification_loss_lex_per_epoch", running_loss_lex,
                                                    step=epoch_index)

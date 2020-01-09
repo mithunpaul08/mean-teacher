@@ -220,13 +220,13 @@ class Trainer():
         elif args_in.consistency_type == 'kl':
             consistency_criterion = losses.softmax_kl_loss
 
-
+        classifier_teacher_lex = classifier_teacher_lex.to(args_in.device)
 
         if (args_in.add_student == True):
             classifier_student_delex = classifier_student_delex.to(args_in.device)
             input_optimizer, inter_atten_optimizer = initialize_optimizers([classifier_teacher_lex, classifier_student_delex], args_in)
         else:
-            classifier_teacher_lex = classifier_teacher_lex.to(args_in.device)
+
             input_optimizer, inter_atten_optimizer = initialize_optimizers(
                 [classifier_teacher_lex], args_in)
 
@@ -376,8 +376,8 @@ class Trainer():
                     # all classifier2 related code to calculate accuracy
                     if (args_in.add_student == True):
                         y_pred_labels_delex_sf = F.softmax(y_pred_delex, dim=1)
-                        right_predictions_student_delex_per_batch,acc_t_delex,student_predictions_by_label_class = self.compute_accuracy(y_pred_labels_delex_sf, batch_dict_lex['y_target'])
-                        total_right_predictions_student_delex=total_right_predictions_student_delex+right_predictions_student_delex_per_batch
+                        count_of_right_predictions_student_delex_per_batch,acc_t_delex,student_predictions_by_label_class = self.compute_accuracy(y_pred_labels_delex_sf, batch_dict_lex['y_target'])
+                        total_right_predictions_student_delex=total_right_predictions_student_delex+count_of_right_predictions_student_delex_per_batch
                         running_acc_delex += (acc_t_delex - running_acc_delex) / (batch_index + 1)
                         LOG.debug(
                             f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "

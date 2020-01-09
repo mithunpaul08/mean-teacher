@@ -97,9 +97,16 @@ else:
     embeddings = None
 
 num_features=len(vectorizer.claim_ev_vocab)
-classifier_teacher_lex = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
+classifier_teacher_lex=None
+if(args.use_ema):
+    classifier_teacher_lex = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
                                       , word_vocab_embed=embeddings, word_vocab_size=num_features, wordemb_size_in=embedding_size,ema=True)
+else:
+    classifier_teacher_lex = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
+                                          , word_vocab_embed=embeddings, word_vocab_size=num_features,
+                                          wordemb_size_in=embedding_size)
 
+assert classifier_teacher_lex is not None
 classifier_student_delex = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
                                         , word_vocab_embed=embeddings, word_vocab_size=num_features, wordemb_size_in=embedding_size)
 

@@ -42,7 +42,7 @@ Now to train on FEVER, run:
 
 
 ``` 
-python main.py --add_student True --which_gpu_to_use 0
+python main.py --add_student True --which_gpu_to_use 0 --create_new_comet_graph False --use_ema True
 ```
 
 You can keep track of the progress by doing `tail -f mean_teacher.log`
@@ -53,10 +53,12 @@ Notes:
 - in this particular case the file train_full_with_evi_sents is a collection of all claims and the corresponding
  evidences in the training data of [FEVER](http://fever.ai/) challenge. This is not available in public unlike the FEVER data. 
  This is the output of the IR module of FEVER baseline [code](http://fever.ai/task.html).
+- if you would like to reuse a single project in comet.ml (instead of a new project everytime)
+ to draw graphs do  `create_new_comet_graph False`.\
+- The value of `--use_ema True` will make the teacher an exponential moving average of the student. This replicates the architecture in harry valpola's mean teacher [work](https://papers.nips.cc/paper/6719-mean-teachers-are-better-role-models-weight-averaged-consistency-targets-improve-semi-supervised-deep-learning-results.pdf)
 
 
 Notes to self:
-- on laptop use `create_new_comet_graph False`. This makes sure that a new comet graph is not created every time when we are testing on laptop
 - to run on a laptop use `./get_glove_small.sh`
 - If you get: the import torch before comet error again. fixed it by forcefully upgrading to new version using pip install --no-cache-dir --upgrade comet_ml"
 - every time you do a fresh run or branch change, do wget from the commands above. Then do a head -100 for each of these files as shown below to reduce size

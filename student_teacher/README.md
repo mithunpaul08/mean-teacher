@@ -45,6 +45,8 @@ Now to train on FEVER, run:
 python main.py --add_student True --which_gpu_to_use 0
 ```
 
+You can keep track of the progress by doing `tail -f mean_teacher.log`
+
 Notes: 
 - if using in the mode of one teacher/classifier, remove `--add_student True`
 - if you dont want have a gpu, remove `--which_gpu_to_use 0`
@@ -54,6 +56,7 @@ Notes:
 
 
 Notes to self:
+- on laptop use `create_new_comet_graph False`. This makes sure that a new comet graph is not created every time when we are testing on laptop
 - to run on a laptop use `./get_glove_small.sh`
 - If you get: the import torch before comet error again. fixed it by forcefully upgrading to new version using pip install --no-cache-dir --upgrade comet_ml"
 - every time you do a fresh run or branch change, do wget from the commands above. Then do a head -100 for each of these files as shown below to reduce size

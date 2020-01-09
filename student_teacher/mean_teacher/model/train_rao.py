@@ -210,7 +210,7 @@ class Trainer():
             LOG.debug(
                 f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches} \t per_batch_accuracy_dev_set:{round(acc_t,4)} \t moving_avg_val_accuracy:{round(running_acc_val,4)} ")
 
-            return running_acc_val
+        return running_acc_val,running_loss_val
 
     def train(self, args_in, classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer):
 
@@ -551,11 +551,11 @@ class Trainer():
                 # test on dev with both student and teacher
                 dataset.set_split('val_delex')
                 classifier_student_delex.eval()
-                running_acc_val_student= self.eval(classifier_student_delex, args_in, dataset,epoch_index)
+                running_acc_val_student,running_loss_val_student= self.eval(classifier_student_delex, args_in, dataset,epoch_index)
 
                 dataset.set_split('val_lex')
                 classifier_teacher_lex.eval()
-                running_acc_val_teacher = self.eval(classifier_teacher_lex, args_in, dataset,epoch_index)
+                running_acc_val_teacher,running_loss_val_teacher = self.eval(classifier_teacher_lex, args_in, dataset,epoch_index)
 
 
 
@@ -566,7 +566,8 @@ class Trainer():
                 comet_value_updater.log_metric("acc_dev_per_global_step", running_acc_val_teacher,
                                                step=global_variables.global_step)
 
-
+                train_state_in['val_loss'].append(running_loss_val_student)
+                train_state_in['val_acc'].append(running_acc_val_student)
                 train_state_in = self.update_train_state(args=args_in, model=classifier_student_delex,
                                                          train_state=train_state_in)
 

@@ -501,8 +501,8 @@ class Trainer():
 
 
                 if (comet_value_updater is not None):
-                    comet_value_updater.log_metric("accuracy teacher model across epochs", running_acc_lex,step=epoch_index)
-                    comet_value_updater.log_metric("accuracy_student_model", running_acc_delex,
+                    comet_value_updater.log_metric("training accuracy teacher model across epochs", running_acc_lex,step=epoch_index)
+                    comet_value_updater.log_metric("training accuracy_student_model", running_acc_delex,
                                                    step=epoch_index)
                     comet_value_updater.log_metric("teacher_lex_same_as_gold_percent", teacher_lex_same_as_gold_percent,
                                                    step=epoch_index)
@@ -561,10 +561,10 @@ class Trainer():
 
 
                 assert comet_value_updater is not None
-                comet_value_updater.log_metric("acc_dev_per_epoch", running_acc_val_student, step=epoch_index)
-                comet_value_updater.log_metric("acc_dev_per_global_step", running_acc_val_student, step = global_variables.global_step)
-                comet_value_updater.log_metric("acc_dev_per_epoch", running_acc_val_teacher, step=epoch_index)
-                comet_value_updater.log_metric("acc_dev_per_global_step", running_acc_val_teacher,
+                comet_value_updater.log_metric("acc_dev_per_epoch_using_student_model", running_acc_val_student, step=epoch_index)
+                comet_value_updater.log_metric("acc_dev_per_global_step_using_student_model", running_acc_val_student, step = global_variables.global_step)
+                comet_value_updater.log_metric("acc_dev_per_epoch_using_teacher_model", running_acc_val_teacher, step=epoch_index)
+                comet_value_updater.log_metric("acc_dev_per_global_step_using_teacher_model", running_acc_val_teacher,
                                                step=global_variables.global_step)
 
                 train_state_in['val_loss'].append(running_loss_val_student)

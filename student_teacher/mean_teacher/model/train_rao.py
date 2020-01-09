@@ -222,11 +222,6 @@ class Trainer():
 
 
 
-
-
-
-
-
         if (args_in.add_student == True):
             classifier_student_delex = classifier_student_delex.to(args_in.device)
             input_optimizer, inter_atten_optimizer = initialize_optimizers([classifier_teacher_lex, classifier_student_delex], args_in)

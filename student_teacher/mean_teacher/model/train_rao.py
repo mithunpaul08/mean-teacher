@@ -242,7 +242,7 @@ class Trainer():
                 # Iterate over training dataset
 
                 # setup: batch generator, set class_loss_lex and acc to 0, set train mode on
-                dataset.set_split('train_lex')
+                dataset.set_split('train_delex')
 
                 batch_generator1=None
                 if(args_in.use_semi_supervised==True):

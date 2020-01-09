@@ -349,7 +349,7 @@ class Trainer():
                         consistency_loss = consistency_criterion(y_pred_lex, y_pred_delex)
                         consistency_loss_value = consistency_loss.item()
                         running_consistency_loss += (consistency_loss_value - running_consistency_loss) / (batch_index + 1)
-                        combined_class_loss=class_loss_lex+class_loss_delex
+                        combined_class_loss=class_loss_delex
                         #LOG.debug(f"consistency_loss_value={consistency_loss_value}\trunning_consistency_loss={running_consistency_loss}")
 
 
@@ -424,34 +424,34 @@ class Trainer():
                     teacher_lex_same_as_gold_but_student_is_different_percent = self.calculate_percentage(teacher_lex_same_as_gold_but_student_is_different, args_in.batch_size)
 
                     if (comet_value_updater is not None):
-                        comet_value_updater.log_metric("accuracy_teacher_model", acc_t_lex,
-                                                       step=batch_index)
-                        comet_value_updater.log_metric("accuracy_student_model", acc_t_delex,
-                                                       step=batch_index)
-                        comet_value_updater.log_metric("student_teacher_match_percent", student_teacher_match_percent,
-                                                       step=batch_index)
-                        comet_value_updater.log_metric("student_teacher_match_but_not_same_as_gold_percent",
-                                                       student_teacher_match_but_not_same_as_gold_percent,
-                                                       step=batch_index)
-                        comet_value_updater.log_metric("student_teacher_match_and_same_as_gold_percent",
-                                                       student_teacher_match_and_same_as_gold_percent,
-                                                       step=batch_index)
-                        comet_value_updater.log_metric("student_delex_same_as_gold_but_teacher_is_different_percent",
+                        # comet_value_updater.log_metric("accuracy_teacher_model  per batch", acc_t_lex,
+                        #                                step=batch_index)
+                        # comet_value_updater.log_metric("accuracy_student_model  per batch", acc_t_delex,
+                        #                                step=batch_index)
+                        # comet_value_updater.log_metric("student_teacher_match_percent  per batch", student_teacher_match_percent,
+                        #                                step=batch_index)
+                        # comet_value_updater.log_metric("student_teacher_match_but_not_same_as_gold_percent per batch",
+                        #                                student_teacher_match_but_not_same_as_gold_percent,
+                        #                                step=batch_index)
+                        # comet_value_updater.log_metric("student_teacher_match_and_same_as_gold_percent per batch",
+                        #                                student_teacher_match_and_same_as_gold_percent,
+                        #                                step=batch_index)
+                        comet_value_updater.log_metric("student_delex_same_as_gold_but_teacher_is_different_percent  per batch",
                                                        student_delex_same_as_gold_but_teacher_is_different_percent,
                                                        step=batch_index)
-                        comet_value_updater.log_metric("teacher_lex_same_as_gold_but_student_is_different_percent",
+                        comet_value_updater.log_metric("teacher_lex_same_as_gold_but_student_is_different_percent  per batch",
                                                        teacher_lex_same_as_gold_but_student_is_different_percent,
                                                        step=batch_index)
-                        comet_value_updater.log_metric("combined_loss_per_epoch", combined_loss.item(),
-                                                           step=batch_index)
-                        comet_value_updater.log_metric("training_classification_loss_teacher_lex_per_batch",
-                                                       loss_t_lex,
-                                                           step=batch_index)
-                        comet_value_updater.log_metric("delex_training_loss per epoch", loss_t_delex,
-                                                               step=batch_index)
-                        comet_value_updater.log_metric("consistency_loss_value per epoch",
-                                                               consistency_loss_value,
-                                                               step=batch_index)
+                        # comet_value_updater.log_metric("combined_loss_per batch", combined_loss.item(),
+                        #                                    step=batch_index)
+                        # comet_value_updater.log_metric("training_classification_loss_teacher_lex_per_batch",
+                        #                                loss_t_lex,
+                        #                                    step=batch_index)
+                        # comet_value_updater.log_metric("delex_training_loss per batch", loss_t_delex,
+                        #                                        step=batch_index)
+                        # comet_value_updater.log_metric("consistency_loss_value per batch",
+                        #                                        consistency_loss_value,
+                        #                                        step=batch_index)
 
                     # update bar
                     train_bar.set_postfix(loss=running_loss_lex,
@@ -476,12 +476,12 @@ class Trainer():
 
 
 
-                LOG.info(
+                LOG.debug(
                     f"running_acc_lex by old method at the end of {epoch_index}:{running_acc_lex}")
-                LOG.info(
+                LOG.debug(
                     f"accuracy_teacher_model_by_per_batch_prediction at the end of epoch{epoch_index}:{accuracy_teacher_model_by_per_batch_prediction}")
 
-                LOG.info(
+                LOG.debug(
                     f"acc_t_delex by old method {epoch_index}:{acc_t_delex}")
 
 
@@ -491,30 +491,30 @@ class Trainer():
 
 
 
-                LOG.info(f" teacher_lex_same_as_gold_percent:{teacher_lex_same_as_gold_percent}")
-                LOG.info(f" student_delex_same_as_gold_percent:{student_delex_same_as_gold_percent}")
-                LOG.info(f" student_teacher_match_percent:{student_teacher_match_percent}")
-                LOG.info(f" student_teacher_match_but_not_same_as_gold_percent:{student_teacher_match_but_not_same_as_gold_percent}")
-                LOG.info(f" student_teacher_match_and_same_as_gold_percent:{student_teacher_match_and_same_as_gold_percent}")
-                LOG.info(f" student_delex_same_as_gold_but_teacher_is_different_percent:{student_delex_same_as_gold_but_teacher_is_different_percent}")
-                LOG.info(f" teacher_lex_same_as_gold_but_student_is_different_percent:{teacher_lex_same_as_gold_but_student_is_different_percent}")
+                LOG.debug(f" teacher_lex_same_as_gold_percent:{teacher_lex_same_as_gold_percent}")
+                LOG.debug(f" student_delex_same_as_gold_percent:{student_delex_same_as_gold_percent}")
+                LOG.debug(f" student_teacher_match_percent:{student_teacher_match_percent}")
+                LOG.debug(f" student_teacher_match_but_not_same_as_gold_percent:{student_teacher_match_but_not_same_as_gold_percent}")
+                LOG.debug(f" student_teacher_match_and_same_as_gold_percent:{student_teacher_match_and_same_as_gold_percent}")
+                LOG.debug(f" student_delex_same_as_gold_but_teacher_is_different_percent:{student_delex_same_as_gold_but_teacher_is_different_percent}")
+                LOG.debug(f" teacher_lex_same_as_gold_but_student_is_different_percent:{teacher_lex_same_as_gold_but_student_is_different_percent}")
 
 
                 if (comet_value_updater is not None):
-                    comet_value_updater.log_metric("training accuracy teacher model across epochs", running_acc_lex,step=epoch_index)
-                    comet_value_updater.log_metric("training accuracy_student_model", running_acc_delex,
+                    comet_value_updater.log_metric("training accuracy of teacher model per epoch", running_acc_lex,step=epoch_index)
+                    comet_value_updater.log_metric("training accuracy of student_model per epoch", running_acc_delex,
                                                    step=epoch_index)
-                    comet_value_updater.log_metric("teacher_lex_same_as_gold_percent", teacher_lex_same_as_gold_percent,
+                    # comet_value_updater.log_metric("teacher_lex_same_as_gold_percent_per_epoch", teacher_lex_same_as_gold_percent,
+                    #                                step=epoch_index)
+                    # comet_value_updater.log_metric("student_delex_same_as_gold_percent_per_epoch", student_delex_same_as_gold_percent,
+                    #                                step=epoch_index)
+                    # comet_value_updater.log_metric("student_teacher_match_percent_per_epoch", student_teacher_match_percent,
+                    #                                step=epoch_index)
+                    comet_value_updater.log_metric("student_teacher_match_but_not_same_as_gold_percent_per_epoch", student_teacher_match_but_not_same_as_gold_percent,
                                                    step=epoch_index)
-                    comet_value_updater.log_metric("student_delex_same_as_gold_percent", student_delex_same_as_gold_percent,
+                    comet_value_updater.log_metric("student_teacher_match_and_same_as_gold_percent_per_epoch", student_teacher_match_and_same_as_gold_percent,
                                                    step=epoch_index)
-                    comet_value_updater.log_metric("student_teacher_match_percent", student_teacher_match_percent,
-                                                   step=epoch_index)
-                    comet_value_updater.log_metric("student_teacher_match_but_not_same_as_gold_percent", student_teacher_match_but_not_same_as_gold_percent,
-                                                   step=epoch_index)
-                    comet_value_updater.log_metric("student_teacher_match_and_same_as_gold_percent", student_teacher_match_and_same_as_gold_percent,
-                                                   step=epoch_index)
-                    comet_value_updater.log_metric("student_delex_same_as_gold_but_teacher_is_different_percent", student_delex_same_as_gold_but_teacher_is_different_percent,
+                    comet_value_updater.log_metric("student_delex_same_as_gold_but_teacher_is_different_percent_per_epoch", student_delex_same_as_gold_but_teacher_is_different_percent,
                                                    step=epoch_index)
                     comet_value_updater.log_metric("teacher_lex_same_as_gold_but_student_is_different_percent",
                                                    teacher_lex_same_as_gold_but_student_is_different_percent,
@@ -533,16 +533,16 @@ class Trainer():
 
                 if (args_in.add_student == True):
                     if (comet_value_updater is not None):
-                        comet_value_updater.log_metric("delex_training_loss per epoch", running_loss_delex,
+                        comet_value_updater.log_metric("delex_training_loss_per_epoch", running_loss_delex,
                                                        step=epoch_index)
 
-                        comet_value_updater.log_metric("accuracy_student_model per epoch", running_acc_delex,
+                        comet_value_updater.log_metric("accuracy_student_model_per_epoch", running_acc_delex,
                                                        step=epoch_index)
-                        comet_value_updater.log_metric("accuracy_student_model per global step", running_acc_delex,
+                        comet_value_updater.log_metric("accuracy_student_delex_model_per_global_step", running_acc_delex,
                                                        step=global_variables.global_step)
 
 
-                        comet_value_updater.log_metric("running_consistency_loss per epoch",
+                        comet_value_updater.log_metric("consistency_loss per epoch",
                                                        running_consistency_loss,
                                                        step=epoch_index)
 

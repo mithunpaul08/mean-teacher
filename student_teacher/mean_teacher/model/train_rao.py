@@ -231,19 +231,8 @@ class Trainer():
                 [classifier_teacher_lex], args_in)
 
         train_state_in = self.make_train_state(args_in)
-        epoch_bar = tqdm_notebook(desc='training routine',
-                                  total=args_in.num_epochs,
-                                  position=0)
-        dataset.set_split('train_lex')
-        train_bar = tqdm_notebook(desc='split=train',
-                                  total=dataset.get_num_batches(args_in.batch_size),
-                                  position=1,
-                                  leave=True)
-        dataset.set_split('val_lex')
-        val_bar = tqdm_notebook(desc='split=val',
-                                total=dataset.get_num_batches(args_in.batch_size),
-                                position=1,
-                                leave=True)
+
+
 
 
         try:
@@ -427,18 +416,7 @@ class Trainer():
                     teacher_lex_same_as_gold_but_student_is_different_percent = self.calculate_percentage(teacher_lex_same_as_gold_but_student_is_different, args_in.batch_size)
 
                     if (comet_value_updater is not None):
-                        # comet_value_updater.log_metric("accuracy_teacher_model  per batch", acc_t_lex,
-                        #                                step=batch_index)
-                        # comet_value_updater.log_metric("accuracy_student_model  per batch", acc_t_delex,
-                        #                                step=batch_index)
-                        # comet_value_updater.log_metric("student_teacher_match_percent  per batch", student_teacher_match_percent,
-                        #                                step=batch_index)
-                        # comet_value_updater.log_metric("student_teacher_match_but_not_same_as_gold_percent per batch",
-                        #                                student_teacher_match_but_not_same_as_gold_percent,
-                        #                                step=batch_index)
-                        # comet_value_updater.log_metric("student_teacher_match_and_same_as_gold_percent per batch",
-                        #                                student_teacher_match_and_same_as_gold_percent,
-                        #                                step=batch_index)
+
                         comet_value_updater.log_metric("student_delex_same_as_gold_but_teacher_is_different_percent  per batch",
                                                        student_delex_same_as_gold_but_teacher_is_different_percent,
                                                        step=batch_index)
@@ -446,20 +424,7 @@ class Trainer():
                                                        teacher_lex_same_as_gold_but_student_is_different_percent,
                                                        step=batch_index)
 
-                        # comet_value_updater.log_metric("training_classification_loss_teacher_lex_per_batch",
-                        #                                loss_t_lex,
-                        #                                    step=batch_index)
-                        # comet_value_updater.log_metric("delex_training_loss per batch", loss_t_delex,
-                        #                                        step=batch_index)
-                        # comet_value_updater.log_metric("consistency_loss_value per batch",
-                        #                                        consistency_loss_value,
-                        #                                        step=batch_index)
 
-                    # update bar
-                    train_bar.set_postfix(loss=running_loss_lex,
-                                          acc=running_acc_lex,
-                                          epoch=epoch_index)
-                    train_bar.update()
 
                 LOG.info(
                     f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
@@ -476,16 +441,22 @@ class Trainer():
 
                 self.number_of_datapoints = total_gold_label_count
                 accuracy_teacher_model_by_per_batch_prediction = self.calculate_percentage(total_right_predictions_teacher_lex,self.number_of_datapoints)
+                accuracy_student_model_by_per_batch_prediction = self.calculate_percentage(
+                    total_right_predictions_student_delex, self.number_of_datapoints)
 
 
 
-                LOG.debug(
+                LOG.info(
                     f"running_acc_lex by old method at the end of {epoch_index}:{running_acc_lex}")
-                LOG.debug(
+                LOG.info(
                     f"accuracy_teacher_model_by_per_batch_prediction at the end of epoch{epoch_index}:{accuracy_teacher_model_by_per_batch_prediction}")
 
-                LOG.debug(
-                    f"acc_t_delex by old method {epoch_index}:{acc_t_delex}")
+                LOG.info(
+                    f"acc_t_delex by old method {epoch_index}:{running_acc_delex}")
+
+                LOG.info(
+                    f"accuracy_student_model_by_per_batch_prediction method at the end of epoch{epoch_index}:{ accuracy_student_model_by_per_batch_prediction}")
+
 
 
 
@@ -536,8 +507,6 @@ class Trainer():
                         comet_value_updater.log_metric("delex_training_loss_per_epoch", running_loss_delex,
                                                        step=epoch_index)
 
-                        comet_value_updater.log_metric("accuracy_student_model_per_epoch", running_acc_delex,
-                                                       step=epoch_index)
                         comet_value_updater.log_metric("accuracy_student_delex_model_per_global_step", running_acc_delex,
                                                        step=global_variables.global_step)
 
@@ -574,16 +543,13 @@ class Trainer():
 
 
 
-                train_bar.n = 0
-                val_bar.n = 0
-                epoch_bar.update()
+
+
 
                 if train_state_in['stop_early']:
                     break
 
-                train_bar.n = 0
-                val_bar.n = 0
-                epoch_bar.update()
+
 
                 LOG.info(
                     f" running_acc_val_student_end_of_epoch:{round(running_acc_val_student,2)} ")

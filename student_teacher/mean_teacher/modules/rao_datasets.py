@@ -158,6 +158,9 @@ class RTEDataset(Dataset):
         self._target_df, self._target_size = self._lookup_dict[split]
         self._labels = self._target_df.label
 
+    def get_split(self):
+        return self._target_df
+
     def __len__(self):
         return self._target_size
 

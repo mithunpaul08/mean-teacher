@@ -7,8 +7,14 @@ from tqdm import tqdm,tqdm_notebook
 from torch.nn import functional as F
 from mean_teacher.utils.logger import LOG
 from mean_teacher.utils import global_variables
-
+from torch.utils.data import DataLoader
+import copy
 NO_LABEL=-1
+if torch.cuda.is_available():
+    class_loss_func = nn.CrossEntropyLoss(ignore_index=NO_LABEL).cuda()
+else:
+    class_loss_func = nn.CrossEntropyLoss(ignore_index=NO_LABEL).cpu()
+
 class Trainer():
     def __init__(self,LOG):
         self._LOG=LOG
@@ -179,6 +185,33 @@ class Trainer():
         for ema_param, param in zip(ema_model.parameters(), model.parameters()):
             ema_param.data.mul_(alpha).add_(1 - alpha, param.data)
 
+    def eval(self,classifier,args_in,dataset,epoch_index):
+        batch_generator_val = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
+                                               device=args_in.device, shuffle=False)
+        running_loss_val = 0.
+        running_acc_val = 0.
+
+        no_of_batches= int(len(dataset) / args_in.batch_size)
+        for batch_index, batch_dict in enumerate(tqdm(batch_generator_val, desc="dev_batches", total=no_of_batches)):
+            # compute the output
+            y_pred_val = classifier(batch_dict['x_claim'], batch_dict['x_evidence'])
+
+            # step 3. compute the class_loss
+            class_loss = class_loss_func(y_pred_val, batch_dict['y_target'])
+            loss_t = class_loss.item()
+            running_loss_val += (loss_t - running_loss_val) / (batch_index + 1)
+
+            # compute the accuracy
+            y_pred_labels_val_sf = F.softmax(y_pred_val, dim=1)
+            right_predictions, acc_t, predictions_by_label_class = self.compute_accuracy(y_pred_labels_val_sf,
+                                                                                         batch_dict['y_target'])
+            running_acc_val += (acc_t - running_acc_val) / (batch_index + 1)
+
+
+            LOG.debug(
+                f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches} \t per_batch_accuracy_dev_set:{round(acc_t,4)} \t moving_avg_val_accuracy:{round(running_acc_val,4)} ")
+
+        return running_acc_val,running_loss_val
 
     def train(self, args_in, classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer):
 
@@ -188,38 +221,19 @@ class Trainer():
         elif args_in.consistency_type == 'kl':
             consistency_criterion = losses.softmax_kl_loss
 
-
-
-        if torch.cuda.is_available():
-            class_loss_func = nn.CrossEntropyLoss(ignore_index=NO_LABEL).cuda()
-        else:
-            class_loss_func = nn.CrossEntropyLoss(ignore_index=NO_LABEL).cpu()
-
-
-
+        classifier_teacher_lex = classifier_teacher_lex.to(args_in.device)
 
         if (args_in.add_student == True):
             classifier_student_delex = classifier_student_delex.to(args_in.device)
             input_optimizer, inter_atten_optimizer = initialize_optimizers([classifier_teacher_lex, classifier_student_delex], args_in)
         else:
-            classifier_teacher_lex = classifier_teacher_lex.to(args_in.device)
+
             input_optimizer, inter_atten_optimizer = initialize_optimizers(
                 [classifier_teacher_lex], args_in)
 
         train_state_in = self.make_train_state(args_in)
-        epoch_bar = tqdm_notebook(desc='training routine',
-                                  total=args_in.num_epochs,
-                                  position=0)
-        dataset.set_split('train_lex')
-        train_bar = tqdm_notebook(desc='split=train',
-                                  total=dataset.get_num_batches(args_in.batch_size),
-                                  position=1,
-                                  leave=True)
-        dataset.set_split('val_lex')
-        val_bar = tqdm_notebook(desc='split=val',
-                                total=dataset.get_num_batches(args_in.batch_size),
-                                position=1,
-                                leave=True)
+
+
 
 
         try:
@@ -230,14 +244,19 @@ class Trainer():
 
                 # setup: batch generator, set class_loss_lex and acc to 0, set train mode on
                 dataset.set_split('train_lex')
+                dataset_lex= copy.deepcopy(dataset)
+
+
 
                 batch_generator1=None
                 if(args_in.use_semi_supervised==True):
                     assert args_in.percentage_labels_for_semi_supervised > 0
-                    batch_generator1 = generate_batches_for_semi_supervised(dataset, args_in.percentage_labels_for_semi_supervised, workers=args_in.workers, batch_size=args_in.batch_size,
+                    batch_generator1 = generate_batches_for_semi_supervised(dataset_lex, args_in.percentage_labels_for_semi_supervised, workers=args_in.workers, batch_size=args_in.batch_size,
                                                         device=args_in.device,mask_value=args_in.NO_LABEL )
                 else:
-                    batch_generator1 = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,device=args_in.device)
+                    batch_generator1 = generate_batches(dataset_lex, workers=args_in.workers, batch_size=args_in.batch_size,device=args_in.device)
+                    #batch_generator1 = DataLoader(dataset, batch_size=args_in.batch_size, shuffle=False, pin_memory=True,
+                                            #drop_last=False, num_workers=args_in.workers)
 
                 no_of_batches_lex = int(len(dataset)/args_in.batch_size)
 
@@ -245,17 +264,19 @@ class Trainer():
 
                 if (args_in.add_student == True):
                     dataset.set_split('train_delex')
+                    dataset_delex = copy.deepcopy(dataset)
+
                     batch_generator2=None
                     if (args_in.use_semi_supervised == True):
                         assert args_in.percentage_labels_for_semi_supervised > 0
-                        batch_generator2 = generate_batches_for_semi_supervised(dataset,
+                        batch_generator2 = generate_batches_for_semi_supervised(dataset_delex,
                                                                                 args_in.percentage_labels_for_semi_supervised,
                                                                                 workers=args_in.workers,
                                                                                 batch_size=args_in.batch_size,
                                                                                 device=args_in.device,mask_value=args_in.NO_LABEL  )
 
                     else:
-                        batch_generator2 = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
+                        batch_generator2 = generate_batches(dataset_delex, workers=args_in.workers, batch_size=args_in.batch_size,
                                                             device=args_in.device)
 
                     assert batch_generator2 is not None
@@ -263,7 +284,7 @@ class Trainer():
                 no_of_batches_delex = int(len(dataset) / args_in.batch_size)
 
                 running_consistency_loss = 0.0
-                running_avg_combined_loss=0.0
+
 
                 running_loss_lex = 0.0
                 running_acc_lex = 0.0
@@ -308,6 +329,7 @@ class Trainer():
 
                     combined_class_loss = class_loss_lex
                     consistency_loss=0
+                    class_loss_delex=None
 
                     #all classifier2 related code (the one which feeds off delexicalized data). all steps before .backward()
                     if (args_in.add_student == True):
@@ -320,13 +342,19 @@ class Trainer():
                         consistency_loss = consistency_criterion(y_pred_lex, y_pred_delex)
                         consistency_loss_value = consistency_loss.item()
                         running_consistency_loss += (consistency_loss_value - running_consistency_loss) / (batch_index + 1)
-                        combined_class_loss=class_loss_lex+class_loss_delex
+                        combined_class_loss=class_loss_delex
                         #LOG.debug(f"consistency_loss_value={consistency_loss_value}\trunning_consistency_loss={running_consistency_loss}")
 
 
-                    combined_loss=(args_in.consistency_weight*consistency_loss)+(combined_class_loss)
-                    combined_loss.backward()
-                    running_avg_combined_loss += (combined_loss.item() - running_avg_combined_loss) / (batch_index + 1)
+
+
+                    #for debug purposes- running student and teacher separately
+                    #combined_loss.backward()
+                    #combined_loss = (args_in.consistency_weight * consistency_loss) + (combined_class_loss)
+                    class_loss_lex.backward()
+                    assert class_loss_delex is not None
+                    class_loss_delex.backward()
+
 
 
 
@@ -336,7 +364,8 @@ class Trainer():
                     inter_atten_optimizer.step()
 
                     global_variables.global_step += 1
-                    self.update_ema_variables(classifier_student_delex, classifier_teacher_lex, args_in.ema_decay, global_variables.global_step)
+                    if (args_in.use_ema):
+                        self.update_ema_variables(classifier_student_delex, classifier_teacher_lex, args_in.ema_decay, global_variables.global_step)
 
 
 
@@ -355,14 +384,15 @@ class Trainer():
                     # all classifier2 related code to calculate accuracy
                     if (args_in.add_student == True):
                         y_pred_labels_delex_sf = F.softmax(y_pred_delex, dim=1)
-                        right_predictions_student_delex_per_batch,acc_t_delex,student_predictions_by_label_class = self.compute_accuracy(y_pred_labels_delex_sf, batch_dict_lex['y_target'])
-                        total_right_predictions_student_delex=total_right_predictions_student_delex+right_predictions_student_delex_per_batch
+                        count_of_right_predictions_student_delex_per_batch,acc_t_delex,student_predictions_by_label_class = self.compute_accuracy(y_pred_labels_delex_sf, batch_dict_lex['y_target'])
+                        total_right_predictions_student_delex=total_right_predictions_student_delex+count_of_right_predictions_student_delex_per_batch
                         running_acc_delex += (acc_t_delex - running_acc_delex) / (batch_index + 1)
                         LOG.debug(
                             f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
                             f"classification_loss_lex:{round(running_loss_lex,2)}\t classification_loss_delex:{round(running_loss_delex,2)} "
                             f"\t consistencyloss:{round(running_consistency_loss,6)}"
-                            f" \t running_acc_lex:{round(running_acc_lex,4) }  \t running_acc_delex:{round(running_acc_delex,4)} \t combined_loss:{round(combined_loss.item(),6)}  ")
+                            f" \t running_acc_lex:{round(running_acc_lex,4) }  \t running_acc_delex:{round(running_acc_delex,4)}   ")
+
                     else:
 
                         LOG.debug(
@@ -394,46 +424,22 @@ class Trainer():
                     teacher_lex_same_as_gold_but_student_is_different_percent = self.calculate_percentage(teacher_lex_same_as_gold_but_student_is_different, args_in.batch_size)
 
                     if (comet_value_updater is not None):
-                        comet_value_updater.log_metric("accuracy_teacher_model", acc_t_lex,
-                                                       step=batch_index)
-                        comet_value_updater.log_metric("accuracy_student_model", acc_t_delex,
-                                                       step=batch_index)
-                        comet_value_updater.log_metric("student_teacher_match_percent", student_teacher_match_percent,
-                                                       step=batch_index)
-                        comet_value_updater.log_metric("student_teacher_match_but_not_same_as_gold_percent",
-                                                       student_teacher_match_but_not_same_as_gold_percent,
-                                                       step=batch_index)
-                        comet_value_updater.log_metric("student_teacher_match_and_same_as_gold_percent",
-                                                       student_teacher_match_and_same_as_gold_percent,
-                                                       step=batch_index)
-                        comet_value_updater.log_metric("student_delex_same_as_gold_but_teacher_is_different_percent",
+
+                        comet_value_updater.log_metric("student_delex_same_as_gold_but_teacher_is_different_percent  per batch",
                                                        student_delex_same_as_gold_but_teacher_is_different_percent,
                                                        step=batch_index)
-                        comet_value_updater.log_metric("teacher_lex_same_as_gold_but_student_is_different_percent",
+                        comet_value_updater.log_metric("teacher_lex_same_as_gold_but_student_is_different_percent  per batch",
                                                        teacher_lex_same_as_gold_but_student_is_different_percent,
                                                        step=batch_index)
-                        comet_value_updater.log_metric("combined_loss_per_epoch", combined_loss.item(),
-                                                           step=batch_index)
-                        comet_value_updater.log_metric("training_classification_loss_teacher_lex_per_batch",
-                                                       loss_t_lex,
-                                                           step=batch_index)
-                        comet_value_updater.log_metric("delex_training_loss per epoch", loss_t_delex,
-                                                               step=batch_index)
-                        comet_value_updater.log_metric("consistency_loss_value per epoch",
-                                                               consistency_loss_value,
-                                                               step=batch_index)
 
-                    # update bar
-                    train_bar.set_postfix(loss=running_loss_lex,
-                                          acc=running_acc_lex,
-                                          epoch=epoch_index)
-                    train_bar.update()
+
 
                 LOG.info(
                     f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
                     f"classification_loss_lex:{round(running_loss_lex,2)}\t classification_loss_delex:{round(running_loss_delex,2)} "
                     f"\t consistencyloss:{round(running_consistency_loss,6)}"
-                    f" \t running_acc_lex:{round(running_acc_lex,4) }  \t running_acc_delex:{round(running_acc_delex,4)} \t combined_loss:{round(combined_loss.item(),6)}  ")
+                    f" \t running_acc_lex:{round(running_acc_lex,4) }  \t running_acc_delex:{round(running_acc_delex,4)}  ")
+
 
 
                 train_state_in['train_acc'].append(running_acc_lex)
@@ -443,6 +449,8 @@ class Trainer():
 
                 self.number_of_datapoints = total_gold_label_count
                 accuracy_teacher_model_by_per_batch_prediction = self.calculate_percentage(total_right_predictions_teacher_lex,self.number_of_datapoints)
+                accuracy_student_model_by_per_batch_prediction = self.calculate_percentage(
+                    total_right_predictions_student_delex, self.number_of_datapoints)
 
 
 
@@ -452,7 +460,11 @@ class Trainer():
                     f"accuracy_teacher_model_by_per_batch_prediction at the end of epoch{epoch_index}:{accuracy_teacher_model_by_per_batch_prediction}")
 
                 LOG.info(
-                    f"acc_t_delex by old method {epoch_index}:{acc_t_delex}")
+                    f"acc_t_delex by old method {epoch_index}:{running_acc_delex}")
+
+                LOG.info(
+                    f"accuracy_student_model_by_per_batch_prediction method at the end of epoch{epoch_index}:{ accuracy_student_model_by_per_batch_prediction}")
+
 
 
 
@@ -461,39 +473,36 @@ class Trainer():
 
 
 
-                LOG.info(f" teacher_lex_same_as_gold_percent:{teacher_lex_same_as_gold_percent}")
-                LOG.info(f" student_delex_same_as_gold_percent:{student_delex_same_as_gold_percent}")
-                LOG.info(f" student_teacher_match_percent:{student_teacher_match_percent}")
-                LOG.info(f" student_teacher_match_but_not_same_as_gold_percent:{student_teacher_match_but_not_same_as_gold_percent}")
-                LOG.info(f" student_teacher_match_and_same_as_gold_percent:{student_teacher_match_and_same_as_gold_percent}")
-                LOG.info(f" student_delex_same_as_gold_but_teacher_is_different_percent:{student_delex_same_as_gold_but_teacher_is_different_percent}")
-                LOG.info(f" teacher_lex_same_as_gold_but_student_is_different_percent:{teacher_lex_same_as_gold_but_student_is_different_percent}")
+                LOG.debug(f" teacher_lex_same_as_gold_percent:{teacher_lex_same_as_gold_percent}")
+                LOG.debug(f" student_delex_same_as_gold_percent:{student_delex_same_as_gold_percent}")
+                LOG.debug(f" student_teacher_match_percent:{student_teacher_match_percent}")
+                LOG.debug(f" student_teacher_match_but_not_same_as_gold_percent:{student_teacher_match_but_not_same_as_gold_percent}")
+                LOG.debug(f" student_teacher_match_and_same_as_gold_percent:{student_teacher_match_and_same_as_gold_percent}")
+                LOG.debug(f" student_delex_same_as_gold_but_teacher_is_different_percent:{student_delex_same_as_gold_but_teacher_is_different_percent}")
+                LOG.debug(f" teacher_lex_same_as_gold_but_student_is_different_percent:{teacher_lex_same_as_gold_but_student_is_different_percent}")
 
 
                 if (comet_value_updater is not None):
-                    comet_value_updater.log_metric("accuracy teacher model across epochs", running_acc_lex,step=epoch_index)
-                    comet_value_updater.log_metric("accuracy_student_model", running_acc_delex,
+                    comet_value_updater.log_metric("training accuracy of teacher model per epoch", running_acc_lex,step=epoch_index)
+                    comet_value_updater.log_metric("training accuracy of student_model per epoch", running_acc_delex,
                                                    step=epoch_index)
-                    comet_value_updater.log_metric("teacher_lex_same_as_gold_percent", teacher_lex_same_as_gold_percent,
+                    # comet_value_updater.log_metric("teacher_lex_same_as_gold_percent_per_epoch", teacher_lex_same_as_gold_percent,
+                    #                                step=epoch_index)
+                    # comet_value_updater.log_metric("student_delex_same_as_gold_percent_per_epoch", student_delex_same_as_gold_percent,
+                    #                                step=epoch_index)
+                    # comet_value_updater.log_metric("student_teacher_match_percent_per_epoch", student_teacher_match_percent,
+                    #                                step=epoch_index)
+                    comet_value_updater.log_metric("student_teacher_match_but_not_same_as_gold_percent_per_epoch", student_teacher_match_but_not_same_as_gold_percent,
                                                    step=epoch_index)
-                    comet_value_updater.log_metric("student_delex_same_as_gold_percent", student_delex_same_as_gold_percent,
+                    comet_value_updater.log_metric("student_teacher_match_and_same_as_gold_percent_per_epoch", student_teacher_match_and_same_as_gold_percent,
                                                    step=epoch_index)
-                    comet_value_updater.log_metric("student_teacher_match_percent", student_teacher_match_percent,
-                                                   step=epoch_index)
-                    comet_value_updater.log_metric("student_teacher_match_but_not_same_as_gold_percent", student_teacher_match_but_not_same_as_gold_percent,
-                                                   step=epoch_index)
-                    comet_value_updater.log_metric("student_teacher_match_and_same_as_gold_percent", student_teacher_match_and_same_as_gold_percent,
-                                                   step=epoch_index)
-                    comet_value_updater.log_metric("student_delex_same_as_gold_but_teacher_is_different_percent", student_delex_same_as_gold_but_teacher_is_different_percent,
+                    comet_value_updater.log_metric("student_delex_same_as_gold_but_teacher_is_different_percent_per_epoch", student_delex_same_as_gold_but_teacher_is_different_percent,
                                                    step=epoch_index)
                     comet_value_updater.log_metric("teacher_lex_same_as_gold_but_student_is_different_percent",
                                                    teacher_lex_same_as_gold_but_student_is_different_percent,
                                                    step=epoch_index)
 
 
-
-                    comet_value_updater.log_metric("combined_loss_per_epoch", running_avg_combined_loss,
-                                                   step=epoch_index)
 
                     comet_value_updater.log_metric("training_classification_loss_lex_per_epoch", running_loss_lex,
                                                    step=epoch_index)
@@ -503,88 +512,57 @@ class Trainer():
 
                 if (args_in.add_student == True):
                     if (comet_value_updater is not None):
-                        comet_value_updater.log_metric("delex_training_loss per epoch", running_loss_delex,
+                        comet_value_updater.log_metric("delex_training_loss_per_epoch", running_loss_delex,
                                                        step=epoch_index)
 
-                        comet_value_updater.log_metric("accuracy_student_model per epoch", running_acc_delex,
-                                                       step=epoch_index)
-                        comet_value_updater.log_metric("accuracy_student_model per global step", running_acc_delex,
+                        comet_value_updater.log_metric("accuracy_student_delex_model_per_global_step", running_acc_delex,
                                                        step=global_variables.global_step)
 
 
-                        comet_value_updater.log_metric("running_consistency_loss per epoch",
+                        comet_value_updater.log_metric("consistency_loss per epoch",
                                                        running_consistency_loss,
                                                        step=epoch_index)
 
 
 
                 # Iterate over val dataset
-                # we will always test/validate on delexicalized data
+                # test on dev with both student and teacher
                 dataset.set_split('val_delex')
-                batch_generator_val = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
-                                                    device=args_in.device, shuffle=False)
-                running_loss_val = 0.
-                running_acc_val = 0.
+                classifier_student_delex.eval()
+                running_acc_val_student,running_loss_val_student= self.eval(classifier_student_delex, args_in, dataset,epoch_index)
+
+                dataset.set_split('val_lex')
+                classifier_teacher_lex.eval()
+                running_acc_val_teacher,running_loss_val_teacher = self.eval(classifier_teacher_lex, args_in, dataset,epoch_index)
 
 
-                if (args_in.add_student == True):
-                    classifier_student_delex.eval()
-                else:
-                    classifier_teacher_lex.eval()
 
-                no_of_batches_lex = int(len(dataset) / args_in.batch_size)
+                assert comet_value_updater is not None
+                comet_value_updater.log_metric("acc_dev_per_epoch_using_student_model", running_acc_val_student, step=epoch_index)
+                comet_value_updater.log_metric("acc_dev_per_global_step_using_student_model", running_acc_val_student, step = global_variables.global_step)
+                comet_value_updater.log_metric("acc_dev_per_epoch_using_teacher_model", running_acc_val_teacher, step=epoch_index)
+                comet_value_updater.log_metric("acc_dev_per_global_step_using_teacher_model", running_acc_val_teacher,
+                                               step=global_variables.global_step)
 
-                for batch_index, batch_dict in enumerate(tqdm(batch_generator_val,desc="dev_batches",total=no_of_batches_delex)):
-                    # compute the output
-
-                    if (args_in.add_student == True):
-                        y_pred_val = classifier_student_delex(batch_dict['x_claim'], batch_dict['x_evidence'])
-                    else:
-                        y_pred_val = classifier_teacher_lex(batch_dict['x_claim'], batch_dict['x_evidence'])
-
-                    # step 3. compute the class_loss
-                    class_loss = class_loss_func(y_pred_val, batch_dict['y_target'])
-                    loss_t = class_loss.item()
-                    running_loss_val += (loss_t - running_loss_val) / (batch_index + 1)
-
-                    # compute the accuracy
-                    y_pred_labels_val_sf = F.softmax(y_pred_val, dim=1)
-                    #acc_t = self.compute_accuracy(y_pred_labels_val_sf, batch_dict['y_target'])
-                    right_predictions, acc_t, predictions_by_label_class = self.compute_accuracy(y_pred_labels_val_sf, batch_dict['y_target'])
-                    running_acc_val += (acc_t - running_acc_val) / (batch_index + 1)
-
-                    if (comet_value_updater is not None):
-                        comet_value_updater.log_metric("running_acc_dev_per_batch", running_acc_val, step=batch_index)
-
-                    LOG.debug(
-                        f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches_lex} \t per_batch_accuracy_dev_set:{round(acc_t,4)} \t moving_avg_val_accuracy:{round(running_acc_val,4)} ")
-
-                train_state_in['val_loss'].append(running_loss_val)
-                train_state_in['val_acc'].append(running_acc_val)
-
-                if (comet_value_updater is not None):
-                    comet_value_updater.log_metric("acc_dev_per_epoch", running_acc_val, step=epoch_index)
-                    comet_value_updater.log_metric("acc_dev_per_global_step", running_acc_val, step = global_variables.global_step)
-
-
+                train_state_in['val_loss'].append(running_loss_val_student)
+                train_state_in['val_acc'].append(running_acc_val_student)
                 train_state_in = self.update_train_state(args=args_in, model=classifier_student_delex,
                                                          train_state=train_state_in)
 
 
 
-                train_bar.n = 0
-                val_bar.n = 0
-                epoch_bar.update()
+
+
 
                 if train_state_in['stop_early']:
                     break
 
-                train_bar.n = 0
-                val_bar.n = 0
-                epoch_bar.update()
+
 
                 LOG.info(
-                    f" val_accuracy_end_of_epoch:{round(running_acc_val,2)} ")
+                    f" running_acc_val_student_end_of_epoch:{round(running_acc_val_student,2)} ")
+                LOG.info(
+                    f" running_acc_val_teacher_end_of_epoch:{round(running_acc_val_teacher,2)} ")
                 LOG.info(
                     f"****************end of epoch {epoch_index}*********************")
 

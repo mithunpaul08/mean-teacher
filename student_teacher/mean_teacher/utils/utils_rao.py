@@ -29,7 +29,7 @@ def preprocess_text(text):
 
 
 
-def generate_batches(dataset,workers,batch_size,device ,shuffle=True,
+def generate_batches(dataset,workers,batch_size,device ,shuffle=False,
                      drop_last=True ):
     """
     A generator function which wraps the PyTorch DataLoader. It will

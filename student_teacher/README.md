@@ -29,28 +29,40 @@ wget https://storage.googleapis.com/fact_verification_mithun_files/fever_train_l
 wget https://storage.googleapis.com/fact_verification_mithun_files/fever_train_delex_oaner_4labels.jsonl -O data/rte/fever/train/fever_train_delex.jsonl
 wget https://storage.googleapis.com/fact_verification_mithun_files/fever_dev_lex_4labels.jsonl -O data/rte/fever/dev/fever_dev_lex.jsonl
 wget https://storage.googleapis.com/fact_verification_mithun_files/fever_dev_delex_oaner_split_4labels.jsonl -O data/rte/fever/dev/fever_dev_delex.jsonl
- 
-
 ```
-Note that in this particular case the file train_full_with_evi_sents is a collection of all claims and the corresponding
- evidences in the training data of [FEVER](http://fever.ai/) challenge. This is not available in public unlike the FEVER data. 
- This is the output of the IR module of FEVER baseline [code](http://fever.ai/task.html).
 
-To train on FEVER, run e.g.:
+or run
+```
+./get_data.sh
+./get_glove.sh
+```
+
+
+Now to train on FEVER, run:
 
 
 ``` 
-python main.py --add_student True --which_gpu_to_use 0
+python main.py --add_student True --which_gpu_to_use 0 --create_new_comet_graph False --use_ema True
 ```
 
+You can keep track of the progress by doing `tail -f mean_teacher.log`
+
 Notes: 
-- if using in the mode of one teacher/classifier, remove `--add_student True`
-- if you dont want have a gpu, remove `--which_gpu_to_use 0`
+- if using in the mode of one teacher/classifier (i.e no students), remove `--add_student True`
+- if you dont have a gpu, remove `--which_gpu_to_use 0`
+- in this particular case the file train_full_with_evi_sents is a collection of all claims and the corresponding
+ evidences in the training data of [FEVER](http://fever.ai/) challenge. This is not available in public unlike the FEVER data. 
+ This is the output of the IR module of FEVER baseline [code](http://fever.ai/task.html).
+- if you would like to reuse a single project in comet.ml (instead of a new project everytime)
+ to draw graphs do  `create_new_comet_graph False`. It is advised to create a new project because the graphs get left over from previous runs. Instead if you are tesitng on say a toy dataset, its ok, to reuse a project.
+- The value of `--use_ema True` will make the teacher an exponential moving average of the student. This replicates the architecture in harry valpola's mean teacher [work](https://papers.nips.cc/paper/6719-mean-teachers-are-better-role-models-weight-averaged-consistency-targets-improve-semi-supervised-deep-learning-results.pdf)
 
 
 Notes to self:
-
+- to run on a laptop use `./get_glove_small.sh`
+- on server dont do `./get_glove.sh` . instead do `cp ~/glove/glove.840B.300d.txt data/glove/glove.840B.300d.txt` 
 - If you get: the import torch before comet error again. fixed it by forcefully upgrading to new version using pip install --no-cache-dir --upgrade comet_ml"
+- in clara its better to use `--which_gpu_to_use 2` since everyone gets assigned gpu0 by default
 - every time you do a fresh run or branch change, do wget from the commands above. Then do a head -100 for each of these files as shown below to reduce size
 ```
 head -100 data/rte/fever/train/fever_train_delex.jsonl > temp

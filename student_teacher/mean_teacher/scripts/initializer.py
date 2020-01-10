@@ -121,6 +121,8 @@ class Initializer():
                             help='choice between DEBUG, INFO ,ERROR ,WARNING')
         parser.add_argument('--consistency_type', default='mse', type=str,
                             help='choice between kl,mse')
+        parser.add_argument('--use_ema', default="False", type=self.str2bool,
+                            help='use teacher student architecture with exponential moving average/mean teacher')
 
 
 

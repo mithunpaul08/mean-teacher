@@ -44,12 +44,12 @@ def generate_batches(dataset,workers,batch_size,device ,shuffle=False,
         dataloader=DataLoader(dataset,batch_sampler=batch_sampler_local,num_workers=workers,pin_memory=True)
     else:
         dataloader = DataLoader(dataset,batch_size=batch_size,shuffle=False,pin_memory=True,drop_last=False,num_workers=workers)
-    return dataloader
-    # for data_dict in dataloader:
-    #     out_data_dict = {}
-    #     for name, tensor in data_dict.items():
-    #         out_data_dict[name] = data_dict[name].to(device)
-    #     yield out_data_dict
+    #return dataloader
+    for data_dict in dataloader:
+        out_data_dict = {}
+        for name, tensor in data_dict.items():
+            out_data_dict[name] = data_dict[name].to(device)
+        yield out_data_dict
 
 def generate_batches_for_semi_supervised(dataset,percentage_labels_for_semi_supervised,workers,batch_size,device,shuffle=True,
                      drop_last=True,mask_value=-1 ):

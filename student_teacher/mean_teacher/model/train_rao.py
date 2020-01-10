@@ -7,7 +7,8 @@ from tqdm import tqdm,tqdm_notebook
 from torch.nn import functional as F
 from mean_teacher.utils.logger import LOG
 from mean_teacher.utils import global_variables
-
+from torch.utils.data import DataLoader
+import copy
 NO_LABEL=-1
 if torch.cuda.is_available():
     class_loss_func = nn.CrossEntropyLoss(ignore_index=NO_LABEL).cuda()
@@ -242,15 +243,20 @@ class Trainer():
                 # Iterate over training dataset
 
                 # setup: batch generator, set class_loss_lex and acc to 0, set train mode on
-                dataset.set_split('train_delex')
+                dataset.set_split('train_lex')
+                dataset_lex= copy.deepcopy(dataset)
+
+
 
                 batch_generator1=None
                 if(args_in.use_semi_supervised==True):
                     assert args_in.percentage_labels_for_semi_supervised > 0
-                    batch_generator1 = generate_batches_for_semi_supervised(dataset, args_in.percentage_labels_for_semi_supervised, workers=args_in.workers, batch_size=args_in.batch_size,
+                    batch_generator1 = generate_batches_for_semi_supervised(dataset_lex, args_in.percentage_labels_for_semi_supervised, workers=args_in.workers, batch_size=args_in.batch_size,
                                                         device=args_in.device,mask_value=args_in.NO_LABEL )
                 else:
-                    batch_generator1 = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,device=args_in.device)
+                    batch_generator1 = generate_batches(dataset_lex, workers=args_in.workers, batch_size=args_in.batch_size,device=args_in.device)
+                    #batch_generator1 = DataLoader(dataset, batch_size=args_in.batch_size, shuffle=False, pin_memory=True,
+                                            #drop_last=False, num_workers=args_in.workers)
 
                 no_of_batches_lex = int(len(dataset)/args_in.batch_size)
 
@@ -258,17 +264,19 @@ class Trainer():
 
                 if (args_in.add_student == True):
                     dataset.set_split('train_delex')
+                    dataset_delex = copy.deepcopy(dataset)
+
                     batch_generator2=None
                     if (args_in.use_semi_supervised == True):
                         assert args_in.percentage_labels_for_semi_supervised > 0
-                        batch_generator2 = generate_batches_for_semi_supervised(dataset,
+                        batch_generator2 = generate_batches_for_semi_supervised(dataset_delex,
                                                                                 args_in.percentage_labels_for_semi_supervised,
                                                                                 workers=args_in.workers,
                                                                                 batch_size=args_in.batch_size,
                                                                                 device=args_in.device,mask_value=args_in.NO_LABEL  )
 
                     else:
-                        batch_generator2 = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
+                        batch_generator2 = generate_batches(dataset_delex, workers=args_in.workers, batch_size=args_in.batch_size,
                                                             device=args_in.device)
 
                     assert batch_generator2 is not None

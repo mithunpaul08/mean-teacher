@@ -342,18 +342,15 @@ class Trainer():
                         consistency_loss = consistency_criterion(y_pred_lex, y_pred_delex)
                         consistency_loss_value = consistency_loss.item()
                         running_consistency_loss += (consistency_loss_value - running_consistency_loss) / (batch_index + 1)
-                        combined_class_loss=class_loss_delex
-                        #LOG.debug(f"consistency_loss_value={consistency_loss_value}\trunning_consistency_loss={running_consistency_loss}")
+                        combined_class_loss=class_loss_delex+class_loss_lex
 
 
 
 
-                    #for debug purposes- running student and teacher separately
-                    #combined_loss.backward()
-                    #combined_loss = (args_in.consistency_weight * consistency_loss) + (combined_class_loss)
-                    class_loss_lex.backward()
-                    assert class_loss_delex is not None
-                    class_loss_delex.backward()
+
+                    combined_class_loss.backward()
+                    #combined loss is the sum of two classification losses and one consistency loss
+                    # #combined_loss = (args_in.consistency_weight * consistency_loss) + (combined_class_loss)
 
 
 
@@ -486,26 +483,18 @@ class Trainer():
                     comet_value_updater.log_metric("training accuracy of teacher model per epoch", running_acc_lex,step=epoch_index)
                     comet_value_updater.log_metric("training accuracy of student_model per epoch", running_acc_delex,
                                                    step=epoch_index)
-                    # comet_value_updater.log_metric("teacher_lex_same_as_gold_percent_per_epoch", teacher_lex_same_as_gold_percent,
-                    #                                step=epoch_index)
-                    # comet_value_updater.log_metric("student_delex_same_as_gold_percent_per_epoch", student_delex_same_as_gold_percent,
-                    #                                step=epoch_index)
-                    # comet_value_updater.log_metric("student_teacher_match_percent_per_epoch", student_teacher_match_percent,
-                    #                                step=epoch_index)
-                    comet_value_updater.log_metric("student_teacher_match_but_not_same_as_gold_percent_per_epoch", student_teacher_match_but_not_same_as_gold_percent,
-                                                   step=epoch_index)
-                    comet_value_updater.log_metric("student_teacher_match_and_same_as_gold_percent_per_epoch", student_teacher_match_and_same_as_gold_percent,
-                                                   step=epoch_index)
-                    comet_value_updater.log_metric("student_delex_same_as_gold_but_teacher_is_different_percent_per_epoch", student_delex_same_as_gold_but_teacher_is_different_percent,
-                                                   step=epoch_index)
-                    comet_value_updater.log_metric("teacher_lex_same_as_gold_but_student_is_different_percent",
+
+                    comet_value_updater.log_metric("student_teacher_match_but_not_same_as_gold_percent_per global step", student_teacher_match_but_not_same_as_gold_percent,
+                                                   step=global_variables.global_step)
+                    comet_value_updater.log_metric("student_teacher_match_and_same_as_gold_percent_per global step", student_teacher_match_and_same_as_gold_percent,
+                                                   step=global_variables.global_step)
+                    comet_value_updater.log_metric("student_delex_same_as_gold_but_teacher_is_different_percent_per global step", student_delex_same_as_gold_but_teacher_is_different_percent,
+                                                   step=global_variables.global_step)
+                    comet_value_updater.log_metric("teacher_lex_same_as_gold_but_student_is_different_percent per global step",
                                                    teacher_lex_same_as_gold_but_student_is_different_percent,
-                                                   step=epoch_index)
-
-
-
-                    comet_value_updater.log_metric("training_classification_loss_lex_per_epoch", running_loss_lex,
-                                                   step=epoch_index)
+                                                   step=global_variables.global_step)
+                    comet_value_updater.log_metric("training_classification_loss_lex_per global step", running_loss_lex,
+                                                   step=global_variables.global_step)
                     comet_value_updater.log_metric("training_classification_loss_lex_per_global step", running_loss_lex,
                                                    step=global_variables.global_step)
 
@@ -514,10 +503,8 @@ class Trainer():
                     if (comet_value_updater is not None):
                         comet_value_updater.log_metric("delex_training_loss_per_epoch", running_loss_delex,
                                                        step=epoch_index)
-
-                        comet_value_updater.log_metric("accuracy_student_delex_model_per_global_step", running_acc_delex,
+                        comet_value_updater.log_metric("accuracy_training_student_delex_model_per_global_step", running_acc_delex,
                                                        step=global_variables.global_step)
-
 
                         comet_value_updater.log_metric("consistency_loss per epoch",
                                                        running_consistency_loss,
@@ -526,11 +513,12 @@ class Trainer():
 
 
                 # Iterate over val dataset
-                # test on dev with both student and teacher
+                # test on dev with  student model
                 dataset.set_split('val_delex')
                 classifier_student_delex.eval()
                 running_acc_val_student,running_loss_val_student= self.eval(classifier_student_delex, args_in, dataset,epoch_index)
 
+                # test on dev with  teacher model
                 dataset.set_split('val_lex')
                 classifier_teacher_lex.eval()
                 running_acc_val_teacher,running_loss_val_teacher = self.eval(classifier_teacher_lex, args_in, dataset,epoch_index)

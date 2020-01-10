@@ -518,19 +518,12 @@ class Trainer():
                 classifier_student_delex.eval()
                 running_acc_val_student,running_loss_val_student= self.eval(classifier_student_delex, args_in, dataset,epoch_index)
 
-                # test on dev with  teacher model
-                dataset.set_split('val_lex')
-                classifier_teacher_lex.eval()
-                running_acc_val_teacher,running_loss_val_teacher = self.eval(classifier_teacher_lex, args_in, dataset,epoch_index)
-
 
 
                 assert comet_value_updater is not None
                 comet_value_updater.log_metric("acc_dev_per_epoch_using_student_model", running_acc_val_student, step=epoch_index)
                 comet_value_updater.log_metric("acc_dev_per_global_step_using_student_model", running_acc_val_student, step = global_variables.global_step)
-                comet_value_updater.log_metric("acc_dev_per_epoch_using_teacher_model", running_acc_val_teacher, step=epoch_index)
-                comet_value_updater.log_metric("acc_dev_per_global_step_using_teacher_model", running_acc_val_teacher,
-                                               step=global_variables.global_step)
+
 
                 train_state_in['val_loss'].append(running_loss_val_student)
                 train_state_in['val_acc'].append(running_acc_val_student)

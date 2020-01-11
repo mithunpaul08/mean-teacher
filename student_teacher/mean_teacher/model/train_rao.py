@@ -348,9 +348,11 @@ class Trainer():
 
 
 
-                    combined_class_loss.backward()
+
                     #combined loss is the sum of two classification losses and one consistency loss
-                    # #combined_loss = (args_in.consistency_weight * consistency_loss) + (combined_class_loss)
+                    combined_loss = (args_in.consistency_weight * consistency_loss) + (combined_class_loss)
+                    combined_loss.backward()
+
 
 
 

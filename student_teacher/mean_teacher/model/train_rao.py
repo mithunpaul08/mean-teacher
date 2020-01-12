@@ -248,38 +248,37 @@ class Trainer():
 
 
 
-                batch_generator1=None
+                batch_generator_lex_data=None
                 if(args_in.use_semi_supervised==True):
                     assert args_in.percentage_labels_for_semi_supervised > 0
-                    batch_generator1 = generate_batches_for_semi_supervised(dataset_lex, args_in.percentage_labels_for_semi_supervised, workers=args_in.workers, batch_size=args_in.batch_size,
+                    batch_generator_lex_data = generate_batches_for_semi_supervised(dataset_lex, args_in.percentage_labels_for_semi_supervised, workers=args_in.workers, batch_size=args_in.batch_size,
                                                         device=args_in.device,mask_value=args_in.NO_LABEL )
                 else:
-                    batch_generator1 = generate_batches(dataset_lex, workers=args_in.workers, batch_size=args_in.batch_size,device=args_in.device)
-                    #batch_generator1 = DataLoader(dataset, batch_size=args_in.batch_size, shuffle=False, pin_memory=True,
+                    batch_generator_lex_data = generate_batches(dataset_lex, workers=args_in.workers, batch_size=args_in.batch_size,device=args_in.device)
+                    #batch_generator_lex_data = DataLoader(dataset, batch_size=args_in.batch_size, shuffle=False, pin_memory=True,
                                             #drop_last=False, num_workers=args_in.workers)
 
                 no_of_batches_lex = int(len(dataset)/args_in.batch_size)
 
-                assert batch_generator1 is not None
+                assert batch_generator_lex_data is not None
+                batch_generator_delex_data = None
 
                 if (args_in.add_student == True):
                     dataset.set_split('train_delex')
                     dataset_delex = copy.deepcopy(dataset)
-
-                    batch_generator2=None
                     if (args_in.use_semi_supervised == True):
                         assert args_in.percentage_labels_for_semi_supervised > 0
-                        batch_generator2 = generate_batches_for_semi_supervised(dataset_delex,
+                        batch_generator_delex_data = generate_batches_for_semi_supervised(dataset_delex,
                                                                                 args_in.percentage_labels_for_semi_supervised,
                                                                                 workers=args_in.workers,
                                                                                 batch_size=args_in.batch_size,
                                                                                 device=args_in.device,mask_value=args_in.NO_LABEL  )
 
                     else:
-                        batch_generator2 = generate_batches(dataset_delex, workers=args_in.workers, batch_size=args_in.batch_size,
+                        batch_generator_delex_data = generate_batches(dataset_delex, workers=args_in.workers, batch_size=args_in.batch_size,
                                                             device=args_in.device)
 
-                    assert batch_generator2 is not None
+                    assert batch_generator_delex_data is not None
 
                 no_of_batches_delex = int(len(dataset) / args_in.batch_size)
 
@@ -297,7 +296,12 @@ class Trainer():
                 total_right_predictions_student_delex = 0
                 total_gold_label_count=0
 
-                for batch_index, (batch_dict_lex,batch_dict_delex) in enumerate(tqdm(zip(batch_generator1,batch_generator2),desc="training_batches",total=no_of_batches_delex)):
+
+                combined_data_generators = zip(batch_generator_lex_data, batch_generator_delex_data)
+
+                assert combined_data_generators is not None
+
+                for batch_index, (batch_dict_lex,batch_dict_delex) in enumerate(tqdm(combined_data_generators,desc="training_batches",total=no_of_batches_delex)):
 
                     # the training routine is these 5 steps:
 
@@ -317,7 +321,16 @@ class Trainer():
 
 
                     # step 2. compute the output
-                    y_pred_lex = classifier_teacher_lex(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
+                    y_pred_lex=None
+                    #when in ema mode, make the teacher also make its  prediction over delex data .
+                    #  In ema mode, this wont be back propagated, so wouldn't really matter.
+                    if (args_in.use_ema):
+                        y_pred_lex = classifier_teacher_lex(batch_dict_delex['x_claim'], batch_dict_delex['x_evidence'])
+                    else:
+                        y_pred_lex = classifier_teacher_lex(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
+
+                    assert y_pred_lex is not None
+                    assert len(y_pred_lex) > 0
                     total_gold_label_count=total_gold_label_count+len(batch_dict_lex['y_target'])
 
 
@@ -342,7 +355,11 @@ class Trainer():
                         consistency_loss = consistency_criterion(y_pred_lex, y_pred_delex)
                         consistency_loss_value = consistency_loss.item()
                         running_consistency_loss += (consistency_loss_value - running_consistency_loss) / (batch_index + 1)
-                        combined_class_loss=class_loss_delex+class_loss_lex
+
+                        if (args_in.use_ema):
+                            combined_class_loss=class_loss_delex
+                        else:
+                            combined_class_loss = class_loss_delex + class_loss_lex
 
 
 
@@ -520,8 +537,7 @@ class Trainer():
                 classifier_student_delex.eval()
                 running_acc_val_student,running_loss_val_student= self.eval(classifier_student_delex, args_in, dataset,epoch_index)
 
-                # test on dev with  teacher model
-                dataset.set_split('val_lex')
+                #test using the trained teacher also on same dev delex partition. this is because in ema mode teacher is almost same as a student.
                 classifier_teacher_lex.eval()
                 running_acc_val_teacher,running_loss_val_teacher = self.eval(classifier_teacher_lex, args_in, dataset,epoch_index)
 

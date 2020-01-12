@@ -51,7 +51,7 @@ def generate_batches(dataset,workers,batch_size,device ,shuffle=False,
             out_data_dict[name] = data_dict[name].to(device)
         yield out_data_dict
 
-def generate_batches_for_semi_supervised(dataset,percentage_labels_for_semi_supervised,workers,batch_size,device,shuffle=True,
+def generate_batches_for_semi_supervised(dataset,percentage_labels_for_semi_supervised,workers,batch_size,device,shuffle=False,
                      drop_last=True,mask_value=-1 ):
     '''
     similar to generate_batches but will mask/replace the labels of certain certain percentage of indices with -1. a

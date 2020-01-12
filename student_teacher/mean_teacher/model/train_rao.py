@@ -537,7 +537,9 @@ class Trainer():
                 classifier_student_delex.eval()
                 running_acc_val_student,running_loss_val_student= self.eval(classifier_student_delex, args_in, dataset,epoch_index)
 
-                #test using the trained teacher also on same dev delex partition. this is because in ema mode teacher is almost same as a student.
+                #when in ema mode, teacher is same as student pretty much. so test on delex partition of dev. else teacher and student are separate entities. use teacher to test on dev parition of lexicalized data itself.
+                if not (args_in.use_ema):
+                    dataset.set_split('val_lex')
                 classifier_teacher_lex.eval()
                 running_acc_val_teacher,running_loss_val_teacher = self.eval(classifier_teacher_lex, args_in, dataset,epoch_index)
 

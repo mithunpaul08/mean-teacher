@@ -22,13 +22,16 @@ class Initializer():
             fever_lex_train_local='train/fever_train_lex.jsonl',
             fever_lex_dev_local='dev/fever_dev_lex.jsonl',
             fever_delex_train_local='train/fever_train_delex.jsonl',
-            fever_delex_dev_local='dev/fever_dev_delex.jsonl',
+            #todo: this is a temporary hack on jan 13th to dev on fnc-dev
+            fever_delex_dev_local='dev/fnc_dev_delex.jsonl',
+
 
             #for server
             fever_lex_train_server='train/fever_train_lex.jsonl',
             fever_lex_dev_server='dev/fever_dev_lex.jsonl',
             fever_delex_train_server='train/fever_train_delex.jsonl',
-            fever_delex_dev_server='dev/fever_dev_delex.jsonl',
+            # todo: this is a temporary hack on jan 13th to dev on fnc-dev
+            fever_delex_dev_server='dev/fnc_dev_delex.jsonl',
 
             data_dir_local='data/rte/fever',
             data_dir_server='data/rte/fever',

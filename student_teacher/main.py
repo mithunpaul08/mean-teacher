@@ -69,8 +69,7 @@ LOG.setLevel(args.log_level)
 
 current_time={time.strftime("%c")}
 
-glove_filepath_in, fever_lex_train_input_file, fever_lex_dev_input_file, fever_delex_train_input_file, \
-fever_delex_dev_input_file=initializer.get_file_paths(args)
+glove_filepath_in, fever_lex_train_input_file, fever_lex_dev_input_file, fever_delex_train_input_file, fever_delex_dev_input_file, test_delex_input_file=initializer.get_file_paths(args)
 LOG.info(f"{current_time} loading glove from path:{glove_filepath_in}")
 
 
@@ -80,7 +79,7 @@ if args.reload_from_files:
                                                               args.vectorizer_file)
 else:
     # create dataset and vectorizer
-    dataset = RTEDataset.load_dataset_and_create_vocabulary_for_combined_lex_delex(fever_lex_train_input_file, fever_lex_dev_input_file, fever_delex_train_input_file, fever_delex_dev_input_file, args)
+    dataset = RTEDataset.load_dataset_and_create_vocabulary_for_combined_lex_delex(fever_lex_train_input_file, fever_lex_dev_input_file, fever_delex_train_input_file, fever_delex_dev_input_file,test_delex_input_file, args)
     dataset.save_vectorizer(args.vectorizer_file)
 vectorizer = dataset.get_vectorizer()
 

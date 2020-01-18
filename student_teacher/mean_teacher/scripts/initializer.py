@@ -23,7 +23,8 @@ class Initializer():
             fever_lex_dev_local='dev/fever_dev_lex.jsonl',
             fever_delex_train_local='train/fever_train_delex.jsonl',
             #todo: this is a temporary hack on jan 13th to dev on fnc-dev
-            fever_delex_dev_local='dev/fnc_dev_delex.jsonl',
+            fever_delex_dev_local='dev/fever_dev_delex.jsonl',
+            fnc_delex_test_local='dev/fnc_test_delex.jsonl',
 
 
             #for server
@@ -150,6 +151,7 @@ class Initializer():
         fever_lex_dev_input_file = os.path.join(os.getcwd(),data_dir, self._args.fever_lex_dev_local)
         fever_delex_train_input_file = os.path.join(os.getcwd(),data_dir, self._args.fever_delex_train_local)
         fever_delex_dev_input_file = os.path.join(os.getcwd(),data_dir, self._args.fever_delex_dev_local)
+        delex_test_input_file=os.path.join(os.getcwd(),data_dir, self._args.fnc_delex_test_local)
 
 
-        return glove_filepath_in,fever_lex_train_input_file,fever_lex_dev_input_file,fever_delex_train_input_file,fever_delex_dev_input_file
+        return glove_filepath_in,fever_lex_train_input_file,fever_lex_dev_input_file,fever_delex_train_input_file,fever_delex_dev_input_file,delex_test_input_file

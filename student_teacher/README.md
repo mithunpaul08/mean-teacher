@@ -42,7 +42,7 @@ Now to train on FEVER, run:
 
 
 ``` 
-python main.py --add_student True --which_gpu_to_use 0 --create_new_comet_graph False --use_ema True
+python main.py --add_student True --which_gpu_to_use 2  --use_ema True
 ```
 
 You can keep track of the progress by doing `tail -f mean_teacher.log`
@@ -78,10 +78,7 @@ mv temp data/rte/fever/dev/fever_dev_lex.jsonl
 
 or run `./reduce_size.sh`
 update: Jan 18th2020
-- to test with fnc, download fnc_train file using this command:
-```
-wget https://storage.googleapis.com/fact_verification_mithun_files/fnc_delexicalized/person-c1/fnc_train_mithun_modified_with_ner_replacement.jsonl -O data/rte/fnc/train/fnc_train_delex.jsonl
-```
+- to test with fnc, download fnc_train file using the command added to get_data.sh
 - then do head -25413 on this and rename it as fnc_dev_delex.jsonl
 - then make fever_delex_dev_local point to this file in initializer.py
 - this is a hack. had to do it this way because i couldn't find a fnc dev or test file which was delexicalized using PERSON-C1 format. Everything we have is personc1 (i.e without the dash)

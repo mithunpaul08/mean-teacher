@@ -160,12 +160,12 @@ class Initializer():
         delex_dev_full_path = os.path.join(os.getcwd(), self._args.data_dir, self._args.delex_dev)
         delex_test_full_path = os.path.join(os.getcwd(), self._args.data_dir, self._args.delex_test)
 
-        LOG.info(f" lex_train_full_path:{lex_train_full_path)} ")
-        LOG.info(f" lex_dev_full_path:{lex_dev_full_path)} ")
-        LOG.info(f" lex_test_full_path:{lex_test_full_path)} ")
-        LOG.info(f" delex_train_full_path:{delex_train_full_path)} ")
-        LOG.info(f" delex_dev_full_path:{delex_dev_full_path)} ")
-        LOG.info(f" delex_test_full_path:{delex_test_full_path)} ")
+        LOG.info(f" lex_train_full_path:{lex_train_full_path} ")
+        LOG.info(f" lex_dev_full_path:{lex_dev_full_path} ")
+        LOG.info(f" lex_test_full_path:{lex_test_full_path} ")
+        LOG.info(f" delex_train_full_path:{delex_train_full_path} ")
+        LOG.info(f" delex_dev_full_path:{delex_dev_full_path} ")
+        LOG.info(f" delex_test_full_path:{delex_test_full_path} ")
 
         assert glove_filepath_in is not None
         assert lex_train_full_path is not None

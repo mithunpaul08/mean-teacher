@@ -13,6 +13,7 @@ conda create --name mean_teacher python=3 numpy scipy pandas nltk tqdm
 source activate mean_teacher
 pip sklearn
 pip install git+ssh://git@github.com/pytorch/vision@c31c3d7e0e68e871d2128c8b731698ed3b11b119
+pip install gitpython
 conda install pytorch-cpu torchvision-cpu -c pytorch *
 ```
 \* **note**: for pytorch instinstallation get the right command from the pytorch [homepage](https://pytorch.org/) based on your OS and configs.

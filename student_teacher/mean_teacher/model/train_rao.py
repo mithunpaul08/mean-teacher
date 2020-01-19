@@ -548,6 +548,9 @@ class Trainer():
                 classifier_student_delex.eval()
                 running_acc_test_student, running_loss_test_student = self.eval(classifier_student_delex, args_in,
                                                                               dataset, epoch_index)
+                classifier_teacher_lex.eval()
+                running_acc_test_teacher, running_loss_test_teacher = self.eval(classifier_teacher_lex, args_in, dataset,
+                                                                              epoch_index)
 
                 assert comet_value_updater is not None
                 comet_value_updater.log_metric("acc_dev_per_epoch_using_student_model", running_acc_val_student, step=epoch_index)
@@ -556,6 +559,8 @@ class Trainer():
                 comet_value_updater.log_metric("acc_dev_per_global_step_using_teacher_model", running_acc_val_teacher,
                                                step=global_variables.global_step)
                 comet_value_updater.log_metric("running_acc_test_student", running_acc_test_student,
+                                               step=epoch_index)
+                comet_value_updater.log_metric("running_acc_test_teacher", running_acc_test_teacher,
                                                step=epoch_index)
 
                 train_state_in['val_loss'].append(running_loss_val_student)
@@ -579,6 +584,8 @@ class Trainer():
                     f" running_acc_val_teacher_end_of_epoch:{round(running_acc_val_teacher,2)} ")
                 LOG.info(
                     f" running_acc_on_test_partition_by_student_end_of_epoch:{round(running_acc_test_student,2)} ")
+                LOG.info(
+                    f" running_acc_on_test_partition_by_teacher_end_of_epoch:{round(running_acc_test_student,2)} ")
                 LOG.info(
                     f"****************end of epoch {epoch_index}*********************")
 

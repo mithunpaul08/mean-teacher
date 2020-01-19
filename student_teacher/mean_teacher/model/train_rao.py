@@ -585,7 +585,7 @@ class Trainer():
                 LOG.info(
                     f" running_acc_on_test_partition_by_student_end_of_epoch:{round(running_acc_test_student,2)} ")
                 LOG.info(
-                    f" running_acc_on_test_partition_by_teacher_end_of_epoch:{round(running_acc_test_student,2)} ")
+                    f" running_acc_on_test_partition_by_teacher_end_of_epoch:{round(running_acc_test_teacher,2)} ")
                 LOG.info(
                     f"****************end of epoch {epoch_index}*********************")
 

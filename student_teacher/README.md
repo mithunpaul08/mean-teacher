@@ -23,19 +23,18 @@ conda install pytorch-cpu torchvision-cpu -c pytorch *
 
 Run these commands from parent folder :
 
-Note: change files in `./get_data.sh` accordingly
+Note: uncomment corresponding lines in `./get_data_run.sh` according to which datasets you want to train-dev-test
+
 ```
-./get_data.sh
 ./get_glove.sh
 ```
 
-
 Now to train , run:
 
-
-```./run_main.sh
 ```
-You can keep track of the progress by doing `tail -f mean_teacher.log`
+./get_data_run.sh
+```
+You can keep track of the progress by doing `tail -f mean_teacher_sha.log` where sha is the sha of the latest git commit
 
 Notes: 
 - if using in the mode of one teacher/classifier (i.e no students), remove `--add_student True`

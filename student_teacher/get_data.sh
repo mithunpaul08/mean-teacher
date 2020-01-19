@@ -1,3 +1,8 @@
+#!/usr/bin/env bash
+
+#pick according to which one you want to train, dev, test on
+
+
 mkdir -p data/rte/fever/train/
 mkdir -p data/rte/fever/dev/
 mkdir -p data/rte/fnc/train/

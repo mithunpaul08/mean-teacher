@@ -20,31 +20,21 @@ conda install pytorch-cpu torchvision-cpu -c pytorch *
 *PS: I personally like/trust `pip install *` instead of `conda install` * because the repos of pip are more comprehensive
 
 
+
 Run these commands from parent folder :
 
-```
-mkdir -p data/rte/fever/train/
-mkdir -p data/rte/fever/dev/
-wget https://storage.googleapis.com/fact_verification_mithun_files/fever_train_lex_4labels.jsonl -O data/rte/fever/train/fever_train_lex.jsonl
-wget https://storage.googleapis.com/fact_verification_mithun_files/fever_train_delex_oaner_4labels.jsonl -O data/rte/fever/train/fever_train_delex.jsonl
-wget https://storage.googleapis.com/fact_verification_mithun_files/fever_dev_lex_4labels.jsonl -O data/rte/fever/dev/fever_dev_lex.jsonl
-wget https://storage.googleapis.com/fact_verification_mithun_files/fever_dev_delex_oaner_split_4labels.jsonl -O data/rte/fever/dev/fever_dev_delex.jsonl
-```
-
-or run
+Note: change files in `./get_data.sh` accordingly
 ```
 ./get_data.sh
 ./get_glove.sh
 ```
 
 
-Now to train on FEVER, run:
+Now to train , run:
 
 
-``` 
-python main.py --add_student True --which_gpu_to_use 2  --use_ema True
+```./run_main.sh
 ```
-
 You can keep track of the progress by doing `tail -f mean_teacher.log`
 
 Notes: 

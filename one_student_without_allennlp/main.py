@@ -41,8 +41,8 @@ glove_filepath_in, train_input_file, dev_input_file, test_input_file=initializer
 
 
 LOG.debug(" glove path:{glove_filepath_in}")
-LOG.debug(f"value of train_input_file is :{train_input_file}")
-LOG.debug(f"value of dev_input_file is :{dev_input_file}")
+LOG.debug(f"value of lex_train_input_file is :{lex_train_input_file}")
+LOG.debug(f"value of lex_dev_input_file is :{lex_dev_input_file}")
 
 
 if args.load_vectorizer:

@@ -36,8 +36,8 @@ class Initializer():
             mednli_test_lex='rte/mednli/test/mednli_test_lex.jsonl',
             mednli_dev='rte/mednli/dev/mednli_dev.jsonl',
 
-            train_file='rte/train_input_file.jsonl',
-            dev_file='rte/dev_input_file.jsonl',
+            train_file='rte/lex_train_input_file.jsonl',
+            dev_file='rte/lex_dev_input_file.jsonl',
             test_file='rte/test_input_file.jsonl',
 
 
@@ -155,19 +155,19 @@ class Initializer():
         LOG.debug(f"inside get_file_paths(). value of data_dir is:{data_dir}")
         assert os.path.exists(data_dir) is True
         train_input_file = self.join_data_dir_path(data_dir, args_in.train_file)
-        LOG.debug(f"inside get_file_paths(). value of train_input_file is:{train_input_file}")
+        LOG.debug(f"inside get_file_paths(). value of lex_train_input_file is:{lex_train_input_file}")
 
         dev_input_file = self.join_data_dir_path(data_dir, args_in.dev_file)
-        LOG.debug(f"inside get_file_paths(). value of train_input_file is:{train_input_file}")
+        LOG.debug(f"inside get_file_paths(). value of lex_train_input_file is:{lex_train_input_file}")
         test_input_file = self.join_data_dir_path(data_dir, args_in.test_file)
-        LOG.debug(f"train_input_file:{train_input_file}")
-        LOG.debug(f"dev_input_file:{dev_input_file}")
-        assert train_input_file is not None
-        assert dev_input_file is not None
+        LOG.debug(f"lex_train_input_file:{lex_train_input_file}")
+        LOG.debug(f"lex_dev_input_file:{lex_dev_input_file}")
+
 
         glove_filepath_in=self.join_data_dir_path(data_dir,args_in.glove_filepath)
 
-
+        assert train_input_file is not None
+        assert dev_input_file is not None
         assert glove_filepath_in is not None
         assert train_input_file is not None
         assert dev_input_file is not None

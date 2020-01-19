@@ -54,5 +54,5 @@ fi
 
 
 
-python main.py --add_student True --which_gpu_to_use 2  --use_ema True\
+python main.py --add_student True --which_gpu_to_use 2  --use_ema False\
  --lex_train_full_path fever/train/fever_train_lex.jsonl

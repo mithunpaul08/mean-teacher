@@ -129,6 +129,8 @@ class Initializer():
                             help='choice between kl,mse')
         parser.add_argument('--use_ema', default="False", type=self.str2bool,
                             help='use teacher student architecture with exponential moving average/mean teacher')
+        parser.add_argument('--lex_train_full_path', default="data/rte/fever/train/fever_train_lex.jsonl", type=str,
+                            help='input file lexicalized data')
 
 
 
@@ -147,10 +149,10 @@ class Initializer():
             raise argparse.ArgumentTypeError('Boolean value expected.')
 
     #todo get all input file paths from command line or a shell script
-    def get_file_paths(self, command_line_args):
+    def get_file_paths(self):
         glove_filepath_in = self._args.glove_filepath_local
 
-        lex_train_full_path = os.path.join(os.getcwd(), self._args.data_dir, self._args.lex_train)
+        lex_train_full_path = os.path.join(os.getcwd(), self._args.data_dir,self._args.lex_train_full_path)
         lex_dev_full_path = os.path.join(os.getcwd(), self._args.data_dir, self._args.lex_dev)
         lex_test_full_path = os.path.join(os.getcwd(), self._args.data_dir, self._args.lex_test)
 

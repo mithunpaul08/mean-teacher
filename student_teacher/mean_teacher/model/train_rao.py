@@ -367,8 +367,12 @@ class Trainer():
 
 
                     #combined loss is the sum of two classification losses and one consistency loss
-                    combined_loss = (args_in.consistency_weight * consistency_loss) + (combined_class_loss)
-                    combined_loss.backward()
+                    #combined_loss = (args_in.consistency_weight * consistency_loss) + (combined_class_loss)
+                    #combined_loss.backward()
+
+                    #to run both student and teacher independentlh
+                    class_loss_lex.backward()
+                    class_loss_delex.backward()
 
 
 
@@ -500,31 +504,17 @@ class Trainer():
 
                 if (comet_value_updater is not None):
                     comet_value_updater.log_metric("training accuracy of teacher model per epoch", running_acc_lex,step=epoch_index)
-                    comet_value_updater.log_metric("training accuracy of student_model per epoch", running_acc_delex,
+                    comet_value_updater.log_metric("training accuracy of student model per epoch", running_acc_delex,
                                                    step=epoch_index)
 
-                    comet_value_updater.log_metric("student_teacher_match_but_not_same_as_gold_percent_per global step", student_teacher_match_but_not_same_as_gold_percent,
-                                                   step=global_variables.global_step)
-                    comet_value_updater.log_metric("student_teacher_match_and_same_as_gold_percent_per global step", student_teacher_match_and_same_as_gold_percent,
-                                                   step=global_variables.global_step)
-                    comet_value_updater.log_metric("student_delex_same_as_gold_but_teacher_is_different_percent_per global step", student_delex_same_as_gold_but_teacher_is_different_percent,
-                                                   step=global_variables.global_step)
                     comet_value_updater.log_metric("teacher_lex_same_as_gold_but_student_is_different_percent per global step",
                                                    teacher_lex_same_as_gold_but_student_is_different_percent,
                                                    step=global_variables.global_step)
-                    comet_value_updater.log_metric("training_classification_loss_lex_per global step", running_loss_lex,
-                                                   step=global_variables.global_step)
-                    comet_value_updater.log_metric("training_classification_loss_lex_per_global step", running_loss_lex,
-                                                   step=global_variables.global_step)
+
 
 
                 if (args_in.add_student == True):
                     if (comet_value_updater is not None):
-                        comet_value_updater.log_metric("delex_training_loss_per_epoch", running_loss_delex,
-                                                       step=epoch_index)
-                        comet_value_updater.log_metric("accuracy_training_student_delex_model_per_global_step", running_acc_delex,
-                                                       step=global_variables.global_step)
-
                         comet_value_updater.log_metric("consistency_loss per epoch",
                                                        running_consistency_loss,
                                                        step=epoch_index)
@@ -554,10 +544,7 @@ class Trainer():
 
                 assert comet_value_updater is not None
                 comet_value_updater.log_metric("acc_dev_per_epoch_using_student_model", running_acc_val_student, step=epoch_index)
-                comet_value_updater.log_metric("acc_dev_per_global_step_using_student_model", running_acc_val_student, step = global_variables.global_step)
                 comet_value_updater.log_metric("acc_dev_per_epoch_using_teacher_model", running_acc_val_teacher, step=epoch_index)
-                comet_value_updater.log_metric("acc_dev_per_global_step_using_teacher_model", running_acc_val_teacher,
-                                               step=global_variables.global_step)
                 comet_value_updater.log_metric("running_acc_test_student", running_acc_test_student,
                                                step=epoch_index)
                 comet_value_updater.log_metric("running_acc_test_teacher", running_acc_test_teacher,
@@ -579,13 +566,13 @@ class Trainer():
 
 
                 LOG.info(
-                    f" running_acc_val_student_end_of_epoch:{round(running_acc_val_student,2)} ")
+                    f" accuracy on dev partition by student:{round(running_acc_val_student,2)} ")
                 LOG.info(
-                    f" running_acc_val_teacher_end_of_epoch:{round(running_acc_val_teacher,2)} ")
+                    f" accuracy on dev partition by teacher:{round(running_acc_val_teacher,2)} ")
                 LOG.info(
-                    f" running_acc_on_test_partition_by_student_end_of_epoch:{round(running_acc_test_student,2)} ")
+                    f" accuracy on test partition by student:{round(running_acc_test_student,2)} ")
                 LOG.info(
-                    f" running_acc_on_test_partition_by_teacher_end_of_epoch:{round(running_acc_test_teacher,2)} ")
+                    f" accuracy on test partition by teacher:{round(running_acc_test_teacher,2)} ")
                 LOG.info(
                     f"****************end of epoch {epoch_index}*********************")
 

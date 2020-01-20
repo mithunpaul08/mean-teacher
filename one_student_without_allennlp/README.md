@@ -59,8 +59,11 @@ python main.py --run_type test --database_to_test_with fnc --log_level DEBUG --w
 ```
 Note: to debug you can pass `--log_level DEBUG`
 
-To test using a model trained on FEVER delexicalized data (mentioned as OANER in the paper), and test on FNC dataset, run the following commands from the folder `pytorch/`. 
+To test using a model trained on FEVER delexicalized data (mentioned as OANER in the paper), and test on FNC dataset (also has to be delexicalized),
+ run the following commands from the folder `pytorch/`. 
 ```
+wget https://storage.googleapis.com/fact_verification_mithun_files/fnc_delexicalized/personc1/fnc_test_delex_oaner_4labels.jsonl -O data/rte/test_input_file.jsonl
+gs://fact_verification_mithun_files/fnc_delexicalized/personc1/fnc_test_delex_oaner_4labels.jsonl
 ./get_data_delex.sh
 ./get_glove_small.sh
 ./get_model_delex.sh

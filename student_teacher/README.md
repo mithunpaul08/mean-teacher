@@ -13,6 +13,7 @@ conda create --name mean_teacher python=3 numpy scipy pandas nltk tqdm
 source activate mean_teacher
 pip sklearn
 pip install git+ssh://git@github.com/pytorch/vision@c31c3d7e0e68e871d2128c8b731698ed3b11b119
+pip install gitpython
 conda install pytorch-cpu torchvision-cpu -c pytorch *
 ```
 \* **note**: for pytorch instinstallation get the right command from the pytorch [homepage](https://pytorch.org/) based on your OS and configs.
@@ -20,32 +21,21 @@ conda install pytorch-cpu torchvision-cpu -c pytorch *
 *PS: I personally like/trust `pip install *` instead of `conda install` * because the repos of pip are more comprehensive
 
 
+
 Run these commands from parent folder :
 
-```
-mkdir -p data/rte/fever/train/
-mkdir -p data/rte/fever/dev/
-wget https://storage.googleapis.com/fact_verification_mithun_files/fever_train_lex_4labels.jsonl -O data/rte/fever/train/fever_train_lex.jsonl
-wget https://storage.googleapis.com/fact_verification_mithun_files/fever_train_delex_oaner_4labels.jsonl -O data/rte/fever/train/fever_train_delex.jsonl
-wget https://storage.googleapis.com/fact_verification_mithun_files/fever_dev_lex_4labels.jsonl -O data/rte/fever/dev/fever_dev_lex.jsonl
-wget https://storage.googleapis.com/fact_verification_mithun_files/fever_dev_delex_oaner_split_4labels.jsonl -O data/rte/fever/dev/fever_dev_delex.jsonl
-```
+Note: uncomment corresponding lines in `./get_data_run.sh` according to which datasets you want to train-dev-test
 
-or run
 ```
-./get_data.sh
 ./get_glove.sh
 ```
 
+Now to train , run:
 
-Now to train on FEVER, run:
-
-
-``` 
-python main.py --add_student True --which_gpu_to_use 0 --create_new_comet_graph False --use_ema True
 ```
-
-You can keep track of the progress by doing `tail -f mean_teacher.log`
+./get_data_run.sh
+```
+You can keep track of the progress by doing `tail -f mean_teacher_sha.log` where sha is the sha of the latest git commit
 
 Notes: 
 - if using in the mode of one teacher/classifier (i.e no students), remove `--add_student True`
@@ -77,3 +67,8 @@ mv temp data/rte/fever/dev/fever_dev_lex.jsonl
 ```
 
 or run `./reduce_size.sh`
+update: Jan 18th2020
+- to test with fnc, download fnc_train file using the command added to get_data.sh
+- then do head -25413 on this and rename it as fnc_dev_delex.jsonl
+- then make fever_delex_dev_local point to this file in initializer.py
+- this is a hack. had to do it this way because i couldn't find a fnc dev or test file which was delexicalized using PERSON-C1 format. Everything we have is personc1 (i.e without the dash)

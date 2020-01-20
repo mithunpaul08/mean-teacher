@@ -38,14 +38,14 @@ class RTEDataset(Dataset):
         self.val_delex_df = self.lex_delex_claims_ev_df[self.lex_delex_claims_ev_df.split == 'val_delex']
         self.validation_delex_size = len(self.val_delex_df)
 
-        self.test_df = self.lex_delex_claims_ev_df[self.lex_delex_claims_ev_df.split == 'test']
+        self.test_df = self.lex_delex_claims_ev_df[self.lex_delex_claims_ev_df.split == 'test_delex']
         self.test_size = len(self.test_df)
 
         self._lookup_dict = {'train_lex': (self.train_lex_df, self.train_lex_size),
                              'train_delex': (self.train_delex_df, self.train_delex_size),
                              'val_lex': (self.val_lex_df, self.validation_lex_size),
                              'val_delex': (self.val_delex_df, self.validation_delex_size),
-                             'test': (self.test_df, self.test_size)}
+                             'test_delex': (self.test_df, self.test_size)}
 
         self.set_split('train_lex')
         self._labels = self.train_lex_df.label
@@ -63,7 +63,7 @@ class RTEDataset(Dataset):
     @classmethod
     def truncate_data(cls,data_dataframe, tr_len):
         '''
-        #the data has lots of junk values. Truncate/cut short evidence/claim sentneces if they are more than tr_length
+        #the data has lots of junk values. Truncate/cut short evidence/claim sentences too tr_length words
         :param data_dataframe:
         :param tr_len:
         :param args:
@@ -76,7 +76,7 @@ class RTEDataset(Dataset):
 
 
     @classmethod
-    def load_dataset_and_create_vocabulary_for_combined_lex_delex(cls, train_lex_file, dev_lex_file, train_delex_file, dev_delex_file, args):
+    def load_dataset_and_create_vocabulary_for_combined_lex_delex(cls, train_lex_file, dev_lex_file, train_delex_file, dev_delex_file, test_delex_input_file,args):
         """Load dataset and make a new vectorizer from scratch
 
         Args:
@@ -100,7 +100,11 @@ class RTEDataset(Dataset):
         fever_delex_dev_df = cls.truncate_data(fever_delex_dev_df, args.truncate_words_length)
         fever_delex_dev_df['split'] = "val_delex"
 
-        frames = [fever_lex_train_df, fever_lex_dev_df,fever_delex_train_df,fever_delex_dev_df]
+        delex_test_df = pd.read_json(test_delex_input_file, lines=True)
+        delex_test_df = cls.truncate_data(delex_test_df, args.truncate_words_length)
+        delex_test_df['split'] = "test_delex"
+
+        frames = [fever_lex_train_df, fever_lex_dev_df,fever_delex_train_df,fever_delex_dev_df,delex_test_df]
         combined_train_dev_test_with_split_column_df = pd.concat(frames)
 
         # todo: uncomment/call and check the function replace_if_PERSON_C1_format has any effect on claims and evidence sentences-mainpulate dataframe

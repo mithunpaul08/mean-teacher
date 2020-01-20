@@ -51,7 +51,7 @@ def generate_batches(dataset,workers,batch_size,device ,shuffle=False,
             out_data_dict[name] = data_dict[name].to(device)
         yield out_data_dict
 
-def generate_batches_for_semi_supervised(dataset,percentage_labels_for_semi_supervised,workers,batch_size,device,shuffle=True,
+def generate_batches_for_semi_supervised(dataset,percentage_labels_for_semi_supervised,workers,batch_size,device,shuffle=False,
                      drop_last=True,mask_value=-1 ):
     '''
     similar to generate_batches but will mask/replace the labels of certain certain percentage of indices with -1. a
@@ -70,24 +70,24 @@ def generate_batches_for_semi_supervised(dataset,percentage_labels_for_semi_supe
         sampler = SubsetRandomSampler(labeled_idxs)
         batch_sampler_local = BatchSampler(sampler, batch_size, drop_last=True)
         dataloader=DataLoader(dataset,batch_sampler=batch_sampler_local,num_workers=workers,pin_memory=True)
+
+
     else:
-        dataloader = DataLoader(dataset,batch_size=batch_size,shuffle=False,pin_memory=True,drop_last=False,num_workers=workers)
+        dataloader = DataLoader(dataset,batch_size=batch_size,shuffle=False,pin_memory=True,drop_last=True,num_workers=workers)
 
 
     count_indices_to_mask= math.ceil(batch_size* (percentage_labels_for_semi_supervised)/100)
     mask=torch.randint(0,batch_size-1,(count_indices_to_mask,))
 
-
     for data_dict in dataloader:
         out_data_dict = {}
         for name, tensor in data_dict.items():
-            if(name=="y_target"):
+            if (name == "y_target"):
                 for m in mask:
                     tensor[m]=mask_value
                     out_data_dict[name] = data_dict[name].to(device)
             else:
-                out_data_dict[name] = data_dict[name].to(device)
-
+                    out_data_dict[name] = data_dict[name].to(device)
         yield out_data_dict
 
 

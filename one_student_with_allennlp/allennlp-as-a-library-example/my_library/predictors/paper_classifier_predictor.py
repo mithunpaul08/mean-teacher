@@ -16,7 +16,7 @@ class PaperClassifierPredictor(Predictor):
         if len(inputs["claim"])<1:
             # labels_list=["agree", "diagree", "discuss", "unrelated"]
             #the rf is the dev/test file that we want to read records from and predict
-            # test_file='my_library/predictors/fever_dev_mithun_converted.jsonl'
+            # lex_test='my_library/predictors/fever_dev_mithun_converted.jsonl'
 
             test_file='my_library/predictors/test_files/delexicalized_input_file.jsonl'
             predicitons_file= 'predictions.jsonl'

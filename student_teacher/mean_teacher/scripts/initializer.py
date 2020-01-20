@@ -6,6 +6,7 @@ from mean_teacher.utils.utils_rao import set_seed_everywhere,make_embedding_matr
 from mean_teacher.utils.utils_rao import handle_dirs
 from mean_teacher.modules.rao_datasets import RTEDataset
 import torch
+from mean_teacher.utils.logger import LOG
 
 
 class Initializer():
@@ -23,15 +24,20 @@ class Initializer():
             fever_lex_dev_local='dev/fever_dev_lex.jsonl',
             fever_delex_train_local='train/fever_train_delex.jsonl',
             fever_delex_dev_local='dev/fever_dev_delex.jsonl',
+            fnc_delex_test_local='dev/fnc_test_delex.jsonl',
 
-            #for server
-            fever_lex_train_server='train/fever_train_lex.jsonl',
-            fever_lex_dev_server='dev/fever_dev_lex.jsonl',
-            fever_delex_train_server='train/fever_train_delex.jsonl',
-            fever_delex_dev_server='dev/fever_dev_delex.jsonl',
 
-            data_dir_local='data/rte/fever',
-            data_dir_server='data/rte/fever',
+
+            lex_train='fever/train/fever_train_lex.jsonl',
+            lex_dev='fever/dev/fever_dev_lex.jsonl',
+            lex_test='fever/dev/fever_dev_lex.jsonl',
+
+            delex_train= 'fever/train/fever_train_delex.jsonl',
+            delex_dev='fever/dev/fever_dev_delex.jsonl',
+            delex_test='fnc/test/fnc_test_delex.jsonl',
+
+            data_dir='data/rte',
+
             save_dir='model_storage/',
             vectorizer_file='vectorizer.json',
             glove_filepath_local='data/glove/glove.840B.300d.txt',
@@ -123,6 +129,8 @@ class Initializer():
                             help='choice between kl,mse')
         parser.add_argument('--use_ema', default="False", type=self.str2bool,
                             help='use teacher student architecture with exponential moving average/mean teacher')
+        parser.add_argument('--lex_train_full_path', default="data/rte/fever/train/fever_train_lex.jsonl", type=str,
+                            help='input file lexicalized data')
 
 
 
@@ -140,13 +148,41 @@ class Initializer():
         else:
             raise argparse.ArgumentTypeError('Boolean value expected.')
 
-    def get_file_paths(self,command_line_args):
-        data_dir = self._args.data_dir_local
+    #todo get all input file paths from command line or a shell script
+    def get_file_paths(self):
         glove_filepath_in = self._args.glove_filepath_local
-        fever_lex_train_input_file = os.path.join(os.getcwd(),data_dir, self._args.fever_lex_train_local)
-        fever_lex_dev_input_file = os.path.join(os.getcwd(),data_dir, self._args.fever_lex_dev_local)
-        fever_delex_train_input_file = os.path.join(os.getcwd(),data_dir, self._args.fever_delex_train_local)
-        fever_delex_dev_input_file = os.path.join(os.getcwd(),data_dir, self._args.fever_delex_dev_local)
+
+        lex_train_full_path = os.path.join(os.getcwd(), self._args.data_dir,self._args.lex_train_full_path)
+        lex_dev_full_path = os.path.join(os.getcwd(), self._args.data_dir, self._args.lex_dev)
+        lex_test_full_path = os.path.join(os.getcwd(), self._args.data_dir, self._args.lex_test)
+
+        delex_train_full_path = os.path.join(os.getcwd(), self._args.data_dir, self._args.delex_train)
+        delex_dev_full_path = os.path.join(os.getcwd(), self._args.data_dir, self._args.delex_dev)
+        delex_test_full_path = os.path.join(os.getcwd(), self._args.data_dir, self._args.delex_test)
+
+        LOG.info(f" lex_train_full_path:{lex_train_full_path} ")
+        LOG.info(f" lex_dev_full_path:{lex_dev_full_path} ")
+        LOG.info(f" lex_test_full_path:{lex_test_full_path} ")
+        LOG.info(f" delex_train_full_path:{delex_train_full_path} ")
+        LOG.info(f" delex_dev_full_path:{delex_dev_full_path} ")
+        LOG.info(f" delex_test_full_path:{delex_test_full_path} ")
+
+        assert glove_filepath_in is not None
+        assert lex_train_full_path is not None
+        assert lex_dev_full_path is not None
+        assert lex_test_full_path is not None
+        assert delex_train_full_path is not None
+        assert delex_dev_full_path is not None
+        assert delex_test_full_path is not None
+
+        assert os.path.exists(lex_train_full_path) is True
+        assert os.path.exists(lex_dev_full_path) is True
+        assert os.path.exists(lex_test_full_path) is True
+        assert os.path.exists(lex_train_full_path) is True
+        assert os.path.exists(delex_train_full_path) is True
+        assert os.path.exists(delex_dev_full_path) is True
+        assert os.path.exists(delex_test_full_path) is True
 
 
-        return glove_filepath_in,fever_lex_train_input_file,fever_lex_dev_input_file,fever_delex_train_input_file,fever_delex_dev_input_file
+        return glove_filepath_in, lex_train_full_path, lex_dev_full_path, lex_test_full_path,delex_train_full_path, delex_dev_full_path, delex_test_full_path
+

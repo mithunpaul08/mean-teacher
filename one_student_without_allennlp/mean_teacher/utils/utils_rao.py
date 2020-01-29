@@ -23,7 +23,7 @@ def set_seed_everywhere(args):
     torch.manual_seed(args.seed)
     if args.cuda:
         torch.cuda.manual_seed_all(args.seed)
-    random_seed = args.random_seed
+    random_seed = args.seed
     random.seed(random_seed)
     np.random.seed(random_seed)
 

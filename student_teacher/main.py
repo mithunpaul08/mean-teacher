@@ -47,10 +47,10 @@ if (comet_value_updater) is not None:
 
 
 
-set_seed_everywhere(args.seed, args.cuda)
-random_seed = args.random_seed
-random.seed(random_seed)
-np.random.seed(random_seed)
+#set_seed_everywhere(args.random_seed, args.cuda)
+#random_seed = args.random_seed
+#random.seed(random_seed)
+#np.random.seed(random_seed)
 LOG.setLevel(args.log_level)
 
 if args.run_type=="test":

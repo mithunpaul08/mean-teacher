@@ -367,12 +367,12 @@ class Trainer():
 
 
                     #combined loss is the sum of two classification losses and one consistency loss
-                    #combined_loss = (args_in.consistency_weight * consistency_loss) + (combined_class_loss)
-                    #combined_loss.backward()
+                    combined_loss = (args_in.consistency_weight * consistency_loss) + (combined_class_loss)
+                    combined_loss.backward()
 
-                    #to run both student and teacher independentlh
-                    class_loss_lex.backward()
-                    class_loss_delex.backward()
+                    #to run both student and teacher independently
+                    #class_loss_lex.backward()
+                    #class_loss_delex.backward()
 
 
 

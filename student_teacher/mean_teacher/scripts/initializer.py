@@ -49,8 +49,8 @@ class Initializer():
             early_stopping_criteria=5,
             learning_rate=0.005,
             num_epochs=500,
-            seed=256,
-            random_seed=20,
+            #seed=256,
+            random_seed=256,
             weight_decay=5e-5,
             Adagrad_init=0,
 
@@ -100,7 +100,7 @@ class Initializer():
         args.device = torch.device("cuda" if args.cuda else "cpu")
 
         # Set seed for reproducibility
-        set_seed_everywhere(args.seed, args.cuda)
+        set_seed_everywhere(args.random_seed, args.cuda)
         handle_dirs(args.save_dir)
         self._args=args
 

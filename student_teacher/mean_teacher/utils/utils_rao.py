@@ -25,15 +25,7 @@ def set_seed_everywhere(seed, cuda):
     #for CuDnn- a nvidia library
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
-    #
-    # if torch.cuda.is_available():
-    #
-    #     #torch.cuda.manual_seed(args.random_seed)
-    #     #LOG.info(f"found that cuda is available")
-    #
-    # else:
-    #     torch.manual_seed(args.random_seed)
-    #     #LOG.info(f"found that cuda is not available")
+   
 
 def handle_dirs(dirpath):
     if not os.path.exists(dirpath):

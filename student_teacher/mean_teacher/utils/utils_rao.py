@@ -25,7 +25,7 @@ def set_seed_everywhere(seed, cuda):
     #for CuDnn- a nvidia library
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
-   
+
 
 def handle_dirs(dirpath):
     if not os.path.exists(dirpath):

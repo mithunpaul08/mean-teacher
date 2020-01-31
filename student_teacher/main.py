@@ -47,10 +47,7 @@ if (comet_value_updater) is not None:
 
 
 
-#set_seed_everywhere(args.random_seed, args.cuda)
-#random_seed = args.random_seed
-#random.seed(random_seed)
-#np.random.seed(random_seed)
+
 LOG.setLevel(args.log_level)
 
 if args.run_type=="test":
@@ -58,15 +55,6 @@ if args.run_type=="test":
     args.load_model_from_disk=True
 
 
-torch.backends.cudnn.deterministic = True
-if torch.cuda.is_available():
-    torch.manual_seed(args.random_seed)
-    torch.cuda.manual_seed(args.random_seed)
-    LOG.info(f"found that cuda is available")
-
-else:
-    torch.manual_seed(args.random_seed)
-    LOG.info(f"found that cuda is not available")
 
 LOG.info(f"setting the manual seed as {args.random_seed} ")
 LOG.setLevel(args.log_level)

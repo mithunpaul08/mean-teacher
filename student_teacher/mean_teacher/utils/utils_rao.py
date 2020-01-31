@@ -12,10 +12,28 @@ import math
 # #### General utilities
 
 def set_seed_everywhere(seed, cuda):
+    """
+    To make the code reproducable, set the seeds manually. this has to be changed to random if you want more efficiency.
+    numpy seeds will be used during shuffling of data rows.
+    pytorch seeds are used during the random seed initializations for embeddings
+    :param seed:
+    :param cuda:
+    :return:
+    """
     np.random.seed(seed)
     torch.manual_seed(seed)
-    if cuda:
-        torch.cuda.manual_seed_all(seed)
+    #for CuDnn- a nvidia library
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    #
+    # if torch.cuda.is_available():
+    #
+    #     #torch.cuda.manual_seed(args.random_seed)
+    #     #LOG.info(f"found that cuda is available")
+    #
+    # else:
+    #     torch.manual_seed(args.random_seed)
+    #     #LOG.info(f"found that cuda is not available")
 
 def handle_dirs(dirpath):
     if not os.path.exists(dirpath):

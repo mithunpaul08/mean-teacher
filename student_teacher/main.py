@@ -90,6 +90,7 @@ else:
 
 num_features=len(vectorizer.claim_ev_vocab)
 classifier_teacher_lex=None
+#when the teacher is used in ema mode, no backpropagation will occur in teacher. 
 if(args.use_ema):
     classifier_teacher_lex = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
                                       , word_vocab_embed=embeddings, word_vocab_size=num_features, wordemb_size_in=embedding_size,ema=True)

@@ -46,7 +46,7 @@ else
     wget https://storage.googleapis.com/fact_verification_mithun_files/fnc_delexicalized/person-c1/fnc_test_delex.jsonl -O $FILE
 fi
 
-mkdir -p outputs/
+mkdir -p log_dir/
 #mkdir -p data/rte/fnc/train/
 #wget https://storage.googleapis.com/fact_verification_mithun_files/fnc_delexicalized/person-c1/fnc_train_delex_4labels.jsonl -O data/rte/fnc/train/fnc_train_delex.jsonl
 #mkdir -p data/rte/fnc/dev/

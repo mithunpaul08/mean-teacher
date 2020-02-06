@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm,tqdm_notebook
 from torch.nn import functional as F
-from mean_teacher.utils.logger import LOG
+
 from mean_teacher.utils import global_variables
 from torch.utils.data import DataLoader
 import copy
@@ -65,7 +65,7 @@ class Trainer():
             if acc_current_epoch <= train_state['early_stopping_best_val']:
                 # increase patience counter
                 train_state['early_stopping_step'] += 1
-                LOG.info(f"found that acc_current_epoch  {acc_current_epoch} is less than or equal to the best dev "
+                self._LOG.info(f"found that acc_current_epoch  {acc_current_epoch} is less than or equal to the best dev "
                          f"accuracy value so far which is"
                          f" {train_state['early_stopping_best_val']}. "
                          f"Increasing patience total value. "
@@ -74,7 +74,7 @@ class Trainer():
             else:
                 # Save the best model
                 torch.save(model.state_dict(), train_state['model_filename'])
-                LOG.info(
+                self._LOG.info(
                     f"found that acc_current_epoch loss {acc_current_epoch} is more than the best accuracy so far which is "
                     f"{train_state['early_stopping_best_val']}.resetting patience=0")
                 # Reset early stopping step
@@ -208,7 +208,7 @@ class Trainer():
             running_acc_val += (acc_t - running_acc_val) / (batch_index + 1)
 
 
-            LOG.debug(
+            self._LOG.debug(
                 f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches} \t per_batch_accuracy_dev_set:{round(acc_t,4)} \t moving_avg_val_accuracy:{round(running_acc_val,4)} ")
 
         return running_acc_val,running_loss_val
@@ -338,7 +338,7 @@ class Trainer():
                     class_loss_lex = class_loss_func(y_pred_lex, batch_dict_lex['y_target'])
                     loss_t_lex = class_loss_lex.item()
                     running_loss_lex += (loss_t_lex - running_loss_lex) / (batch_index + 1)
-                    LOG.debug(f"loss_t_lex={loss_t_lex}\trunning_loss_lex={running_loss_lex}")
+                    self._LOG.debug(f"loss_t_lex={loss_t_lex}\trunning_loss_lex={running_loss_lex}")
 
                     combined_class_loss = class_loss_lex
                     consistency_loss=0
@@ -411,7 +411,7 @@ class Trainer():
                         count_of_right_predictions_student_delex_per_batch,acc_t_delex,student_predictions_by_label_class = self.compute_accuracy(y_pred_labels_delex_sf, batch_dict_lex['y_target'])
                         total_right_predictions_student_delex=total_right_predictions_student_delex+count_of_right_predictions_student_delex_per_batch
                         running_acc_delex += (acc_t_delex - running_acc_delex) / (batch_index + 1)
-                        LOG.debug(
+                        self._LOG.debug(
                             f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
                             f"classification_loss_lex:{round(running_loss_lex,2)}\t classification_loss_delex:{round(running_loss_delex,2)} "
                             f"\t consistencyloss:{round(running_consistency_loss,6)}"
@@ -419,7 +419,7 @@ class Trainer():
 
                     else:
 
-                        LOG.debug(
+                        self._LOG.debug(
                             f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
                             f"training_loss_lex_per_batch:{round(running_loss_lex,2)}\t"
                             f" \t training_accuracy_lex_per_batch:{round(running_acc_lex,2) }")
@@ -458,7 +458,7 @@ class Trainer():
 
 
 
-                LOG.info(
+                self._LOG.info(
                     f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
                     f"classification_loss_lex:{round(running_loss_lex,2)}\t classification_loss_delex:{round(running_loss_delex,2)} "
                     f"\t consistencyloss:{round(running_consistency_loss,6)}"
@@ -478,32 +478,32 @@ class Trainer():
 
 
 
-                LOG.info(
+                self._LOG.info(
                     f"running_acc_lex by old method at the end of {epoch_index}:{running_acc_lex}")
-                LOG.info(
+                self._LOG.info(
                     f"accuracy_teacher_model_by_per_batch_prediction at the end of epoch{epoch_index}:{accuracy_teacher_model_by_per_batch_prediction}")
 
-                LOG.info(
+                self._LOG.info(
                     f"acc_t_delex by old method {epoch_index}:{running_acc_delex}")
 
-                LOG.info(
+                self._LOG.info(
                     f"accuracy_student_model_by_per_batch_prediction method at the end of epoch{epoch_index}:{ accuracy_student_model_by_per_batch_prediction}")
 
 
 
 
-                LOG.info(
+                self._LOG.info(
                     f"epoch:{epoch_index}")
 
 
 
-                LOG.debug(f" teacher_lex_same_as_gold_percent:{teacher_lex_same_as_gold_percent}")
-                LOG.debug(f" student_delex_same_as_gold_percent:{student_delex_same_as_gold_percent}")
-                LOG.debug(f" student_teacher_match_percent:{student_teacher_match_percent}")
-                LOG.debug(f" student_teacher_match_but_not_same_as_gold_percent:{student_teacher_match_but_not_same_as_gold_percent}")
-                LOG.debug(f" student_teacher_match_and_same_as_gold_percent:{student_teacher_match_and_same_as_gold_percent}")
-                LOG.debug(f" student_delex_same_as_gold_but_teacher_is_different_percent:{student_delex_same_as_gold_but_teacher_is_different_percent}")
-                LOG.debug(f" teacher_lex_same_as_gold_but_student_is_different_percent:{teacher_lex_same_as_gold_but_student_is_different_percent}")
+                self._LOG.debug(f" teacher_lex_same_as_gold_percent:{teacher_lex_same_as_gold_percent}")
+                self._LOG.debug(f" student_delex_same_as_gold_percent:{student_delex_same_as_gold_percent}")
+                self._LOG.debug(f" student_teacher_match_percent:{student_teacher_match_percent}")
+                self._LOG.debug(f" student_teacher_match_but_not_same_as_gold_percent:{student_teacher_match_but_not_same_as_gold_percent}")
+                self._LOG.debug(f" student_teacher_match_and_same_as_gold_percent:{student_teacher_match_and_same_as_gold_percent}")
+                self._LOG.debug(f" student_delex_same_as_gold_but_teacher_is_different_percent:{student_delex_same_as_gold_but_teacher_is_different_percent}")
+                self._LOG.debug(f" teacher_lex_same_as_gold_but_student_is_different_percent:{teacher_lex_same_as_gold_but_student_is_different_percent}")
 
 
                 if (comet_value_updater is not None):
@@ -569,15 +569,15 @@ class Trainer():
 
 
 
-                LOG.info(
+                self._LOG.info(
                     f" accuracy on dev partition by student:{round(running_acc_val_student,2)} ")
-                LOG.info(
+                self._LOG.info(
                     f" accuracy on dev partition by teacher:{round(running_acc_val_teacher,2)} ")
-                LOG.info(
+                self._LOG.info(
                     f" accuracy on test partition by student:{round(running_acc_test_student,2)} ")
-                LOG.info(
+                self._LOG.info(
                     f" accuracy on test partition by teacher:{round(running_acc_test_teacher,2)} ")
-                LOG.info(
+                self._LOG.info(
                     f"****************end of epoch {epoch_index}*********************")
 
 

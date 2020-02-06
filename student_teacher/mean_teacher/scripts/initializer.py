@@ -6,7 +6,7 @@ from mean_teacher.utils.utils_rao import set_seed_everywhere,make_embedding_matr
 from mean_teacher.utils.utils_rao import handle_dirs
 from mean_teacher.modules.rao_datasets import RTEDataset
 import torch
-from mean_teacher.utils.logger import LOG
+#from mean_teacher.utils.logger import LOG
 
 
 class Initializer():
@@ -37,6 +37,8 @@ class Initializer():
             delex_test='fnc/test/fnc_test_delex.jsonl',
 
             data_dir='data/rte',
+            logs_dir='outputs/',
+
 
             save_dir='model_storage/',
             vectorizer_file='vectorizer.json',

@@ -37,7 +37,7 @@ class Initializer():
             delex_test='fnc/test/fnc_test_delex.jsonl',
 
             data_dir='data/rte',
-            logs_dir='outputs/',
+            logs_dir='log_dir/',
 
 
             save_dir='model_storage/',

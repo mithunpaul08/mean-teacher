@@ -8,6 +8,7 @@ from tqdm import tqdm
 from mean_teacher.model import architectures
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
 import math
+import random
 
 # #### General utilities
 
@@ -20,6 +21,7 @@ def set_seed_everywhere(seed, cuda):
     :param cuda:
     :return:
     """
+    random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
     #for CuDnn- a nvidia library

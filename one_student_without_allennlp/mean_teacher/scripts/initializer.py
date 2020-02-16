@@ -54,7 +54,7 @@ class Initializer():
             learning_rate=0.005,
             num_epochs=500,
             seed=256,
-            random_seed=20,
+            #random_seed=20,
             weight_decay=5e-5,
             Adagrad_init=0,
 

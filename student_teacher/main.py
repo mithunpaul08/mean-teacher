@@ -5,7 +5,7 @@ from mean_teacher.modules.rao_datasets import RTEDataset
 from mean_teacher.model.train_rao import Trainer
 from mean_teacher.scripts.initializer import Initializer
 from mean_teacher.utils.utils_rao import make_embedding_matrix,create_model,set_seed_everywhere
-from mean_teacher.utils.logger import LOG
+from mean_teacher.utils.logger import Logger
 from mean_teacher.model import architectures
 import os
 import logging
@@ -15,8 +15,6 @@ import numpy as np
 import sys
 
 
-current_time={time.strftime("%c")}
-LOG.info(f"starting the run at {current_time}.")
 
 
 
@@ -36,6 +34,12 @@ initializer.set_default_parameters()
 args = initializer.parse_commandline_args()
 
 
+current_time={time.strftime("%c")}
+logger_client=Logger()
+LOG=logger_client.initialize_logger(args)
+
+LOG.info(f"starting the run at {current_time}.")
+
 
 
 comet_value_updater=initialize_comet(args)
@@ -47,26 +51,14 @@ if (comet_value_updater) is not None:
 
 
 
-set_seed_everywhere(args.seed, args.cuda)
-random_seed = args.random_seed
-random.seed(random_seed)
-np.random.seed(random_seed)
-LOG.setLevel(args.log_level)
+
+
 
 if args.run_type=="test":
     args.load_vectorizer=True
     args.load_model_from_disk=True
 
 
-torch.backends.cudnn.deterministic = True
-if torch.cuda.is_available():
-    torch.manual_seed(args.random_seed)
-    torch.cuda.manual_seed(args.random_seed)
-    LOG.info(f"found that cuda is available")
-
-else:
-    torch.manual_seed(args.random_seed)
-    LOG.info(f"found that cuda is not available")
 
 LOG.info(f"setting the manual seed as {args.random_seed} ")
 LOG.setLevel(args.log_level)
@@ -74,7 +66,7 @@ LOG.setLevel(args.log_level)
 current_time={time.strftime("%c")}
 
 glove_filepath_in, lex_train_input_file, lex_dev_input_file, lex_test_input_file , delex_train_input_file, delex_dev_input_file, delex_test_input_file \
-    =initializer.get_file_paths()
+    =initializer.get_file_paths(LOG)
 LOG.info(f"{current_time} loading glove from path:{glove_filepath_in}")
 
 
@@ -102,6 +94,7 @@ else:
 
 num_features=len(vectorizer.claim_ev_vocab)
 classifier_teacher_lex=None
+#when the teacher is used in ema mode, no backpropagation will occur in teacher.
 if(args.use_ema):
     classifier_teacher_lex = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
                                       , word_vocab_embed=embeddings, word_vocab_size=num_features, wordemb_size_in=embedding_size,ema=True)

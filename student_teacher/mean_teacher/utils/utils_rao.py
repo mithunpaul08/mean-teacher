@@ -8,14 +8,26 @@ from tqdm import tqdm
 from mean_teacher.model import architectures
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
 import math
+import random
 
 # #### General utilities
 
 def set_seed_everywhere(seed, cuda):
+    """
+    To make the code reproducable, set the seeds manually. this has to be changed to random if you want more efficiency.
+    numpy seeds will be used during shuffling of data rows.
+    pytorch seeds are used during the random seed initializations for embeddings
+    :param seed:
+    :param cuda:
+    :return:
+    """
+    random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
-    if cuda:
-        torch.cuda.manual_seed_all(seed)
+    #for CuDnn- a nvidia library
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
 
 def handle_dirs(dirpath):
     if not os.path.exists(dirpath):

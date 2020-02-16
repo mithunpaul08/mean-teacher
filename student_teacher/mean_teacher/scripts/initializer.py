@@ -6,7 +6,7 @@ from mean_teacher.utils.utils_rao import set_seed_everywhere,make_embedding_matr
 from mean_teacher.utils.utils_rao import handle_dirs
 from mean_teacher.modules.rao_datasets import RTEDataset
 import torch
-from mean_teacher.utils.logger import LOG
+
 
 
 class Initializer():
@@ -37,6 +37,8 @@ class Initializer():
             delex_test='fnc/test/fnc_test_delex.jsonl',
 
             data_dir='data/rte',
+            logs_dir='log_dir/',
+
 
             save_dir='model_storage/',
             vectorizer_file='vectorizer.json',
@@ -49,8 +51,7 @@ class Initializer():
             early_stopping_criteria=5,
             learning_rate=0.005,
             num_epochs=500,
-            seed=256,
-            random_seed=20,
+            random_seed=37,
             weight_decay=5e-5,
             Adagrad_init=0,
 
@@ -100,7 +101,7 @@ class Initializer():
         args.device = torch.device("cuda" if args.cuda else "cpu")
 
         # Set seed for reproducibility
-        set_seed_everywhere(args.seed, args.cuda)
+        set_seed_everywhere(args.random_seed, args.cuda)
         handle_dirs(args.save_dir)
         self._args=args
 
@@ -149,7 +150,7 @@ class Initializer():
             raise argparse.ArgumentTypeError('Boolean value expected.')
 
     #todo get all input file paths from command line or a shell script
-    def get_file_paths(self):
+    def get_file_paths(self,LOG):
         glove_filepath_in = self._args.glove_filepath_local
 
         lex_train_full_path = os.path.join(os.getcwd(), self._args.data_dir,self._args.lex_train_full_path)

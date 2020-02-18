@@ -43,7 +43,7 @@ FILE=data/rte/fnc/test/fnc_test_delex.jsonl
 if test -f "$FILE";then
     echo "$FILE exist"
 else
-    wget https://storage.googleapis.com/fact_verification_mithun_files/fnc_delexicalized/person-c1/fnc_test_delex.jsonl -O $FILE
+    wget https://storage.googleapis.com/fact_verification_mithun_files/fnc_delexicalized/person-c1/fnc_delexicalized_person-c1_actual_fnc_test.jsonl -O $FILE
 fi
 
 mkdir -p log_dir/

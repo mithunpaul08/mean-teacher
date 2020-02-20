@@ -57,7 +57,7 @@ class Initializer():
 
             # Runtime options
             expand_filepaths_to_save_dir=True,
-            reload_from_files=False,
+            reload_data_from_files=False,
             load_model_from_disk_and_test=False,
             max_grad_norm=5,
             #End of rao's parameters
@@ -132,6 +132,10 @@ class Initializer():
                             help='use teacher student architecture with exponential moving average/mean teacher')
         parser.add_argument('--lex_train_full_path', default="data/rte/fever/train/fever_train_lex.jsonl", type=str,
                             help='input file lexicalized data')
+        parser.add_argument('--load_model_from_disk_and_test', default="False", type=self.str2bool,
+                            help='when you have a trained model that you want to load and test using it')
+
+
 
 
 

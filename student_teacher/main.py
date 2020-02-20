@@ -70,7 +70,7 @@ glove_filepath_in, lex_train_input_file, lex_dev_input_file, lex_test_input_file
 LOG.info(f"{current_time} loading glove from path:{glove_filepath_in}")
 
 
-if args.reload_from_files:
+if args.reload_data_from_files:
     # training from a checkpoint
     dataset = RTEDataset.load_dataset_and_load_vectorizer(args.fever_lex_train,
                                                               args.vectorizer_file)
@@ -108,6 +108,7 @@ classifier_student_delex = create_model(logger_object=LOG, args_in=args, num_cla
                                         , word_vocab_embed=embeddings, word_vocab_size=num_features, wordemb_size_in=embedding_size)
 
 train_rte=Trainer(LOG)
+
 if(args.load_model_from_disk_and_test):
     LOG.info(f"{current_time:} Found that need to load model and test using it.")
     train_rte.test(args,classifier_student_delex, dataset, "val")

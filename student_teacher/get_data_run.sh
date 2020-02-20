@@ -47,6 +47,8 @@ else
 fi
 
 mkdir -p log_dir/
+
+#below are the paths for fnc dev and fnc train
 #mkdir -p data/rte/fnc/train/
 #wget https://storage.googleapis.com/fact_verification_mithun_files/fnc_delexicalized/person-c1/fnc_train_delex_4labels.jsonl -O data/rte/fnc/train/fnc_train_delex.jsonl
 #mkdir -p data/rte/fnc/dev/
@@ -54,5 +56,6 @@ mkdir -p log_dir/
 
 
 
-python main.py --add_student True --which_gpu_to_use 0  --use_ema False\
- --lex_train_full_path fever/train/fever_train_lex.jsonl
+python main.py --add_student True --which_gpu_to_use 0  --use_ema False \
+--load_model_from_disk_and_test False \
+--lex_train_full_path fever/train/fever_train_lex.jsonl

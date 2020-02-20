@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-#pick according to which one you want to train, dev, test on
+#pick according to which kind of dataset you want to use for  train, dev, test on. Eg: train on fever, test on fnc
 
-#train
+#######train
 mkdir -p data/rte/fever/train/
 
 FILE=data/rte/fever/train/fever_train_lex.jsonl
@@ -20,7 +20,7 @@ else
 fi
 
 
-#dev
+##########dev
 mkdir -p data/rte/fever/dev/
 FILE=data/rte/fever/dev/fever_dev_lex.jsonl
 if test -f "$FILE";then
@@ -37,7 +37,7 @@ else
 fi
 
 
-#test
+#######test
 mkdir -p data/rte/fnc/test/
 FILE=data/rte/fnc/test/fnc_test_delex.jsonl
 if test -f "$FILE";then

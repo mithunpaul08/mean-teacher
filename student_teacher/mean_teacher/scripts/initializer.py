@@ -19,14 +19,6 @@ class Initializer():
             # Data and Path information
             frequency_cutoff=5,
             model_state_file='model.pth',
-            # for laptop
-            fever_lex_train_local='train/fever_train_lex.jsonl',
-            fever_lex_dev_local='dev/fever_dev_lex.jsonl',
-            fever_delex_train_local='train/fever_train_delex.jsonl',
-            fever_delex_dev_local='dev/fever_dev_delex.jsonl',
-            fnc_delex_test_local='dev/fnc_test_delex.jsonl',
-
-
 
             lex_train='fever/train/fever_train_lex.jsonl',
             lex_dev='fever/dev/fever_dev_lex.jsonl',
@@ -34,7 +26,7 @@ class Initializer():
 
             delex_train= 'fever/train/fever_train_delex.jsonl',
             delex_dev='fever/dev/fever_dev_delex.jsonl',
-            delex_test='fnc/test/fnc_test_delex.jsonl',
+            delex_test='fnc/dev/fnc_dev_delex.jsonl',
 
             data_dir='data/rte',
             logs_dir='log_dir/',
@@ -74,6 +66,7 @@ class Initializer():
             cuda=True,
             workers=0,
             ema_decay=0.99,
+            database_to_test_with='fever',
 
             use_gpu=True,
             consistency_type="mse",
@@ -134,6 +127,8 @@ class Initializer():
                             help='input file lexicalized data')
         parser.add_argument('--load_model_from_disk_and_test', default="False", type=self.str2bool,
                             help='when you have a trained model that you want to load and test using it')
+        parser.add_argument('--trained_model_path', default="model_storage/best_model.pth", type=str,
+                            help='')
 
 
 

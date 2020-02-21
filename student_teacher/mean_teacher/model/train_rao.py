@@ -187,6 +187,47 @@ class Trainer():
         for ema_param, param in zip(ema_model.parameters(), model.parameters()):
             ema_param.data.mul_(alpha).add_(1 - alpha, param.data)
 
+
+    def load_a_trained_model_and_eval(self,args_in,classifier,dataset,split_to_test,vectorizer):
+        if (args_in.load_model_from_disk_and_test):
+                assert os.path.exists(args_in.trained_model_path) is True
+                assert os.path.isfile(args_in.trained_model_path) is True
+                if os.path.getsize(args_in.trained_model_path) > 0:
+                    classifier.load_state_dict(torch.load(args_in.trained_model_path,map_location=torch.device(args_in.device)))
+        classifier.eval()
+        dataset.set_split(split_to_test)
+        batch_generator_val = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
+                                               device=args_in.device, shuffle=False)
+        running_loss_val = 0.
+        running_acc_val = 0.
+
+        no_of_batches= int(len(dataset) / args_in.batch_size)
+        for batch_index, batch_dict in enumerate(tqdm(batch_generator_val, desc="dev_batches", total=no_of_batches)):
+            # compute the output
+            y_pred_val = classifier(batch_dict['x_claim'], batch_dict['x_evidence'])
+
+            # step 3. compute the class_loss
+            class_loss = class_loss_func(y_pred_val, batch_dict['y_target'])
+            loss_t = class_loss.item()
+            running_loss_val += (loss_t - running_loss_val) / (batch_index + 1)
+
+            # compute the accuracy
+            y_pred_labels_val_sf = F.softmax(y_pred_val, dim=1)
+            right_predictions, acc_t, predictions_by_label_class = self.compute_accuracy(y_pred_labels_val_sf,
+                                                                                         batch_dict['y_target'])
+            running_acc_val += (acc_t - running_acc_val) / (batch_index + 1)
+
+
+            # self._LOG.debug(
+            #     f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches} \t per_batch_accuracy_dev_set:{round(acc_t,4)} \t moving_avg_val_accuracy:{round(running_acc_val,4)} ")
+        self._LOG.info(
+            f" accuracy on test partition by student:{round(running_acc_val,2)} ")
+
+        self._LOG.info(
+            f"****************end of loading and testing a model*********************")
+        return
+
+
     def eval(self,classifier,args_in,dataset,epoch_index):
         batch_generator_val = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
                                                device=args_in.device, shuffle=False)
@@ -216,67 +257,71 @@ class Trainer():
         return running_acc_val,running_loss_val
 
 
-
-    def test(self, args_in,classifier, dataset,split_to_test,vectorizer):
-        if(args_in.load_model_from_disk):
-            assert os.path.exists(args_in.trained_model_path) is True
-            assert os.path.isfile(args_in.trained_model_path) is True
-            if os.path.getsize(args_in.trained_model_path) > 0:
-                classifier.load_state_dict(torch.load(args_in.trained_model_path,map_location=torch.device(args_in.device)))
-        classifier.eval()
-        dataset.set_split(split_to_test)
-        batch_generator1 = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
-                                            device=args_in.device, shuffle=False)
-
-        running_loss = 0.
-        running_acc = 0.
-
-        no_of_batches = int(len(dataset) / args_in.batch_size)
-        total_predictions=[]
-        total_gold = []
-
-        for batch_index_dev, batch_dict in enumerate(batch_generator1):
-            # compute the output
-            y_pred_logit = classifier(batch_dict['x_claim'], batch_dict['x_evidence'])
-            if torch.cuda.is_available():
-                class_loss_func = nn.CrossEntropyLoss(size_average=True).cuda()
-            else:
-                class_loss_func = nn.CrossEntropyLoss(size_average=True).cpu()
-
-            # compute the loss
-            loss = class_loss_func(y_pred_logit, batch_dict['y_target'])
-            loss_t = loss.item()
-            running_loss += (loss_t - running_loss) / (batch_index_dev + 1)
-
-            acc_t=0
-
-            #fnc alone has a different kind of scoring. we are using the official scoring function. Note that the
-            #command line argument database_to_test_with is used only for deciding the scoring function. it has nothing
-            # to do with which test file to load.
-            if(args_in.database_to_test_with=="fnc"):
-                predictions_index_labels=self.get_argmax(y_pred_logit.float())
-                predictions_str_labels=self.get_label_strings_given_vectorizer(vectorizer, predictions_index_labels)
-                gold_str=self.get_label_strings_given_list(batch_dict['y_target'])
-                for e in gold_str:
-                    total_gold.append(e)
-                for e in predictions_str_labels:
-                    total_predictions.append(e)
-            else:
-                acc_t = self.accuracy_fever(y_pred_logit, batch_dict['y_target'])
-            running_acc += (acc_t - running_acc) / (batch_index_dev + 1)
-            LOG.info(
-                f" \t batch:{batch_index_dev}/{no_of_batches} \t moving_avg_val_loss:{round(running_loss,2)} \t moving_avg_val_accuracy:{round(running_acc,2)} ")
-
-
-        if (args_in.database_to_test_with == "fnc"):
-            running_acc = report_score(total_gold, total_predictions)
-
-        train_state_in = self.make_train_state(args_in)
-        train_state_in['test_loss'] = running_loss
-        train_state_in['test_acc'] = running_acc
-
-        LOG.info(f" test_accuracy : {(train_state_in['test_acc'])}")
-        print(f" test_accuracy : {(train_state_in['test_acc'])}")
+    # def load_a_trained_model_and_eval(self, args_in,classifier, dataset,split_to_test,vectorizer):
+    #     if(args_in.load_model_from_disk_and_test):
+    #         assert os.path.exists(args_in.trained_model_path) is True
+    #         assert os.path.isfile(args_in.trained_model_path) is True
+    #         if os.path.getsize(args_in.trained_model_path) > 0:
+    #             classifier.load_state_dict(torch.load(args_in.trained_model_path,map_location=torch.device(args_in.device)))
+    #     classifier.eval()
+    #     dataset.set_split(split_to_test)
+    #     batch_generator1 = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
+    #                                         device=args_in.device, shuffle=False)
+    #
+    #     running_loss = 0.
+    #     running_acc = 0.
+    #
+    #     no_of_batches = int(len(dataset) / args_in.batch_size)
+    #     total_predictions=[]
+    #     total_gold = []
+    #
+    #     for batch_index_dev, batch_dict in enumerate(batch_generator1):
+    #         # compute the output
+    #         y_pred_logit = classifier(batch_dict['x_claim'], batch_dict['x_evidence'])
+    #         if torch.cuda.is_available():
+    #             class_loss_func = nn.CrossEntropyLoss(size_average=True).cuda()
+    #         else:
+    #             class_loss_func = nn.CrossEntropyLoss(size_average=True).cpu()
+    #
+    #         # compute the loss
+    #         loss = class_loss_func(y_pred_logit, batch_dict['y_target'])
+    #         loss_t = loss.item()
+    #         running_loss += (loss_t - running_loss) / (batch_index_dev + 1)
+    #
+    #         acc_t=0
+    #
+    #         #fnc alone has a different kind of scoring. we are using the official scoring function. Note that the
+    #         #command line argument database_to_test_with is used only for deciding the scoring function. it has nothing
+    #         # to do with which test file to load.
+    #         if(args_in.database_to_test_with=="fnc"):
+    #             predictions_index_labels=self.get_argmax(y_pred_logit.float())
+    #             predictions_str_labels=self.get_label_strings_given_vectorizer(vectorizer, predictions_index_labels)
+    #             gold_str=self.get_label_strings_given_list(batch_dict['y_target'])
+    #             for e in gold_str:
+    #                 total_gold.append(e)
+    #             for e in predictions_str_labels:
+    #                 total_predictions.append(e)
+    #         else:
+    #             y_pred_labels_val_sf = F.softmax(y_pred_val, dim=1)
+    #             right_predictions, acc_t, predictions_by_label_class = self.compute_accuracy(y_pred_labels_val_sf,
+    #                                                                                          batch_dict['y_target'])
+    #             running_acc_val += (acc_t - running_acc_val) / (batch_index + 1)
+    #
+    #             #acc_t = self.accuracy_fever(y_pred_logit, batch_dict['y_target'])
+    #         running_acc += (acc_t - running_acc) / (batch_index_dev + 1)
+    #         LOG.info(
+    #             f" \t batch:{batch_index_dev}/{no_of_batches} \t moving_avg_val_loss:{round(running_loss,2)} \t moving_avg_val_accuracy:{round(running_acc,2)} ")
+    #
+    #
+    #     if (args_in.database_to_test_with == "fnc"):
+    #         running_acc = report_score(total_gold, total_predictions)
+    #
+    #     train_state_in = self.make_train_state(args_in)
+    #     train_state_in['test_loss'] = running_loss
+    #     train_state_in['test_acc'] = running_acc
+    #
+    #     LOG.info(f" test_accuracy : {(train_state_in['test_acc'])}")
+    #     print(f" test_accuracy : {(train_state_in['test_acc'])}")
 
     def train(self, args_in, classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer):
 

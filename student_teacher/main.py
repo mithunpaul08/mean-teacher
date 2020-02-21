@@ -67,9 +67,9 @@ current_time={time.strftime("%c")}
 
 glove_filepath_in, lex_train_input_file, lex_dev_input_file, lex_test_input_file , delex_train_input_file, delex_dev_input_file, delex_test_input_file \
     =initializer.get_file_paths(LOG)
-LOG.info(f"{current_time} loading glove from path:{glove_filepath_in}")
 
 
+LOG.info(f"{current_time:}Going to read data")
 if args.reload_data_from_files:
     # training from a checkpoint
     dataset = RTEDataset.load_dataset_and_load_vectorizer(args.fever_lex_train,
@@ -84,6 +84,7 @@ vectorizer = dataset.get_vectorizer()
 embedding_size=args.embedding_size
 
 # Use GloVe or randomly initialized embeddings
+LOG.info(f"{current_time} going to load glove from path:{glove_filepath_in}")
 if args.use_glove:
     words = vectorizer.claim_ev_vocab._token_to_idx.keys()
     embeddings,embedding_size = make_embedding_matrix(glove_filepath_in,words)

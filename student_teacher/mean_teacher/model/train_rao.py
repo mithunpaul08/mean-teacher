@@ -691,7 +691,7 @@ class Trainer():
                 comet_value_updater.log_metric("running_acc_test_teacher", running_acc_test_teacher,
                                                step=epoch_index)
 
-                # this is where the checking early stopping happens.
+                # Do early stopping based on when the dev accuracy drops from its best for patience=5
                 # update: the code here does early stopping based on cross domain dev. i.e not based on in-domain dev anymore.
                 train_state_in['val_loss'].append(running_loss_test_student)
                 train_state_in['val_acc'].append(running_acc_test_student)

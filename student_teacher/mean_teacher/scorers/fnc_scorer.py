@@ -49,7 +49,7 @@ def report_score(actual,predicted):
     score,cm = score_submission(actual,predicted)
     best_score, _ = score_submission(actual,actual)
 
-    print_confusion_matrix(cm)
-    print("Score: " +str(score) + " out of " + str(best_score) + "\t("+str(score*100/best_score) + "%)")
+    #print_confusion_matrix(cm)
+    #print("Score: " +str(score) + " out of " + str(best_score) + "\t("+str(score*100/best_score) + "%)")
     return score*100/best_score
 

@@ -46,6 +46,9 @@ Notes:
 - if you would like to reuse a single project in comet.ml (instead of a new project everytime)
  to draw graphs do  `create_new_comet_graph False`. It is advised to create a new project because the graphs get left over from previous runs. Instead if you are tesitng on say a toy dataset, its ok, to reuse a project.
 - The value of `--use_ema True` will make the teacher an exponential moving average of the student. This replicates the architecture in harry valpola's mean teacher [work](https://papers.nips.cc/paper/6719-mean-teachers-are-better-role-models-weight-averaged-consistency-targets-improve-semi-supervised-deep-learning-results.pdf)
+- If you want to use a saved model set `load_model_from_disk_and_test` to `True`. The model is expected to be kept at  `model_storage/best_model.pth`. Also make sure the value of `delex_test` in `initializer.py` points to the file you want to test this model on. Usually this loading saved model
+thing is done when you want to save a model that was trained on fever, and gave a very good performance on the cross-domain, fnc dataset's dev partition at say epoch 5. You save that model (if you dev is pointing to a particular partition, the code automatically saves the model before 
+doing early stopping on that partition). Now you want to use this saved model to test (only once) on a test partition. Then you load this model and feed the test partition as dev by changing the path of `delex_test`  
 
 
 Notes to self:

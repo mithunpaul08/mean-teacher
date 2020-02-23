@@ -5,11 +5,14 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm,tqdm_notebook
 from torch.nn import functional as F
-
+import os
 from mean_teacher.utils import global_variables
 from torch.utils.data import DataLoader
 import copy
+from mean_teacher.scorers.fnc_scorer import report_score
+
 NO_LABEL=-1
+
 if torch.cuda.is_available():
     class_loss_func = nn.CrossEntropyLoss(ignore_index=NO_LABEL).cuda()
 else:
@@ -107,10 +110,10 @@ class Trainer():
 
     def compute_accuracy(self,y_pred, y_target):
         assert len(y_pred)==len(y_target)
-        _, y_pred_indices = y_pred.max(dim=1)
-        n_correct = torch.eq(y_pred_indices, y_target).sum().item()
+        _, y_pred_classes = y_pred.max(dim=1)
+        n_correct = torch.eq(y_pred_classes, y_target).sum().item()
         accuracy=n_correct / len(y_target) * 100
-        return n_correct,accuracy,y_pred_indices
+        return n_correct,accuracy,y_pred_classes
 
     def get_learning_rate(self,optimizer):
         for param_group in optimizer.param_groups:
@@ -185,7 +188,83 @@ class Trainer():
         for ema_param, param in zip(ema_model.parameters(), model.parameters()):
             ema_param.data.mul_(alpha).add_(1 - alpha, param.data)
 
-    def eval(self,classifier,args_in,dataset,epoch_index):
+    def get_argmax(self,predicted_labels):
+        m = nn.Softmax()
+        output_sftmax = m(predicted_labels)
+        _, pred = output_sftmax.topk(1, 1, True, True)
+        return pred.t()
+
+    def get_label_strings_given_vectorizer(self, vectorizer, predictions_index_labels):
+        labels_str=[]
+        for e in predictions_index_labels[0]:
+            labels_str.append(vectorizer.label_vocab.lookup_index(e.item()).lower())
+        return labels_str
+
+    def get_label_strings_given_list(self, labels_tensor):
+        LABELS = ['agree', 'disagree', 'discuss', 'unrelated']
+        labels_str=[]
+        for e in labels_tensor:
+            labels_str.append(LABELS[e.item()].lower())
+        return labels_str
+
+    def load_model_and_eval(self,args_in,classifier,dataset,split_to_test,vectorizer):
+        if (args_in.load_model_from_disk_and_test):
+                assert os.path.exists(args_in.trained_model_path) is True
+                assert os.path.isfile(args_in.trained_model_path) is True
+                if os.path.getsize(args_in.trained_model_path) > 0:
+                    classifier.load_state_dict(torch.load(args_in.trained_model_path,map_location=torch.device(args_in.device)))
+        classifier.eval()
+        dataset.set_split(split_to_test)
+        batch_generator_val = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
+                                               device=args_in.device, shuffle=False)
+        running_loss_val = 0.
+        running_acc_val = 0.
+        total_predictions = []
+        total_gold = []
+
+        no_of_batches= int(len(dataset) / args_in.batch_size)
+        for batch_index, batch_dict in enumerate(tqdm(batch_generator_val, desc="dev_batches", total=no_of_batches)):
+            # compute the output
+            y_pred_val = classifier(batch_dict['x_claim'], batch_dict['x_evidence'])
+
+            # step 3. compute the class_loss
+            class_loss = class_loss_func(y_pred_val, batch_dict['y_target'])
+            loss_t = class_loss.item()
+            running_loss_val += (loss_t - running_loss_val) / (batch_index + 1)
+
+            acc_t=0
+            # fnc alone has a different kind of scoring. we are using the official scoring function. Note that the
+            #command line argument 'database_to_test_with' is used only for deciding the scoring function. it has nothing
+            # to do with which test file to load.
+            if(args_in.database_to_test_with=="fnc"):
+                        predictions_index_labels=self.get_argmax(y_pred_val.float())
+                        predictions_str_labels=self.get_label_strings_given_vectorizer(vectorizer, predictions_index_labels)
+                        gold_str=self.get_label_strings_given_list(batch_dict['y_target'])
+                        for e in gold_str:
+                            total_gold.append(e)
+                        for e in predictions_str_labels:
+                            total_predictions.append(e)
+            else:
+                # compute the accuracy
+                y_pred_labels_val_sf = F.softmax(y_pred_val, dim=1)
+                right_predictions, acc_t, predictions_by_label_class = self.compute_accuracy(y_pred_labels_val_sf,
+                                                                                         batch_dict['y_target'])
+            running_acc_val += (acc_t - running_acc_val) / (batch_index + 1)
+
+        if (args_in.database_to_test_with == "fnc"):
+            running_acc_val = report_score(total_gold, total_predictions)
+
+        self._LOG.info(
+            f" accuracy on test partition by student:{round(running_acc_val,2)} ")
+
+        print(f" accuracy on test partition by student:{round(running_acc_val,2)} ")
+
+        self._LOG.info(
+            f"****************end of loading and testing a model*********************")
+        return
+
+
+    def eval_no_fnc(self,classifier,args_in,dataset,epoch_index):
         batch_generator_val = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
                                                device=args_in.device, shuffle=False)
         running_loss_val = 0.
@@ -212,6 +291,59 @@ class Trainer():
                 f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches} \t per_batch_accuracy_dev_set:{round(acc_t,4)} \t moving_avg_val_accuracy:{round(running_acc_val,4)} ")
 
         return running_acc_val,running_loss_val
+
+    def eval(self,classifier,args_in,dataset,epoch_index,vectorizer):
+        batch_generator_val = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
+                                               device=args_in.device, shuffle=False)
+        running_loss_val = 0.
+        running_acc_val = 0.
+
+        total_predictions = []
+        total_gold = []
+
+        no_of_batches= int(len(dataset) / args_in.batch_size)
+        for batch_index, batch_dict in enumerate(tqdm(batch_generator_val, desc="dev_batches", total=no_of_batches)):
+            # compute the output
+            y_pred_val = classifier(batch_dict['x_claim'], batch_dict['x_evidence'])
+
+            # step 3. compute the class_loss
+            class_loss = class_loss_func(y_pred_val, batch_dict['y_target'])
+            loss_t = class_loss.item()
+            running_loss_val += (loss_t - running_loss_val) / (batch_index + 1)
+
+            # compute the accuracy
+
+            acc_t = 0
+            # fnc alone has a different kind of scoring. we are using the official scoring function. Note that the
+            # command line argument 'database_to_test_with' is used only for deciding the scoring function. it has nothing
+            # to do with which test file to load.
+            if (args_in.database_to_test_with == "fnc"):
+                predictions_index_labels = self.get_argmax(y_pred_val.float())
+                predictions_str_labels = self.get_label_strings_given_vectorizer(vectorizer, predictions_index_labels)
+                gold_str = self.get_label_strings_given_list(batch_dict['y_target'])
+                for e in gold_str:
+                    total_gold.append(e)
+                for e in predictions_str_labels:
+                    total_predictions.append(e)
+            else:
+                # compute the accuracy
+                y_pred_labels_val_sf = F.softmax(y_pred_val, dim=1)
+                right_predictions, acc_t, predictions_by_label_class = self.compute_accuracy(y_pred_labels_val_sf,
+                                                                                             batch_dict['y_target'])
+
+
+
+            running_acc_val += (acc_t - running_acc_val) / (batch_index + 1)
+
+            if (args_in.database_to_test_with == "fnc"):
+                running_acc_val = report_score(total_gold, total_predictions)
+
+            self._LOG.debug(
+                f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches} \t per_batch_accuracy_dev_set:{round(acc_t,4)} \t moving_avg_val_accuracy:{round(running_acc_val,4)} ")
+
+        return running_acc_val,running_loss_val
+
+
 
     def train(self, args_in, classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer):
 
@@ -525,40 +657,46 @@ class Trainer():
 
 
 
-                # Iterate over val dataset
-                # test on dev with  student model
+                # Iterate over val dataset and check on dev using the intended trained model, which usually is the student delex model
                 dataset.set_split('val_delex')
                 classifier_student_delex.eval()
-                running_acc_val_student,running_loss_val_student= self.eval(classifier_student_delex, args_in, dataset,epoch_index)
+                running_acc_val_student,running_loss_val_student= self.eval(classifier_student_delex, args_in, dataset,epoch_index,vectorizer)
 
                 #when in ema mode, teacher is same as student pretty much. so test on delex partition of dev. else teacher and student are separate entities. use teacher to test on dev parition of lexicalized data itself.
                 if not (args_in.use_ema):
                     dataset.set_split('val_lex')
                 classifier_teacher_lex.eval()
-                running_acc_val_teacher,running_loss_val_teacher = self.eval(classifier_teacher_lex, args_in, dataset,epoch_index)
+                running_acc_val_teacher,running_loss_val_teacher = self.eval(classifier_teacher_lex, args_in, dataset,epoch_index,vectorizer)
 
-                #test it on a third dataset which is usually cross domain
-                dataset.set_split('test_delex')
-                classifier_student_delex.eval()
-                running_acc_test_student, running_loss_test_student = self.eval(classifier_student_delex, args_in,
-                                                                              dataset, epoch_index)
-                classifier_teacher_lex.eval()
-                running_acc_test_teacher, running_loss_test_teacher = self.eval(classifier_teacher_lex, args_in, dataset,
-                                                                              epoch_index)
+
+
 
                 assert comet_value_updater is not None
                 comet_value_updater.log_metric("acc_dev_per_epoch_using_student_model", running_acc_val_student, step=epoch_index)
                 comet_value_updater.log_metric("acc_dev_per_epoch_using_teacher_model", running_acc_val_teacher, step=epoch_index)
+
+                # also test it on a third dataset which is usually cross domain on fnc
+                args_in.database_to_test_with="fnc"
+                dataset.set_split('test_delex')
+                classifier_student_delex.eval()
+                running_acc_test_student, running_loss_test_student = self.eval(classifier_student_delex, args_in,
+                                                                                dataset, epoch_index,vectorizer)
+                classifier_teacher_lex.eval()
+                running_acc_test_teacher, running_loss_test_teacher = self.eval(classifier_teacher_lex, args_in,
+                                                                                dataset,
+                                                                                epoch_index,vectorizer)
+
                 comet_value_updater.log_metric("running_acc_test_student", running_acc_test_student,
                                                step=epoch_index)
                 comet_value_updater.log_metric("running_acc_test_teacher", running_acc_test_teacher,
                                                step=epoch_index)
 
-                train_state_in['val_loss'].append(running_loss_val_student)
-                train_state_in['val_acc'].append(running_acc_val_student)
+                # Do early stopping based on when the dev accuracy drops from its best for patience=5
+                # update: the code here does early stopping based on cross domain dev. i.e not based on in-domain dev anymore.
+                train_state_in['val_loss'].append(running_loss_test_student)
+                train_state_in['val_acc'].append(running_acc_test_student)
                 train_state_in = self.update_train_state(args=args_in, model=classifier_student_delex,
                                                          train_state=train_state_in)
-
 
 
 

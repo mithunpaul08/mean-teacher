@@ -67,10 +67,10 @@ current_time={time.strftime("%c")}
 
 glove_filepath_in, lex_train_input_file, lex_dev_input_file, lex_test_input_file , delex_train_input_file, delex_dev_input_file, delex_test_input_file \
     =initializer.get_file_paths(LOG)
-LOG.info(f"{current_time} loading glove from path:{glove_filepath_in}")
 
 
-if args.reload_from_files:
+LOG.info(f"{current_time:}Going to read data")
+if args.reload_data_from_files:
     # training from a checkpoint
     dataset = RTEDataset.load_dataset_and_load_vectorizer(args.fever_lex_train,
                                                               args.vectorizer_file)
@@ -84,6 +84,7 @@ vectorizer = dataset.get_vectorizer()
 embedding_size=args.embedding_size
 
 # Use GloVe or randomly initialized embeddings
+LOG.info(f"{current_time} going to load glove from path:{glove_filepath_in}")
 if args.use_glove:
     words = vectorizer.claim_ev_vocab._token_to_idx.keys()
     embeddings,embedding_size = make_embedding_matrix(glove_filepath_in,words)
@@ -108,8 +109,12 @@ classifier_student_delex = create_model(logger_object=LOG, args_in=args, num_cla
                                         , word_vocab_embed=embeddings, word_vocab_size=num_features, wordemb_size_in=embedding_size)
 
 train_rte=Trainer(LOG)
+
 if(args.load_model_from_disk_and_test):
     LOG.info(f"{current_time:} Found that need to load model and test using it.")
-    train_rte.test(args,classifier_student_delex, dataset, "val")
+
+    #database_to_test_with
+    args.database_to_test_with="fnc"
+    train_rte.load_model_and_eval(args,classifier_student_delex, dataset, "test_delex",vectorizer)
     sys.exit(1)
 train_rte.train(args, classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer)

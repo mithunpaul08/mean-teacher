@@ -44,6 +44,7 @@ if test -f "$FILE";then
     echo "$FILE exist"
 else
     wget https://storage.googleapis.com/fact_verification_mithun_files/fnc_delexicalized/person-c1/fnc_test_delex.jsonl -O $FILE
+
 fi
 
 mkdir -p log_dir/

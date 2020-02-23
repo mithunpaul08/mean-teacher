@@ -38,7 +38,7 @@ class Trainer():
                 'test_acc': -1,
                 'model_filename': args.model_state_file}
 
-    def update_train_state(self, args, model, train_state):
+    def update_train_state(self, args, models, train_state):
         """Handle the training state updates.
         Components:
          - Early Stopping: Prevent overfitting.
@@ -52,7 +52,11 @@ class Trainer():
 
         # Save one model at least
         if train_state['epoch_index'] == 0:
-            torch.save(model.state_dict(), "model" + "_e" + str(train_state['epoch_index']) + ".pth")
+            for index,model in enumerate(models):
+                model_type = "student"
+                if index>0:
+                    model_type = "teacher"
+                torch.save(model.state_dict(), train_state['model_filename'] + model_type + "_e" + str(train_state['epoch_index']) + ".pth")
             train_state['stop_early'] = False
             assert type(train_state['val_acc']) is list
             all_val_acc_length = len(train_state['val_acc'])
@@ -76,7 +80,11 @@ class Trainer():
             # accuracy increased
             else:
                 # Save the best model
-                torch.save(model.state_dict(), train_state['model_filename'])
+                for index, model in enumerate(models):
+                    model_type = "student"
+                    if index > 0:
+                        model_type = "teacher"
+                    torch.save(model.state_dict(), train_state['model_filename']+"_best_"+model_type + ".pth")
                 self._LOG.info(
                     f"found that acc_current_epoch loss {acc_current_epoch} is more than the best accuracy so far which is "
                     f"{train_state['early_stopping_best_val']}.resetting patience=0")
@@ -695,8 +703,7 @@ class Trainer():
                 # update: the code here does early stopping based on cross domain dev. i.e not based on in-domain dev anymore.
                 train_state_in['val_loss'].append(running_loss_test_student)
                 train_state_in['val_acc'].append(running_acc_test_student)
-                train_state_in = self.update_train_state(args=args_in, model=classifier_student_delex,
-                                                         train_state=train_state_in)
+                train_state_in = self.update_train_state(args=args_in, models=[classifier_student_delex,classifier_teacher_lex],train_state=train_state_in)
 
 
 

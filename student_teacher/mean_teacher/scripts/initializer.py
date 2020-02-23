@@ -18,7 +18,7 @@ class Initializer():
         args = Namespace(
             # Data and Path information
             frequency_cutoff=5,
-            model_state_file='model.pth',
+            model_state_file='model',
 
             lex_train='fever/train/fever_train_lex.jsonl',
             lex_dev='fever/dev/fever_dev_lex.jsonl',

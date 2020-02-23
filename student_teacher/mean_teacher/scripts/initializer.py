@@ -45,6 +45,7 @@ class Initializer():
             learning_rate=0.005,
             num_epochs=500,
             random_seed=256,
+
             weight_decay=5e-5,
             Adagrad_init=0,
 
@@ -86,18 +87,18 @@ class Initializer():
             print("\t{}".format(args.vectorizer_file))
             print("\t{}".format(args.model_state_file))
 
-        # Check CUDA
-        if not torch.cuda.is_available():
-            args.cuda = False
-
-        print("Using CUDA: {}".format(args.cuda))
-
-        args.device = torch.device("cuda" if args.cuda else "cpu")
 
         # Set seed for reproducibility
         set_seed_everywhere(args.random_seed, args.cuda)
         handle_dirs(args.save_dir)
         self._args=args
+
+        # Check CUDA
+        if not torch.cuda.is_available():
+            args.cuda = False
+        print("Using CUDA: {}".format(args.cuda))
+        args.device = torch.device("cuda" if args.cuda else "cpu")
+
 
         return args
 

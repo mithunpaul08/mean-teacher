@@ -684,13 +684,13 @@ class Trainer():
                 comet_value_updater.log_metric("acc_dev_per_epoch_using_teacher_model", running_acc_val_teacher, step=epoch_index)
 
                 # also test it on a third dataset which is usually cross domain on fnc
-                args_in.database_to_test_with="ff"
+                args_in.database_to_test_with="fnc"
                 dataset.set_split('test_delex')
                 classifier_student_delex.eval()
                 running_acc_test_student, running_loss_test_student = self.eval(classifier_student_delex, args_in,
                                                                                 dataset, epoch_index,vectorizer)
 
-                dataset.set_split('test_lex')
+
                 classifier_teacher_lex.eval()
                 running_acc_test_teacher, running_loss_test_teacher = self.eval(classifier_teacher_lex, args_in,
                                                                                 dataset,

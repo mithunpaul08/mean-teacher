@@ -46,14 +46,27 @@ Notes:
 - if you would like to reuse a single project in comet.ml (instead of a new project everytime)
  to draw graphs do  `create_new_comet_graph False`. It is advised to create a new project because the graphs get left over from previous runs. Instead if you are tesitng on say a toy dataset, its ok, to reuse a project.
 - The value of `--use_ema True` will make the teacher an exponential moving average of the student. This replicates the architecture in harry valpola's mean teacher [work](https://papers.nips.cc/paper/6719-mean-teachers-are-better-role-models-weight-averaged-consistency-targets-improve-semi-supervised-deep-learning-results.pdf)
-- Steps to do if you want to use a trained student model (trained on fever, but early stopping for best dev value of fnc) to test on fnc-test partition
-    - set `load_model_from_disk_and_test` to `True`. 
-    - Copy the trained student model to :  `model_storage/best_model.pth`. 
-    - Also make sure the value of `delex_test` in `initializer.py` points to the file you want to test this model on. 
+
+
+- Steps to do if you want to train a model on fever-train but want to do early  stopping for best dev value of fnc + using fever scoring
+    - set `load_model_from_disk_and_test` to `False`.  
+    - make sure the value of `delex_test` in `initializer.py` points to the fnc-dev-delex
+    - make sure the value of `lex_test` in `initializer.py` points to the fnc-dev-lex
     - Also make sure `args_in.database_to_test_with="fnc"` is set around line 687 in train_rao.py
     - Remember to set `dataset.set_split('test_delex')` around line 688 in train_rao.py
 
+
+- Steps to do if you want to use a trained student model (trained on fever, but early stopped for best dev value of fnc) to test on fnc-test partition
+    - set `load_model_from_disk_and_test` to `True`. 
+    - Copy the trained student model to :  `model_storage/best_model.pth`. 
+    - Also make sure the value of `delex_test` in `initializer.py` points to `fnc/test/fnc_test_delex.jsonl`,
+    - Also make sure `args_in.database_to_test_with="fff"` is set around line 687 in train_rao.py (if you dont want to use fever official scoring
+    and just want to use plain old accuracy)
+    - Remember to set `dataset.set_split('test_delex')` before using student model ()around line 688 in train_rao.py) and then to 
+    and then `dataset.set_split('test_delex')` before using the teacher model to evaluate on dev partition.
+
 - Steps to do if you want to use a trained teacher model (trained on fever, but early stopping for best dev value of fnc)
+
     - set `load_model_from_disk_and_test` to `True`. 
     - Copy the trained teacher model to :  `model_storage/best_model.pth`. 
     - Also make sure the value of `lex_test` in `initializer.py` points to `fnc/test/fnc_test_lex.jsonl',` 

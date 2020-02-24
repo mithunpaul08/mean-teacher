@@ -58,7 +58,7 @@ Notes:
     - Copy the trained teacher model to :  `model_storage/best_model.pth`. 
     - Also make sure the value of `lex_test` in `initializer.py` points to `fnc/test/fnc_test_lex.jsonl',` 
     - Also make sure `args_in.database_to_test_with="fnc"` is set around line 687 in train_rao.py
-    - Remember to set `dataset.set_split('test_lex')` around line 688 in train_rao.py
+    - Remember to set `dataset.set_split('test_lex')` around line 692 in train_rao.py
 
 
    Extra info:  Usually this loading saved model

@@ -62,7 +62,13 @@ else
     wget https://storage.googleapis.com/fact_verification_mithun_files/fnc_delexicalized/person-c1/fnc_delexicalized_person-c1_actual_fnc_test.jsonl -O data/rte/fnc/test/fnc_test_delex.jsonl -O $FILE
 fi
 
-
+mkdir -p data/rte/fnc/test/
+FILE=data/rte/fnc/test/fnc_test_lex.jsonl
+if test -f "$FILE";then
+    echo "$FILE exists"
+else
+    wget https://storage.googleapis.com/fact_verification_mithun_files/fn_test_split_fourlabels.jsonl -O data/rte/fnc/test/fnc_test_lex.jsonl -O $FILE
+fi
 
 
 

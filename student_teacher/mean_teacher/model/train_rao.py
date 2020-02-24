@@ -689,6 +689,8 @@ class Trainer():
                 classifier_student_delex.eval()
                 running_acc_test_student, running_loss_test_student = self.eval(classifier_student_delex, args_in,
                                                                                 dataset, epoch_index,vectorizer)
+
+                dataset.set_split('test_lex')
                 classifier_teacher_lex.eval()
                 running_acc_test_teacher, running_loss_test_teacher = self.eval(classifier_teacher_lex, args_in,
                                                                                 dataset,

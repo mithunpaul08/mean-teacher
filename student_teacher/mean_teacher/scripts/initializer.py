@@ -25,13 +25,13 @@ class Initializer():
             #we are loading fnc dev or fnc test as the test partitions now. This is so that we can conduct simultaneous tests on fnc
 
             #note: this should ideally be pointint to fnc_dev_lex. Cant find the file
-            lex_test='fnc/dev/fnc_dev_delex.jsonl',
-            #lex_test='fnc/test/fnc_test_lex.jsonl',
+            #lex_test='fnc/dev/fnc_dev_delex.jsonl',
+            lex_test='fnc/test/fnc_test_lex.jsonl',
 
             delex_train= 'fever/train/fever_train_delex.jsonl',
             delex_dev='fever/dev/fever_dev_delex.jsonl',
-            delex_test='fnc/dev/fnc_dev_delex.jsonl',
-            #delex_test='fnc/test/fnc_test_delex.jsonl',
+            #delex_test='fnc/dev/fnc_dev_delex.jsonl',
+            delex_test='fnc/test/fnc_test_delex.jsonl',
 
 
             data_dir='data/rte',

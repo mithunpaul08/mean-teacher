@@ -61,9 +61,11 @@ Notes:
     - Copy the trained student model to :  `model_storage/best_model.pth`. 
     - Also make sure the value of `delex_test` in `initializer.py` points to `fnc/test/fnc_test_delex.jsonl`,
     - Also make sure `args_in.database_to_test_with="fff"` is set around line 687 in train_rao.py (if you dont want to use fever official scoring
-    and just want to use plain old accuracy)
-    - Remember to set `dataset.set_split('test_delex')` before using student model ()around line 688 in train_rao.py) and then to 
-    and then `dataset.set_split('test_delex')` before using the teacher model to evaluate on dev partition.
+    and just want to use plain old accuracy. if you want to use fnc official scorer instead set it as `args_in.database_to_test_with="fnc")
+    - Remember to set `dataset.set_split('test_delex')` before using student model (around line 688 in train_rao.py) and then to 
+    and then `dataset.set_split('test_lex')` before using the teacher model to evaluate on dev partition. (Note: on feb 24th 2020 it was
+    found that we dont have fnc-dev-lex.so right now even though this is being set twice to lex and delex, while running fnc-dev it still
+    internally points to two delex itself. Need to change this.)
 
 - Steps to do if you want to use a trained teacher model (trained on fever, but early stopping for best dev value of fnc)
 

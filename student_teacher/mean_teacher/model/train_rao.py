@@ -84,7 +84,7 @@ class Trainer():
                     model_type = "student"
                     if index > 0:
                         model_type = "teacher"
-                    torch.save(model.state_dict(), train_state['model_filename']+"e_"+str(train_state['epoch_index'])+model_type + ".pth")
+                    torch.save(model.state_dict(), train_state['model_filename']+"_best_"+model_type + ".pth")
                 self._LOG.info(
                     f"found that acc_current_epoch loss {acc_current_epoch} is more than the best accuracy so far which is "
                     f"{train_state['early_stopping_best_val']}.resetting patience=0")
@@ -690,7 +690,7 @@ class Trainer():
                 running_acc_test_student, running_loss_test_student = self.eval(classifier_student_delex, args_in,
                                                                                 dataset, epoch_index,vectorizer)
 
-
+                dataset.set_split('test_lex')
                 classifier_teacher_lex.eval()
                 running_acc_test_teacher, running_loss_test_teacher = self.eval(classifier_teacher_lex, args_in,
                                                                                 dataset,

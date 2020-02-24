@@ -705,8 +705,9 @@ class Trainer():
                 train_state_in['val_acc'].append(running_acc_test_student)
                 train_state_in = self.update_train_state(args=args_in, models=[classifier_student_delex,classifier_teacher_lex],train_state=train_state_in)
 
-
-
+                #resetting args_in.database_to_test_with to make sure the values don't persist across epochs
+                args_in.database_to_test_with = "dummy"
+                dataset.set_split('val_lex')
 
 
                 if train_state_in['stop_early']:

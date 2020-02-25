@@ -46,6 +46,12 @@ else
     wget https://storage.googleapis.com/fact_verification_mithun_files/fnc_delexicalized/person-c1/fnc_delexicalized_person-c1_dev_mithun_carved_from_train.jsonl -O $FILE
 fi
 
+FILE=data/rte/fnc/dev/fnc_dev_lex.jsonl
+if test -f "$FILE";then
+    echo "$FILE exists"
+else
+    wget https://storage.googleapis.com/fact_verification_mithun_files/fake_news_challenge_lexicalized_data/fnc_dev_lexicalized_mithun_carved.jsonl -O $FILE
+fi
 
 #below are the corresponding code/paths for fnc test and  train partitions
 

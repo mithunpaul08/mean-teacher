@@ -670,7 +670,8 @@ class Trainer():
                 classifier_student_delex.eval()
                 running_acc_val_student,running_loss_val_student= self.eval(classifier_student_delex, args_in, dataset,epoch_index,vectorizer)
 
-                #when in ema mode, teacher is same as student pretty much. so test on delex partition of dev. else teacher and student are separate entities. use teacher to test on dev parition of lexicalized data itself.
+                #when in ema mode, teacher is same as student pretty much. so test on delex partition of dev.
+                # else teacher and student are separate entities. use teacher to test on dev parition of lexicalized data itself.
                 if not (args_in.use_ema):
                     dataset.set_split('val_lex')
                 classifier_teacher_lex.eval()
@@ -684,7 +685,7 @@ class Trainer():
                 comet_value_updater.log_metric("acc_dev_per_epoch_using_teacher_model", running_acc_val_teacher, step=epoch_index)
 
                 # also test it on a third dataset which is usually cross domain on fnc
-                args_in.database_to_test_with="fnc"
+                args_in.database_to_test_with="fff"
                 dataset.set_split('test_delex')
                 classifier_student_delex.eval()
                 running_acc_test_student, running_loss_test_student = self.eval(classifier_student_delex, args_in,

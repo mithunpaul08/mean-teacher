@@ -1,7 +1,7 @@
 #!/bin/bash
 # Your job will use 1 node, 28 cores, and 168gb of memory total.
 #PBS -q windfall
-#PBS -l select=1:ncpus=8:mem=20gb:ngpus=1
+#PBS -l select=1:ncpus=28:mem=224gb:pcmem=8gb:np100s=1
 ### Specify a name for the job
 #PBS -N mithuns_meanteacher
 ### Optional. Request email when job begins and ends - commented out in this case

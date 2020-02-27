@@ -23,6 +23,7 @@
 #####module load cuda80/neuralnet/6/6.0
 #####module load cuda80/toolkit/8.0.61
 module load singularity/2/2.6.1
+
 date
 cd ~/mean_teacher
 date

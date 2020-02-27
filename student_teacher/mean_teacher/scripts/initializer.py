@@ -22,12 +22,16 @@ class Initializer():
 
             lex_train='fever/train/fever_train_lex.jsonl',
             lex_dev='fever/dev/fever_dev_lex.jsonl',
-            lex_test='fever/dev/fever_dev_lex.jsonl',
+
+            #we are loading fnc dev as the test partitions now.
+            # This is so that we can conduct simultaneous tests on fnc
+            lex_test='fnc/dev/fnc_dev_lex.jsonl',
+
 
             delex_train= 'fever/train/fever_train_delex.jsonl',
             delex_dev='fever/dev/fever_dev_delex.jsonl',
-            #delex_test='fnc/test/fnc_test_delex.jsonl',
             delex_test='fnc/dev/fnc_dev_delex.jsonl',
+
 
             data_dir='data/rte',
             logs_dir='log_dir/',

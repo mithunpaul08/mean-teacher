@@ -670,7 +670,8 @@ class Trainer():
                 classifier_student_delex.eval()
                 running_acc_val_student,running_loss_val_student= self.eval(classifier_student_delex, args_in, dataset,epoch_index,vectorizer)
 
-                #when in ema mode, teacher is same as student pretty much. so test on delex partition of dev. else teacher and student are separate entities. use teacher to test on dev parition of lexicalized data itself.
+                #when in ema mode, teacher is same as student pretty much. so test on delex partition of dev.
+                # else teacher and student are separate entities. use teacher to test on dev parition of lexicalized data itself.
                 if not (args_in.use_ema):
                     dataset.set_split('val_lex')
                 classifier_teacher_lex.eval()
@@ -684,11 +685,13 @@ class Trainer():
                 comet_value_updater.log_metric("acc_dev_per_epoch_using_teacher_model", running_acc_val_teacher, step=epoch_index)
 
                 # also test it on a third dataset which is usually cross domain on fnc
-                args_in.database_to_test_with="fever"
+                args_in.database_to_test_with="fff"
                 dataset.set_split('test_delex')
                 classifier_student_delex.eval()
                 running_acc_test_student, running_loss_test_student = self.eval(classifier_student_delex, args_in,
                                                                                 dataset, epoch_index,vectorizer)
+
+                dataset.set_split('test_lex')
                 classifier_teacher_lex.eval()
                 running_acc_test_teacher, running_loss_test_teacher = self.eval(classifier_teacher_lex, args_in,
                                                                                 dataset,
@@ -705,8 +708,9 @@ class Trainer():
                 train_state_in['val_acc'].append(running_acc_test_student)
                 train_state_in = self.update_train_state(args=args_in, models=[classifier_student_delex,classifier_teacher_lex],train_state=train_state_in)
 
-
-
+                #resetting args_in.database_to_test_with to make sure the values don't persist across epochs
+                args_in.database_to_test_with = "dummy"
+                dataset.set_split('val_lex')
 
 
                 if train_state_in['stop_early']:

@@ -76,7 +76,7 @@ if args.reload_data_from_files:
                                                               args.vectorizer_file)
 else:
     # create dataset and vectorizer
-    dataset = RTEDataset.load_dataset_and_create_vocabulary_for_combined_lex_delex(lex_train_input_file, lex_dev_input_file, delex_train_input_file, delex_dev_input_file, delex_test_input_file, args)
+    dataset = RTEDataset.load_dataset_and_create_vocabulary_for_combined_lex_delex(lex_train_input_file, lex_dev_input_file, delex_train_input_file, delex_dev_input_file, delex_test_input_file, lex_test_input_file,args)
     dataset.save_vectorizer(args.vectorizer_file)
 vectorizer = dataset.get_vectorizer()
 
@@ -111,10 +111,10 @@ classifier_student_delex = create_model(logger_object=LOG, args_in=args, num_cla
 train_rte=Trainer(LOG)
 
 if(args.load_model_from_disk_and_test):
+    #to use the fnc-test partition as this run's test partition. this is for when we are loading a trained model to test on fnc-test partition
+    args.lex_test='fnc/test/fnc_test_lex.jsonl'
+    args.delex_test='fnc/test/fnc_test_delex.jsonl'
     LOG.info(f"{current_time:} Found that need to load model and test using it.")
-
-    #database_to_test_with
-    args.database_to_test_with="fnc"
     train_rte.load_model_and_eval(args,classifier_student_delex, dataset, "test_delex",vectorizer)
     sys.exit(1)
 train_rte.train(args, classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer)

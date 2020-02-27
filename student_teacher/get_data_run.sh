@@ -3,7 +3,11 @@
 #PBS -q windfall
 #PBS -l select=1:ncpus=28:mem=168gb:pcmem=16gb:ngpus=1
 ### Specify a name for the job
-#PBS -N 1_contextual
+#PBS -N mithuns_meanteacher
+### Optional. Request email when job begins and ends - commented out in this case
+### PBS -m bea
+### Optional. Specify email address to use for notification - commented out in this case
+### PBS -M mithunpaul@email.arizona.edu
 ### Specify the group name
 #PBS -W group_list=msurdeanu
 ### Used if job requires partial node only
@@ -19,9 +23,9 @@
 #####module load cuda80/neuralnet/6/6.0
 #####module load cuda80/toolkit/8.0.61
 module load singularity/2/2.6.1
-
-cd $PBS_O_WORKDIR
-
+date
+cd ~/mean_teacher
+date
 #pick according to which kind of dataset you want to use for  train, dev, test on. Eg: train on fever, test on fnc
 
 #######train

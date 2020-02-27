@@ -1,5 +1,3 @@
-Add this on top of your existing shell script:
-
 #!/bin/bash
 # Your job will use 1 node, 28 cores, and 168gb of memory total.
 #PBS -q windfall

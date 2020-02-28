@@ -25,6 +25,10 @@
 module load singularity/2/2.6.1
 
 
+pip install numpy scipy pandas nltk tqdm sklearn comet_ml gitpython
+pip install torch torchvision
+
+
 #pick according to which kind of dataset you want to use for  train, dev, test on. Eg: train on fever, test on fnc
 
 #######train

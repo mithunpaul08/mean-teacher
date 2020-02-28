@@ -1,4 +1,4 @@
-
+#!/bin/bash
 
 #pick according to which kind of dataset you want to use for  train, dev, test on. Eg: train on fever, test on fnc
 

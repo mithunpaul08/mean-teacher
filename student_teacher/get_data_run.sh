@@ -33,6 +33,7 @@ echo $PWD
 pip install numpy scipy pandas nltk tqdm sklearn comet_ml gitpython
 pip install torch torchvision
 
+bash get_glove.sh
 
 #pick according to which kind of dataset you want to use for  train, dev, test on. Eg: train on fever, test on fnc
 

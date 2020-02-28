@@ -24,11 +24,11 @@
 #####module load cuda80/toolkit/8.0.61
 module load singularity/2/2.6.1
 
-pwd
+echo $PWD
 date
-cd ~/mean_teacher
+cd ~/mean_teacher/student_teacher
 date
-pwd
+echo $PWD
 
 pip install numpy scipy pandas nltk tqdm sklearn comet_ml gitpython
 pip install torch torchvision

@@ -1,6 +1,6 @@
 #!/bin/bash
 # Your job will use 1 node, 28 cores, and 168gb of memory total.
-#PBS -q windfall
+#PBS -q standard
 #PBS -l select=1:ncpus=28:mem=224gb:np100s=1:os7=True
 ### Specify a name for the job
 #PBS -N mithuns_meanteacher
@@ -23,9 +23,8 @@
 #####module load cuda80/neuralnet/6/6.0
 #####module load cuda80/toolkit/8.0.61
 module load singularity/2/2.6.1
-date
-cd ~/mean_teacher
-date
+
+
 #pick according to which kind of dataset you want to use for  train, dev, test on. Eg: train on fever, test on fnc
 
 #######train
@@ -111,6 +110,6 @@ mkdir -p log_dir/
 
 
 
-python main.py --add_student True --which_gpu_to_use 0  --use_ema False \
+python /extra/mithunpaul/mean-teacher/student_teacher/main.py --add_student True --which_gpu_to_use 0  --use_ema False \
 --load_model_from_disk_and_test False \
 --lex_train_full_path fever/train/fever_train_lex.jsonl

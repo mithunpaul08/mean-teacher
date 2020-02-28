@@ -24,6 +24,11 @@
 #####module load cuda80/toolkit/8.0.61
 module load singularity/2/2.6.1
 
+pwd
+date
+cd ~/mean_teacher
+date
+pwd
 
 pip install numpy scipy pandas nltk tqdm sklearn comet_ml gitpython
 pip install torch torchvision
@@ -114,6 +119,6 @@ mkdir -p log_dir/
 
 
 
-python ./main.py --add_student True --which_gpu_to_use 0  --use_ema False \
+python main.py --add_student True --which_gpu_to_use 0  --use_ema False \
 --load_model_from_disk_and_test False \
 --lex_train_full_path fever/train/fever_train_lex.jsonl

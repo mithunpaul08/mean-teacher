@@ -115,10 +115,8 @@ train_rte=Trainer(LOG)
 
 if(args.load_model_from_disk_and_test):
     #to use the fnc-test partition as this run's test partition. this is for when we are loading a trained model to test on fnc-test partition
-
     LOG.info(f"{current_time:} Found that need to load model and test using it.")
-    train_rte.load_model_and_eval(args,classifier_student_delex, dataset, "test_delex",vectorizer)
-
+    train_rte.load_model_and_eval(args,classifier_student_delex, dataset, "test_lex",vectorizer)
     end = time.time()
     LOG.info(f"time taken= {end-start}seconds.")
     sys.exit(1)

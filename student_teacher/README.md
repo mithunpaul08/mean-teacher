@@ -65,19 +65,17 @@ Notes:
     - Also make sure the value of `delex_test` in `initializer.py` points to `fnc/test/fnc_test_delex.jsonl`,
     - Also make sure `args_in.database_to_test_with="fff"` is set around line 687 in train_rao.py (i.e if you dont want to use fever official scoring
     and just want to use plain old accuracy. if you want to use fnc official scorer instead set it as `args_in.database_to_test_with="fnc")
-    - Remember to set `dataset.set_split('test_delex')` before using student model (around line 688 in train_rao.py) and then to 
-    and then `dataset.set_split('test_lex')` before using the teacher model to evaluate on dev partition. (Note: on feb 24th 2020 it was
-    found that we dont have fnc-dev-lex.so right now even though this is being set twice to lex and delex, while running fnc-dev it still
-    internally points to two delex itself. Need to change this.)
-
+    - set the third variable in `train_rte.load_model_and_eval` to `test_delex` . must be around line 119 in main.py
+    
 - Steps to do if you want to use a trained teacher model (trained on fever, but early stopping for best dev value of fnc)
 
     - set `load_model_from_disk_and_test` to `True`. 
     - Copy the trained teacher model to :  `model_storage/best_model.pth`. 
     - Also make sure the value of `lex_test` in `initializer.py` points to `fnc/test/fnc_test_lex.jsonl',` 
-    - Also make sure `args_in.database_to_test_with="fnc"` is set around line 687 in train_rao.py
-    - Remember to set `dataset.set_split('test_lex')` around line 692 in train_rao.py
-
+    - Also make sure `args_in.database_to_test_with="fff"` is set around line 687 in train_rao.py (i.e if you dont want to use fever official scoring
+    and just want to use plain old accuracy. if you want to use fnc official scorer instead set it as `args_in.database_to_test_with="fnc")
+    - set the third variable in `train_rte.load_model_and_eval` to `test_lex` . must be around line 119 in main.py
+    
 
    Extra info:  Usually this loading saved model
 thing is done when you want to save a model that was trained on fever, and gave a very good performance on the cross-domain, fnc dataset's dev partition at say epoch 5. You save that model (if you dev is pointing to a particular partition, the code automatically saves the model before 

@@ -71,8 +71,7 @@ Notes:
 - Steps to do if you want to use a trained teacher model (trained on fever, but early stopping for best dev value of fnc)
 
     - set `load_model_from_disk_and_test` to `True`. 
-    - Copy the trained teacher model to :  `model_storage/best_model.pth`. 
- 
+    - Copy the trained teacher model to :  `model_storage/best_model.pth`.  
     - Also make sure `args_in.database_to_test_with="fff"` is set around line 687 in train_rao.py (i.e if you dont want to use fever official scoring
     and just want to use plain old accuracy. if you want to use fnc official scorer instead set it as `args_in.database_to_test_with="fnc")
     - - in `initializer.py` make sure `type_of_trained_model` is set to `teacher`

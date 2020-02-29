@@ -50,13 +50,15 @@ Notes:
 
 
 - Steps to do if you want to train a model on fever-train but want to do early  stopping for best dev value of fnc + using fever scoring
-    - set `load_model_from_disk_and_test` to `False`.  
+    -set the random seed to whatever you want in initializer.py
+    - set `load_model_from_disk_and_test` to `False`.   inside get_data_run.sh
     - make sure the value of `delex_test` in `initializer.py` points to the fnc-dev-delex
     - make sure the value of `lex_test` in `initializer.py` points to the fnc-dev-lex
     - Also make sure `args_in.database_to_test_with="fff"` (or anything other than `fnc`) is set around line 687 in train_rao.py
      (i.e if you dont want to use fever official scoring
     and just want to use plain old accuracy. if you want to use fnc official scorer instead set it as `args_in.database_to_test_with="fnc")
-    - Remember to set `dataset.set_split('test_delex')` around line 688 in train_rao.py
+    - Remember to set `dataset.set_split('test_delex')` around line 688 in train_rao.py before calling student model in eval
+    - Remember to set `dataset.set_split('test_lex')` around line 688 in train_rao.py before calling teacher model in eval
 
 
 - Steps to do if you want to use a trained student model (trained on fever, but early stopped for best dev value of fnc) to test on fnc-test partition

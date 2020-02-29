@@ -17,7 +17,7 @@ import sys
 
 
 
-
+start=time.time()
 def initialize_comet(args):
     # for drawing graphs on comet:
     comet_value_updater=None
@@ -118,5 +118,10 @@ if(args.load_model_from_disk_and_test):
 
     LOG.info(f"{current_time:} Found that need to load model and test using it.")
     train_rte.load_model_and_eval(args,classifier_student_delex, dataset, "test_delex",vectorizer)
+
+    end = time.time()
+    LOG.info(f"time taken= {end-start}seconds.")
     sys.exit(1)
 train_rte.train(args, classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer)
+end = time.time()
+LOG.info(f"time taken= {end-start}seconds.")

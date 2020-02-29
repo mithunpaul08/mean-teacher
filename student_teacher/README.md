@@ -64,19 +64,18 @@ Notes:
 - Steps to do if you want to use a trained student model (trained on fever, but early stopped for best dev value of fnc) to test on fnc-test partition
     - set `load_model_from_disk_and_test` to `True` inside get_data_run.sh
     - Copy the trained student model to :  `model_storage/best_model.pth`. 
-    - Also make sure the value of `delex_test` in `initializer.py` points to `fnc/test/fnc_test_delex.jsonl`,
     - Also make sure `args_in.database_to_test_with="fff"` is set around line 687 in train_rao.py (i.e if you dont want to use fever official scoring
     and just want to use plain old accuracy. if you want to use fnc official scorer instead set it as `args_in.database_to_test_with="fnc")
-    - set the third variable in `train_rte.load_model_and_eval` to `test_delex` . must be around line 119 in main.py
+    - in `initializer.py` make sure `type_of_trained_model` is set to `student`
     
 - Steps to do if you want to use a trained teacher model (trained on fever, but early stopping for best dev value of fnc)
 
     - set `load_model_from_disk_and_test` to `True`. 
     - Copy the trained teacher model to :  `model_storage/best_model.pth`. 
-    - Also make sure the value of `lex_test` in `initializer.py` points to `fnc/test/fnc_test_lex.jsonl',` 
+ 
     - Also make sure `args_in.database_to_test_with="fff"` is set around line 687 in train_rao.py (i.e if you dont want to use fever official scoring
     and just want to use plain old accuracy. if you want to use fnc official scorer instead set it as `args_in.database_to_test_with="fnc")
-    - set the third variable in `train_rte.load_model_and_eval` to `test_lex` . must be around line 119 in main.py
+    - - in `initializer.py` make sure `type_of_trained_model` is set to `teacher`
     
 
    Extra info:  Usually this loading saved model

@@ -161,7 +161,8 @@ def make_embedding_matrix(glove_filepath, words):
 def initialize_optimizers(list_models, args):
 
     '''
-        The code for decomposable attention we use , utilizes two different optimizers
+        The code for decomposable attention we use , internally utilizes two different optimizers
+        In this function we combine the parameters of all the models and create a common optimizer (or 2 of them in this case) for them
     :param model:
     :param args:
     :return:

@@ -50,7 +50,7 @@ Notes:
 
 
 - Steps to do if you want to train a model on fever-train but want to do early  stopping for best dev value of fnc + using fever scoring
-    -set the random seed to whatever you want in initializer.py
+    - set the random seed to whatever you want in initializer.py
     - set `load_model_from_disk_and_test` to `False`.   inside get_data_run.sh
     - make sure the value of `delex_test` in `initializer.py` points to the fnc-dev-delex
     - make sure the value of `lex_test` in `initializer.py` points to the fnc-dev-lex

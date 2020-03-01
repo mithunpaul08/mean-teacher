@@ -48,7 +48,7 @@ class Initializer():
             early_stopping_criteria=5,
             learning_rate=0.005,
             num_epochs=500,
-            random_seed=256,
+            random_seed=37,
 
             weight_decay=5e-5,
             Adagrad_init=0,
@@ -77,7 +77,7 @@ class Initializer():
             use_gpu=True,
             consistency_type="mse",
             NO_LABEL=-1,
-            type_of_trained_model="teacher"
+            type_of_trained_model="student"
 
         )
         args.use_glove = True

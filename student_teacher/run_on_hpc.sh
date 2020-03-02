@@ -35,3 +35,4 @@ pip install torch torchvision
 
 bash get_glove.sh
 bash get_data_run.sh
+bash run_main.sh

@@ -52,6 +52,7 @@ class Trainer():
 
         # Save one model at least
         if train_state['epoch_index'] == 0:
+            #save models for teacher and student separately
             for index,model in enumerate(models):
                 model_type = "student"
                 if index>0:
@@ -420,12 +421,14 @@ class Trainer():
 
                 running_loss_lex = 0.0
                 running_acc_lex = 0.0
+                running_acc_lex_ema = 0.0
                 running_loss_delex = 0.0
                 running_acc_delex = 0.0
                 classifier_teacher_lex.train()
                 classifier_student_delex.train()
 
                 total_right_predictions_teacher_lex=0
+                total_right_predictions_teacher_lex_ema = 0
                 total_right_predictions_student_delex = 0
                 total_gold_label_count=0
 
@@ -512,18 +515,22 @@ class Trainer():
 
                     # -----------------------------------------
 
+                    # compute the accuracy for teacher-lex-ema
+                    y_pred_labels_lex_ema_sf = F.softmax(y_pred_lex_ema, dim=1)
+                    count_of_right_predictions_teacher_lex_ema_per_batch, acc_t_lex_ema, teacher_ema_predictions_by_label_class = self.compute_accuracy(
+                        y_pred_labels_lex_ema_sf, batch_dict_lex['y_target'])
+                    total_right_predictions_teacher_lex_ema = total_right_predictions_teacher_lex_ema + count_of_right_predictions_teacher_lex_ema_per_batch
+                    running_acc_lex_ema += (acc_t_lex_ema - running_acc_lex_ema) / (batch_index + 1)
 
 
-                    # compute the accuracy for lex data
-
-
+                    # compute the accuracy for teacher-lex
                     y_pred_labels_lex_sf = F.softmax(y_pred_lex, dim=1)
                     count_of_right_predictions_teacher_lex_per_batch, acc_t_lex,teacher_predictions_by_label_class = self.compute_accuracy(y_pred_labels_lex_sf, batch_dict_lex['y_target'])
                     total_right_predictions_teacher_lex=total_right_predictions_teacher_lex+count_of_right_predictions_teacher_lex_per_batch
                     running_acc_lex += (acc_t_lex - running_acc_lex) / (batch_index + 1)
 
-                    # all student-delex classifier related code to calculate accuracy
 
+                    # all student-delex classifier related code to calculate accuracy
                     y_pred_labels_delex_sf = F.softmax(y_pred_delex, dim=1)
                     count_of_right_predictions_student_delex_per_batch,acc_t_delex,student_predictions_by_label_class = self.compute_accuracy(y_pred_labels_delex_sf, batch_dict_lex['y_target'])
                     total_right_predictions_student_delex=total_right_predictions_student_delex+count_of_right_predictions_student_delex_per_batch
@@ -619,6 +626,8 @@ class Trainer():
 
 
                 if (comet_value_updater is not None):
+                    comet_value_updater.log_metric("training accuracy of teacher ema model per epoch", running_acc_lex_ema,
+                                                   step=epoch_index)
                     comet_value_updater.log_metric("training accuracy of teacher model per epoch", running_acc_lex,step=epoch_index)
                     comet_value_updater.log_metric("training accuracy of student model per epoch", running_acc_delex,
                                                    step=epoch_index)
@@ -637,24 +646,37 @@ class Trainer():
 
 
 
-                # Iterate over val dataset and check on dev using the intended trained model, which usually is the student delex model
+                # Evaluate on dev patition using the intended trained model
+
+                #evaluate using student-delex
                 dataset.set_split('val_delex')
                 classifier_student_delex.eval()
                 running_acc_val_student,running_loss_val_student= self.eval(classifier_student_delex, args_in, dataset,epoch_index,vectorizer)
 
-                #when in ema mode, teacher is same as student pretty much. so test on delex partition of dev.
-                # else teacher and student are separate entities. use teacher to test on dev parition of lexicalized data itself.
-                if not (args_in.use_ema):
-                    dataset.set_split('val_lex')
+                # evaluate using teacher-lex
+
+                dataset.set_split('val_lex')
                 classifier_teacher_lex.eval()
                 running_acc_val_teacher,running_loss_val_teacher = self.eval(classifier_teacher_lex, args_in, dataset,epoch_index,vectorizer)
 
+                # evaluate using teacher-lex-ema
+                dataset.set_split('val_delex')
+                classifier_teacher_lex_ema.eval()
+                running_acc_val_teacher_ema,running_loss_val_teacher_ema = self.eval(classifier_teacher_lex_ema, args_in, dataset,epoch_index,vectorizer)
 
 
+                # Do early stopping based on when the dev accuracy drops from its best for patience (as defined in initializer.py)
+                train_state_in['val_loss'].append(running_loss_val_student)
+                train_state_in['val_acc'].append(running_loss_val_teacher)
+                train_state_in = self.update_train_state(args=args_in,
+                                                         models=[classifier_student_delex, classifier_teacher_lex],
+                                                         train_state=train_state_in)
 
                 assert comet_value_updater is not None
                 comet_value_updater.log_metric("acc_dev_per_epoch_using_student_model", running_acc_val_student, step=epoch_index)
                 comet_value_updater.log_metric("acc_dev_per_epoch_using_teacher_model", running_acc_val_teacher, step=epoch_index)
+                comet_value_updater.log_metric("acc_dev_per_epoch_using_teacher_ema_model", running_acc_val_teacher_ema,
+                                               step=epoch_index)
 
                 # also test it on a third dataset which is usually cross domain on fnc
                 args_in.database_to_test_with="ff"
@@ -674,11 +696,6 @@ class Trainer():
                 comet_value_updater.log_metric("running_acc_test_teacher", running_acc_test_teacher,
                                                step=epoch_index)
 
-                # Do early stopping based on when the dev accuracy drops from its best for patience=5
-                # update: the code here does early stopping based on cross domain dev. i.e not based on in-domain dev anymore.
-                train_state_in['val_loss'].append(running_loss_test_student)
-                train_state_in['val_acc'].append(running_acc_test_student)
-                train_state_in = self.update_train_state(args=args_in, models=[classifier_student_delex,classifier_teacher_lex],train_state=train_state_in)
 
                 #resetting args_in.database_to_test_with to make sure the values don't persist across epochs
                 args_in.database_to_test_with = "dummy"

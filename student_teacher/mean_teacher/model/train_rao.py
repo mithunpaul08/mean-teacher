@@ -354,7 +354,7 @@ class Trainer():
 
 
 
-    def train(self, args_in, classifier_teacher_lex_ema,classifier_teacher_lex , classifier_student_delex, dataset, comet_value_updater, vectorizer):
+    def train(self, args_in, classifier_student_delex_ema, classifier_teacher_lex_ema,classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer):
 
         #the loss function to be used in consistency loss
         if args_in.consistency_type == 'mse':
@@ -362,8 +362,9 @@ class Trainer():
         elif args_in.consistency_type == 'kl':
             consistency_criterion = losses.softmax_kl_loss
 
-        classifier_teacher_lex = classifier_teacher_lex.to(args_in.device)
+        classifier_student_delex_ema = classifier_student_delex_ema.to(args_in.device)
         classifier_teacher_lex_ema = classifier_teacher_lex_ema.to(args_in.device)
+        classifier_teacher_lex = classifier_teacher_lex.to(args_in.device)
         classifier_student_delex = classifier_student_delex.to(args_in.device)
 
         #combine the parameters of all the models and create a common optimizer (or 2 of them in this case) for them'''
@@ -424,12 +425,14 @@ class Trainer():
                 running_acc_lex_ema = 0.0
                 running_loss_delex = 0.0
                 running_acc_delex = 0.0
+                running_acc_delex_ema = 0.0
                 classifier_teacher_lex.train()
                 classifier_student_delex.train()
 
                 total_right_predictions_teacher_lex=0
                 total_right_predictions_teacher_lex_ema = 0
                 total_right_predictions_student_delex = 0
+                total_right_predictions_student_delex_ema = 0
                 total_gold_label_count=0
 
 
@@ -458,8 +461,11 @@ class Trainer():
                     # step 2. compute the output
 
                     #when in ema mode, since the teacher is a ema of student itself,  make the teacher  make its  prediction over delex data .
-                    y_pred_lex_ema = classifier_teacher_lex(batch_dict_delex['x_claim'], batch_dict_delex['x_evidence'])
                     y_pred_lex = classifier_teacher_lex(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
+                    y_pred_lex_ema = classifier_teacher_lex_ema(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
+                    y_pred_delex_ema = classifier_teacher_lex_ema(batch_dict_delex['x_claim'],
+                                                                batch_dict_delex['x_evidence'])
+
 
                     assert y_pred_lex is not None
                     assert len(y_pred_lex) > 0
@@ -467,6 +473,7 @@ class Trainer():
 
 
                     # compute the classification loss of teacher running over lexicalized data class_loss_lex
+                    #note: we are not adding the classification of the two ema models becuase there is no backpropagation in them
                     class_loss_lex = class_loss_func(y_pred_lex, batch_dict_lex['y_target'])
                     loss_t_lex = class_loss_lex.item()
                     running_loss_lex += (loss_t_lex - running_loss_lex) / (batch_index + 1)
@@ -484,7 +491,11 @@ class Trainer():
 
                     consistency_loss_delexstudent_lexteacher = consistency_criterion(y_pred_lex, y_pred_delex)
                     consistency_loss_delexstudent_lexTeacherEma = consistency_criterion(y_pred_lex_ema, y_pred_delex)
-                    consistency_loss=consistency_loss_delexstudent_lexteacher+consistency_loss_delexstudent_lexTeacherEma
+                    consistency_loss_delexstudent_lexStudentEma = consistency_criterion(y_pred_delex_ema, y_pred_delex)
+
+                    consistency_loss=consistency_loss_delexstudent_lexteacher+\
+                                     consistency_loss_delexstudent_lexTeacherEma+\
+                                     consistency_loss_delexstudent_lexStudentEma
                     consistency_loss_value = consistency_loss.item()
                     running_consistency_loss += (consistency_loss_value - running_consistency_loss) / (batch_index + 1)
 
@@ -508,12 +519,39 @@ class Trainer():
                     input_optimizer.step()
                     inter_atten_optimizer.step()
                     global_variables.global_step += 1
-                    #  in ema mode, teacher is the exponential moving average of the student. that calculation is done here
-                    self.update_ema_variables(classifier_student_delex, classifier_teacher_lex, args_in.ema_decay, global_variables.global_step)
+
+                    #  in ema mode, one model is the exponential moving average of the other. that calculation is done here
+                    #eg: classifier_student_delex_ema is the ema of classifier_student_delex
+                    self.update_ema_variables(classifier_student_delex, classifier_student_delex_ema, args_in.ema_decay, global_variables.global_step)
+                    self.update_ema_variables(classifier_teacher_lex, classifier_teacher_lex_ema, args_in.ema_decay,
+                                              global_variables.global_step)
 
 
 
                     # -----------------------------------------
+
+                    # compute the accuracy for teacher-lex
+                    y_pred_labels_lex_sf = F.softmax(y_pred_lex, dim=1)
+                    count_of_right_predictions_teacher_lex_per_batch, acc_t_lex, teacher_predictions_by_label_class = self.compute_accuracy(
+                        y_pred_labels_lex_sf, batch_dict_lex['y_target'])
+                    total_right_predictions_teacher_lex = total_right_predictions_teacher_lex + count_of_right_predictions_teacher_lex_per_batch
+                    running_acc_lex += (acc_t_lex - running_acc_lex) / (batch_index + 1)
+
+                    # compute the accuracy for student-delex
+                    y_pred_labels_delex_sf = F.softmax(y_pred_delex, dim=1)
+                    count_of_right_predictions_student_delex_per_batch, acc_t_delex, student_predictions_by_label_class = self.compute_accuracy(
+                        y_pred_labels_delex_sf, batch_dict_lex['y_target'])
+                    total_right_predictions_student_delex = total_right_predictions_student_delex + count_of_right_predictions_student_delex_per_batch
+                    running_acc_delex += (acc_t_delex - running_acc_delex) / (batch_index + 1)
+
+
+                    # compute the accuracy for student-delex-ema
+                    y_pred_labels_delex_ema_sf = F.softmax(y_pred_delex_ema, dim=1)
+                    count_of_right_predictions_student_delex_ema_per_batch, acc_t_delex_ema, student_ema_predictions_by_label_class = self.compute_accuracy(
+                        y_pred_labels_delex_ema_sf, batch_dict_lex['y_target'])
+                    total_right_predictions_student_delex_ema = total_right_predictions_student_delex_ema + count_of_right_predictions_student_delex_ema_per_batch
+                    running_acc_delex_ema += (acc_t_delex_ema - running_acc_delex_ema) / (batch_index + 1)
+
 
                     # compute the accuracy for teacher-lex-ema
                     y_pred_labels_lex_ema_sf = F.softmax(y_pred_lex_ema, dim=1)
@@ -523,18 +561,8 @@ class Trainer():
                     running_acc_lex_ema += (acc_t_lex_ema - running_acc_lex_ema) / (batch_index + 1)
 
 
-                    # compute the accuracy for teacher-lex
-                    y_pred_labels_lex_sf = F.softmax(y_pred_lex, dim=1)
-                    count_of_right_predictions_teacher_lex_per_batch, acc_t_lex,teacher_predictions_by_label_class = self.compute_accuracy(y_pred_labels_lex_sf, batch_dict_lex['y_target'])
-                    total_right_predictions_teacher_lex=total_right_predictions_teacher_lex+count_of_right_predictions_teacher_lex_per_batch
-                    running_acc_lex += (acc_t_lex - running_acc_lex) / (batch_index + 1)
 
 
-                    # all student-delex classifier related code to calculate accuracy
-                    y_pred_labels_delex_sf = F.softmax(y_pred_delex, dim=1)
-                    count_of_right_predictions_student_delex_per_batch,acc_t_delex,student_predictions_by_label_class = self.compute_accuracy(y_pred_labels_delex_sf, batch_dict_lex['y_target'])
-                    total_right_predictions_student_delex=total_right_predictions_student_delex+count_of_right_predictions_student_delex_per_batch
-                    running_acc_delex += (acc_t_delex - running_acc_delex) / (batch_index + 1)
                     self._LOG.debug(
                         f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
                         f"classification_loss_lex:{round(running_loss_lex,2)}\t classification_loss_delex:{round(running_loss_delex,2)} "
@@ -626,15 +654,18 @@ class Trainer():
 
 
                 if (comet_value_updater is not None):
+                    comet_value_updater.log_metric("training accuracy of teacher model per epoch", running_acc_lex,
+                                                   step=epoch_index)
                     comet_value_updater.log_metric("training accuracy of teacher ema model per epoch", running_acc_lex_ema,
                                                    step=epoch_index)
-                    comet_value_updater.log_metric("training accuracy of teacher model per epoch", running_acc_lex,step=epoch_index)
+
                     comet_value_updater.log_metric("training accuracy of student model per epoch", running_acc_delex,
                                                    step=epoch_index)
 
-                    comet_value_updater.log_metric("teacher_lex_same_as_gold_but_student_is_different_percent per global step",
-                                                   teacher_lex_same_as_gold_but_student_is_different_percent,
-                                                   step=global_variables.global_step)
+                    comet_value_updater.log_metric("training accuracy of student ema model per epoch", running_acc_delex_ema,
+                                                   step=epoch_index)
+
+
 
 
 
@@ -653,16 +684,27 @@ class Trainer():
                 classifier_student_delex.eval()
                 running_acc_val_student,running_loss_val_student= self.eval(classifier_student_delex, args_in, dataset,epoch_index,vectorizer)
 
-                # evaluate using teacher-lex
+                # evaluate using student-delex-ema
+                dataset.set_split('val_delex')
+                classifier_student_delex_ema.eval()
+                running_acc_val_student_ema, running_loss_val_teacher_ema = self.eval(classifier_student_delex_ema,
+                                                                                      args_in, dataset, epoch_index,
+                                                                                      vectorizer)
 
+
+
+                # evaluate using teacher-lex
                 dataset.set_split('val_lex')
                 classifier_teacher_lex.eval()
-                running_acc_val_teacher,running_loss_val_teacher = self.eval(classifier_teacher_lex, args_in, dataset,epoch_index,vectorizer)
+                running_acc_val_teacher, running_loss_val_teacher = self.eval(classifier_teacher_lex, args_in, dataset,
+                                                                              epoch_index, vectorizer)
 
                 # evaluate using teacher-lex-ema
-                dataset.set_split('val_delex')
+                dataset.set_split('val_lex')
                 classifier_teacher_lex_ema.eval()
-                running_acc_val_teacher_ema,running_loss_val_teacher_ema = self.eval(classifier_teacher_lex_ema, args_in, dataset,epoch_index,vectorizer)
+                running_acc_val_teacher_ema, running_loss_val_teacher_ema = self.eval(classifier_teacher_lex_ema,
+                                                                                      args_in, dataset,
+                                                                                      epoch_index, vectorizer)
 
 
                 # Do early stopping based on when the dev accuracy drops from its best for patience (as defined in initializer.py)
@@ -675,6 +717,8 @@ class Trainer():
                 assert comet_value_updater is not None
                 comet_value_updater.log_metric("acc_dev_per_epoch_using_student_model", running_acc_val_student, step=epoch_index)
                 comet_value_updater.log_metric("acc_dev_per_epoch_using_teacher_model", running_acc_val_teacher, step=epoch_index)
+                comet_value_updater.log_metric("acc_dev_per_epoch_using_student_ema_model", running_acc_val_student_ema,
+                                               step=epoch_index)
                 comet_value_updater.log_metric("acc_dev_per_epoch_using_teacher_ema_model", running_acc_val_teacher_ema,
                                                step=epoch_index)
 

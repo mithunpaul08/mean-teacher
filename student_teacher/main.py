@@ -95,9 +95,14 @@ else:
 
 num_features=len(vectorizer.claim_ev_vocab)
 
+classifier_student_delex_ema = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
+                                            , word_vocab_embed=embeddings, word_vocab_size=num_features,
+                                            wordemb_size_in=embedding_size, ema=True)
+
 classifier_teacher_lex_ema = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
-                                              , word_vocab_embed=embeddings, word_vocab_size=num_features,
-                                          wordemb_size_in=embedding_size, ema=True)
+                                            , word_vocab_embed=embeddings, word_vocab_size=num_features,
+                                            wordemb_size_in=embedding_size, ema=True)
+
 
 classifier_teacher_lex = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
                                               , word_vocab_embed=embeddings, word_vocab_size=num_features,
@@ -107,7 +112,7 @@ classifier_student_delex = create_model(logger_object=LOG, args_in=args, num_cla
                                         , word_vocab_embed=embeddings, word_vocab_size=num_features, wordemb_size_in=embedding_size)
 
 
-assert classifier_teacher_lex_ema is not None
+assert classifier_student_delex_ema is not None
 assert classifier_teacher_lex is not None
 assert classifier_student_delex is not None
 
@@ -121,4 +126,4 @@ if(args.load_model_from_disk_and_test):
     LOG.info(f"{current_time:} Found that need to load model and test using it.")
     train_rte.load_model_and_eval(args,classifier_student_delex, dataset, "test_delex",vectorizer)
 else:
-    train_rte.train(args, classifier_teacher_lex_ema,classifier_teacher_lex ,classifier_student_delex, dataset, comet_value_updater, vectorizer)
+    train_rte.train(args, classifier_student_delex_ema, classifier_teacher_lex_ema,classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer)

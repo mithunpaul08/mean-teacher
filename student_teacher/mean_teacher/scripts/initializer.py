@@ -77,7 +77,7 @@ class Initializer():
             use_gpu=True,
             consistency_type="mse",
             NO_LABEL=-1,
-            type_of_trained_model="student"
+            type_of_trained_model="teacher"
 
         )
         args.use_glove = True

@@ -709,7 +709,7 @@ class Trainer():
 
                 # Do early stopping based on when the dev accuracy drops from its best for patience (as defined in initializer.py)
                 train_state_in['val_loss'].append(running_loss_val_student)
-                train_state_in['val_acc'].append(running_loss_val_teacher)
+                train_state_in['val_acc'].append(running_acc_val_student)
                 train_state_in = self.update_train_state(args=args_in,
                                                          models=[classifier_student_delex, classifier_teacher_lex],
                                                          train_state=train_state_in)
@@ -728,6 +728,8 @@ class Trainer():
                 classifier_student_delex.eval()
                 running_acc_test_student, running_loss_test_student = self.eval(classifier_student_delex, args_in,
                                                                                 dataset, epoch_index,vectorizer)
+                running_acc_test_student_ema, running_loss_test_student_ema = self.eval(classifier_student_delex_ema, args_in,
+                                                                                dataset, epoch_index, vectorizer)
 
                 dataset.set_split('test_lex')
                 classifier_teacher_lex.eval()
@@ -736,6 +738,8 @@ class Trainer():
                                                                                 epoch_index,vectorizer)
 
                 comet_value_updater.log_metric("running_acc_test_student", running_acc_test_student,
+                                               step=epoch_index)
+                comet_value_updater.log_metric("running_acc_test_student_ema", running_acc_test_student_ema,
                                                step=epoch_index)
                 comet_value_updater.log_metric("running_acc_test_teacher", running_acc_test_teacher,
                                                step=epoch_index)

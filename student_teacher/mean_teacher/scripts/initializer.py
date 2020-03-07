@@ -48,7 +48,7 @@ class Initializer():
             early_stopping_criteria=5,
             learning_rate=0.005,
             num_epochs=500,
-            random_seed=686747,
+            random_seed=23233,
 
             weight_decay=5e-5,
             Adagrad_init=0,

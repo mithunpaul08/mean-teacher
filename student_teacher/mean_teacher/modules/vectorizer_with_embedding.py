@@ -2,7 +2,7 @@ from collections import Counter
 from .vocabulary import Vocabulary,SequenceVocabulary
 import numpy as np
 import string
-
+import re
 
 # ### The Vectorizer
 
@@ -39,8 +39,10 @@ class VectorizerWithEmbedding(object):
 
     def get_oanertag_label_frequency(self,oaner_label_freq,label,sentence):
         for word in sentence.split(" "):
-            if(word=='PERSON-c1'):
-                oaner_label = (word,label)
+            match=re.search(r'[A-Z]+-[c,e][0-9]+', word)
+            if(match):
+                oanertag=match.group()
+                oaner_label = (oanertag,label)
                 if oaner_label in oaner_label_freq:
                     oaner_label_freq[oaner_label]+=1
                 else:
@@ -74,7 +76,8 @@ class VectorizerWithEmbedding(object):
         oaner_label_freq = {}
         for index,row in (claim_ev_delex.iterrows()):
             cls.get_oanertag_label_frequency(cls,oaner_label_freq, row.label,row.claim)
-
+        for x in (sorted(oaner_label_freq.items(), key = lambda kv:(kv[1], kv[0]),reverse=True)):
+            print(x)
         import sys
         sys.exit(1)
 

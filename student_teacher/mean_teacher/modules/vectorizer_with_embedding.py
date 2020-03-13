@@ -65,7 +65,7 @@ class VectorizerWithEmbedding(object):
         total = 0
         for x in (sorted(oaner_label_freq.items(), key=lambda kv: (kv[1], kv[0]), reverse=True)):
             total += x[1]
-
+        print(f"total={total}")
         for index, x in enumerate((sorted(oaner_label_freq.items(), key=lambda kv: (kv[1], kv[0]), reverse=True))):
             val = round((x[1] * 100 / total), ndigits=2)
             print(f"{x}:{val}%")

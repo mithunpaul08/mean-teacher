@@ -81,7 +81,7 @@ class Initializer():
             #Eg:(('PERSON-c1', 'AGREE'), 51):5.57%This was needed to show in LREC2020 that
             #even though we overcame one bias (ben stiller effect like) we created
             #new ones based on oaner tags
-            print_oaner_label_frequency=False
+            print_oaner_label_frequency=True
 
         )
         args.use_glove = True

@@ -76,7 +76,12 @@ class Initializer():
 
             use_gpu=True,
             consistency_type="mse",
-            NO_LABEL=-1
+            NO_LABEL=-1,
+            #will print top 10  percentage of [oanerTag, label] combination.
+            #Eg:(('PERSON-c1', 'AGREE'), 51):5.57%This was needed to show in LREC2020 that
+            #even though we overcame one bias (ben stiller effect like) we created
+            #new ones based on oaner tags
+            print_oaner_label_frequency=True
 
         )
         args.use_glove = True

@@ -56,6 +56,23 @@ class VectorizerWithEmbedding(object):
                     word_counts[word] += 1
             return word_counts
 
+
+    def get_oanertag_label_percentages(self,claim_ev_delex):
+        oaner_label_freq = {}
+        for index, row in (claim_ev_delex.iterrows()):
+            self.get_oanertag_label_frequency(self, oaner_label_freq, row.label, row.claim)
+            self.get_oanertag_label_frequency( self,oaner_label_freq, row.label, row.evidence)
+        total = 0
+        for x in (sorted(oaner_label_freq.items(), key=lambda kv: (kv[1], kv[0]), reverse=True)):
+            total += x[1]
+
+        for index, x in enumerate((sorted(oaner_label_freq.items(), key=lambda kv: (kv[1], kv[0]), reverse=True))):
+            val = round((x[1] * 100 / total), ndigits=2)
+            print(f"{x}:{val}%")
+            if (index > 10):
+                import sys
+                sys.exit(1)
+
     @classmethod
     def create_vocabulary(cls, claim_ev_lex, claim_ev_delex, cutoff=25):
         """Instantiate the vectorizer from the dataset dataframe
@@ -73,19 +90,7 @@ class VectorizerWithEmbedding(object):
         for ev in (claim_ev_lex.evidence):
             word_counts=cls.update_word_count(cls, ev,word_counts)
 
-        oaner_label_freq = {}
-        for index,row in (claim_ev_delex.iterrows()):
-            cls.get_oanertag_label_frequency(cls,oaner_label_freq, row.label,row.claim)
-        total=0
-        for x in (sorted(oaner_label_freq.items(), key = lambda kv:(kv[1], kv[0]),reverse=True)):
-            total+=x[1]
-
-        for index,x in enumerate((sorted(oaner_label_freq.items(), key = lambda kv:(kv[1], kv[0]),reverse=True))):
-            val=round((x[1] * 100 / total),ndigits=2)
-            print(f"{x}:{val}%")
-            if(index>10):
-                import sys
-                sys.exit(1)
+        cls.get_oanertag_label_percentages(cls,claim_ev_delex)
 
         for claim in (claim_ev_delex.claim):
             word_counts=cls.update_word_count(cls,claim,word_counts)

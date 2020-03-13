@@ -74,7 +74,7 @@ class VectorizerWithEmbedding(object):
                 sys.exit(1)
 
     @classmethod
-    def create_vocabulary(cls, claim_ev_lex, claim_ev_delex, cutoff=25):
+    def create_vocabulary(cls, claim_ev_lex, claim_ev_delex, args):
         """Instantiate the vectorizer from the dataset dataframe
         Args:
             claim_ev_lex (pandas.DataFrame): the review dataset
@@ -90,7 +90,8 @@ class VectorizerWithEmbedding(object):
         for ev in (claim_ev_lex.evidence):
             word_counts=cls.update_word_count(cls, ev,word_counts)
 
-        cls.get_oanertag_label_percentages(cls,claim_ev_delex)
+        if(args.print_oaner_label_frequency==True):
+            cls.get_oanertag_label_percentages(cls,claim_ev_delex)
 
         for claim in (claim_ev_delex.claim):
             word_counts=cls.update_word_count(cls,claim,word_counts)

@@ -69,7 +69,7 @@ class VectorizerWithEmbedding(object):
         for index, x in enumerate((sorted(oaner_label_freq.items(), key=lambda kv: (kv[1], kv[0]), reverse=True))):
             val = round((x[1] * 100 / total), ndigits=2)
             print(f"{x}:{val}%")
-            if (index > 10):
+            if (index > 100):
                 import sys
                 sys.exit(1)
 

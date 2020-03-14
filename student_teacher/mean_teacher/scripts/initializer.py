@@ -77,13 +77,17 @@ class Initializer():
             use_gpu=True,
             consistency_type="mse",
             NO_LABEL=-1,
-            type_of_trained_model="teacher"
+            #this is used during loading a trained model and testing with it. you can choose between teacher and student.
+            type_of_trained_model="teacher",
 
             #will print top 10  percentage of [oanerTag, label] combination.
             #Eg:(('PERSON-c1', 'AGREE'), 51):5.57%This was needed to show in LREC2020 that
             #even though we overcame one bias (ben stiller effect like) we created
             #new ones based on oaner tags
-            print_oaner_label_frequency=True
+            print_oaner_label_frequency=True,
+
+            #this is an experiment to check if using a pre-trained model inside a student teacher architecture is better
+            use_trained_teacher_inside_student_teacher_arch=True
         )
         args.use_glove = True
         if args.expand_filepaths_to_save_dir:

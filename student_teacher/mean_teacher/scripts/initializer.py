@@ -48,7 +48,7 @@ class Initializer():
             early_stopping_criteria=5,
             learning_rate=0.005,
             num_epochs=500,
-            random_seed=37,
+            random_seed=676786,
 
             weight_decay=5e-5,
             Adagrad_init=0,
@@ -77,12 +77,13 @@ class Initializer():
             use_gpu=True,
             consistency_type="mse",
             NO_LABEL=-1,
+            type_of_trained_model="teacher"
+
             #will print top 10  percentage of [oanerTag, label] combination.
             #Eg:(('PERSON-c1', 'AGREE'), 51):5.57%This was needed to show in LREC2020 that
             #even though we overcame one bias (ben stiller effect like) we created
             #new ones based on oaner tags
             print_oaner_label_frequency=True
-
         )
         args.use_glove = True
         if args.expand_filepaths_to_save_dir:

@@ -363,6 +363,8 @@ class Trainer():
 
         classifier_teacher_lex = classifier_teacher_lex.to(args_in.device)
 
+        #historically we had a case where we had to run just the teacher alone. This is vestigial from there. Right now, Feb 2020, we
+        #almost always run in student-teacher mode
         if (args_in.add_student == True):
             classifier_student_delex = classifier_student_delex.to(args_in.device)
             input_optimizer, inter_atten_optimizer = initialize_optimizers([classifier_teacher_lex, classifier_student_delex], args_in)
@@ -373,14 +375,11 @@ class Trainer():
 
         train_state_in = self.make_train_state(args_in)
 
-
-
-
         try:
+            # Iterate over training dataset
             for epoch_index in range(args_in.num_epochs):
                 train_state_in['epoch_index'] = epoch_index
 
-                # Iterate over training dataset
 
                 # setup: batch generator, set class_loss_lex and acc to 0, set train mode on
                 dataset.set_split('train_lex')
@@ -389,14 +388,13 @@ class Trainer():
 
 
                 batch_generator_lex_data=None
+                #WHEN use_semi_supervised is turned on, only part of the gold labels will be given to the classifier. Rest all will be masked.
                 if(args_in.use_semi_supervised==True):
                     assert args_in.percentage_labels_for_semi_supervised > 0
                     batch_generator_lex_data = generate_batches_for_semi_supervised(dataset_lex, args_in.percentage_labels_for_semi_supervised, workers=args_in.workers, batch_size=args_in.batch_size,
                                                         device=args_in.device,mask_value=args_in.NO_LABEL )
                 else:
                     batch_generator_lex_data = generate_batches(dataset_lex, workers=args_in.workers, batch_size=args_in.batch_size,device=args_in.device)
-                    #batch_generator_lex_data = DataLoader(dataset, batch_size=args_in.batch_size, shuffle=False, pin_memory=True,
-                                            #drop_last=False, num_workers=args_in.workers)
 
                 no_of_batches_lex = int(len(dataset)/args_in.batch_size)
 
@@ -685,7 +683,7 @@ class Trainer():
                 comet_value_updater.log_metric("acc_dev_per_epoch_using_teacher_model", running_acc_val_teacher, step=epoch_index)
 
                 # also test it on a third dataset which is usually cross domain on fnc
-                args_in.database_to_test_with="ff"
+                args_in.database_to_test_with="fnc"
                 dataset.set_split('test_delex')
                 classifier_student_delex.eval()
                 running_acc_test_student, running_loss_test_student = self.eval(classifier_student_delex, args_in,

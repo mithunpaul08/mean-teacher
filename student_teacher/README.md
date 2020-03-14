@@ -50,34 +50,32 @@ Notes:
 
 
 - Steps to do if you want to train a model on fever-train but want to do early  stopping for best dev value of fnc + using fever scoring
-    - set `load_model_from_disk_and_test` to `False`.  
+    - set the random seed to whatever you want in initializer.py
+    - set `load_model_from_disk_and_test` to `False`.   inside get_data_run.sh
     - make sure the value of `delex_test` in `initializer.py` points to the fnc-dev-delex
     - make sure the value of `lex_test` in `initializer.py` points to the fnc-dev-lex
     - Also make sure `args_in.database_to_test_with="fff"` (or anything other than `fnc`) is set around line 687 in train_rao.py
      (i.e if you dont want to use fever official scoring
     and just want to use plain old accuracy. if you want to use fnc official scorer instead set it as `args_in.database_to_test_with="fnc")
-    - Remember to set `dataset.set_split('test_delex')` around line 688 in train_rao.py
+    - Remember to set `dataset.set_split('test_delex')` around line 688 in train_rao.py before calling student model in eval
+    - Remember to set `dataset.set_split('test_lex')` around line 688 in train_rao.py before calling teacher model in eval
 
 
 - Steps to do if you want to use a trained student model (trained on fever, but early stopped for best dev value of fnc) to test on fnc-test partition
-    - set `load_model_from_disk_and_test` to `True`. 
+    - set `load_model_from_disk_and_test` to `True` inside get_data_run.sh
     - Copy the trained student model to :  `model_storage/best_model.pth`. 
-    - Also make sure the value of `delex_test` in `initializer.py` points to `fnc/test/fnc_test_delex.jsonl`,
     - Also make sure `args_in.database_to_test_with="fff"` is set around line 687 in train_rao.py (i.e if you dont want to use fever official scoring
     and just want to use plain old accuracy. if you want to use fnc official scorer instead set it as `args_in.database_to_test_with="fnc")
-    - Remember to set `dataset.set_split('test_delex')` before using student model (around line 688 in train_rao.py) and then to 
-    and then `dataset.set_split('test_lex')` before using the teacher model to evaluate on dev partition. (Note: on feb 24th 2020 it was
-    found that we dont have fnc-dev-lex.so right now even though this is being set twice to lex and delex, while running fnc-dev it still
-    internally points to two delex itself. Need to change this.)
-
+    - in `initializer.py` make sure `type_of_trained_model` is set to `student`
+    
 - Steps to do if you want to use a trained teacher model (trained on fever, but early stopping for best dev value of fnc)
 
     - set `load_model_from_disk_and_test` to `True`. 
-    - Copy the trained teacher model to :  `model_storage/best_model.pth`. 
-    - Also make sure the value of `lex_test` in `initializer.py` points to `fnc/test/fnc_test_lex.jsonl',` 
-    - Also make sure `args_in.database_to_test_with="fnc"` is set around line 687 in train_rao.py
-    - Remember to set `dataset.set_split('test_lex')` around line 692 in train_rao.py
-
+    - Copy the trained teacher model to :  `model_storage/best_model.pth`.  
+    - Also make sure `args_in.database_to_test_with="fff"` is set around line 687 in train_rao.py (i.e if you dont want to use fever official scoring
+    and just want to use plain old accuracy. if you want to use fnc official scorer instead set it as `args_in.database_to_test_with="fnc")
+    - - in `initializer.py` make sure `type_of_trained_model` is set to `teacher`
+    
 
    Extra info:  Usually this loading saved model
 thing is done when you want to save a model that was trained on fever, and gave a very good performance on the cross-domain, fnc dataset's dev partition at say epoch 5. You save that model (if you dev is pointing to a particular partition, the code automatically saves the model before 

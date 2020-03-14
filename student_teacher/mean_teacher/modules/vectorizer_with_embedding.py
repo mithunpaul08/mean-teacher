@@ -2,7 +2,7 @@ from collections import Counter
 from .vocabulary import Vocabulary,SequenceVocabulary
 import numpy as np
 import string
-
+import re
 
 # ### The Vectorizer
 
@@ -37,14 +37,44 @@ class VectorizerWithEmbedding(object):
 
         return out_vector
 
+    def get_oanertag_label_frequency(self,oaner_label_freq,label,sentence):
+        for word in sentence.split(" "):
+            match=re.search(r'[A-Z]+-[c,e][0-9]+', word)
+            if(match):
+                oanertag=match.group()
+                oaner_label = (oanertag,label)
+                if oaner_label in oaner_label_freq:
+                    oaner_label_freq[oaner_label]+=1
+                else:
+                    oaner_label_freq[oaner_label] = 1
+
+
+
     def update_word_count(self, sentence,word_counts):
             for word in sentence.split(" "):
                 #if word not in string.punctuation:
                     word_counts[word] += 1
             return word_counts
 
+
+    def get_oanertag_label_percentages(self,claim_ev_delex):
+        oaner_label_freq = {}
+        for index, row in (claim_ev_delex.iterrows()):
+            self.get_oanertag_label_frequency(self, oaner_label_freq, row.label, row.claim)
+            self.get_oanertag_label_frequency( self,oaner_label_freq, row.label, row.evidence)
+        total = 0
+        for x in (sorted(oaner_label_freq.items(), key=lambda kv: (kv[1], kv[0]), reverse=True)):
+            total += x[1]
+        print(f"total={total}")
+        for index, x in enumerate((sorted(oaner_label_freq.items(), key=lambda kv: (kv[1], kv[0]), reverse=True))):
+            val = round((x[1] * 100 / total), ndigits=2)
+            print(f"{x}:{val}%")
+            if (index > 100):
+                import sys
+                sys.exit(1)
+
     @classmethod
-    def create_vocabulary(cls, claim_ev_lex, claim_ev_delex, cutoff=25):
+    def create_vocabulary(cls, claim_ev_lex, claim_ev_delex, args):
         """Instantiate the vectorizer from the dataset dataframe
         Args:
             claim_ev_lex (pandas.DataFrame): the review dataset
@@ -60,6 +90,8 @@ class VectorizerWithEmbedding(object):
         for ev in (claim_ev_lex.evidence):
             word_counts=cls.update_word_count(cls, ev,word_counts)
 
+        if(args.print_oaner_label_frequency==True):
+            cls.get_oanertag_label_percentages(cls,claim_ev_delex)
 
         for claim in (claim_ev_delex.claim):
             word_counts=cls.update_word_count(cls,claim,word_counts)

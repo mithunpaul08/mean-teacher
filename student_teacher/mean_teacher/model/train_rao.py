@@ -10,6 +10,7 @@ from mean_teacher.utils import global_variables
 from torch.utils.data import DataLoader
 import copy
 from mean_teacher.scorers.fnc_scorer import report_score
+from sklearn import metrics
 
 NO_LABEL=-1
 
@@ -115,6 +116,14 @@ class Trainer():
         result2 = (correct_k_float / labeled_minibatch_size_f) * 100
 
         return result2
+
+    def calculate_micro_f1(self,y_pred, y_target):
+        assert len(y_pred) == len(y_target)
+        _, y_pred_classes = y_pred.max(dim=1)
+        lbl_str=self.get_label_strings_given_list(y_pred_classes)
+
+        mf1=metrics.f1_score(y_target.tolist(),y_pred_classes.tolist(), average='micro', pos_label=3)
+        return mf1
 
     def compute_accuracy(self,y_pred, y_target):
         assert len(y_pred)==len(y_target)
@@ -536,10 +545,11 @@ class Trainer():
 
 
                     # compute the accuracy for lex data
-
-
                     y_pred_labels_lex_sf = F.softmax(y_pred_lex, dim=1)
-                    count_of_right_predictions_teacher_lex_per_batch, acc_t_lex,teacher_predictions_by_label_class = self.compute_accuracy(y_pred_labels_lex_sf, batch_dict_lex['y_target'])
+                    count_of_right_predictions_teacher_lex_per_batch, acc_t_lex,teacher_predictions_by_label_class = \
+                        self.compute_accuracy(y_pred_labels_lex_sf, batch_dict_lex['y_target'])
+
+                    mf1=self.calculate_micro_f1(y_pred_labels_lex_sf, batch_dict_lex['y_target'])
                     total_right_predictions_teacher_lex=total_right_predictions_teacher_lex+count_of_right_predictions_teacher_lex_per_batch
                     running_acc_lex += (acc_t_lex - running_acc_lex) / (batch_index + 1)
 

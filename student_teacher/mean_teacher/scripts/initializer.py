@@ -81,13 +81,15 @@ class Initializer():
             type_of_trained_model="teacher",
 
             #will print top 10  percentage of [oanerTag, label] combination.
-            #Eg:(('PERSON-c1', 'AGREE'), 51):5.57%This was needed to show in LREC2020 that
+            #Eg:(('PERSON-c1', 'AGREE'), 51):5.57% and exit
+            # This was needed to show in LREC2020 that
             #even though we overcame one bias (ben stiller effect like) we created
             #new ones based on oaner tags
-            print_oaner_label_frequency=True,
+            print_oaner_label_frequency=False,
 
-            #this is an experiment to check if using a pre-trained model inside a student teacher architecture is better
-            use_trained_teacher_inside_student_teacher_arch=True
+            #this is an experiment to check if using a pre-trained model
+            # inside a student teacher architecture is better
+            use_trained_teacher_inside_student_teacher_arch=False
         )
         args.use_glove = True
         if args.expand_filepaths_to_save_dir:

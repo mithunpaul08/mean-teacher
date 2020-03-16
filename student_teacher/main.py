@@ -129,8 +129,8 @@ classifier_student_delex = create_model(logger_object=LOG, args_in=args, num_cla
 
 train_rte=Trainer(LOG)
 
+#to use the fnc-test partition as this run's test partition. this is for when we are loading a trained model to test on fnc-test partition
 if(args.load_model_from_disk_and_test):
-    #to use the fnc-test partition as this run's test partition. this is for when we are loading a trained model to test on fnc-test partition
     LOG.info(f"{current_time:} Found that need to load model and test using it.")
     partition_to_evaluate_on="test_delex"
     #if you are loading a teacher model trained on lexicalized data, evaluate on the lexical version of fnc-test

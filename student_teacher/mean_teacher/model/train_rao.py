@@ -120,9 +120,13 @@ class Trainer():
     def calculate_micro_f1(self,y_pred, y_target):
         assert len(y_pred) == len(y_target)
         _, y_pred_classes = y_pred.max(dim=1)
-        lbl_str=self.get_label_strings_given_list(y_pred_classes)
 
-        mf1=metrics.f1_score(y_target.tolist(),y_pred_classes.tolist(), average='micro', pos_label=3)
+        labels_to_include =[]
+        for index,l in enumerate(y_target):
+            if not (l==3):
+                labels_to_include.append(index)
+
+        mf1=metrics.f1_score(y_target.tolist(),y_pred_classes.tolist(), average='micro', labels=labels_to_include)
         return mf1
 
     def compute_accuracy(self,y_pred, y_target):

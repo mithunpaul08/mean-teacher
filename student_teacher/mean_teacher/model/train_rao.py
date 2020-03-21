@@ -119,13 +119,12 @@ class Trainer():
 
     def calculate_micro_f1(self,y_pred, y_target):
         assert len(y_pred) == len(y_target)
-        _, y_pred_classes = y_pred.max(dim=1)
 
+        _, y_pred_classes = y_pred.max(dim=1)
         labels_to_include =[]
         for index,l in enumerate(y_target):
             if not (l==3):
                 labels_to_include.append(index)
-
         mf1=metrics.f1_score(y_target.tolist(),y_pred_classes.tolist(), average='micro', labels=labels_to_include)
         return mf1
 
@@ -442,6 +441,11 @@ class Trainer():
                 running_acc_delex = 0.0
                 classifier_teacher_lex.train()
                 classifier_student_delex.train()
+                all_predictions_of_lex_model_across_batches=[]
+                all_predictions_of_lex_model_across_batches=torch.tensor(all_predictions_of_lex_model_across_batches)
+
+                all_predictions_of_delex_model_across_batches = []
+                all_gold_labels_across_batches = []
 
                 total_right_predictions_teacher_lex=0
                 total_right_predictions_student_delex = 0
@@ -487,10 +491,11 @@ class Trainer():
 
                     # step 3.1 compute the class_loss_lex
                     class_loss_lex = class_loss_func(y_pred_lex, batch_dict_lex['y_target'])
+
                     loss_t_lex = class_loss_lex.item()
                     running_loss_lex += (loss_t_lex - running_loss_lex) / (batch_index + 1)
                     self._LOG.debug(f"loss_t_lex={loss_t_lex}\trunning_loss_lex={running_loss_lex}")
-
+                    all_predictions_of_lex_model_across_batches.append(y_pred_lex)
                     combined_class_loss = class_loss_lex
                     consistency_loss=0
                     class_loss_delex=None
@@ -552,8 +557,8 @@ class Trainer():
                     y_pred_labels_lex_sf = F.softmax(y_pred_lex, dim=1)
                     count_of_right_predictions_teacher_lex_per_batch, acc_t_lex,teacher_predictions_by_label_class = \
                         self.compute_accuracy(y_pred_labels_lex_sf, batch_dict_lex['y_target'])
-
-                    mf1=self.calculate_micro_f1(y_pred_labels_lex_sf, batch_dict_lex['y_target'])
+                    all_gold_labels_across_batches.append(batch_dict_lex['y_target'])
+                    #mf1_lex=self.calculate_micro_f1(y_pred_labels_lex_sf, batch_dict_lex['y_target'])
                     total_right_predictions_teacher_lex=total_right_predictions_teacher_lex+count_of_right_predictions_teacher_lex_per_batch
                     running_acc_lex += (acc_t_lex - running_acc_lex) / (batch_index + 1)
 
@@ -561,6 +566,7 @@ class Trainer():
                     if (args_in.add_student == True):
                         y_pred_labels_delex_sf = F.softmax(y_pred_delex, dim=1)
                         count_of_right_predictions_student_delex_per_batch,acc_t_delex,student_predictions_by_label_class = self.compute_accuracy(y_pred_labels_delex_sf, batch_dict_lex['y_target'])
+                        #mf1_delex = self.calculate_micro_f1(y_pred_labels_delex_sf, batch_dict_lex['y_target'])
                         total_right_predictions_student_delex=total_right_predictions_student_delex+count_of_right_predictions_student_delex_per_batch
                         running_acc_delex += (acc_t_delex - running_acc_delex) / (batch_index + 1)
                         self._LOG.debug(
@@ -617,7 +623,6 @@ class Trainer():
                     f" \t running_acc_lex:{round(running_acc_lex,4) }  \t running_acc_delex:{round(running_acc_delex,4)}  ")
 
 
-
                 train_state_in['train_acc'].append(running_acc_lex)
                 train_state_in['train_loss'].append(running_loss_lex)
 
@@ -628,7 +633,9 @@ class Trainer():
                 accuracy_student_model_by_per_batch_prediction = self.calculate_percentage(
                     total_right_predictions_student_delex, self.number_of_datapoints)
 
-
+                mf1_lex = self.calculate_micro_f1(all_predictions_of_delex_model_across_batches, all_gold_labels_across_batches)
+                mf1_delex = self.calculate_micro_f1(torch.tensor(all_predictions_of_delex_model_across_batches),
+                                                    all_gold_labels_across_batches)
 
                 self._LOG.info(
                     f"running_acc_lex by old method at the end of {epoch_index}:{running_acc_lex}")

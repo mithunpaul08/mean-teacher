@@ -118,8 +118,7 @@ class Trainer():
         return result2
 
     def calculate_micro_f1(self,y_pred, y_target):
-        assert len(y_pred) == len(y_target)
-
+        assert len(y_pred) == len(y_target), "lengths are different {len(y_pred)}"
         _, y_pred_classes = y_pred.max(dim=1)
         labels_to_include =[]
         for index,l in enumerate(y_target):
@@ -445,7 +444,9 @@ class Trainer():
                 all_predictions_of_lex_model_across_batches=torch.tensor(all_predictions_of_lex_model_across_batches)
 
                 all_predictions_of_delex_model_across_batches = []
-                all_gold_labels_across_batches = []
+
+                all_gold_labels_across_batches=[]
+                all_gold_labels_across_batches = torch.LongTensor(all_gold_labels_across_batches)
 
                 total_right_predictions_teacher_lex=0
                 total_right_predictions_student_delex = 0
@@ -495,7 +496,7 @@ class Trainer():
                     loss_t_lex = class_loss_lex.item()
                     running_loss_lex += (loss_t_lex - running_loss_lex) / (batch_index + 1)
                     self._LOG.debug(f"loss_t_lex={loss_t_lex}\trunning_loss_lex={running_loss_lex}")
-                    all_predictions_of_lex_model_across_batches.append(y_pred_lex)
+                    all_predictions_of_lex_model_across_batches=torch.cat((all_predictions_of_lex_model_across_batches,y_pred_lex),0)
                     combined_class_loss = class_loss_lex
                     consistency_loss=0
                     class_loss_delex=None
@@ -557,8 +558,8 @@ class Trainer():
                     y_pred_labels_lex_sf = F.softmax(y_pred_lex, dim=1)
                     count_of_right_predictions_teacher_lex_per_batch, acc_t_lex,teacher_predictions_by_label_class = \
                         self.compute_accuracy(y_pred_labels_lex_sf, batch_dict_lex['y_target'])
-                    all_gold_labels_across_batches.append(batch_dict_lex['y_target'])
-                    #mf1_lex=self.calculate_micro_f1(y_pred_labels_lex_sf, batch_dict_lex['y_target'])
+                    all_gold_labels_across_batches=torch.cat((all_gold_labels_across_batches,batch_dict_lex['y_target']),0)
+
                     total_right_predictions_teacher_lex=total_right_predictions_teacher_lex+count_of_right_predictions_teacher_lex_per_batch
                     running_acc_lex += (acc_t_lex - running_acc_lex) / (batch_index + 1)
 
@@ -633,7 +634,7 @@ class Trainer():
                 accuracy_student_model_by_per_batch_prediction = self.calculate_percentage(
                     total_right_predictions_student_delex, self.number_of_datapoints)
 
-                mf1_lex = self.calculate_micro_f1(all_predictions_of_delex_model_across_batches, all_gold_labels_across_batches)
+                mf1_lex = self.calculate_micro_f1(all_predictions_of_lex_model_across_batches, all_gold_labels_across_batches)
                 mf1_delex = self.calculate_micro_f1(torch.tensor(all_predictions_of_delex_model_across_batches),
                                                     all_gold_labels_across_batches)
 

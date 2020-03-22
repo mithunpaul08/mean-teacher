@@ -768,6 +768,15 @@ class Trainer():
                     f" accuracy on test partition by student:{round(running_acc_test_student,2)} ")
                 self._LOG.info(
                     f" accuracy on test partition by teacher:{round(running_acc_test_teacher,2)} ")
+
+                self._LOG.info(
+                    f" microf1 on dev partition by student:{round(microf1_student_dev,2)} ")
+                self._LOG.info(
+                    f" microf1 on dev partition by teacher:{round(microf1_teacher_dev,2)} ")
+                self._LOG.info(
+                    f" microf1 on test partition by student:{round(microf1_student_test,2)} ")
+                self._LOG.info(
+                    f" microf1 on test partition by teacher:{round(microf1_teacher_test,2)} ")
                 self._LOG.info(
                     f"****************end of epoch {epoch_index}*********************")
 

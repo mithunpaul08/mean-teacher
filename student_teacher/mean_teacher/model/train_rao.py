@@ -119,24 +119,17 @@ class Trainer():
 
     def calculate_micro_f1(self,y_pred, y_target):
         assert len(y_pred) == len(y_target), "lengths are different {len(y_pred)}"
-        _, y_pred_classes = y_pred.max(dim=1)
         labels_to_include =[]
         for index,l in enumerate(y_target):
             if not (l==3):
                 labels_to_include.append(index)
-        mf1=metrics.f1_score(y_target.tolist(),y_pred_classes.tolist(), average='micro', labels=labels_to_include)
+        mf1=metrics.f1_score(y_target,y_pred, average='micro', labels=labels_to_include)
         return mf1
 
     def compute_accuracy(self,y_pred, y_target):
         assert len(y_pred)==len(y_target)
         _, y_pred_classes = y_pred.max(dim=1)
         n_correct = torch.eq(y_pred_classes, y_target).sum().item()
-
-        m = nn.Softmax()
-        output_sftmax = m(y_pred.tolist())
-        _, pred = output_sftmax.topk(1, 1, True, True)
-
-
         accuracy=n_correct / len(y_target) * 100
         return n_correct,accuracy,y_pred_classes
 
@@ -328,15 +321,15 @@ class Trainer():
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
         #this is for calculating microf1 score
-        all_predictions_tensor = []
-        all_gold_labels_tensor = []
+        all_predictions = []
+        all_gold_labels = []
         #
         # if torch.cuda.is_available():
-        #     all_predictions_tensor = torch.cuda.FloatTensor(all_predictions_tensor)
+        #     all_predictions = torch.cuda.FloatTensor(all_predictions)
         #     all_gold_labels_tensor = torch.cuda.LongTensor(all_gold_labels_tensor)
         # else:
-        all_predictions_tensor = torch.tensor(all_predictions_tensor)
-        all_gold_labels_tensor = torch.LongTensor(all_gold_labels_tensor)
+        # all_predictions = torch.tensor(all_predictions)
+        # all_gold_labels_tensor = torch.LongTensor(all_gold_labels_tensor)
 
 
         no_of_batches= int(len(dataset) / args_in.batch_size)
@@ -351,8 +344,8 @@ class Trainer():
 
             # compute the accuracy
 
-            all_gold_labels_tensor = torch.cat((all_gold_labels_tensor, batch_dict['y_target']), 0)
-            all_predictions_tensor= torch.cat((all_predictions_tensor, y_pred_val), 0)
+            all_gold_labels.extend(batch_dict['y_target'].tolist())
+            #all_predictions= torch.cat((all_predictions, y_pred_val), 0)
 
 
             acc_t = 0
@@ -360,20 +353,21 @@ class Trainer():
             # command line argument 'database_to_test_with' is used only for deciding the scoring function. it has nothing
             # to do with which test file to load.
             if (args_in.database_to_test_with == "fnc"):
-                predictions_index_labels = self.get_argmax(y_pred_val.float())
-                predictions_str_labels = self.get_label_strings_given_vectorizer(vectorizer, predictions_index_labels)
+                predictions_by_label_class = self.get_argmax(y_pred_val.float())
+                predictions_str_labels = self.get_label_strings_given_vectorizer(vectorizer, predictions_by_label_class)
                 gold_str = self.get_label_strings_given_list(batch_dict['y_target'])
                 for e in gold_str:
                     total_gold.append(e)
                 for e in predictions_str_labels:
                     total_predictions.append(e)
+                all_predictions.extend(predictions_by_label_class[0].tolist())
             else:
                 # compute the accuracy
                 y_pred_labels_val_sf = F.softmax(y_pred_val, dim=1)
                 right_predictions, acc_t, predictions_by_label_class = self.compute_accuracy(y_pred_labels_val_sf,
                                                                                              batch_dict['y_target'])
 
-
+                all_predictions.extend(predictions_by_label_class.tolist())
 
             running_acc_val += (acc_t - running_acc_val) / (batch_index + 1)
 
@@ -383,7 +377,7 @@ class Trainer():
             self._LOG.debug(
                 f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches} \t per_batch_accuracy_dev_set:{round(acc_t,4)} \t moving_avg_val_accuracy:{round(running_acc_val,4)} ")
 
-        microf1 = self.calculate_micro_f1(all_predictions_tensor, all_gold_labels_tensor)
+        microf1 = self.calculate_micro_f1(all_predictions, all_gold_labels)
         return running_acc_val,running_loss_val,microf1
 
 

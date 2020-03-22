@@ -576,7 +576,7 @@ class Trainer():
                     y_pred_labels_lex_sf = F.softmax(y_pred_lex, dim=1)
                     count_of_right_predictions_teacher_lex_per_batch, acc_t_lex,teacher_predictions_by_label_class = \
                         self.compute_accuracy(y_pred_labels_lex_sf, batch_dict_lex['y_target'])
-                    all_gold_labels_across_batches=torch.cat((all_gold_labels_across_batches,batch_dict_lex['y_target']),0)
+                    
 
                     total_right_predictions_teacher_lex=total_right_predictions_teacher_lex+count_of_right_predictions_teacher_lex_per_batch
                     running_acc_lex += (acc_t_lex - running_acc_lex) / (batch_index + 1)

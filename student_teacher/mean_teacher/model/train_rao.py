@@ -457,30 +457,13 @@ class Trainer():
                 running_acc_delex = 0.0
                 classifier_teacher_lex.train()
                 classifier_student_delex.train()
-                all_predictions_of_lex_model_across_batches_training=[]
-
-                all_predictions_of_delex_model_across_batches_training = []
 
 
 
 
 
-                all_gold_labels_across_batches=[]
 
 
-                if torch.cuda.is_available():
-                    all_predictions_of_lex_model_across_batches_training = torch.cuda.FloatTensor(
-                        all_predictions_of_lex_model_across_batches_training)
-                    all_gold_labels_across_batches = torch.cuda.LongTensor(all_gold_labels_across_batches)
-                    all_predictions_of_delex_model_across_batches_training = torch.cuda.FloatTensor(
-                        all_predictions_of_delex_model_across_batches_training)
-
-                else:
-                    all_predictions_of_lex_model_across_batches_training = torch.tensor(
-                        all_predictions_of_lex_model_across_batches_training)
-                    all_gold_labels_across_batches = torch.LongTensor(all_gold_labels_across_batches)
-                    all_predictions_of_delex_model_across_batches_training = torch.tensor(
-                        all_predictions_of_delex_model_across_batches_training)
 
 
                 total_right_predictions_teacher_lex=0
@@ -531,7 +514,7 @@ class Trainer():
                     loss_t_lex = class_loss_lex.item()
                     running_loss_lex += (loss_t_lex - running_loss_lex) / (batch_index + 1)
                     self._LOG.debug(f"loss_t_lex={loss_t_lex}\trunning_loss_lex={running_loss_lex}")
-                    all_predictions_of_lex_model_across_batches_training=torch.cat((all_predictions_of_lex_model_across_batches_training,y_pred_lex),0)
+
                     combined_class_loss = class_loss_lex
                     consistency_loss=0
                     class_loss_delex=None
@@ -539,8 +522,6 @@ class Trainer():
                     #all classifier2 related code (the one which feeds off delexicalized data). all steps before .backward()
                     if (args_in.add_student == True):
                         y_pred_delex = classifier_student_delex(batch_dict_delex['x_claim'], batch_dict_delex['x_evidence'])
-                        all_predictions_of_delex_model_across_batches_training = torch.cat(
-                            (all_predictions_of_delex_model_across_batches_training, y_pred_delex), 0)
                         class_loss_delex = class_loss_func(y_pred_delex, batch_dict_delex['y_target'])
                         loss_t_delex = class_loss_delex.item()
                         running_loss_delex += (loss_t_delex - running_loss_delex) / (batch_index + 1)
@@ -671,10 +652,7 @@ class Trainer():
                 accuracy_student_model_by_per_batch_prediction = self.calculate_percentage(
                     total_right_predictions_student_delex, self.number_of_datapoints)
 
-                mf1_lex_training = self.calculate_micro_f1(all_predictions_of_lex_model_across_batches_training,
-                                                  all_gold_labels_across_batches)
-                mf1_delex_training = self.calculate_micro_f1(all_predictions_of_delex_model_across_batches_training,
-                                                    all_gold_labels_across_batches)
+
 
                 self._LOG.info(
                     f"running_acc_lex by old method at the end of {epoch_index}:{running_acc_lex}")
@@ -708,10 +686,8 @@ class Trainer():
                     comet_value_updater.log_metric("training accuracy of teacher model per epoch", running_acc_lex,step=epoch_index)
                     comet_value_updater.log_metric("training accuracy of student model per epoch", running_acc_delex,
                                                    step=epoch_index)
-                    comet_value_updater.log_metric("microf1 accuracy of student delex model per epoch", mf1_lex_training,
-                                                   step=epoch_index)
-                    comet_value_updater.log_metric("microf1 accuracy of student lex model per epoch", mf1_delex_training,
-                                               step=epoch_index)
+
+
 
                 if (args_in.add_student == True):
                     if (comet_value_updater is not None):

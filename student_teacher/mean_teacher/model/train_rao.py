@@ -323,13 +323,13 @@ class Trainer():
         #this is for calculating microf1 score
         all_predictions_tensor = []
         all_gold_labels_tensor = []
-
-        if torch.cuda.is_available():
-            all_predictions_tensor = torch.cuda.FloatTensor(all_predictions_tensor)
-            all_gold_labels_tensor = torch.cuda.LongTensor(all_gold_labels_tensor)
-        else:
-            all_predictions_tensor = torch.tensor(all_predictions_tensor)
-            all_gold_labels_tensor = torch.LongTensor(all_gold_labels_tensor)
+        #
+        # if torch.cuda.is_available():
+        #     all_predictions_tensor = torch.cuda.FloatTensor(all_predictions_tensor)
+        #     all_gold_labels_tensor = torch.cuda.LongTensor(all_gold_labels_tensor)
+        # else:
+        all_predictions_tensor = torch.tensor(all_predictions_tensor)
+        all_gold_labels_tensor = torch.LongTensor(all_gold_labels_tensor)
 
 
         no_of_batches= int(len(dataset) / args_in.batch_size)
@@ -576,7 +576,7 @@ class Trainer():
                     y_pred_labels_lex_sf = F.softmax(y_pred_lex, dim=1)
                     count_of_right_predictions_teacher_lex_per_batch, acc_t_lex,teacher_predictions_by_label_class = \
                         self.compute_accuracy(y_pred_labels_lex_sf, batch_dict_lex['y_target'])
-                    
+
 
                     total_right_predictions_teacher_lex=total_right_predictions_teacher_lex+count_of_right_predictions_teacher_lex_per_batch
                     running_acc_lex += (acc_t_lex - running_acc_lex) / (batch_index + 1)
@@ -655,7 +655,7 @@ class Trainer():
 
 
                 self._LOG.info(
-                    f"running_acc_lex by old method at the end of {epoch_index}:{running_acc_lex}")
+                    f"running_acc_lex training by old method at the end of {epoch_index}:{running_acc_lex}")
                 self._LOG.info(
                     f"accuracy_teacher_model_by_per_batch_prediction at the end of epoch{epoch_index}:{accuracy_teacher_model_by_per_batch_prediction}")
 

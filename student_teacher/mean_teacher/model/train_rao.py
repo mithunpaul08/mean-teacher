@@ -332,11 +332,6 @@ class Trainer():
             all_gold_labels_tensor = torch.LongTensor(all_gold_labels_tensor)
 
 
-
-
-
-
-
         no_of_batches= int(len(dataset) / args_in.batch_size)
         for batch_index, batch_dict in enumerate(tqdm(batch_generator_val, desc="dev_batches", total=no_of_batches)):
             # compute the output

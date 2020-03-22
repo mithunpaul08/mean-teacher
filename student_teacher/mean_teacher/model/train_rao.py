@@ -320,6 +320,15 @@ class Trainer():
         total_predictions = []
         total_gold = []
 
+        #this is for calculating microf1 score
+        all_predictions_tensor = []
+        all_predictions_tensor = torch.tensor(all_predictions_tensor)
+        all_gold_labels_tensor = []
+        all_gold_labels_tensor = torch.LongTensor(all_gold_labels_tensor)
+
+
+
+
         no_of_batches= int(len(dataset) / args_in.batch_size)
         for batch_index, batch_dict in enumerate(tqdm(batch_generator_val, desc="dev_batches", total=no_of_batches)):
             # compute the output
@@ -331,6 +340,10 @@ class Trainer():
             running_loss_val += (loss_t - running_loss_val) / (batch_index + 1)
 
             # compute the accuracy
+
+            all_gold_labels_tensor = torch.cat((all_gold_labels_tensor, batch_dict['y_target']), 0)
+            all_predictions_tensor= torch.cat((all_predictions_tensor, y_pred_val), 0)
+
 
             acc_t = 0
             # fnc alone has a different kind of scoring. we are using the official scoring function. Note that the
@@ -360,7 +373,8 @@ class Trainer():
             self._LOG.debug(
                 f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches} \t per_batch_accuracy_dev_set:{round(acc_t,4)} \t moving_avg_val_accuracy:{round(running_acc_val,4)} ")
 
-        return running_acc_val,running_loss_val
+        microf1 = self.calculate_micro_f1(all_predictions_tensor, all_gold_labels_tensor)
+        return running_acc_val,running_loss_val,microf1
 
 
 
@@ -440,10 +454,14 @@ class Trainer():
                 running_acc_delex = 0.0
                 classifier_teacher_lex.train()
                 classifier_student_delex.train()
-                all_predictions_of_lex_model_across_batches=[]
-                all_predictions_of_lex_model_across_batches=torch.tensor(all_predictions_of_lex_model_across_batches)
+                all_predictions_of_lex_model_across_batches_training=[]
+                all_predictions_of_lex_model_across_batches_training=torch.tensor(all_predictions_of_lex_model_across_batches_training)
 
-                all_predictions_of_delex_model_across_batches = []
+                all_predictions_of_delex_model_across_batches_training = []
+                all_predictions_of_delex_model_across_batches_training = torch.tensor(all_predictions_of_delex_model_across_batches_training)
+
+
+
 
                 all_gold_labels_across_batches=[]
                 all_gold_labels_across_batches = torch.LongTensor(all_gold_labels_across_batches)
@@ -496,7 +514,7 @@ class Trainer():
                     loss_t_lex = class_loss_lex.item()
                     running_loss_lex += (loss_t_lex - running_loss_lex) / (batch_index + 1)
                     self._LOG.debug(f"loss_t_lex={loss_t_lex}\trunning_loss_lex={running_loss_lex}")
-                    all_predictions_of_lex_model_across_batches=torch.cat((all_predictions_of_lex_model_across_batches,y_pred_lex),0)
+                    all_predictions_of_lex_model_across_batches_training=torch.cat((all_predictions_of_lex_model_across_batches_training,y_pred_lex),0)
                     combined_class_loss = class_loss_lex
                     consistency_loss=0
                     class_loss_delex=None
@@ -504,6 +522,8 @@ class Trainer():
                     #all classifier2 related code (the one which feeds off delexicalized data). all steps before .backward()
                     if (args_in.add_student == True):
                         y_pred_delex = classifier_student_delex(batch_dict_delex['x_claim'], batch_dict_delex['x_evidence'])
+                        all_predictions_of_delex_model_across_batches_training = torch.cat(
+                            (all_predictions_of_delex_model_across_batches_training, y_pred_delex), 0)
                         class_loss_delex = class_loss_func(y_pred_delex, batch_dict_delex['y_target'])
                         loss_t_delex = class_loss_delex.item()
                         running_loss_delex += (loss_t_delex - running_loss_delex) / (batch_index + 1)
@@ -567,7 +587,7 @@ class Trainer():
                     if (args_in.add_student == True):
                         y_pred_labels_delex_sf = F.softmax(y_pred_delex, dim=1)
                         count_of_right_predictions_student_delex_per_batch,acc_t_delex,student_predictions_by_label_class = self.compute_accuracy(y_pred_labels_delex_sf, batch_dict_lex['y_target'])
-                        #mf1_delex = self.calculate_micro_f1(y_pred_labels_delex_sf, batch_dict_lex['y_target'])
+
                         total_right_predictions_student_delex=total_right_predictions_student_delex+count_of_right_predictions_student_delex_per_batch
                         running_acc_delex += (acc_t_delex - running_acc_delex) / (batch_index + 1)
                         self._LOG.debug(
@@ -634,8 +654,9 @@ class Trainer():
                 accuracy_student_model_by_per_batch_prediction = self.calculate_percentage(
                     total_right_predictions_student_delex, self.number_of_datapoints)
 
-                mf1_lex = self.calculate_micro_f1(all_predictions_of_lex_model_across_batches, all_gold_labels_across_batches)
-                mf1_delex = self.calculate_micro_f1(torch.tensor(all_predictions_of_delex_model_across_batches),
+                mf1_lex_training = self.calculate_micro_f1(all_predictions_of_lex_model_across_batches_training,
+                                                  all_gold_labels_across_batches)
+                mf1_delex_training = self.calculate_micro_f1(all_predictions_of_delex_model_across_batches_training,
                                                     all_gold_labels_across_batches)
 
                 self._LOG.info(
@@ -670,12 +691,10 @@ class Trainer():
                     comet_value_updater.log_metric("training accuracy of teacher model per epoch", running_acc_lex,step=epoch_index)
                     comet_value_updater.log_metric("training accuracy of student model per epoch", running_acc_delex,
                                                    step=epoch_index)
-
-                    comet_value_updater.log_metric("teacher_lex_same_as_gold_but_student_is_different_percent per global step",
-                                                   teacher_lex_same_as_gold_but_student_is_different_percent,
-                                                   step=global_variables.global_step)
-
-
+                    comet_value_updater.log_metric("microf1 accuracy of student delex model per epoch", mf1_lex_training,
+                                                   step=epoch_index)
+                    comet_value_updater.log_metric("microf1 accuracy of student lex model per epoch", mf1_delex_training,
+                                               step=epoch_index)
 
                 if (args_in.add_student == True):
                     if (comet_value_updater is not None):
@@ -688,14 +707,14 @@ class Trainer():
                 # Iterate over val dataset and check on dev using the intended trained model, which usually is the student delex model
                 dataset.set_split('val_delex')
                 classifier_student_delex.eval()
-                running_acc_val_student,running_loss_val_student= self.eval(classifier_student_delex, args_in, dataset,epoch_index,vectorizer)
+                running_acc_val_student,running_loss_val_student,microf1_student_dev= self.eval(classifier_student_delex, args_in, dataset,epoch_index,vectorizer)
 
                 #when in ema mode, teacher is same as student pretty much. so test on delex partition of dev.
                 # else teacher and student are separate entities. use teacher to test on dev parition of lexicalized data itself.
                 if not (args_in.use_ema):
                     dataset.set_split('val_lex')
                 classifier_teacher_lex.eval()
-                running_acc_val_teacher,running_loss_val_teacher = self.eval(classifier_teacher_lex, args_in, dataset,epoch_index,vectorizer)
+                running_acc_val_teacher,running_loss_val_teacher,microf1_teacher_dev = self.eval(classifier_teacher_lex, args_in, dataset,epoch_index,vectorizer)
 
 
 
@@ -703,23 +722,32 @@ class Trainer():
                 assert comet_value_updater is not None
                 comet_value_updater.log_metric("acc_dev_per_epoch_using_student_model", running_acc_val_student, step=epoch_index)
                 comet_value_updater.log_metric("acc_dev_per_epoch_using_teacher_model", running_acc_val_teacher, step=epoch_index)
+                comet_value_updater.log_metric("microf1_dev_per_epoch_using_student_model", microf1_student_dev,
+                                               step=epoch_index)
+                comet_value_updater.log_metric("microf1_dev_per_epoch_using_teacher_model", microf1_teacher_dev,
+                                               step=epoch_index)
 
                 # also test it on a third dataset which is usually cross domain on fnc
                 args_in.database_to_test_with="fnc"
                 dataset.set_split('test_delex')
                 classifier_student_delex.eval()
-                running_acc_test_student, running_loss_test_student = self.eval(classifier_student_delex, args_in,
+                running_acc_test_student, running_loss_test_student,microf1_student_test = self.eval(classifier_student_delex, args_in,
                                                                                 dataset, epoch_index,vectorizer)
 
                 dataset.set_split('test_lex')
                 classifier_teacher_lex.eval()
-                running_acc_test_teacher, running_loss_test_teacher = self.eval(classifier_teacher_lex, args_in,
+                running_acc_test_teacher, running_loss_test_teacher,microf1_teacher_test = self.eval(classifier_teacher_lex, args_in,
                                                                                 dataset,
                                                                                 epoch_index,vectorizer)
 
                 comet_value_updater.log_metric("running_acc_test_student", running_acc_test_student,
                                                step=epoch_index)
                 comet_value_updater.log_metric("running_acc_test_teacher", running_acc_test_teacher,
+                                               step=epoch_index)
+
+                comet_value_updater.log_metric("microf1_test_student", microf1_student_test,
+                                               step=epoch_index)
+                comet_value_updater.log_metric("microf1_test_teacher", microf1_teacher_test,
                                                step=epoch_index)
 
                 # Do early stopping based on when the dev accuracy drops from its best for patience=5

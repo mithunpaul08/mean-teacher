@@ -325,7 +325,7 @@ class Trainer():
         all_gold_labels_tensor = []
 
         if torch.cuda.is_available():
-            all_predictions_tensor = torch.cuda.tensor(all_predictions_tensor)
+            all_predictions_tensor = torch.cuda.FloatTensor(all_predictions_tensor)
             all_gold_labels_tensor = torch.cuda.LongTensor(all_gold_labels_tensor)
         else:
             all_predictions_tensor = torch.tensor(all_predictions_tensor)
@@ -474,10 +474,10 @@ class Trainer():
 
 
                 if torch.cuda.is_available():
-                    all_predictions_of_lex_model_across_batches_training = torch.cuda.tensor(
+                    all_predictions_of_lex_model_across_batches_training = torch.cuda.FloatTensor(
                         all_predictions_of_lex_model_across_batches_training)
                     all_gold_labels_across_batches = torch.cuda.LongTensor(all_gold_labels_across_batches)
-                    all_predictions_of_delex_model_across_batches_training = torch.cuda.tensor(
+                    all_predictions_of_delex_model_across_batches_training = torch.cuda.FloatTensor(
                         all_predictions_of_delex_model_across_batches_training)
 
                 else:

@@ -721,6 +721,14 @@ class Trainer():
                 comet_value_updater.log_metric("microf1_dev_per_epoch_using_teacher_model", microf1_teacher_dev,
                                                step=epoch_index)
 
+                # Do early stopping based on when the dev accuracy drops from its best for patience=5
+                train_state_in['val_loss'].append(running_loss_val_student)
+                train_state_in['val_acc'].append(running_acc_val_student)
+                train_state_in = self.update_train_state(args=args_in,
+                                                         models=[classifier_student_delex, classifier_teacher_lex],
+                                                         train_state=train_state_in)
+
+
                 # also test it on a third dataset which is usually cross domain on fnc
                 args_in.database_to_test_with="fnc"
                 dataset.set_split('test_delex')
@@ -744,11 +752,6 @@ class Trainer():
                 comet_value_updater.log_metric("microf1_test_teacher", microf1_teacher_test,
                                                step=epoch_index)
 
-                # Do early stopping based on when the dev accuracy drops from its best for patience=5
-                # update: the code here does early stopping based on cross domain dev. i.e not based on in-domain dev anymore.
-                train_state_in['val_loss'].append(running_loss_test_student)
-                train_state_in['val_acc'].append(running_acc_test_student)
-                train_state_in = self.update_train_state(args=args_in, models=[classifier_student_delex,classifier_teacher_lex],train_state=train_state_in)
 
                 #resetting args_in.database_to_test_with to make sure the values don't persist across epochs
                 args_in.database_to_test_with = "dummy"

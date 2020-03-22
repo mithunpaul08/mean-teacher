@@ -131,6 +131,12 @@ class Trainer():
         assert len(y_pred)==len(y_target)
         _, y_pred_classes = y_pred.max(dim=1)
         n_correct = torch.eq(y_pred_classes, y_target).sum().item()
+
+        m = nn.Softmax()
+        output_sftmax = m(y_pred.tolist())
+        _, pred = output_sftmax.topk(1, 1, True, True)
+
+
         accuracy=n_correct / len(y_target) * 100
         return n_correct,accuracy,y_pred_classes
 
@@ -319,7 +325,8 @@ class Trainer():
 
         total_predictions = []
         total_gold = []
-
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
         #this is for calculating microf1 score
         all_predictions_tensor = []
         all_gold_labels_tensor = []

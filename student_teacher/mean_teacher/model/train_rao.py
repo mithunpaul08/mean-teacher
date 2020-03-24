@@ -720,7 +720,7 @@ class Trainer():
                                                step=epoch_index)
                 comet_value_updater.log_metric("microf1_dev_per_epoch_using_teacher_model", microf1_teacher_dev,
                                                step=epoch_index)
-
+ 
                 # Do early stopping based on when the dev accuracy drops from its best for patience=5
                 train_state_in['val_loss'].append(running_loss_val_student)
                 train_state_in['val_acc'].append(running_acc_val_student)

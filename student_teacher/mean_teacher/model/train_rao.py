@@ -593,6 +593,11 @@ class Trainer():
                         comet_value_updater.log_metric("teacher_lex_same_as_gold_but_student_is_different_percent  per batch",
                                                        teacher_lex_same_as_gold_but_student_is_different_percent,
                                                        step=batch_index)
+                        comet_value_updater.log_metric(
+                            "teacher training accuracy  per batch",
+                            running_acc_lex,
+                            step=batch_index)
+
 
 
 

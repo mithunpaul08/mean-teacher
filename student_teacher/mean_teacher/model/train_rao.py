@@ -582,6 +582,8 @@ class Trainer():
                     total_right_predictions_teacher_lex=total_right_predictions_teacher_lex+count_of_right_predictions_teacher_lex_per_batch
                     running_acc_lex += (acc_t_lex - running_acc_lex) / (batch_index + 1)
 
+
+
                     # all classifier2 related code to calculate accuracy
                     if (args_in.add_student == True):
                         y_pred_labels_delex_sf = F.softmax(y_pred_delex, dim=1)
@@ -633,6 +635,12 @@ class Trainer():
                         comet_value_updater.log_metric("teacher_lex_same_as_gold_but_student_is_different_percent  per batch",
                                                        teacher_lex_same_as_gold_but_student_is_different_percent,
                                                        step=batch_index)
+                        comet_value_updater.log_metric(
+                            "training accuracy of lex teacher  across batches",
+                            running_acc_lex,
+                            step=batch_index)
+
+
 
 
 

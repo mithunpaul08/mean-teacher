@@ -126,7 +126,7 @@ class Initializer():
         parser.add_argument('--run_type', default="train", type=str,
                             help='type of run. options are: train (which includes val validation also),val, test')
         parser.add_argument('--add_student', default="False", type=self.str2bool,
-                            help='for experiments. eg:running one student at a time')
+                            help='for experiments like eg:running teacher only ')
         parser.add_argument('--consistency_weight', default=1, type=int,
                             help='for weighted average in the loss function')
         parser.add_argument('--use_semi_supervised', default="False", type=self.str2bool,

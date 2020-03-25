@@ -363,8 +363,7 @@ class Trainer():
 
         classifier_teacher_lex = classifier_teacher_lex.to(args_in.device)
 
-        #historically we had a case where we had to run just the teacher alone. This is vestigial from there. Right now, Feb 2020, we
-        #almost always run in student-teacher mode
+        # if you want to train teacher alone, you should turn add_student=False
         if (args_in.add_student == True):
             classifier_student_delex = classifier_student_delex.to(args_in.device)
             input_optimizer, inter_atten_optimizer = initialize_optimizers([classifier_teacher_lex, classifier_student_delex], args_in)
@@ -434,8 +433,10 @@ class Trainer():
                 total_right_predictions_student_delex = 0
                 total_gold_label_count=0
 
-
-                combined_data_generators = zip(batch_generator_lex_data, batch_generator_delex_data)
+                if (args_in.add_student == True):
+                    combined_data_generators = zip(batch_generator_lex_data, batch_generator_delex_data)
+                else:
+                    combined_data_generators = zip(batch_generator_lex_data)
 
                 assert combined_data_generators is not None
 

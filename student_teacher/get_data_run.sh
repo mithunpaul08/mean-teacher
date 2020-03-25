@@ -11,6 +11,8 @@ if test -f "$FILE";then
 else
     wget https://storage.googleapis.com/fact_verification_mithun_files/fever_train_lex_4labels.jsonl -O $FILE
 fi
+
+#this is for the experiment of trying train a teacher model first, and then load a trained teacher model inside student teacher architecture
 head -59599 fever_train_lex.jsonl > fever_train_lex_half1.jsonl
 tail -59598 fever_train_lex.jsonl > fever_train_lex_half2.jsonl
 

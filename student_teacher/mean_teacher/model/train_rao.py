@@ -400,22 +400,22 @@ class Trainer():
                 assert batch_generator_lex_data is not None
                 batch_generator_delex_data = None
 
-                if (args_in.add_student == True):
-                    dataset.set_split('train_delex')
-                    dataset_delex = copy.deepcopy(dataset)
-                    if (args_in.use_semi_supervised == True):
-                        assert args_in.percentage_labels_for_semi_supervised > 0
-                        batch_generator_delex_data = generate_batches_for_semi_supervised(dataset_delex,
-                                                                                args_in.percentage_labels_for_semi_supervised,
-                                                                                workers=args_in.workers,
-                                                                                batch_size=args_in.batch_size,
-                                                                                device=args_in.device,mask_value=args_in.NO_LABEL  )
 
-                    else:
-                        batch_generator_delex_data = generate_batches(dataset_delex, workers=args_in.workers, batch_size=args_in.batch_size,
-                                                            device=args_in.device)
+                dataset.set_split('train_delex')
+                dataset_delex = copy.deepcopy(dataset)
+                if (args_in.use_semi_supervised == True):
+                    assert args_in.percentage_labels_for_semi_supervised > 0
+                    batch_generator_delex_data = generate_batches_for_semi_supervised(dataset_delex,
+                                                                            args_in.percentage_labels_for_semi_supervised,
+                                                                            workers=args_in.workers,
+                                                                            batch_size=args_in.batch_size,
+                                                                            device=args_in.device,mask_value=args_in.NO_LABEL  )
 
-                    assert batch_generator_delex_data is not None
+                else:
+                    batch_generator_delex_data = generate_batches(dataset_delex, workers=args_in.workers, batch_size=args_in.batch_size,
+                                                        device=args_in.device)
+
+                assert batch_generator_delex_data is not None
 
                 no_of_batches_delex = int(len(dataset) / args_in.batch_size)
 
@@ -433,10 +433,8 @@ class Trainer():
                 total_right_predictions_student_delex = 0
                 total_gold_label_count=0
 
-                if (args_in.add_student == True):
-                    combined_data_generators = zip(batch_generator_lex_data, batch_generator_delex_data)
-                else:
-                    combined_data_generators = zip(batch_generator_lex_data)
+
+                combined_data_generators = zip(batch_generator_lex_data, batch_generator_delex_data)
 
                 assert combined_data_generators is not None
 
@@ -563,43 +561,47 @@ class Trainer():
                             f"training_loss_lex_per_batch:{round(running_loss_lex,2)}\t"
                             f" \t training_accuracy_lex_per_batch:{round(running_acc_lex,2) }")
                     assert len(teacher_predictions_by_label_class)>0
-                    assert len(student_predictions_by_label_class) > 0
                     assert len(batch_dict_lex['y_target']) > 0
 
-                    teacher_lex_same_as_gold, \
-                    student_delex_same_as_gold,\
-                    student_teacher_match, \
-                    student_teacher_match_but_not_same_as_gold, \
-                    student_teacher_match_and_same_as_gold, \
-                    student_delex_same_as_gold_but_teacher_is_different, \
-                    teacher_lex_same_as_gold_but_student_is_different   =   self.calculate_label_overlap_between_teacher_and_student_predictions(teacher_predictions_by_label_class,student_predictions_by_label_class,batch_dict_lex['y_target'])
+                    if (args_in.add_student == True):
+                        assert len(student_predictions_by_label_class) > 0
 
 
-                    teacher_lex_same_as_gold_percent = self.calculate_percentage(teacher_lex_same_as_gold, args_in.batch_size)
-                    student_delex_same_as_gold_percent = self.calculate_percentage(student_delex_same_as_gold, args_in.batch_size)
-                    student_teacher_match_percent = self.calculate_percentage(student_teacher_match, args_in.batch_size)
-                    student_teacher_match_but_not_same_as_gold_percent = self.calculate_percentage(
-                        student_teacher_match_but_not_same_as_gold, args_in.batch_size)
-                    student_teacher_match_and_same_as_gold_percent = self.calculate_percentage(
-                        student_teacher_match_and_same_as_gold, args_in.batch_size)
-                    student_delex_same_as_gold_but_teacher_is_different_percent = self.calculate_percentage(
-                        student_delex_same_as_gold_but_teacher_is_different, args_in.batch_size)
-                    teacher_lex_same_as_gold_but_student_is_different_percent = self.calculate_percentage(teacher_lex_same_as_gold_but_student_is_different, args_in.batch_size)
+                    if (args_in.add_student == True):
+                        teacher_lex_same_as_gold, \
+                        student_delex_same_as_gold,\
+                        student_teacher_match, \
+                        student_teacher_match_but_not_same_as_gold, \
+                        student_teacher_match_and_same_as_gold, \
+                        student_delex_same_as_gold_but_teacher_is_different, \
+                        teacher_lex_same_as_gold_but_student_is_different   =   self.calculate_label_overlap_between_teacher_and_student_predictions(teacher_predictions_by_label_class,student_predictions_by_label_class,batch_dict_lex['y_target'])
+
+
+                        teacher_lex_same_as_gold_percent = self.calculate_percentage(teacher_lex_same_as_gold, args_in.batch_size)
+                        student_delex_same_as_gold_percent = self.calculate_percentage(student_delex_same_as_gold, args_in.batch_size)
+                        student_teacher_match_percent = self.calculate_percentage(student_teacher_match, args_in.batch_size)
+                        student_teacher_match_but_not_same_as_gold_percent = self.calculate_percentage(
+                            student_teacher_match_but_not_same_as_gold, args_in.batch_size)
+                        student_teacher_match_and_same_as_gold_percent = self.calculate_percentage(
+                            student_teacher_match_and_same_as_gold, args_in.batch_size)
+                        student_delex_same_as_gold_but_teacher_is_different_percent = self.calculate_percentage(
+                            student_delex_same_as_gold_but_teacher_is_different, args_in.batch_size)
+                        teacher_lex_same_as_gold_but_student_is_different_percent = self.calculate_percentage(teacher_lex_same_as_gold_but_student_is_different, args_in.batch_size)
+
+                        if (comet_value_updater is not None):
+
+                            comet_value_updater.log_metric("student_delex_same_as_gold_but_teacher_is_different_percent  per batch",
+                                                           student_delex_same_as_gold_but_teacher_is_different_percent,
+                                                           step=batch_index)
+                            comet_value_updater.log_metric("teacher_lex_same_as_gold_but_student_is_different_percent  per batch",
+                                                           teacher_lex_same_as_gold_but_student_is_different_percent,
+                                                           step=batch_index)
 
                     if (comet_value_updater is not None):
-
-                        comet_value_updater.log_metric("student_delex_same_as_gold_but_teacher_is_different_percent  per batch",
-                                                       student_delex_same_as_gold_but_teacher_is_different_percent,
-                                                       step=batch_index)
-                        comet_value_updater.log_metric("teacher_lex_same_as_gold_but_student_is_different_percent  per batch",
-                                                       teacher_lex_same_as_gold_but_student_is_different_percent,
-                                                       step=batch_index)
-                        comet_value_updater.log_metric(
-                            "teacher training accuracy  per batch",
-                            running_acc_lex,
-                            step=batch_index)
-
-
+                            comet_value_updater.log_metric(
+                                "teacher training accuracy  per batch",
+                                running_acc_lex,
+                                step=batch_index)
 
 
                 self._LOG.info(
@@ -613,11 +615,12 @@ class Trainer():
                 train_state_in['train_acc'].append(running_acc_lex)
                 train_state_in['train_loss'].append(running_loss_lex)
 
-                #for debugging: make the model predict on training data at the end of every epoch
+
 
                 self.number_of_datapoints = total_gold_label_count
                 accuracy_teacher_model_by_per_batch_prediction = self.calculate_percentage(total_right_predictions_teacher_lex,self.number_of_datapoints)
-                accuracy_student_model_by_per_batch_prediction = self.calculate_percentage(
+                if (args_in.add_student == True):
+                    accuracy_student_model_by_per_batch_prediction = self.calculate_percentage(
                     total_right_predictions_student_delex, self.number_of_datapoints)
 
 
@@ -626,11 +629,11 @@ class Trainer():
                     f"running_acc_lex by old method at the end of {epoch_index}:{running_acc_lex}")
                 self._LOG.info(
                     f"accuracy_teacher_model_by_per_batch_prediction at the end of epoch{epoch_index}:{accuracy_teacher_model_by_per_batch_prediction}")
-
-                self._LOG.info(
+                if (args_in.add_student == True):
+                    self._LOG.info(
                     f"acc_t_delex by old method {epoch_index}:{running_acc_delex}")
 
-                self._LOG.info(
+                    self._LOG.info(
                     f"accuracy_student_model_by_per_batch_prediction method at the end of epoch{epoch_index}:{ accuracy_student_model_by_per_batch_prediction}")
 
 
@@ -639,45 +642,44 @@ class Trainer():
                 self._LOG.info(
                     f"epoch:{epoch_index}")
 
-
-
-                self._LOG.debug(f" teacher_lex_same_as_gold_percent:{teacher_lex_same_as_gold_percent}")
-                self._LOG.debug(f" student_delex_same_as_gold_percent:{student_delex_same_as_gold_percent}")
-                self._LOG.debug(f" student_teacher_match_percent:{student_teacher_match_percent}")
-                self._LOG.debug(f" student_teacher_match_but_not_same_as_gold_percent:{student_teacher_match_but_not_same_as_gold_percent}")
-                self._LOG.debug(f" student_teacher_match_and_same_as_gold_percent:{student_teacher_match_and_same_as_gold_percent}")
-                self._LOG.debug(f" student_delex_same_as_gold_but_teacher_is_different_percent:{student_delex_same_as_gold_but_teacher_is_different_percent}")
-                self._LOG.debug(f" teacher_lex_same_as_gold_but_student_is_different_percent:{teacher_lex_same_as_gold_but_student_is_different_percent}")
+                if (args_in.add_student == True):
+                    self._LOG.debug(f" teacher_lex_same_as_gold_percent:{teacher_lex_same_as_gold_percent}")
+                    self._LOG.debug(f" student_delex_same_as_gold_percent:{student_delex_same_as_gold_percent}")
+                    self._LOG.debug(f" student_teacher_match_percent:{student_teacher_match_percent}")
+                    self._LOG.debug(f" student_teacher_match_but_not_same_as_gold_percent:{student_teacher_match_but_not_same_as_gold_percent}")
+                    self._LOG.debug(f" student_teacher_match_and_same_as_gold_percent:{student_teacher_match_and_same_as_gold_percent}")
+                    self._LOG.debug(f" student_delex_same_as_gold_but_teacher_is_different_percent:{student_delex_same_as_gold_but_teacher_is_different_percent}")
+                    self._LOG.debug(f" teacher_lex_same_as_gold_but_student_is_different_percent:{teacher_lex_same_as_gold_but_student_is_different_percent}")
 
 
                 if (comet_value_updater is not None):
-                    comet_value_updater.log_metric("training accuracy of teacher model per epoch", running_acc_lex,step=epoch_index)
-                    comet_value_updater.log_metric("training accuracy of student model per epoch", running_acc_delex,
-                                                   step=epoch_index)
-
-                    comet_value_updater.log_metric("teacher_lex_same_as_gold_but_student_is_different_percent per global step",
-                                                   teacher_lex_same_as_gold_but_student_is_different_percent,
-                                                   step=global_variables.global_step)
-
-
-
-                if (args_in.add_student == True):
-                    if (comet_value_updater is not None):
+                    if (args_in.add_student == True):
+                        comet_value_updater.log_metric(
+                            "teacher_lex_same_as_gold_but_student_is_different_percent per global step",
+                            teacher_lex_same_as_gold_but_student_is_different_percent,
+                            step=global_variables.global_step)
                         comet_value_updater.log_metric("consistency_loss per epoch",
                                                        running_consistency_loss,
                                                        step=epoch_index)
 
+                        comet_value_updater.log_metric("training accuracy of student model per epoch", running_acc_delex,
+                                                   step=epoch_index)
+                    else:
+                        comet_value_updater.log_metric("training accuracy of teacher model per epoch", running_acc_lex,
+                                                   step=epoch_index)
 
-
-                # Iterate over val dataset and check on dev using the intended trained model, which usually is the student delex model
-                dataset.set_split('val_delex')
-                classifier_student_delex.eval()
-                running_acc_val_student,running_loss_val_student= self.eval(classifier_student_delex, args_in, dataset,epoch_index,vectorizer)
+                if (args_in.add_student == True):
+                    # Iterate over val dataset and check on dev using the intended trained model, which usually is the student delex model
+                    dataset.set_split('val_delex')
+                    classifier_student_delex.eval()
+                    running_acc_val_student,running_loss_val_student= self.eval(classifier_student_delex, args_in, dataset,epoch_index,vectorizer)
 
                 #when in ema mode, teacher is same as student pretty much. so test on delex partition of dev.
                 # else teacher and student are separate entities. use teacher to test on dev parition of lexicalized data itself.
                 if not (args_in.use_ema):
                     dataset.set_split('val_lex')
+
+                #eval on the lex dev dataset
                 classifier_teacher_lex.eval()
                 running_acc_val_teacher,running_loss_val_teacher = self.eval(classifier_teacher_lex, args_in, dataset,epoch_index,vectorizer)
 
@@ -685,14 +687,17 @@ class Trainer():
 
 
                 assert comet_value_updater is not None
-                comet_value_updater.log_metric("acc_dev_per_epoch_using_student_model", running_acc_val_student, step=epoch_index)
+                if (args_in.add_student == True):
+                    comet_value_updater.log_metric("acc_dev_per_epoch_using_student_model", running_acc_val_student, step=epoch_index)
                 comet_value_updater.log_metric("acc_dev_per_epoch_using_teacher_model", running_acc_val_teacher, step=epoch_index)
 
                 # also test it on a third dataset which is usually cross domain on fnc
                 args_in.database_to_test_with="fnc"
-                dataset.set_split('test_delex')
-                classifier_student_delex.eval()
-                running_acc_test_student, running_loss_test_student = self.eval(classifier_student_delex, args_in,
+
+                if (args_in.add_student == True):
+                    dataset.set_split('test_delex')
+                    classifier_student_delex.eval()
+                    running_acc_test_student, running_loss_test_student = self.eval(classifier_student_delex, args_in,
                                                                                 dataset, epoch_index,vectorizer)
 
                 dataset.set_split('test_lex')
@@ -701,15 +706,18 @@ class Trainer():
                                                                                 dataset,
                                                                                 epoch_index,vectorizer)
 
-                comet_value_updater.log_metric("running_acc_test_student", running_acc_test_student,
+                if (args_in.add_student == True):
+                    comet_value_updater.log_metric("running_acc_test_student", running_acc_test_student,
                                                step=epoch_index)
                 comet_value_updater.log_metric("running_acc_test_teacher", running_acc_test_teacher,
                                                step=epoch_index)
 
                 # Do early stopping based on when the dev accuracy drops from its best for patience=5
                 # update: the code here does early stopping based on cross domain dev. i.e not based on in-domain dev anymore.
-                train_state_in['val_loss'].append(running_loss_test_student)
-                train_state_in['val_acc'].append(running_acc_test_student)
+                if (args_in.add_student == True):
+                    train_state_in['val_loss'].append(running_loss_test_student)
+                    train_state_in['val_acc'].append(running_acc_test_student)
+
                 train_state_in = self.update_train_state(args=args_in, models=[classifier_student_delex,classifier_teacher_lex],train_state=train_state_in)
 
                 #resetting args_in.database_to_test_with to make sure the values don't persist across epochs
@@ -720,14 +728,15 @@ class Trainer():
                 if train_state_in['stop_early']:
                     break
 
-
-
-                self._LOG.info(
+                if (args_in.add_student == True):
+                    self._LOG.info(
                     f" accuracy on dev partition by student:{round(running_acc_val_student,2)} ")
-                self._LOG.info(
+                    self._LOG.info(
+                        f" accuracy on test partition by student:{round(running_acc_test_student,2)} ")
+
+                    self._LOG.info(
                     f" accuracy on dev partition by teacher:{round(running_acc_val_teacher,2)} ")
-                self._LOG.info(
-                    f" accuracy on test partition by student:{round(running_acc_test_student,2)} ")
+
                 self._LOG.info(
                     f" accuracy on test partition by teacher:{round(running_acc_test_teacher,2)} ")
                 self._LOG.info(

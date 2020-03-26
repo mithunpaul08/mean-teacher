@@ -15,7 +15,7 @@ fi
 #this is for the experiment of trying train a teacher model first, and then load a trained teacher model inside student
 # teacher architecture
 #delete or comment this after training teacher independently is done @ march 25th 20202
-head -13126 $FILE > temp
+head -59599 $FILE > temp
 mv temp $FILE
 
 

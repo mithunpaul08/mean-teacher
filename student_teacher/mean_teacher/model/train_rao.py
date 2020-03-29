@@ -10,6 +10,11 @@ from mean_teacher.utils import global_variables
 from torch.utils.data import DataLoader
 import copy
 from mean_teacher.scorers.fnc_scorer import report_score
+import git
+
+repo = git.Repo(search_parent_directories=True)
+sha = repo.head.object.hexsha
+
 
 NO_LABEL=-1
 
@@ -56,7 +61,7 @@ class Trainer():
                 model_type = "student"
                 if index>0:
                     model_type = "teacher"
-                torch.save(model.state_dict(), train_state['model_filename'] + model_type + "_e" + str(train_state['epoch_index']) + ".pth")
+                torch.save(model.state_dict(), train_state['model_filename'] + model_type + "_e" + str(train_state['epoch_index']) + "_"+ sha+".pth")
             train_state['stop_early'] = False
             assert type(train_state['val_acc']) is list
             all_val_acc_length = len(train_state['val_acc'])
@@ -84,7 +89,7 @@ class Trainer():
                     model_type = "student"
                     if index > 0:
                         model_type = "teacher"
-                    torch.save(model.state_dict(), train_state['model_filename']+"_best_"+model_type + ".pth")
+                    torch.save(model.state_dict(), train_state['model_filename']+"_best_"+model_type + "_"+ sha+ ".pth")
                 self._LOG.info(
                     f"found that acc_current_epoch loss {acc_current_epoch} is more than the best accuracy so far which is "
                     f"{train_state['early_stopping_best_val']}.resetting patience=0")
@@ -119,6 +124,7 @@ class Trainer():
     def compute_accuracy(self,y_pred, y_target):
         assert len(y_pred)==len(y_target)
         _, y_pred_classes = y_pred.max(dim=1)
+
         n_correct = torch.eq(y_pred_classes, y_target).sum().item()
         accuracy=n_correct / len(y_target) * 100
         return n_correct,accuracy,y_pred_classes
@@ -349,6 +355,7 @@ class Trainer():
             self._LOG.debug(
                 f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches} \t per_batch_accuracy_dev_set:{round(acc_t,4)} \t moving_avg_val_accuracy:{round(running_acc_val,4)} ")
 
+
         return running_acc_val,running_loss_val
 
 
@@ -470,6 +477,7 @@ class Trainer():
                     else:
                         y_pred_lex = classifier_teacher_lex(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
 
+
                     assert y_pred_lex is not None
                     assert len(y_pred_lex) > 0
                     total_gold_label_count=total_gold_label_count+len(batch_dict_lex['y_target'])
@@ -543,8 +551,11 @@ class Trainer():
 
                     y_pred_labels_lex_sf = F.softmax(y_pred_lex, dim=1)
                     count_of_right_predictions_teacher_lex_per_batch, acc_t_lex,teacher_predictions_by_label_class = self.compute_accuracy(y_pred_labels_lex_sf, batch_dict_lex['y_target'])
+                    comet_value_updater.log_confusion_matrix(batch_dict_lex['y_target'], teacher_predictions_by_label_class)
                     total_right_predictions_teacher_lex=total_right_predictions_teacher_lex+count_of_right_predictions_teacher_lex_per_batch
                     running_acc_lex += (acc_t_lex - running_acc_lex) / (batch_index + 1)
+                    #comet_value_updater.log_confusion_matrix(batch_dict_lex['y_target'], y_pred_lex)
+
 
                     # all classifier2 related code to calculate accuracy
                     if (args_in.add_student == True):

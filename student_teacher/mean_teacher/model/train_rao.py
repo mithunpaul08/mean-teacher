@@ -426,7 +426,11 @@ class Trainer():
                 running_acc_lex = 0.0
                 running_loss_delex = 0.0
                 running_acc_delex = 0.0
-                classifier_teacher_lex.train()
+                if (args_in.use_trained_teacher_inside_student_teacher_arch):
+                    classifier_teacher_lex.eval()
+                else:
+                    classifier_teacher_lex.train()
+
                 classifier_student_delex.train()
 
                 total_right_predictions_teacher_lex=0

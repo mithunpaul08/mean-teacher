@@ -87,9 +87,7 @@ class Initializer():
             #new ones based on oaner tags
             print_oaner_label_frequency=False,
 
-            #this is an experiment to check if using a pre-trained model
-            # inside a student teacher architecture is better
-            use_trained_teacher_inside_student_teacher_arch=False
+
         )
         args.use_glove = True
         if args.expand_filepaths_to_save_dir:
@@ -147,7 +145,8 @@ class Initializer():
                             help='when you have a trained model that you want to load and test using it')
         parser.add_argument('--trained_model_path', default="model_storage/best_model.pth", type=str,
                             help='')
-
+        parser.add_argument('--use_trained_teacher_inside_student_teacher_arch', default="False", type=self.str2bool,
+                            help='when you have a trained teachear model that you want to load and train student using it')
 
 
 

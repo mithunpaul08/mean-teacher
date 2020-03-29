@@ -99,7 +99,8 @@ else:
 num_features=len(vectorizer.claim_ev_vocab)
 classifier_teacher_lex=None
 
-#trial on march 13th 2020 to check if loading a trained model on teacher and then not back propagating helps.
+#trial on march 2020 to 1) train a teacher model offline then 2) load that trained model as teacher (which doesn't have a backprop)
+#and then try training student.
 if(args.use_trained_teacher_inside_student_teacher_arch):
     classifier_teacher_lex = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
                                           , word_vocab_embed=embeddings, word_vocab_size=num_features,
@@ -110,11 +111,11 @@ if(args.use_trained_teacher_inside_student_teacher_arch):
     if os.path.getsize(args.trained_model_path) > 0:
         classifier_teacher_lex.load_state_dict(torch.load(args.trained_model_path, map_location=torch.device(args.device)))
 
-else:
 
+
+else:
     #when the teacher is used in ema mode, no backpropagation will occur in teacher.
     if(args.use_ema):
-
         classifier_teacher_lex = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
                                           , word_vocab_embed=embeddings, word_vocab_size=num_features, wordemb_size_in=embedding_size,ema=True)
     else:

@@ -497,10 +497,10 @@ class Trainer():
                         consistency_loss_value = consistency_loss.item()
                         running_consistency_loss += (consistency_loss_value - running_consistency_loss) / (batch_index + 1)
 
-                        # when in ema mode, teacher is the exponential moving average of student. therefore there is no
-                        #back propagation in teacher and hence adding its classification loss is useless
+                        # when in ema mode (teacher is the exponential moving average of student) or when loading a
+                        # trained teacher there is no back propagation in teacher and hence adding its classification loss is useless
 
-                        if (args_in.use_ema):
+                        if (args_in.use_ema) or (args_in.use_trained_teacher_inside_student_teacher_arch):
                             combined_class_loss=class_loss_delex
                         else:
                             combined_class_loss = class_loss_delex + class_loss_lex

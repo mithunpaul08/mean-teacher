@@ -73,6 +73,20 @@ glove_filepath_in, lex_train_input_file, lex_dev_input_file, lex_test_input_file
 
 
 LOG.info(f"{current_time:}Going to read data")
+
+if(args.use_trained_teacher_inside_student_teacher_arch):
+    #loading data again, but this is just to instantiate/load the saved vectorizer. Could have separated it out and avoided loading input twice, but too deeply embedded code
+    # dataset_loaded = RTEDataset.load_dataset_and_load_vectorizer(lex_train_input_file, lex_dev_input_file, delex_train_input_file, delex_dev_input_file, delex_test_input_file,
+    #      lex_test_input_file, args,args.vectorizer_file)
+    #
+    # vectorizer_loaded = dataset_loaded.get_vectorizer()
+
+    # when you are using a trained model, you should really be using the same vectorizer. Else embedding mismatch will happen
+    vectorizer_loaded= RTEDataset.load_vectorizer_only(args.vectorizer_file)
+
+    LOG.info(f"num_classes_in={len(vectorizer_loaded.label_vocab)}")
+    LOG.info(f"word_vocab_size={len(vectorizer_loaded.claim_ev_vocab)}")
+
 if args.reload_data_from_files:
     # training from a checkpoint
     dataset = RTEDataset.load_dataset_and_load_vectorizer(args.fever_lex_train,
@@ -103,10 +117,14 @@ classifier_teacher_lex=None
 #and then try training student.
 if(args.use_trained_teacher_inside_student_teacher_arch):
     #loading data again, but this is just to instantiate/load the saved vectorizer. Could have separated it out and avoided loading input twice, but too deeply embedded code
-    dataset_loaded = RTEDataset.load_dataset_and_load_vectorizer(lex_train_input_file, lex_dev_input_file, delex_train_input_file, delex_dev_input_file, delex_test_input_file,
-         lex_test_input_file, args,args.vectorizer_file)
-    #when you are using a trained model, you should really be using the same vectorizer. Else embedding mismatch will happen
-    vectorizer_loaded = dataset_loaded.get_vectorizer()
+    # dataset_loaded = RTEDataset.load_dataset_and_load_vectorizer(lex_train_input_file, lex_dev_input_file, delex_train_input_file, delex_dev_input_file, delex_test_input_file,
+    #      lex_test_input_file, args,args.vectorizer_file)
+    #
+    # vectorizer_loaded = dataset_loaded.get_vectorizer()
+
+    # when you are using a trained model, you should really be using the same vectorizer. Else embedding mismatch will happen
+    vectorizer_loaded= RTEDataset.load_vectorizer_only(args.vectorizer_file)
+
     LOG.info(f"num_classes_in={len(vectorizer_loaded.label_vocab)}")
     LOG.info(f"word_vocab_size={len(vectorizer_loaded.claim_ev_vocab)}")
     LOG.info(f"wordemb_size_in={(embedding_size)}")

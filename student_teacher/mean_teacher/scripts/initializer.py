@@ -38,7 +38,7 @@ class Initializer():
 
 
             save_dir='model_storage/',
-            vectorizer_file='vectorizer.json',
+            vectorizer_file='best_vectorizer.json',
             glove_filepath_local='data/glove/glove.840B.300d.txt',
             glove_filepath_server='/work/mithunpaul/glove/glove.840B.300d.txt',
 

@@ -13,6 +13,10 @@ import time
 import random
 import numpy as np
 import sys
+import git
+
+repo = git.Repo(search_parent_directories=True)
+sha = repo.head.object.hexsha
 
 
 
@@ -84,7 +88,8 @@ if args.reload_data_from_files:
 else:
     # create dataset and vectorizer
     dataset = RTEDataset.load_dataset_and_create_vocabulary_for_combined_lex_delex(lex_train_input_file, lex_dev_input_file, delex_train_input_file, delex_dev_input_file, delex_test_input_file, lex_test_input_file,args)
-    dataset.save_vectorizer(args.vectorizer_file)
+    vectorizer_name=os.path.join(args.save_dir,"vectorizer_"+sha+".json")
+    dataset.save_vectorizer(vectorizer_name)
 vectorizer = dataset.get_vectorizer()
 
 # taking embedding size from user initially, but will get replaced by original embedding size if its loaded

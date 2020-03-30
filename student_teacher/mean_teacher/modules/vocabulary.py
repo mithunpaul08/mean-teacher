@@ -64,10 +64,8 @@ class Vocabulary(object):
             `unk_index` needs to be >=0 (having been added into the Vocabulary) 
               for the UNK functionality 
         """
-        if self.unk_index >= 0:
-            return self._token_to_idx.get(token, self.unk_index)
-        else:
-            return self._token_to_idx[token]
+
+        return self._token_to_idx[token]
 
     def lookup_index(self, index):
         """Return the token associated with the index

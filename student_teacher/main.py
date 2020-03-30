@@ -107,9 +107,14 @@ if(args.use_trained_teacher_inside_student_teacher_arch):
          lex_test_input_file, args,args.vectorizer_file)
     #when you are using a trained model, you should really be using the same vectorizer. Else embedding mismatch will happen
     vectorizer_loaded = dataset_loaded.get_vectorizer()
+    LOG.info(f"num_classes_in={len(vectorizer_loaded.label_vocab)}")
+    LOG.info(f"word_vocab_size={len(vectorizer_loaded.claim_ev_vocab)}")
+    LOG.info(f"wordemb_size_in={(embedding_size)}")
+    LOG.info(f"len word_vocab_embed={len(embeddings)}")
+
     classifier_teacher_lex = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer_loaded.label_vocab)
-                                          , word_vocab_embed=embeddings, word_vocab_size=num_features,
-                                          wordemb_size_in=embedding_size, ema=True)
+                                          , word_vocab_embed=embeddings, word_vocab_size=len(vectorizer_loaded.claim_ev_vocab),
+                                          wordemb_size_in=embedding_size)
 
     assert os.path.exists(args.trained_model_path) is True
     assert os.path.isfile(args.trained_model_path) is True

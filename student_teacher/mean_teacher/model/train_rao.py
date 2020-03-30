@@ -84,7 +84,7 @@ class Trainer():
                          f"of patience now is {train_state['early_stopping_step']}")
             # accuracy increased
             else:
-                # Save the best model
+                # Save the best model from the list of models passed to this. which is usually in the order, [student,teacher]
                 for index, model in enumerate(models):
                     model_type = "student"
                     if index > 0:

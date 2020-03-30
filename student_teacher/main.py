@@ -73,6 +73,36 @@ glove_filepath_in, lex_train_input_file, lex_dev_input_file, lex_test_input_file
 
 
 LOG.info(f"{current_time:}Going to read data")
+
+
+
+
+if args.reload_data_from_files:
+    # training from a checkpoint
+    dataset = RTEDataset.load_dataset_and_load_vectorizer(args.fever_lex_train,
+                                                              args.vectorizer_file)
+else:
+    # create dataset and vectorizer
+    dataset = RTEDataset.load_dataset_and_create_vocabulary_for_combined_lex_delex(lex_train_input_file, lex_dev_input_file, delex_train_input_file, delex_dev_input_file, delex_test_input_file, lex_test_input_file,args)
+    dataset.save_vectorizer(args.vectorizer_file)
+vectorizer = dataset.get_vectorizer()
+
+# taking embedding size from user initially, but will get replaced by original embedding size if its loaded
+embedding_size=args.embedding_size
+
+# Use GloVe or randomly initialized embeddings
+LOG.info(f"{current_time} going to load glove from path:{glove_filepath_in}")
+if args.use_glove:
+    words = vectorizer.claim_ev_vocab._token_to_idx.keys()
+    embeddings,embedding_size = make_embedding_matrix(glove_filepath_in,words)
+    LOG.info(f"{current_time:} Using pre-trained embeddings")
+else:
+    LOG.info(f"{current_time:} Not using pre-trained embeddings")
+    embeddings = None
+
+num_features=len(vectorizer.claim_ev_vocab)
+
+
 classifier_teacher_lex=None
 
 # trial on march 2020 to 1) train a teacher model offline then 2) load that trained model as teacher (which doesn't have a backprop)
@@ -102,43 +132,16 @@ if(args.use_trained_teacher_inside_student_teacher_arch):
     if os.path.getsize(args.trained_model_path) > 0:
         classifier_teacher_lex.load_state_dict(
             torch.load(args.trained_model_path, map_location=torch.device(args.device)))
-
-if args.reload_data_from_files:
-    # training from a checkpoint
-    dataset = RTEDataset.load_dataset_and_load_vectorizer(args.fever_lex_train,
-                                                              args.vectorizer_file)
 else:
-    # create dataset and vectorizer
-    dataset = RTEDataset.load_dataset_and_create_vocabulary_for_combined_lex_delex(lex_train_input_file, lex_dev_input_file, delex_train_input_file, delex_dev_input_file, delex_test_input_file, lex_test_input_file,args)
-    dataset.save_vectorizer(args.vectorizer_file)
-vectorizer = dataset.get_vectorizer()
+    #when the teacher is used in ema mode, no backpropagation will occur in teacher.
+    if(args.use_ema):
+        classifier_teacher_lex = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
+                                          , word_vocab_embed=embeddings, word_vocab_size=num_features, wordemb_size_in=embedding_size,ema=True)
+    else:
 
-# taking embedding size from user initially, but will get replaced by original embedding size if its loaded
-embedding_size=args.embedding_size
-
-# Use GloVe or randomly initialized embeddings
-LOG.info(f"{current_time} going to load glove from path:{glove_filepath_in}")
-if args.use_glove:
-    words = vectorizer.claim_ev_vocab._token_to_idx.keys()
-    embeddings,embedding_size = make_embedding_matrix(glove_filepath_in,words)
-    LOG.info(f"{current_time:} Using pre-trained embeddings")
-else:
-    LOG.info(f"{current_time:} Not using pre-trained embeddings")
-    embeddings = None
-
-num_features=len(vectorizer.claim_ev_vocab)
-
-
-# else:
-#     #when the teacher is used in ema mode, no backpropagation will occur in teacher.
-#     if(args.use_ema):
-#         classifier_teacher_lex = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
-#                                           , word_vocab_embed=embeddings, word_vocab_size=num_features, wordemb_size_in=embedding_size,ema=True)
-#     else:
-#
-#         classifier_teacher_lex = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
-#                                               , word_vocab_embed=embeddings, word_vocab_size=num_features,
-#                                               wordemb_size_in=embedding_size)
+        classifier_teacher_lex = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
+                                              , word_vocab_embed=embeddings, word_vocab_size=num_features,
+                                              wordemb_size_in=embedding_size)
 
 assert classifier_teacher_lex is not None
 classifier_student_delex = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)

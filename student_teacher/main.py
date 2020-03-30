@@ -25,7 +25,7 @@ def initialize_comet(args):
         if(args.create_new_comet_graph==True):
             comet_value_updater = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", project_name="rte-decomp-attention")
         else:
-            comet_value_updater = ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", previous_experiment="74cf9e3531814abcb8733a5973f3413a")
+            comet_value_updater = ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", previous_experiment="8ee6669d2b854eaf834f8a56eaa9f235")
 
     return comet_value_updater
 
@@ -102,6 +102,10 @@ classifier_teacher_lex=None
 #trial on march 2020 to 1) train a teacher model offline then 2) load that trained model as teacher (which doesn't have a backprop)
 #and then try training student.
 if(args.use_trained_teacher_inside_student_teacher_arch):
+    dataset_loaded = RTEDataset.load_dataset_and_load_vectorizer(lex_train_input_file, lex_dev_input_file, delex_train_input_file, delex_dev_input_file, delex_test_input_file,
+         lex_test_input_file, args,args.vectorizer_file)
+    #when you are using a trained model, you should really be using the same vectorizer. Else embedding mismatch will happen
+    vectorizer = dataset_loaded.get_vectorizer()
     classifier_teacher_lex = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
                                           , word_vocab_embed=embeddings, word_vocab_size=num_features,
                                           wordemb_size_in=embedding_size, ema=True)

@@ -121,7 +121,7 @@ class RTEDataset(Dataset):
                    VectorizerWithEmbedding.create_vocabulary(fever_lex_train_df,fever_delex_train_df, args))
 
     @classmethod
-    def load_dataset_and_load_vectorizer(cls, input_file, vectorizer_filepath):
+    def load_dataset_and_load_vectorizer(cls, train_lex_file, dev_lex_file, train_delex_file, dev_delex_file, test_delex_input_file,test_lex_input_file,args,vectorizer_filepath):
         """Load dataset and the corresponding vectorizer.
         Used in the case in the vectorizer has been cached for re-use
 
@@ -131,11 +131,37 @@ class RTEDataset(Dataset):
         Returns:
             an instance of ReviewDataset
         """
-        print(f"just before reading file {input_file}")
-        review_df = cls.read_rte_data(input_file)
+
+        fever_lex_train_df = pd.read_json(train_lex_file, lines=True)
+        fever_lex_train_df = cls.truncate_data(fever_lex_train_df, args.truncate_words_length)
+        fever_lex_train_df['split'] = "train_lex"
+
+        fever_lex_dev_df = pd.read_json(dev_lex_file, lines=True)
+        fever_lex_dev_df = cls.truncate_data(fever_lex_dev_df, args.truncate_words_length)
+        fever_lex_dev_df['split'] = "val_lex"
+
+        fever_delex_train_df = pd.read_json(train_delex_file, lines=True)
+        fever_delex_train_df = cls.truncate_data(fever_delex_train_df, args.truncate_words_length)
+        fever_delex_train_df['split'] = "train_delex"
+
+        fever_delex_dev_df = pd.read_json(dev_delex_file, lines=True)
+        fever_delex_dev_df = cls.truncate_data(fever_delex_dev_df, args.truncate_words_length)
+        fever_delex_dev_df['split'] = "val_delex"
+
+        delex_test_df = pd.read_json(test_delex_input_file, lines=True)
+        delex_test_df = cls.truncate_data(delex_test_df, args.truncate_words_length)
+        delex_test_df['split'] = "test_delex"
+
+        lex_test_df = pd.read_json(test_lex_input_file, lines=True)
+        lex_test_df = cls.truncate_data(lex_test_df, args.truncate_words_length)
+        lex_test_df['split'] = "test_lex"
+
+        frames = [fever_lex_train_df, fever_lex_dev_df, fever_delex_train_df, fever_delex_dev_df, delex_test_df,
+                  lex_test_df]
+        combined_train_dev_test_with_split_column_df = pd.concat(frames)
 
         vectorizer = cls.load_vectorizer_only(vectorizer_filepath)
-        return cls(review_df, vectorizer)
+        return cls(combined_train_dev_test_with_split_column_df, vectorizer)
 
     @staticmethod
     def load_vectorizer_only(vectorizer_filepath):

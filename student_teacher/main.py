@@ -122,6 +122,7 @@ if(args.use_trained_teacher_inside_student_teacher_arch):
 
 
     words = vectorizer_loaded.claim_ev_vocab._token_to_idx.keys()
+    labels = vectorizer_loaded.label_vocab._token_to_idx.keys()
     embeddings_loaded, embedding_size_loaded = make_embedding_matrix(glove_filepath_in, words)
 
     LOG.info(f"wordemb_size_in={(embedding_size_loaded)}")

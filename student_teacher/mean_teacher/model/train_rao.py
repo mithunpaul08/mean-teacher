@@ -12,6 +12,7 @@ import copy
 from mean_teacher.scorers.fnc_scorer import report_score
 import git
 from mean_teacher.modules.vectorizer_with_embedding import LABELS
+import json
 
 repo = git.Repo(search_parent_directories=True)
 sha = repo.head.object.hexsha
@@ -378,7 +379,12 @@ class Trainer():
         return running_acc_val,running_loss_val
 
 
+    def write_dict_as_json(self,out_path,list_of_dictionaries):
 
+        for d in list_of_dictionaries:
+            with open(out_path, 'a+') as outfile:
+                json.dump(d, outfile)
+                outfile.write("\n")
 
     def get_plain_text_given_data_point_batch_in_indices(self, batch, vectorizer, list_of_datapoint_dictionaries, batch_predictions_logits,batch_predictions_labels,indices_this_batch):
         '''
@@ -447,6 +453,9 @@ class Trainer():
             for epoch_index in range(args_in.num_epochs):
                 train_state_in['epoch_index'] = epoch_index
 
+                #empty out the predictions file at the beginning of each epoch
+                with open(args_in.predictions, 'w') as outfile:
+                    outfile.write("")
 
                 # setup: batch generator, set class_loss_lex and acc to 0, set train mode on
                 dataset.set_split('train_lex')
@@ -623,7 +632,7 @@ class Trainer():
                     self.get_plain_text_given_data_point_batch_in_indices(batch_dict_lex, vectorizer,
                                                                           list_of_datapoint_dictionaries, y_pred_lex,teacher_predictions_by_label_class,indices_this_batch)
 
-
+                    self.write_dict_as_json(args_in.predictions, list_of_datapoint_dictionaries)
                     #comet_value_updater.log_confusion_matrix(batch_dict_lex['y_target'], y_pred_lex)
 
 

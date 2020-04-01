@@ -35,6 +35,8 @@ class Initializer():
 
             data_dir='data/rte',
             logs_dir='log_dir/',
+            predictions='log_dir/predictions.jsonl',
+
 
 
             save_dir='model_storage/',

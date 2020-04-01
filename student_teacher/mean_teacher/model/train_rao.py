@@ -470,7 +470,7 @@ class Trainer():
                     batch_generator_lex_data = generate_batches_for_semi_supervised(dataset_lex, args_in.percentage_labels_for_semi_supervised, workers=args_in.workers, batch_size=args_in.batch_size,
                                                         device=args_in.device,mask_value=args_in.NO_LABEL )
                 else:
-                    batch_generator_lex_data = generate_batches_with_return_not_yield(dataset_lex, workers=args_in.workers, batch_size=args_in.batch_size,device=args_in.device)
+                    batch_generator_lex_data = generate_batches_with_return_not_yield(dataset_lex, workers=args_in.workers, batch_size=args_in.batch_size,device=args_in.device,shuffle=True)
 
 
                 no_of_batches_lex = int(len(dataset)/args_in.batch_size)
@@ -548,7 +548,7 @@ class Trainer():
                     else:
                         y_pred_lex = classifier_teacher_lex(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
 
-                    indices_this_batch=batch_dict_lex["datapoint_index"]
+
                     assert y_pred_lex is not None
                     assert len(y_pred_lex) > 0
 
@@ -628,6 +628,7 @@ class Trainer():
                     running_acc_lex += (acc_t_lex - running_acc_lex) / (batch_index + 1)
 
                     # store all the data and predictions to disk for debug purposes
+                    indices_this_batch = batch_dict_lex["datapoint_index"]
                     list_of_datapoint_dictionaries = []
                     self.get_plain_text_given_data_point_batch_in_indices(batch_dict_lex, vectorizer,
                                                                           list_of_datapoint_dictionaries, y_pred_lex,teacher_predictions_by_label_class,indices_this_batch)

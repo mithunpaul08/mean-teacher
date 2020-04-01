@@ -48,14 +48,12 @@ def generate_batches_with_return_not_yield(dataset,workers,batch_size,device ,sh
       ensure each tensor is on the write device location.
     """
 
-    datapoints_indices=[*range(batch_size)]
-
     if(shuffle==True):
         labeled_idxs = dataset.get_all_label_indices(dataset)
         sampler = SubsetRandomSampler(labeled_idxs)
         batch_sampler_local = BatchSampler(sampler, batch_size, drop_last=True)
         dataloader=DataLoader(dataset,batch_sampler=batch_sampler_local,num_workers=workers,pin_memory=True)
-        datapoints_indices=labeled_idxs
+
     else:
         dataloader = DataLoader(dataset,batch_size=batch_size,shuffle=False,pin_memory=True,drop_last=False,num_workers=workers)
 

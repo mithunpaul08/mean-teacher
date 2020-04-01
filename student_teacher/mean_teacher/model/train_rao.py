@@ -359,6 +359,39 @@ class Trainer():
         return running_acc_val,running_loss_val
 
 
+    def get_plain_text_given_data_point_in_indices(self, datapoint):
+
+            '''
+
+            :param self:
+            :param datapoint:
+            :return: datapoint in a dictionary of {claim,evidence,goldlabel}
+            '''
+            claim=datapoint["claim"]
+
+            return claim
+
+    def get_plain_text_given_data_point_batch_in_indices(self, batch):
+        '''
+        input: batch of data points in indices format.
+        take batch, run through each item, separate claim, evidence indices, feed it into another function which converts indices to tokens
+        :return: batch in plain text
+        '''
+        #convert from tensor to lists of lists
+        list_of_all_claims_in_this_batch=batch['x_claim'].tolist()
+        list_of_all_evidences_in_this_batch=batch['x_evidence'].tolist()
+        list_of_all_gold_labels_in_this_batch=batch['y_target'].tolist()
+        #for each data point in the batch
+        for claim,ev,gold in zip(list_of_all_claims_in_this_batch,list_of_all_evidences_in_this_batch,list_of_all_gold_labels_in_this_batch):
+            claim_plain_text=self.get_plain_text_given_data_point_in_indices(claim)
+
+
+        #feed it to the 'convert_each_datapoint_toPlain_text
+
+        #zip it all back together
+        return batch
+
+
 
     def train(self, args_in, classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer):
 
@@ -477,6 +510,7 @@ class Trainer():
                     else:
                         y_pred_lex = classifier_teacher_lex(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
 
+                    self.get_plain_text_given_data_point_batch_in_indices(batch_dict_lex)
 
                     assert y_pred_lex is not None
                     assert len(y_pred_lex) > 0

@@ -66,7 +66,8 @@ def generate_batches(dataset,workers,batch_size,device ,shuffle=True,
         out_data_dict = {}
         for name, tensor in data_dict.items():
             out_data_dict[name] = data_dict[name].to(device)
-        yield out_data_dict
+        #yield out_data_dict
+        return out_data_dict
 
 def generate_batches_for_semi_supervised(dataset,percentage_labels_for_semi_supervised,workers,batch_size,device,shuffle=True,
                      drop_last=True,mask_value=-1 ):

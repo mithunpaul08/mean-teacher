@@ -41,6 +41,27 @@ def preprocess_text(text):
 
 
 
+def generate_batches_with_return_not_yield(dataset,workers,batch_size,device ,shuffle=False,
+                     drop_last=True ):
+    """
+    A generator function which wraps the PyTorch DataLoader. It will
+      ensure each tensor is on the write device location.
+    """
+
+    datapoints_indices=[*range(batch_size)]
+
+    if(shuffle==True):
+        labeled_idxs = dataset.get_all_label_indices(dataset)
+        sampler = SubsetRandomSampler(labeled_idxs)
+        batch_sampler_local = BatchSampler(sampler, batch_size, drop_last=True)
+        dataloader=DataLoader(dataset,batch_sampler=batch_sampler_local,num_workers=workers,pin_memory=True)
+        datapoints_indices=labeled_idxs
+    else:
+        dataloader = DataLoader(dataset,batch_size=batch_size,shuffle=False,pin_memory=True,drop_last=False,num_workers=workers)
+
+    return dataloader
+
+
 def generate_batches(dataset,workers,batch_size,device ,shuffle=False,
                      drop_last=True ):
     """
@@ -61,7 +82,8 @@ def generate_batches(dataset,workers,batch_size,device ,shuffle=False,
         out_data_dict = {}
         for name, tensor in data_dict.items():
             out_data_dict[name] = data_dict[name].to(device)
-        yield out_data_dict
+        #yield out_data_dict
+        return out_data_dict
 
 def generate_batches_for_semi_supervised(dataset,percentage_labels_for_semi_supervised,workers,batch_size,device,shuffle=False,
                      drop_last=True,mask_value=-1 ):

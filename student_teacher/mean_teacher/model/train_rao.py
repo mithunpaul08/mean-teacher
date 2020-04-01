@@ -1,4 +1,4 @@
-from mean_teacher.utils.utils_rao import generate_batches,initialize_optimizers,update_optimizer_state,generate_batches_for_semi_supervised
+from mean_teacher.utils.utils_rao import generate_batches,initialize_optimizers,update_optimizer_state,generate_batches_for_semi_supervised,generate_batches_with_return_not_yield
 from mean_teacher.utils import losses
 import time
 import torch
@@ -326,7 +326,7 @@ class Trainer():
         return running_acc_val,running_loss_val
 
     def eval(self,classifier,args_in,dataset,epoch_index,vectorizer):
-        batch_generator_val = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
+        batch_generator_val = generate_batches_with_return_not_yield(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
                                                device=args_in.device, shuffle=False)
         running_loss_val = 0.
         running_acc_val = 0.
@@ -380,11 +380,11 @@ class Trainer():
 
 
 
-    def get_plain_text_given_data_point_batch_in_indices(self, batch, vectorizer, list_of_datapoint_dictionaries, batch_predictions_logits,batch_predictions_labels):
+    def get_plain_text_given_data_point_batch_in_indices(self, batch, vectorizer, list_of_datapoint_dictionaries, batch_predictions_logits,batch_predictions_labels,indices_this_batch):
         '''
         input: batch of data points in indices format.
         take batch, run through each item, separate claim, evidence indices, feed it into another function which converts indices to tokens
-        :return: batch in plain text
+        :return: data points (claim, evidence, prediciton logits, prediciton labels and gold labels) in plain text
         '''
         #convert from tensor to lists of lists
         list_of_all_claims_in_this_batch=batch['x_claim'].tolist()
@@ -392,26 +392,31 @@ class Trainer():
         list_of_all_gold_labels_in_this_batch=batch['y_target'].tolist()
         list_of_all_prediction_logits_in_this_batch=batch_predictions_logits.tolist()
         list_of_all_prediction_labels_in_this_batch=batch_predictions_labels.tolist()
+        list_of_all_indices_in_this_batch = indices_this_batch.tolist()
 
 
         #for each data point in the batch
-        for claim,ev,gold,prediction_logit,predictions_label in zip(list_of_all_claims_in_this_batch, list_of_all_evidences_in_this_batch, list_of_all_gold_labels_in_this_batch, list_of_all_prediction_logits_in_this_batch, list_of_all_prediction_labels_in_this_batch):
+        for index,claim,ev,gold,prediction_logit,predictions_label in zip(list_of_all_indices_in_this_batch,
+                                                                    list_of_all_claims_in_this_batch,
+                                                                    list_of_all_evidences_in_this_batch,
+                                                                    list_of_all_gold_labels_in_this_batch,
+                                                                    list_of_all_prediction_logits_in_this_batch,
+                                                                    list_of_all_prediction_labels_in_this_batch):
             datapoint = {}
             claim_plain_text=self.look_up_plain_text_datapoint_using_vectorizer(claim,vectorizer)
             evidence_plain_text = self.look_up_plain_text_datapoint_using_vectorizer(ev, vectorizer)
             gold_label_plain_text = self.get_label_string_given_vectorizer(vectorizer,gold )
             prediction_label_plain_text = self.get_label_string_given_vectorizer(vectorizer, predictions_label)
 
+            datapoint["index"] = index
             datapoint["claim"]=claim_plain_text
             datapoint["evidence"] = evidence_plain_text
             datapoint["gold_label"] = gold_label_plain_text
             datapoint["prediction_logit"] = prediction_logit
             datapoint["prediction_label"] = prediction_label_plain_text
 
-            list_of_datapoint_dictionaries.append(datapoint)
-        #feed it to the 'convert_each_datapoint_toPlain_text
 
-        #zip it all back together
+            list_of_datapoint_dictionaries.append(datapoint)
         return
 
 
@@ -456,7 +461,8 @@ class Trainer():
                     batch_generator_lex_data = generate_batches_for_semi_supervised(dataset_lex, args_in.percentage_labels_for_semi_supervised, workers=args_in.workers, batch_size=args_in.batch_size,
                                                         device=args_in.device,mask_value=args_in.NO_LABEL )
                 else:
-                    batch_generator_lex_data = generate_batches(dataset_lex, workers=args_in.workers, batch_size=args_in.batch_size,device=args_in.device)
+                    batch_generator_lex_data = generate_batches_with_return_not_yield(dataset_lex, workers=args_in.workers, batch_size=args_in.batch_size,device=args_in.device)
+
 
                 no_of_batches_lex = int(len(dataset)/args_in.batch_size)
 
@@ -475,7 +481,7 @@ class Trainer():
                                                                             device=args_in.device,mask_value=args_in.NO_LABEL  )
 
                 else:
-                    batch_generator_delex_data = generate_batches(dataset_delex, workers=args_in.workers, batch_size=args_in.batch_size,
+                    batch_generator_delex_data = generate_batches_with_return_not_yield(dataset_delex, workers=args_in.workers, batch_size=args_in.batch_size,
                                                         device=args_in.device)
 
                 assert batch_generator_delex_data is not None
@@ -533,7 +539,7 @@ class Trainer():
                     else:
                         y_pred_lex = classifier_teacher_lex(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
 
-
+                    indices_this_batch=batch_dict_lex["datapoint_index"]
                     assert y_pred_lex is not None
                     assert len(y_pred_lex) > 0
 
@@ -615,7 +621,7 @@ class Trainer():
                     # store all the data and predictions to disk for debug purposes
                     list_of_datapoint_dictionaries = []
                     self.get_plain_text_given_data_point_batch_in_indices(batch_dict_lex, vectorizer,
-                                                                          list_of_datapoint_dictionaries, y_pred_lex,teacher_predictions_by_label_class)
+                                                                          list_of_datapoint_dictionaries, y_pred_lex,teacher_predictions_by_label_class,indices_this_batch)
 
 
                     #comet_value_updater.log_confusion_matrix(batch_dict_lex['y_target'], y_pred_lex)

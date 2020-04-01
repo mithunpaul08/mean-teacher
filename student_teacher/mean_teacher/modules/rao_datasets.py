@@ -245,7 +245,8 @@ class RTEDataset(Dataset):
 
         return {'x_claim': claim_vector,
                 'x_evidence': evidence_vector,
-                'y_target': label_index}
+                'y_target': label_index,
+                'datapoint_index':index}
 
     def get_num_batches(self, batch_size):
         """Given a batch size, return the number of batches in the dataset

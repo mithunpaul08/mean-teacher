@@ -208,11 +208,30 @@ class Trainer():
         _, pred = output_sftmax.topk(1, 1, True, True)
         return pred.t()
 
+    def look_up_plain_text_datapoint_using_vectorizer(self, datapoint_indices,vectorizer):
+        '''
+
+        :param vectorizer:
+        :param predictions_index_labels:
+        :return:
+        '''
+        datapoint_list=[]
+        for e in datapoint_indices:
+            word=vectorizer.claim_ev_vocab.lookup_index(e)
+            if word not in ["<BEGIN>","<END>","<MASK>"]:
+                datapoint_list.append(word)
+        datapoint_str=" ".join(datapoint_list)
+        return datapoint_str
+
     def get_label_strings_given_vectorizer(self, vectorizer, predictions_index_labels):
         labels_str=[]
         for e in predictions_index_labels[0]:
             labels_str.append(vectorizer.label_vocab.lookup_index(e.item()).lower())
         return labels_str
+
+    def get_label_string_given_vectorizer(self, vectorizer, label):
+        return    (vectorizer.label_vocab.lookup_index(label))
+
 
     def get_label_strings_given_list(self, labels_tensor):
         LABELS = ['agree', 'disagree', 'discuss', 'unrelated']
@@ -359,19 +378,9 @@ class Trainer():
         return running_acc_val,running_loss_val
 
 
-    def get_plain_text_given_data_point_in_indices(self, datapoint):
 
-            '''
 
-            :param self:
-            :param datapoint:
-            :return: datapoint in a dictionary of {claim,evidence,goldlabel}
-            '''
-            claim=datapoint["claim"]
-
-            return claim
-
-    def get_plain_text_given_data_point_batch_in_indices(self, batch):
+    def get_plain_text_given_data_point_batch_in_indices(self, batch,vectorizer):
         '''
         input: batch of data points in indices format.
         take batch, run through each item, separate claim, evidence indices, feed it into another function which converts indices to tokens
@@ -381,15 +390,24 @@ class Trainer():
         list_of_all_claims_in_this_batch=batch['x_claim'].tolist()
         list_of_all_evidences_in_this_batch=batch['x_evidence'].tolist()
         list_of_all_gold_labels_in_this_batch=batch['y_target'].tolist()
+
+        list_of_datapoint_dictionaries=[]
         #for each data point in the batch
         for claim,ev,gold in zip(list_of_all_claims_in_this_batch,list_of_all_evidences_in_this_batch,list_of_all_gold_labels_in_this_batch):
-            claim_plain_text=self.get_plain_text_given_data_point_in_indices(claim)
+            datapoint = {}
+            claim_plain_text=self.look_up_plain_text_datapoint_using_vectorizer(claim,vectorizer)
+            evidence_plain_text = self.look_up_plain_text_datapoint_using_vectorizer(ev, vectorizer)
+            gold_label_plain_text = self.get_label_string_given_vectorizer(vectorizer,gold )
 
+            datapoint["claim"]=claim_plain_text
+            datapoint["evidence"] = evidence_plain_text
+            datapoint["label"] = gold_label_plain_text
 
+            list_of_datapoint_dictionaries.append(datapoint)
         #feed it to the 'convert_each_datapoint_toPlain_text
 
         #zip it all back together
-        return batch
+        return list_of_datapoint_dictionaries
 
 
 
@@ -510,7 +528,7 @@ class Trainer():
                     else:
                         y_pred_lex = classifier_teacher_lex(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
 
-                    self.get_plain_text_given_data_point_batch_in_indices(batch_dict_lex)
+                    self.get_plain_text_given_data_point_batch_in_indices(batch_dict_lex,vectorizer)
 
                     assert y_pred_lex is not None
                     assert len(y_pred_lex) > 0

@@ -261,13 +261,13 @@ class RTEDataset(Dataset):
 
     def get_all_label_indices(self,dataset):
 
-        #this command returns all the labels and its corresponding indices eg:[198,2]
+        #this command returns all the LABELS and its corresponding indices eg:[198,2]
         all_labels = list(enumerate(dataset.get_labels()))
 
-        #note that even though the labels are shuffled up, we are keeping track/returning only the shuffled indices. so it all works out fine.
+        #note that even though the LABELS are shuffled up, we are keeping track/returning only the shuffled indices. so it all works out fine.
         random.shuffle(all_labels)
 
-        #get the indices alone and not the labels
+        #get the indices alone and not the LABELS
         all_indices=[]
         for idx,_  in all_labels:
             all_indices.append(idx)

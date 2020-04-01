@@ -75,7 +75,7 @@ NO_LABEL = -1 # 55 #### TODO: AJAY NOTE: To remove this .. only created to exclu
 #  'NA': 55}
 ##################################################
 
-## GIDS dataset labels
+## GIDS dataset LABELS
 ##################################################
 # {'NA': 4,
 # '/people/person/place_of_birth': 3,
@@ -200,7 +200,7 @@ def relabel_dataset_nlp(dataset, args):
         percent_labels = float(args.labels)
         num_labels = int(percent_labels * len(all_labels) / 100.0)
 
-    #to make sure that the labels are evenly distributed, from each class mark x number of labels as labeled,.
+    #to make sure that the LABELS are evenly distributed, from each class mark x number of LABELS as labeled,.
     num_labels_per_cat = int(num_labels / num_classes)
 
     labels_hist = {}
@@ -221,7 +221,7 @@ def relabel_dataset_nlp(dataset, args):
             #reduce the count of label/category which was stored in num_labels_per_cat_dict, by 1, every time you move a label as indexed.
             num_labels_per_cat_dict[l] -= 1
         else:
-            #once you run out of all the count of labels that you had earmarked for labeling in a given category, mark the rest all as unlabeled.
+            #once you run out of all the count of LABELS that you had earmarked for labeling in a given category, mark the rest all as unlabeled.
             unlabeled_idxs.append(idx)
             dataset.lbl[idx] = NO_LABEL
 
@@ -233,10 +233,10 @@ def relabel_dataset_nlp(dataset, args):
 
 def get_all_label_indices(dataset):
 
-    #this command returns all the labels and its corresponding indices eg:[198,2]
+    #this command returns all the LABELS and its corresponding indices eg:[198,2]
     all_labels = list(enumerate(dataset.get_labels()))
 
-    #note that even though the labels are shuffled up, we are keeping track/returning only the shuffled indices. so it all works out fine.
+    #note that even though the LABELS are shuffled up, we are keeping track/returning only the shuffled indices. so it all works out fine.
     random.shuffle(all_labels)
 
     #get all the indices alone

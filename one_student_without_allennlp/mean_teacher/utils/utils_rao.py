@@ -71,7 +71,7 @@ def generate_batches(dataset,workers,batch_size,device ,shuffle=True,
 def generate_batches_for_semi_supervised(dataset,percentage_labels_for_semi_supervised,workers,batch_size,device,shuffle=True,
                      drop_last=True,mask_value=-1 ):
     '''
-    similar to generate_batches but will mask/replace the labels of certain certain percentage of indices with -1. a
+    similar to generate_batches but will mask/replace the LABELS of certain certain percentage of indices with -1. a
     :param dataset:
     :param workers:
     :param batch_size:

@@ -11,10 +11,10 @@ from torch.utils.data import DataLoader
 import copy
 from mean_teacher.scorers.fnc_scorer import report_score
 import git
+from mean_teacher.modules.vectorizer_with_embedding import LABELS
 
 repo = git.Repo(search_parent_directories=True)
 sha = repo.head.object.hexsha
-
 
 NO_LABEL=-1
 
@@ -109,7 +109,7 @@ class Trainer():
         labeled_minibatch_size = no_of_batches_lex
         _, pred = output_sftmax.topk(1, 1, True, True)
 
-        # gold labels and predictions are in transposes (eg:1x15 vs 15x1). so take a transpose to correct it.
+        # gold LABELS and predictions are in transposes (eg:1x15 vs 15x1). so take a transpose to correct it.
         pred_t = pred.t()
         correct = pred_t.eq(gold_labels.view(1, -1).expand_as(pred_t))
 
@@ -234,7 +234,7 @@ class Trainer():
 
 
     def get_label_strings_given_list(self, labels_tensor):
-        LABELS = ['agree', 'disagree', 'discuss', 'unrelated']
+
         labels_str=[]
         for e in labels_tensor:
             labels_str.append(LABELS[e.item()].lower())
@@ -380,7 +380,7 @@ class Trainer():
 
 
 
-    def get_plain_text_given_data_point_batch_in_indices(self, batch,vectorizer):
+    def get_plain_text_given_data_point_batch_in_indices(self, batch, vectorizer, list_of_datapoint_dictionaries, batch_predictions_logits,batch_predictions_labels):
         '''
         input: batch of data points in indices format.
         take batch, run through each item, separate claim, evidence indices, feed it into another function which converts indices to tokens
@@ -390,24 +390,29 @@ class Trainer():
         list_of_all_claims_in_this_batch=batch['x_claim'].tolist()
         list_of_all_evidences_in_this_batch=batch['x_evidence'].tolist()
         list_of_all_gold_labels_in_this_batch=batch['y_target'].tolist()
+        list_of_all_prediction_logits_in_this_batch=batch_predictions_logits.tolist()
+        list_of_all_prediction_labels_in_this_batch=batch_predictions_labels.tolist()
 
-        list_of_datapoint_dictionaries=[]
+
         #for each data point in the batch
-        for claim,ev,gold in zip(list_of_all_claims_in_this_batch,list_of_all_evidences_in_this_batch,list_of_all_gold_labels_in_this_batch):
+        for claim,ev,gold,prediction_logit,predictions_label in zip(list_of_all_claims_in_this_batch, list_of_all_evidences_in_this_batch, list_of_all_gold_labels_in_this_batch, list_of_all_prediction_logits_in_this_batch, list_of_all_prediction_labels_in_this_batch):
             datapoint = {}
             claim_plain_text=self.look_up_plain_text_datapoint_using_vectorizer(claim,vectorizer)
             evidence_plain_text = self.look_up_plain_text_datapoint_using_vectorizer(ev, vectorizer)
             gold_label_plain_text = self.get_label_string_given_vectorizer(vectorizer,gold )
+            prediction_label_plain_text = self.get_label_string_given_vectorizer(vectorizer, predictions_label)
 
             datapoint["claim"]=claim_plain_text
             datapoint["evidence"] = evidence_plain_text
-            datapoint["label"] = gold_label_plain_text
+            datapoint["gold_label"] = gold_label_plain_text
+            datapoint["prediction_logit"] = prediction_logit
+            datapoint["prediction_label"] = prediction_label_plain_text
 
             list_of_datapoint_dictionaries.append(datapoint)
         #feed it to the 'convert_each_datapoint_toPlain_text
 
         #zip it all back together
-        return list_of_datapoint_dictionaries
+        return
 
 
 
@@ -445,7 +450,7 @@ class Trainer():
 
 
                 batch_generator_lex_data=None
-                #WHEN use_semi_supervised is turned on, only part of the gold labels will be given to the classifier. Rest all will be masked.
+                #WHEN use_semi_supervised is turned on, only part of the gold LABELS will be given to the classifier. Rest all will be masked.
                 if(args_in.use_semi_supervised==True):
                     assert args_in.percentage_labels_for_semi_supervised > 0
                     batch_generator_lex_data = generate_batches_for_semi_supervised(dataset_lex, args_in.percentage_labels_for_semi_supervised, workers=args_in.workers, batch_size=args_in.batch_size,
@@ -528,10 +533,11 @@ class Trainer():
                     else:
                         y_pred_lex = classifier_teacher_lex(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
 
-                    self.get_plain_text_given_data_point_batch_in_indices(batch_dict_lex,vectorizer)
 
                     assert y_pred_lex is not None
                     assert len(y_pred_lex) > 0
+
+
                     total_gold_label_count=total_gold_label_count+len(batch_dict_lex['y_target'])
 
 
@@ -605,6 +611,13 @@ class Trainer():
                     count_of_right_predictions_teacher_lex_per_batch, acc_t_lex,teacher_predictions_by_label_class = self.compute_accuracy(y_pred_labels_lex_sf, batch_dict_lex['y_target'])
                     total_right_predictions_teacher_lex=total_right_predictions_teacher_lex+count_of_right_predictions_teacher_lex_per_batch
                     running_acc_lex += (acc_t_lex - running_acc_lex) / (batch_index + 1)
+
+                    # store all the data and predictions to disk for debug purposes
+                    list_of_datapoint_dictionaries = []
+                    self.get_plain_text_given_data_point_batch_in_indices(batch_dict_lex, vectorizer,
+                                                                          list_of_datapoint_dictionaries, y_pred_lex,teacher_predictions_by_label_class)
+
+
                     #comet_value_updater.log_confusion_matrix(batch_dict_lex['y_target'], y_pred_lex)
 
 

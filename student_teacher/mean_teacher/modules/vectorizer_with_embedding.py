@@ -5,7 +5,7 @@ import string
 import re
 
 # ### The Vectorizer
-labels=["AGREE","DISAGREE","DISCUSS","UNRELATED"]
+LABELS=["AGREE", "DISAGREE", "DISCUSS", "UNRELATED"]
 
 class VectorizerWithEmbedding(object):
     """ The Vectorizer which coordinates the Vocabularies and puts them to use"""

@@ -128,9 +128,9 @@ class Initializer():
         parser.add_argument('--consistency_weight', default=1, type=int,
                             help='for weighted average in the loss function')
         parser.add_argument('--use_semi_supervised', default="False", type=self.str2bool,
-                            help='make a certain percentage of gold labels as -1')
+                            help='make a certain percentage of gold LABELS as -1')
         parser.add_argument('--percentage_labels_for_semi_supervised', default=0, type=int,
-                            help='what percentage of gold labels do you want to hide for semi supervised learning')
+                            help='what percentage of gold LABELS do you want to hide for semi supervised learning')
         parser.add_argument('--which_gpu_to_use', default=0, type=int,
                             help='if you have more than 1 gpus and you know which one you want to run this code on Eg:2')
         parser.add_argument('--log_level', default='INFO', type=str,

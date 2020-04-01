@@ -29,7 +29,7 @@
 #                     tokenized_evidence_list = [str(each) for each in tokenized_evidence]
 #                     tokclaimstr= " ".join(tokenized_claim_list)
 #                     tokevistr=" ".join(tokenized_evidence_list)
-#                     label_dict = self._model.vocab.get_index_to_token_vocabulary('labels')
+#                     label_dict = self._model.vocab.get_index_to_token_vocabulary('LABELS')
 #                     current_line['tokenized_claim']=tokclaimstr
 #                     current_line['tokenized_evidence'] = tokevistr
 #                     logger.info(current_line['tokenized_claim'])
@@ -57,7 +57,7 @@
 #             instance,tokenized_claim, tokenized_evidence = self._json_to_instance(inputs)
 #             tokenized_claim_list=[str (each) for each in tokenized_claim]
 #             tokenized_evidence_list=[str(each) for each in tokenized_evidence]
-#             label_dict = self._model.vocab.get_index_to_token_vocabulary('labels')
+#             label_dict = self._model.vocab.get_index_to_token_vocabulary('LABELS')
 #             all_labels = [label_dict[i] for i in range(len(label_dict))]
 #             output_dict = self.predict_instance(instance)
 #             output_dict["all_labels"] = all_labels

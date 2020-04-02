@@ -24,9 +24,12 @@ def set_seed_everywhere(seed, cuda):
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
     #for CuDnn- a nvidia library
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
+    os.environ['PYTHONHASHSEED'] = str(seed)
 
 
 def handle_dirs(dirpath):
@@ -49,13 +52,10 @@ def generate_batches_with_return_not_yield(dataset,workers,batch_size,device ,sh
     """
 
     if(shuffle==True):
-        labeled_idxs = dataset.get_all_label_indices(dataset)
-        sampler = SubsetRandomSampler(labeled_idxs)
-        batch_sampler_local = BatchSampler(sampler, batch_size, drop_last=True)
-        dataloader=DataLoader(dataset,batch_sampler=batch_sampler_local,num_workers=workers,pin_memory=True)
+        dataloader=DataLoader(dataset,batch_size=batch_size,shuffle=True,drop_last=True,num_workers=workers)
 
     else:
-        dataloader = DataLoader(dataset,batch_size=batch_size,shuffle=False,pin_memory=True,drop_last=False,num_workers=workers)
+        dataloader = DataLoader(dataset,batch_size=batch_size,shuffle=False,drop_last=True,num_workers=workers)
 
     return dataloader
 

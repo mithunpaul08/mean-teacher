@@ -250,7 +250,7 @@ class Trainer():
         classifier.eval()
         dataset.set_split(split_to_test)
         batch_generator_val = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
-                                               device=args_in.device, shuffle=False)
+                                               device=args_in.device, shuffle=args_in.shuffle_data)
         running_loss_val = 0.
         running_acc_val = 0.
         total_predictions = []
@@ -300,7 +300,7 @@ class Trainer():
 
     def eval_no_fnc(self,classifier,args_in,dataset,epoch_index):
         batch_generator_val = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
-                                               device=args_in.device, shuffle=False)
+                                               device=args_in.device, shuffle=args_in.shuffle_data)
         running_loss_val = 0.
         running_acc_val = 0.
 
@@ -447,15 +447,18 @@ class Trainer():
                 [classifier_teacher_lex], args_in)
 
         train_state_in = self.make_train_state(args_in)
-
+        prev_rng_state = torch.get_rng_state()
         try:
             # Iterate over training dataset
             for epoch_index in range(args_in.num_epochs):
+                torch.set_rng_state(prev_rng_state)
                 train_state_in['epoch_index'] = epoch_index
 
                 #empty out the predictions file at the beginning of each epoch
-                with open(args_in.predictions, 'w') as outfile:
+                with open(args_in.predictions_teacher, 'w') as outfile:
                     outfile.write("")
+                with open(args_in.predictions_student, 'w') as outfile:
+                        outfile.write("")
 
                 # setup: batch generator, set class_loss_lex and acc to 0, set train mode on
                 dataset.set_split('train_lex')
@@ -470,9 +473,9 @@ class Trainer():
                     batch_generator_lex_data = generate_batches_for_semi_supervised(dataset_lex, args_in.percentage_labels_for_semi_supervised, workers=args_in.workers, batch_size=args_in.batch_size,
                                                         device=args_in.device,mask_value=args_in.NO_LABEL )
                 else:
-                    batch_generator_lex_data = generate_batches_with_return_not_yield(dataset_lex, workers=args_in.workers, batch_size=args_in.batch_size,device=args_in.device,shuffle=True)
+                    batch_generator_lex_data = generate_batches_with_return_not_yield(dataset_lex, workers=args_in.workers, batch_size=args_in.batch_size,device=args_in.device,shuffle=args_in.shuffle_data)
 
-
+                prev_rng_state = torch.get_rng_state()  # save rng state
                 no_of_batches_lex = int(len(dataset)/args_in.batch_size)
 
                 assert batch_generator_lex_data is not None
@@ -491,7 +494,7 @@ class Trainer():
 
                 else:
                     batch_generator_delex_data = generate_batches_with_return_not_yield(dataset_delex, workers=args_in.workers, batch_size=args_in.batch_size,
-                                                        device=args_in.device)
+                                                        device=args_in.device,shuffle=args_in.shuffle_data)
 
                 assert batch_generator_delex_data is not None
 
@@ -628,13 +631,18 @@ class Trainer():
                     running_acc_lex += (acc_t_lex - running_acc_lex) / (batch_index + 1)
 
                     # store all the data and predictions to disk for debug purposes
-                    indices_this_batch = batch_dict_lex["datapoint_index"]
-                    list_of_datapoint_dictionaries = []
-                    self.get_plain_text_given_data_point_batch_in_indices(batch_dict_lex, vectorizer,
-                                                                          list_of_datapoint_dictionaries, y_pred_lex,teacher_predictions_by_label_class,indices_this_batch)
+                    indices_this_batch_of_lex = batch_dict_lex["datapoint_index"]
 
-                    self.write_dict_as_json(args_in.predictions, list_of_datapoint_dictionaries)
-                    #comet_value_updater.log_confusion_matrix(batch_dict_lex['y_target'], y_pred_lex)
+
+
+                    list_of_datapoint_dictionaries_lex = []
+                    self.get_plain_text_given_data_point_batch_in_indices(batch_dict_lex, vectorizer,
+                                                                          list_of_datapoint_dictionaries_lex, y_pred_lex,teacher_predictions_by_label_class,indices_this_batch_of_lex)
+
+
+
+                    self.write_dict_as_json(args_in.predictions_teacher, list_of_datapoint_dictionaries_lex)
+
 
 
                     # all classifier2 related code to calculate accuracy
@@ -648,6 +656,17 @@ class Trainer():
                             f"classification_loss_lex:{round(running_loss_lex,2)}\t classification_loss_delex:{round(running_loss_delex,2)} "
                             f"\t consistencyloss:{round(running_consistency_loss,6)}"
                             f" \t running_acc_lex:{round(running_acc_lex,4) }  \t running_acc_delex:{round(running_acc_delex,4)}   ")
+
+                        #save student predictions to disk
+                        list_of_datapoint_dictionaries_delex = []
+                        indices_this_batch_of_delex = batch_dict_delex["datapoint_index"]
+                        self.get_plain_text_given_data_point_batch_in_indices(batch_dict_delex, vectorizer,
+                                                                              list_of_datapoint_dictionaries_delex,
+                                                                              y_pred_delex,
+                                                                              student_predictions_by_label_class,
+                                                                              indices_this_batch_of_delex)
+                        self.write_dict_as_json(args_in.predictions_student, list_of_datapoint_dictionaries_delex)
+
 
                     else:
 

@@ -35,7 +35,8 @@ class Initializer():
 
             data_dir='data/rte',
             logs_dir='log_dir/',
-            predictions='log_dir/predictions.jsonl',
+            predictions_teacher='log_dir/predictions_teacher.jsonl',
+            predictions_student="log_dir/predictions_student.jsonl",
 
 
 
@@ -43,13 +44,14 @@ class Initializer():
             vectorizer_file='best_vectorizer.json',
             glove_filepath_local='data/glove/glove.840B.300d.txt',
             glove_filepath_server='/work/mithunpaul/glove/glove.840B.300d.txt',
+            shuffle_data=False,
 
 
             # Training hyper parameters
             batch_size=16,
             early_stopping_criteria=5,
             learning_rate=0.005,
-            num_epochs=500,
+            num_epochs=1,
             random_seed=676786,
 
             weight_decay=5e-5,

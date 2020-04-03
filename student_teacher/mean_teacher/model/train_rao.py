@@ -379,8 +379,13 @@ class Trainer():
         return running_acc_val,running_loss_val
 
 
-    def write_dict_as_json(self,out_path,list_of_dictionaries):
+    def create_empty_json_file(self,out_path):
+        with open(out_path, 'w') as outfile:
+                outfile.write("\n")
+                outfile.close()
 
+
+    def write_dict_as_json(self,out_path,list_of_dictionaries):
         for d in list_of_dictionaries:
             with open(out_path, 'a+') as outfile:
                 json.dump(d, outfile)
@@ -448,17 +453,16 @@ class Trainer():
 
         train_state_in = self.make_train_state(args_in)
         prev_rng_state = torch.get_rng_state()
+
+        self.create_empty_json_file(args_in.predictions_teacher_file)
+
         try:
             # Iterate over training dataset
             for epoch_index in range(args_in.num_epochs):
                 torch.set_rng_state(prev_rng_state)
                 train_state_in['epoch_index'] = epoch_index
 
-                #empty out the predictions file at the beginning of each epoch
-                with open(args_in.predictions_teacher, 'w') as outfile:
-                    outfile.write("")
-                with open(args_in.predictions_student, 'w') as outfile:
-                        outfile.write("")
+
 
                 # setup: batch generator, set class_loss_lex and acc to 0, set train mode on
                 dataset.set_split('train_lex')
@@ -523,199 +527,196 @@ class Trainer():
 
                 assert combined_data_generators is not None
 
+                batch_dict_lex_for_10fcv_validation=None
+
+
                 for batch_index, (batch_dict_lex,batch_dict_delex) in enumerate(tqdm(combined_data_generators,desc="training_batches",total=no_of_batches_delex)):
 
-                    # the training routine is these 5 steps:
 
-                    # --------------------------------------
-                    # step 1. zero the gradients
-                    input_optimizer.zero_grad()
-                    inter_atten_optimizer.zero_grad()
+                    #if using 10 fold cross validation, skip the first batch and use it for dev. train on the rest
+                    # this is a temporary hack when we were trying to create a trained teacher model to load inside classroom architecture
+                    if(args_in.use_10fcv) :
 
+                        if batch_index==args_in.validation_batch:
+                            batch_dict_lex_for_10fcv_validation = batch_dict_lex
+                            batch_dict_delex_for_10fcv_validation = batch_dict_delex
 
-
-                    #initializing initial state of the optimizer to start from 0. This should be learned/tuned hyper parameter.
-                    # remove if not having any effect/improvement
-                    if epoch_index == 0 and args_in.optimizer == 'adagrad':
-                        update_optimizer_state(input_optimizer, inter_atten_optimizer, args_in)
-
-
-
-
-                    # step 2. compute the output
-                    y_pred_lex=None
-                    #when in ema mode, make the teacher also make its  prediction over delex data .
-                    #  In ema mode, this wont be back propagated, so wouldn't really matter.
-                    if (args_in.use_ema):
-                        y_pred_lex = classifier_teacher_lex(batch_dict_delex['x_claim'], batch_dict_delex['x_evidence'])
-                    else:
-                        y_pred_lex = classifier_teacher_lex(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
-
-
-                    assert y_pred_lex is not None
-                    assert len(y_pred_lex) > 0
-
-
-                    total_gold_label_count=total_gold_label_count+len(batch_dict_lex['y_target'])
-
-
-                    # step 3.1 compute the class_loss_lex
-                    class_loss_lex = class_loss_func(y_pred_lex, batch_dict_lex['y_target'])
-                    loss_t_lex = class_loss_lex.item()
-                    running_loss_lex += (loss_t_lex - running_loss_lex) / (batch_index + 1)
-                    self._LOG.debug(f"loss_t_lex={loss_t_lex}\trunning_loss_lex={running_loss_lex}")
-
-                    combined_class_loss = class_loss_lex
-                    consistency_loss=0
-                    class_loss_delex=None
-
-                    #all classifier2 related code (the one which feeds off delexicalized data). all steps before .backward()
-                    if (args_in.add_student == True):
-                        y_pred_delex = classifier_student_delex(batch_dict_delex['x_claim'], batch_dict_delex['x_evidence'])
-                        class_loss_delex = class_loss_func(y_pred_delex, batch_dict_delex['y_target'])
-                        loss_t_delex = class_loss_delex.item()
-                        running_loss_delex += (loss_t_delex - running_loss_delex) / (batch_index + 1)
-                        #LOG.debug(f"loss_t_delex={loss_t_delex}\trunning_loss_delex={running_loss_delex}")
-
-                        consistency_loss = consistency_criterion(y_pred_lex, y_pred_delex)
-                        consistency_loss_value = consistency_loss.item()
-                        running_consistency_loss += (consistency_loss_value - running_consistency_loss) / (batch_index + 1)
-
-                        # when in ema mode (teacher is the exponential moving average of student) or when loading a
-                        # trained teacher there is no back propagation in teacher and hence adding its classification loss is useless
-
-                        if (args_in.use_ema) or (args_in.use_trained_teacher_inside_student_teacher_arch):
-                            combined_class_loss=class_loss_delex
                         else:
-                            combined_class_loss = class_loss_delex + class_loss_lex
+
+                            # the training routine is these 5 steps:
+
+                            # --------------------------------------
+                            # step 1. zero the gradients
+                            input_optimizer.zero_grad()
+                            inter_atten_optimizer.zero_grad()
+
+
+
+                            #initializing initial state of the optimizer to start from 0. This should be learned/tuned hyper parameter.
+                            # remove if not having any effect/improvement
+                            if epoch_index == 0 and args_in.optimizer == 'adagrad':
+                                update_optimizer_state(input_optimizer, inter_atten_optimizer, args_in)
+
+
+
+
+                            # step 2. compute the output
+                            y_pred_lex=None
+                            #when in ema mode, make the teacher also make its  prediction over delex data .
+                            #  In ema mode, this wont be back propagated, so wouldn't really matter.
+                            if (args_in.use_ema):
+                                y_pred_lex = classifier_teacher_lex(batch_dict_delex['x_claim'], batch_dict_delex['x_evidence'])
+                            else:
+                                y_pred_lex = classifier_teacher_lex(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
+
+
+                            assert y_pred_lex is not None
+                            assert len(y_pred_lex) > 0
+
+
+                            total_gold_label_count=total_gold_label_count+len(batch_dict_lex['y_target'])
+
+
+                            # step 3.1 compute the class_loss_lex
+                            class_loss_lex = class_loss_func(y_pred_lex, batch_dict_lex['y_target'])
+                            loss_t_lex = class_loss_lex.item()
+                            running_loss_lex += (loss_t_lex - running_loss_lex) / (batch_index + 1)
+                            self._LOG.debug(f"loss_t_lex={loss_t_lex}\trunning_loss_lex={running_loss_lex}")
+
+                            combined_class_loss = class_loss_lex
+                            consistency_loss=0
+                            class_loss_delex=None
+
+                            #all classifier2 related code (the one which feeds off delexicalized data). all steps before .backward()
+                            if (args_in.add_student == True):
+                                y_pred_delex = classifier_student_delex(batch_dict_delex['x_claim'], batch_dict_delex['x_evidence'])
+                                class_loss_delex = class_loss_func(y_pred_delex, batch_dict_delex['y_target'])
+                                loss_t_delex = class_loss_delex.item()
+                                running_loss_delex += (loss_t_delex - running_loss_delex) / (batch_index + 1)
+                                #LOG.debug(f"loss_t_delex={loss_t_delex}\trunning_loss_delex={running_loss_delex}")
+
+                                consistency_loss = consistency_criterion(y_pred_lex, y_pred_delex)
+                                consistency_loss_value = consistency_loss.item()
+                                running_consistency_loss += (consistency_loss_value - running_consistency_loss) / (batch_index + 1)
+
+                                # when in ema mode (teacher is the exponential moving average of student) or when loading a
+                                # trained teacher there is no back propagation in teacher and hence adding its classification loss is useless
+
+                                if (args_in.use_ema) or (args_in.use_trained_teacher_inside_student_teacher_arch):
+                                    combined_class_loss=class_loss_delex
+                                else:
+                                    combined_class_loss = class_loss_delex + class_loss_lex
 
 
 
 
 
 
-                    #combined loss is the sum of two classification losses and one consistency loss
-                    combined_loss = (args_in.consistency_weight * consistency_loss) + (combined_class_loss)
-                    combined_loss.backward()
+                            #combined loss is the sum of two classification losses and one consistency loss
+                            combined_loss = (args_in.consistency_weight * consistency_loss) + (combined_class_loss)
+                            combined_loss.backward()
 
-                    #to run both student and teacher independently
-                    #class_loss_lex.backward()
-                    #class_loss_delex.backward()
-
-
+                            #to run both student and teacher independently
+                            #class_loss_lex.backward()
+                            #class_loss_delex.backward()
 
 
 
-                    # step 5. use optimizer to take gradient step
-                    #optimizer.step()
-                    input_optimizer.step()
-                    inter_atten_optimizer.step()
-
-                    global_variables.global_step += 1
-                    # when in ema mode, teacher is the exponential moving average of the student. that calculation is done here
-                    if (args_in.use_ema):
-                        self.update_ema_variables(classifier_student_delex, classifier_teacher_lex, args_in.ema_decay, global_variables.global_step)
 
 
+                            # step 5. use optimizer to take gradient step
+                            #optimizer.step()
+                            input_optimizer.step()
+                            inter_atten_optimizer.step()
 
-                    # -----------------------------------------
+                            global_variables.global_step += 1
+                            # when in ema mode, teacher is the exponential moving average of the student. that calculation is done here
+                            if (args_in.use_ema):
+                                self.update_ema_variables(classifier_student_delex, classifier_teacher_lex, args_in.ema_decay, global_variables.global_step)
 
 
 
-                    # compute the accuracy for lex data
-
-
-                    y_pred_labels_lex_sf = F.softmax(y_pred_lex, dim=1)
-                    count_of_right_predictions_teacher_lex_per_batch, acc_t_lex,teacher_predictions_by_label_class = self.compute_accuracy(y_pred_labels_lex_sf, batch_dict_lex['y_target'])
-                    total_right_predictions_teacher_lex=total_right_predictions_teacher_lex+count_of_right_predictions_teacher_lex_per_batch
-                    running_acc_lex += (acc_t_lex - running_acc_lex) / (batch_index + 1)
-
-                    # store all the data and predictions to disk for debug purposes
-                    indices_this_batch_of_lex = batch_dict_lex["datapoint_index"]
+                            # -----------------------------------------
 
 
 
-                    list_of_datapoint_dictionaries_lex = []
-                    self.get_plain_text_given_data_point_batch_in_indices(batch_dict_lex, vectorizer,
-                                                                          list_of_datapoint_dictionaries_lex, y_pred_lex,teacher_predictions_by_label_class,indices_this_batch_of_lex)
+                            # compute the accuracy for lex data
+
+
+                            y_pred_labels_lex_sf = F.softmax(y_pred_lex, dim=1)
+                            count_of_right_predictions_teacher_lex_per_batch, acc_t_lex,teacher_predictions_by_label_class = self.compute_accuracy(y_pred_labels_lex_sf, batch_dict_lex['y_target'])
+                            total_right_predictions_teacher_lex=total_right_predictions_teacher_lex+count_of_right_predictions_teacher_lex_per_batch
+                            running_acc_lex += (acc_t_lex - running_acc_lex) / (batch_index + 1)
 
 
 
-                    self.write_dict_as_json(args_in.predictions_teacher, list_of_datapoint_dictionaries_lex)
+
+
+                            # all classifier2 related code to calculate accuracy
+                            if (args_in.add_student == True):
+                                y_pred_labels_delex_sf = F.softmax(y_pred_delex, dim=1)
+                                count_of_right_predictions_student_delex_per_batch,acc_t_delex,student_predictions_by_label_class = self.compute_accuracy(y_pred_labels_delex_sf, batch_dict_lex['y_target'])
+                                total_right_predictions_student_delex=total_right_predictions_student_delex+count_of_right_predictions_student_delex_per_batch
+                                running_acc_delex += (acc_t_delex - running_acc_delex) / (batch_index + 1)
+                                self._LOG.debug(
+                                    f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
+                                    f"classification_loss_lex:{round(running_loss_lex,2)}\t classification_loss_delex:{round(running_loss_delex,2)} "
+                                    f"\t consistencyloss:{round(running_consistency_loss,6)}"
+                                    f" \t running_acc_lex:{round(running_acc_lex,4) }  \t running_acc_delex:{round(running_acc_delex,4)}   ")
 
 
 
-                    # all classifier2 related code to calculate accuracy
-                    if (args_in.add_student == True):
-                        y_pred_labels_delex_sf = F.softmax(y_pred_delex, dim=1)
-                        count_of_right_predictions_student_delex_per_batch,acc_t_delex,student_predictions_by_label_class = self.compute_accuracy(y_pred_labels_delex_sf, batch_dict_lex['y_target'])
-                        total_right_predictions_student_delex=total_right_predictions_student_delex+count_of_right_predictions_student_delex_per_batch
-                        running_acc_delex += (acc_t_delex - running_acc_delex) / (batch_index + 1)
-                        self._LOG.debug(
-                            f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
-                            f"classification_loss_lex:{round(running_loss_lex,2)}\t classification_loss_delex:{round(running_loss_delex,2)} "
-                            f"\t consistencyloss:{round(running_consistency_loss,6)}"
-                            f" \t running_acc_lex:{round(running_acc_lex,4) }  \t running_acc_delex:{round(running_acc_delex,4)}   ")
 
-                        #save student predictions to disk
-                        list_of_datapoint_dictionaries_delex = []
-                        indices_this_batch_of_delex = batch_dict_delex["datapoint_index"]
-                        self.get_plain_text_given_data_point_batch_in_indices(batch_dict_delex, vectorizer,
-                                                                              list_of_datapoint_dictionaries_delex,
-                                                                              y_pred_delex,
-                                                                              student_predictions_by_label_class,
-                                                                              indices_this_batch_of_delex)
-                        self.write_dict_as_json(args_in.predictions_student, list_of_datapoint_dictionaries_delex)
+                            else:
+
+                                self._LOG.debug(
+                                    f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
+                                    f"training_loss_lex_per_batch:{round(running_loss_lex,2)}\t"
+                                    f" \t training_accuracy_lex_per_batch:{round(running_acc_lex,2) }")
+                            assert len(teacher_predictions_by_label_class)>0
+                            assert len(batch_dict_lex['y_target']) > 0
+
+                            if (args_in.add_student == True):
+                                assert len(student_predictions_by_label_class) > 0
 
 
-                    else:
-
-                        self._LOG.debug(
-                            f"{epoch_index} \t :{batch_index}/{no_of_batches_lex} \t "
-                            f"training_loss_lex_per_batch:{round(running_loss_lex,2)}\t"
-                            f" \t training_accuracy_lex_per_batch:{round(running_acc_lex,2) }")
-                    assert len(teacher_predictions_by_label_class)>0
-                    assert len(batch_dict_lex['y_target']) > 0
-
-                    if (args_in.add_student == True):
-                        assert len(student_predictions_by_label_class) > 0
+                            if (args_in.add_student == True):
+                                teacher_lex_same_as_gold, \
+                                student_delex_same_as_gold,\
+                                student_teacher_match, \
+                                student_teacher_match_but_not_same_as_gold, \
+                                student_teacher_match_and_same_as_gold, \
+                                student_delex_same_as_gold_but_teacher_is_different, \
+                                teacher_lex_same_as_gold_but_student_is_different   =   self.calculate_label_overlap_between_teacher_and_student_predictions(teacher_predictions_by_label_class,student_predictions_by_label_class,batch_dict_lex['y_target'])
 
 
-                    if (args_in.add_student == True):
-                        teacher_lex_same_as_gold, \
-                        student_delex_same_as_gold,\
-                        student_teacher_match, \
-                        student_teacher_match_but_not_same_as_gold, \
-                        student_teacher_match_and_same_as_gold, \
-                        student_delex_same_as_gold_but_teacher_is_different, \
-                        teacher_lex_same_as_gold_but_student_is_different   =   self.calculate_label_overlap_between_teacher_and_student_predictions(teacher_predictions_by_label_class,student_predictions_by_label_class,batch_dict_lex['y_target'])
+                                teacher_lex_same_as_gold_percent = self.calculate_percentage(teacher_lex_same_as_gold, args_in.batch_size)
+                                student_delex_same_as_gold_percent = self.calculate_percentage(student_delex_same_as_gold, args_in.batch_size)
+                                student_teacher_match_percent = self.calculate_percentage(student_teacher_match, args_in.batch_size)
+                                student_teacher_match_but_not_same_as_gold_percent = self.calculate_percentage(
+                                    student_teacher_match_but_not_same_as_gold, args_in.batch_size)
+                                student_teacher_match_and_same_as_gold_percent = self.calculate_percentage(
+                                    student_teacher_match_and_same_as_gold, args_in.batch_size)
+                                student_delex_same_as_gold_but_teacher_is_different_percent = self.calculate_percentage(
+                                    student_delex_same_as_gold_but_teacher_is_different, args_in.batch_size)
+                                teacher_lex_same_as_gold_but_student_is_different_percent = self.calculate_percentage(teacher_lex_same_as_gold_but_student_is_different, args_in.batch_size)
+
+                                if (comet_value_updater is not None):
+
+                                    comet_value_updater.log_metric("student_delex_same_as_gold_but_teacher_is_different_percent  per batch",
+                                                                   student_delex_same_as_gold_but_teacher_is_different_percent,
+                                                                   step=batch_index)
+                                    comet_value_updater.log_metric("teacher_lex_same_as_gold_but_student_is_different_percent  per batch",
+                                                                   teacher_lex_same_as_gold_but_student_is_different_percent,
+                                                                   step=batch_index)
+
+                            if (comet_value_updater is not None):
+                                    comet_value_updater.log_metric(
+                                        "teacher training accuracy  per batch",
+                                        running_acc_lex,
+                                        step=batch_index)
 
 
-                        teacher_lex_same_as_gold_percent = self.calculate_percentage(teacher_lex_same_as_gold, args_in.batch_size)
-                        student_delex_same_as_gold_percent = self.calculate_percentage(student_delex_same_as_gold, args_in.batch_size)
-                        student_teacher_match_percent = self.calculate_percentage(student_teacher_match, args_in.batch_size)
-                        student_teacher_match_but_not_same_as_gold_percent = self.calculate_percentage(
-                            student_teacher_match_but_not_same_as_gold, args_in.batch_size)
-                        student_teacher_match_and_same_as_gold_percent = self.calculate_percentage(
-                            student_teacher_match_and_same_as_gold, args_in.batch_size)
-                        student_delex_same_as_gold_but_teacher_is_different_percent = self.calculate_percentage(
-                            student_delex_same_as_gold_but_teacher_is_different, args_in.batch_size)
-                        teacher_lex_same_as_gold_but_student_is_different_percent = self.calculate_percentage(teacher_lex_same_as_gold_but_student_is_different, args_in.batch_size)
-
-                        if (comet_value_updater is not None):
-
-                            comet_value_updater.log_metric("student_delex_same_as_gold_but_teacher_is_different_percent  per batch",
-                                                           student_delex_same_as_gold_but_teacher_is_different_percent,
-                                                           step=batch_index)
-                            comet_value_updater.log_metric("teacher_lex_same_as_gold_but_student_is_different_percent  per batch",
-                                                           teacher_lex_same_as_gold_but_student_is_different_percent,
-                                                           step=batch_index)
-
-                    if (comet_value_updater is not None):
-                            comet_value_updater.log_metric(
-                                "teacher training accuracy  per batch",
-                                running_acc_lex,
-                                step=batch_index)
 
 
                 self._LOG.info(
@@ -782,6 +783,28 @@ class Trainer():
                         comet_value_updater.log_metric("training accuracy of teacher model per epoch", running_acc_lex,
                                                    step=epoch_index)
 
+
+
+                ################validation part##############
+
+                list_of_datapoint_dictionaries_lex = []
+                ####use the marked out batch to run dev using lex train model- this is temporary debug/hack on april 2nd 2020
+                if(args_in.use_10fcv):
+                    y_pred_val_10fcv = classifier_teacher_lex(batch_dict_lex_for_10fcv_validation['x_claim'], batch_dict_lex_for_10fcv_validation['x_evidence'])
+                    count_of_right_predictions_teacher_lex_per_batch, acc_t_lex, teacher_predictions_by_label_class_val = self.compute_accuracy(
+                        y_pred_val_10fcv, batch_dict_lex_for_10fcv_validation['y_target'])
+
+                    indices_this_batch_of_lex_val = batch_dict_lex_for_10fcv_validation["datapoint_index"]
+
+                    self.get_plain_text_given_data_point_batch_in_indices(batch_dict_lex_for_10fcv_validation, vectorizer,
+                                                                          list_of_datapoint_dictionaries_lex,
+                                                                          y_pred_val_10fcv,
+                                                                          teacher_predictions_by_label_class_val,
+                                                                          indices_this_batch_of_lex_val)
+                    comet_value_updater.log_metric("acc_10fcv_dev_per_epoch_using_teacher_model", acc_t_lex,
+                                                   step=epoch_index)
+
+
                 if (args_in.add_student == True):
                     # Iterate over val dataset and check on dev using the intended trained model, which usually is the student delex model
                     dataset.set_split('val_delex')
@@ -810,6 +833,8 @@ class Trainer():
                 train_state_in = self.update_train_state(args=args_in,
                                                          models=[classifier_student_delex, classifier_teacher_lex],
                                                          train_state=train_state_in)
+
+
 
                 # also test it on a third dataset which is usually cross domain on fnc
                 args_in.database_to_test_with="fnc"
@@ -846,6 +871,10 @@ class Trainer():
 
 
                 if train_state_in['stop_early']:
+                    ## whenever you hit early stopping just store all the data and predictions of teacher at that point to disk for debug purposes
+                    assert len(list_of_datapoint_dictionaries_lex) > 0
+                    self.write_dict_as_json(args_in.predictions_teacher_file, list_of_datapoint_dictionaries_lex)
+                    print("hit early stopping patience. exiting")
                     break
 
                 if (args_in.add_student == True):
@@ -862,6 +891,7 @@ class Trainer():
                 self._LOG.info(
                     f"****************end of epoch {epoch_index}*********************")
 
+            print("****************end of all epochs*********************")
 
         except KeyboardInterrupt:
             print("Exiting loop")

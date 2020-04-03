@@ -167,6 +167,8 @@ if(args.load_model_from_disk_and_test):
     end = time.time()
     LOG.info(f"time taken= {end-start}seconds.")
     sys.exit(1)
-train_rte.train(args, classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer)
+for x in range(10):
+
+    train_rte.train(args, classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer)
 end = time.time()
 LOG.info(f"time taken= {end-start}seconds.")

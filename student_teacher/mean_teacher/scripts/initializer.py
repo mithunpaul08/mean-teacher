@@ -35,8 +35,8 @@ class Initializer():
 
             data_dir='data/rte',
             logs_dir='log_dir/',
-            predictions_teacher='log_dir/predictions_teacher.jsonl',
-            predictions_student="log_dir/predictions_student.jsonl",
+            predictions_teacher_file='log_dir/predictions_teacher.jsonl',
+
 
 
 
@@ -48,10 +48,10 @@ class Initializer():
 
 
             # Training hyper parameters
-            batch_size=16,
+
             early_stopping_criteria=5,
             learning_rate=0.005,
-            num_epochs=1,
+            num_epochs=1000,
             random_seed=676786,
 
             weight_decay=5e-5,
@@ -77,6 +77,8 @@ class Initializer():
             workers=0,
             ema_decay=0.99,
             database_to_test_with='fever',
+
+            validation_batch=0,
 
             use_gpu=True,
             consistency_type="mse",
@@ -151,8 +153,11 @@ class Initializer():
                             help='')
         parser.add_argument('--use_trained_teacher_inside_student_teacher_arch', default="False", type=self.str2bool,
                             help='when you have a trained teachear model that you want to load and train student using it')
+        parser.add_argument('--batch_size', default=11919, type=int,
+                            help='number of data points per batch. 11919 makes 10 batches of fever training data')
 
-
+        parser.add_argument('--use_10fcv', default="False", type=self.str2bool,
+                            help='use 9 folds for training and 1 for dev')
 
 
 

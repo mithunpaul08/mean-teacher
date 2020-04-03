@@ -177,7 +177,7 @@ def run_training_eval():
 
 #cvbatch is a temporary hack for trying out 10 fold cross validation for training teacher on april 2020
 create_empty_json_file(args.predictions_teacher_file)
-for cvbatch in range(10):
+for cvbatch in range(916):
     print(f"****************starting 10fcv with dev batch as batch:{cvbatch}*********************")
     LOG.info(f"****************starting 10fcv with dev batch as batch:{cvbatch}*********************")
     run_training_eval()

@@ -35,7 +35,7 @@ class Initializer():
 
             data_dir='data/rte',
             logs_dir='log_dir/',
-            predictions_teacher_file='log_dir/predictions_teacher.jsonl',
+            predictions_teacher_file='log_dir/predictions_teacher_on_10fcv_dev.jsonl',
 
 
 

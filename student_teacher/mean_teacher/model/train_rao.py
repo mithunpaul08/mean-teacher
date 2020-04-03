@@ -45,7 +45,7 @@ class Trainer():
                 'model_filename': args.model_state_file}
 
     def update_train_state(self, args, models, train_state):
-        """Handle the training state updates.
+        """Handle the trainival_lossng state updates.
         Components:
          - Early Stopping: Prevent overfitting.
          - Model Checkpoint: Model is saved if the model is better
@@ -727,17 +727,17 @@ class Trainer():
 
 
                 self.number_of_datapoints = total_gold_label_count
-                accuracy_teacher_model_by_per_batch_prediction = self.calculate_percentage(total_right_predictions_teacher_lex,self.number_of_datapoints)
+                training_accuracy_teacher_model_by_per_batch_prediction = self.calculate_percentage(total_right_predictions_teacher_lex,self.number_of_datapoints)
                 if (args_in.add_student == True):
                     accuracy_student_model_by_per_batch_prediction = self.calculate_percentage(
                     total_right_predictions_student_delex, self.number_of_datapoints)
 
 
 
-                self._LOG.info(
+                self._LOG.debug(
                     f"running_acc_lex by old method at the end of {epoch_index}:{running_acc_lex}")
                 self._LOG.info(
-                    f"accuracy_teacher_model_by_per_batch_prediction at the end of epoch{epoch_index}:{accuracy_teacher_model_by_per_batch_prediction}")
+                    f"training_accuracy_teacher_model_by_per_batch_prediction at the end of epoch{epoch_index}:{training_accuracy_teacher_model_by_per_batch_prediction}")
                 if (args_in.add_student == True):
                     self._LOG.info(
                     f"acc_t_delex by old method {epoch_index}:{running_acc_delex}")
@@ -785,7 +785,7 @@ class Trainer():
                 ####use the marked out batch to run dev using lex train model- this is temporary debug/hack on april 2nd 2020
                 if(args_in.use_10fcv):
                     y_pred_val_10fcv = classifier_teacher_lex(batch_dict_lex_for_10fcv_validation['x_claim'], batch_dict_lex_for_10fcv_validation['x_evidence'])
-                    count_of_right_predictions_teacher_lex_per_batch, acc_t_lex, teacher_predictions_by_label_class_val = self.compute_accuracy(
+                    count_of_right_predictions_teacher_lex_per_batch, acc_t_lex_10fcv_val, teacher_predictions_by_label_class_val = self.compute_accuracy(
                         y_pred_val_10fcv, batch_dict_lex_for_10fcv_validation['y_target'])
 
                     indices_this_batch_of_lex_val = batch_dict_lex_for_10fcv_validation["datapoint_index"]
@@ -795,74 +795,89 @@ class Trainer():
                                                                           y_pred_val_10fcv,
                                                                           teacher_predictions_by_label_class_val,
                                                                           indices_this_batch_of_lex_val)
-                    comet_value_updater.log_metric("acc_10fcv_dev_per_epoch_using_teacher_model", acc_t_lex,
+                    comet_value_updater.log_metric("acc_10fcv_dev_per_epoch_using_teacher_model", acc_t_lex_10fcv_val,
+                                                   step=epoch_index)
+                    train_state_in['val_acc'].append(acc_t_lex_10fcv_val)
+                    train_state_in = self.update_train_state(args=args_in,
+                                                             models=[classifier_teacher_lex],
+                                                             train_state=train_state_in)
+                else:
+
+                    if (args_in.add_student == True):
+                        # Iterate over val dataset and check on dev using the intended trained model, which usually is the student delex model
+                        dataset.set_split('val_delex')
+                        classifier_student_delex.eval()
+                        running_acc_val_student,running_loss_val_student= self.eval(classifier_student_delex, args_in, dataset,epoch_index,vectorizer)
+
+                    #when in ema mode, teacher is same as student pretty much. so test on delex partition of dev.
+                    # else teacher and student are separate entities. use teacher to test on dev parition of lexicalized data itself.
+                    if not (args_in.use_ema):
+                        dataset.set_split('val_lex')
+
+                    #eval on the lex dev dataset
+                    classifier_teacher_lex.eval()
+                    running_acc_val_teacher,running_loss_val_teacher = self.eval(classifier_teacher_lex, args_in, dataset,epoch_index,vectorizer)
+
+
+
+
+                    assert comet_value_updater is not None
+                    if (args_in.add_student == True):
+                        comet_value_updater.log_metric("acc_dev_per_epoch_using_student_model", running_acc_val_student, step=epoch_index)
+                    comet_value_updater.log_metric("acc_dev_per_epoch_using_teacher_model", running_acc_val_teacher, step=epoch_index)
+
+                    train_state_in['val_loss'].append(running_loss_val_teacher)
+                    train_state_in['val_acc'].append(running_acc_val_teacher)
+                    train_state_in = self.update_train_state(args=args_in,
+                                                             models=[classifier_student_delex, classifier_teacher_lex],
+                                                             train_state=train_state_in)
+
+
+
+                    # also test it on a third dataset which is usually cross domain on fnc
+                    args_in.database_to_test_with="fnc"
+
+                    if (args_in.add_student == True):
+                        dataset.set_split('test_delex')
+                        classifier_student_delex.eval()
+                        running_acc_test_student, running_loss_test_student = self.eval(classifier_student_delex, args_in,
+                                                                                    dataset, epoch_index,vectorizer)
+
+                    dataset.set_split('test_lex')
+                    classifier_teacher_lex.eval()
+                    running_acc_test_teacher, running_loss_test_teacher = self.eval(classifier_teacher_lex, args_in,
+                                                                                    dataset,
+                                                                                    epoch_index,vectorizer)
+
+                    if (args_in.add_student == True):
+                        comet_value_updater.log_metric("running_acc_test_student", running_acc_test_student,
+                                                   step=epoch_index)
+                    comet_value_updater.log_metric("running_acc_test_teacher", running_acc_test_teacher,
                                                    step=epoch_index)
 
+                    # Do early stopping based on when the dev accuracy drops from its best for patience=5
+                    # update: the code here does early stopping based on cross domain dev(which is being fed as a test partition)
+                    # . i.e not based on in-domain dev anymore.
+                    if (args_in.add_student == True):
+                        train_state_in['val_loss'].append(running_loss_test_student)
+                        train_state_in['val_acc'].append(running_acc_test_student)
+                        train_state_in = self.update_train_state(args=args_in, models=[classifier_student_delex,classifier_teacher_lex],train_state=train_state_in)
 
-                if (args_in.add_student == True):
-                    # Iterate over val dataset and check on dev using the intended trained model, which usually is the student delex model
-                    dataset.set_split('val_delex')
-                    classifier_student_delex.eval()
-                    running_acc_val_student,running_loss_val_student= self.eval(classifier_student_delex, args_in, dataset,epoch_index,vectorizer)
-
-                #when in ema mode, teacher is same as student pretty much. so test on delex partition of dev.
-                # else teacher and student are separate entities. use teacher to test on dev parition of lexicalized data itself.
-                if not (args_in.use_ema):
+                    #resetting args_in.database_to_test_with to make sure the values don't persist across epochs
+                    args_in.database_to_test_with = "dummy"
                     dataset.set_split('val_lex')
 
-                #eval on the lex dev dataset
-                classifier_teacher_lex.eval()
-                running_acc_val_teacher,running_loss_val_teacher = self.eval(classifier_teacher_lex, args_in, dataset,epoch_index,vectorizer)
+                    if (args_in.add_student == True):
+                        self._LOG.info(
+                        f" accuracy on dev partition by student:{round(running_acc_val_student,2)} ")
+                        self._LOG.info(
+                            f" accuracy on test partition by student:{round(running_acc_test_student,2)} ")
 
+                        self._LOG.info(
+                        f" accuracy on dev partition by teacher:{round(running_acc_val_teacher,2)} ")
 
-
-
-                assert comet_value_updater is not None
-                if (args_in.add_student == True):
-                    comet_value_updater.log_metric("acc_dev_per_epoch_using_student_model", running_acc_val_student, step=epoch_index)
-                comet_value_updater.log_metric("acc_dev_per_epoch_using_teacher_model", running_acc_val_teacher, step=epoch_index)
-
-                train_state_in['val_loss'].append(running_loss_val_teacher)
-                train_state_in['val_acc'].append(running_acc_val_teacher)
-                train_state_in = self.update_train_state(args=args_in,
-                                                         models=[classifier_student_delex, classifier_teacher_lex],
-                                                         train_state=train_state_in)
-
-
-
-                # also test it on a third dataset which is usually cross domain on fnc
-                args_in.database_to_test_with="fnc"
-
-                if (args_in.add_student == True):
-                    dataset.set_split('test_delex')
-                    classifier_student_delex.eval()
-                    running_acc_test_student, running_loss_test_student = self.eval(classifier_student_delex, args_in,
-                                                                                dataset, epoch_index,vectorizer)
-
-                dataset.set_split('test_lex')
-                classifier_teacher_lex.eval()
-                running_acc_test_teacher, running_loss_test_teacher = self.eval(classifier_teacher_lex, args_in,
-                                                                                dataset,
-                                                                                epoch_index,vectorizer)
-
-                if (args_in.add_student == True):
-                    comet_value_updater.log_metric("running_acc_test_student", running_acc_test_student,
-                                               step=epoch_index)
-                comet_value_updater.log_metric("running_acc_test_teacher", running_acc_test_teacher,
-                                               step=epoch_index)
-
-                # Do early stopping based on when the dev accuracy drops from its best for patience=5
-                # update: the code here does early stopping based on cross domain dev(which is being fed as a test partition)
-                # . i.e not based on in-domain dev anymore.
-                if (args_in.add_student == True):
-                    train_state_in['val_loss'].append(running_loss_test_student)
-                    train_state_in['val_acc'].append(running_acc_test_student)
-                    train_state_in = self.update_train_state(args=args_in, models=[classifier_student_delex,classifier_teacher_lex],train_state=train_state_in)
-
-                #resetting args_in.database_to_test_with to make sure the values don't persist across epochs
-                args_in.database_to_test_with = "dummy"
-                dataset.set_split('val_lex')
-
+                    self._LOG.info(
+                        f" accuracy on test partition by teacher:{round(running_acc_test_teacher,2)} ")
 
                 if train_state_in['stop_early']:
                     ## whenever you hit early stopping just store all the data and predictions of teacher at that point to disk for debug purposes
@@ -871,21 +886,13 @@ class Trainer():
                     print("hit early stopping patience. exiting")
                     break
 
-                if (args_in.add_student == True):
-                    self._LOG.info(
-                    f" accuracy on dev partition by student:{round(running_acc_val_student,2)} ")
-                    self._LOG.info(
-                        f" accuracy on test partition by student:{round(running_acc_test_student,2)} ")
 
-                    self._LOG.info(
-                    f" accuracy on dev partition by teacher:{round(running_acc_val_teacher,2)} ")
-
-                self._LOG.info(
-                    f" accuracy on test partition by teacher:{round(running_acc_test_teacher,2)} ")
                 self._LOG.info(
                     f"****************end of epoch {epoch_index}*********************")
 
             print("****************end of all epochs*********************")
+            self._LOG.info(
+                f"****************end of all epochs*********************")
 
         except KeyboardInterrupt:
             print("Exiting loop")

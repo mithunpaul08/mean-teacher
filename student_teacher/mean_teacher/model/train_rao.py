@@ -1,4 +1,4 @@
-from mean_teacher.utils.utils_rao import generate_batches,initialize_optimizers,update_optimizer_state,generate_batches_for_semi_supervised,generate_batches_with_return_not_yield
+from mean_teacher.utils.utils_rao import generate_batches_with_sampler,initialize_optimizers,update_optimizer_state,generate_batches_for_semi_supervised,generate_batches_without_sampler
 from mean_teacher.utils import losses
 import time
 import torch
@@ -145,7 +145,7 @@ class Trainer():
         return (100 * numerator / denominator)
 
     def predict(self,dataset,args_in,classifier,vocab):
-        batch_generator_total = generate_batches(dataset, batch_size=args_in.batch_size,
+        batch_generator_total = generate_batches_with_sampler(dataset, batch_size=args_in.batch_size,
                                                  device=args_in.device,workers=0)
 
         import math
@@ -249,7 +249,7 @@ class Trainer():
                     classifier.load_state_dict(torch.load(args_in.trained_model_path,map_location=torch.device(args_in.device)))
         classifier.eval()
         dataset.set_split(split_to_test)
-        batch_generator_val = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
+        batch_generator_val = generate_batches_with_sampler(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
                                                device=args_in.device, shuffle=args_in.shuffle_data)
         running_loss_val = 0.
         running_acc_val = 0.
@@ -299,7 +299,7 @@ class Trainer():
 
 
     def eval_no_fnc(self,classifier,args_in,dataset,epoch_index):
-        batch_generator_val = generate_batches(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
+        batch_generator_val = generate_batches_with_sampler(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
                                                device=args_in.device, shuffle=args_in.shuffle_data)
         running_loss_val = 0.
         running_acc_val = 0.
@@ -327,7 +327,7 @@ class Trainer():
         return running_acc_val,running_loss_val
 
     def eval(self,classifier,args_in,dataset,epoch_index,vectorizer):
-        batch_generator_val = generate_batches_with_return_not_yield(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
+        batch_generator_val = generate_batches_without_sampler(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
                                                device=args_in.device, shuffle=False)
         running_loss_val = 0.
         running_acc_val = 0.
@@ -474,7 +474,7 @@ class Trainer():
                     batch_generator_lex_data = generate_batches_for_semi_supervised(dataset_lex, args_in.percentage_labels_for_semi_supervised, workers=args_in.workers, batch_size=args_in.batch_size,
                                                         device=args_in.device,mask_value=args_in.NO_LABEL )
                 else:
-                    batch_generator_lex_data = generate_batches_with_return_not_yield(dataset_lex, workers=args_in.workers, batch_size=args_in.batch_size,device=args_in.device,shuffle=args_in.shuffle_data)
+                    batch_generator_lex_data = generate_batches_without_sampler(dataset_lex, workers=args_in.workers, batch_size=args_in.batch_size,device=args_in.device,shuffle=args_in.shuffle_data)
 
                 prev_rng_state = torch.get_rng_state()  # save rng state
                 no_of_batches_lex = int(len(dataset)/args_in.batch_size)
@@ -494,7 +494,7 @@ class Trainer():
                                                                             device=args_in.device,mask_value=args_in.NO_LABEL  )
 
                 else:
-                    batch_generator_delex_data = generate_batches_with_return_not_yield(dataset_delex, workers=args_in.workers, batch_size=args_in.batch_size,
+                    batch_generator_delex_data = generate_batches_without_sampler(dataset_delex, workers=args_in.workers, batch_size=args_in.batch_size,
                                                         device=args_in.device,shuffle=args_in.shuffle_data)
 
                 assert batch_generator_delex_data is not None

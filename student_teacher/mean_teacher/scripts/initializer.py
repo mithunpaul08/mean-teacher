@@ -78,7 +78,8 @@ class Initializer():
             ema_decay=0.99,
             database_to_test_with='fever',
 
-            validation_batch=0,
+            #this is for 10 fold cross validation -must be temporary expt as of april 2020
+            validation_batch_10fcv=0,
 
             use_gpu=True,
             consistency_type="mse",

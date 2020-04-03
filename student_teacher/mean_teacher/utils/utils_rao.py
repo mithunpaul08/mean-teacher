@@ -42,7 +42,10 @@ def preprocess_text(text):
     text = re.sub(r"[^a-zA-Z.,!?]+", r" ", text)
     return text
 
-
+def create_empty_json_file(out_path):
+    with open(out_path, 'w') as outfile:
+            outfile.write("\n")
+            outfile.close()
 
 def generate_batches_with_return_not_yield(dataset,workers,batch_size,device ,shuffle=False,
                      drop_last=True ):

@@ -379,10 +379,7 @@ class Trainer():
         return running_acc_val,running_loss_val
 
 
-    def create_empty_json_file(self,out_path):
-        with open(out_path, 'w') as outfile:
-                outfile.write("\n")
-                outfile.close()
+
 
 
     def write_dict_as_json(self,out_path,list_of_dictionaries):
@@ -454,7 +451,7 @@ class Trainer():
         train_state_in = self.make_train_state(args_in)
         prev_rng_state = torch.get_rng_state()
 
-        self.create_empty_json_file(args_in.predictions_teacher_file)
+
 
         try:
             # Iterate over training dataset
@@ -533,14 +530,11 @@ class Trainer():
                 for batch_index, (batch_dict_lex,batch_dict_delex) in enumerate(tqdm(combined_data_generators,desc="training_batches",total=no_of_batches_delex)):
 
 
-                    #if using 10 fold cross validation, skip the first batch and use it for dev. train on the rest
+                    #if using 10 fold cross validation, skip a batch and use it for dev. train on the rest
                     # this is a temporary hack when we were trying to create a trained teacher model to load inside classroom architecture
                     if(args_in.use_10fcv) :
-
-                        if batch_index==args_in.validation_batch:
+                        if batch_index==args_in.validation_batch_10fcv:
                             batch_dict_lex_for_10fcv_validation = batch_dict_lex
-                            batch_dict_delex_for_10fcv_validation = batch_dict_delex
-
                         else:
 
                             # the training routine is these 5 steps:

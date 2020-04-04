@@ -792,16 +792,17 @@ class Trainer():
                     y_pred_val_10fcv=torch.Tensor(0,4)
                     teacher_predictions_by_label_class_val=torch.LongTensor()
                     indices_all_batches = torch.LongTensor()
-                    for index,batch_dict_lex_for_10fcv_validation in enumerate(batches_dict_lex_for_10fcv_validation):
+                    #tqdm(batch_generator_val, desc="dev_batches", total=no_of_batches)):
+                    for index,batch_dict_lex_for_10fcv_validation in enumerate(tqdm(batches_dict_lex_for_10fcv_validation,desc="dev_nfcv",total=len(batches_dict_lex_for_10fcv_validation))):
                         y_pred_val_10fcv_pertbatch = classifier_teacher_lex(batch_dict_lex_for_10fcv_validation['x_claim'], batch_dict_lex_for_10fcv_validation['x_evidence'])
                         count_of_right_predictions_teacher_lex_per_batch, acc_t_lex_10fcv_val, teacher_predictions_by_label_class_val_per_batch = self.compute_accuracy(y_pred_val_10fcv_pertbatch, batch_dict_lex_for_10fcv_validation['y_target'])
-                        teacher_predictions_by_label_class_val = torch.cat((teacher_predictions_by_label_class_val, teacher_predictions_by_label_class_val_per_batch), 0)
+                        #teacher_predictions_by_label_class_val = torch.cat((teacher_predictions_by_label_class_val, teacher_predictions_by_label_class_val_per_batch), 0)
                         indices_this_batch_of_lex_val = batch_dict_lex_for_10fcv_validation["datapoint_index"]
 
 
                         self.get_plain_text_given_data_point_batch_in_indices(batch_dict_lex_for_10fcv_validation, vectorizer,
                                                                           list_of_datapoint_dictionaries_lex,y_pred_val_10fcv_pertbatch,
-                                                                          teacher_predictions_by_label_class_val,
+                                                                              teacher_predictions_by_label_class_val_per_batch,
                                                                               indices_this_batch_of_lex_val)
                         accuracy_across_batches += (acc_t_lex_10fcv_val - accuracy_across_batches) / (index + 1)
 

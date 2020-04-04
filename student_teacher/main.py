@@ -4,9 +4,10 @@ import torch
 from mean_teacher.modules.rao_datasets import RTEDataset
 from mean_teacher.model.train_rao import Trainer
 from mean_teacher.scripts.initializer import Initializer
-from mean_teacher.utils.utils_rao import make_embedding_matrix,create_model,set_seed_everywhere,create_empty_json_file
+from mean_teacher.utils.utils_rao import make_embedding_matrix,create_model,set_seed_everywhere,create_empty_json_file,best_dev_accuracy_across_folds
 from mean_teacher.utils.logger import Logger
 from mean_teacher.model import architectures
+from mean_teacher.utils import utils_rao
 
 import os
 import logging
@@ -178,11 +179,18 @@ def run_training_eval():
 #cvbatch is a temporary hack for trying out n fold cross validation for training teacher on april 2020
 
 create_empty_json_file(args.predictions_teacher_file)
-for cvbatch in range(3724):
+
+
+
+for cvbatch in range(11):
     print(f"****************starting 10fcv with dev batch as batch:{cvbatch}*********************")
     LOG.info(f"****************starting 10fcv with dev batch as batch:{cvbatch}*********************")
     run_training_eval()
-
+    LOG.info(f"best dev accuracy at the end of fold number {cvbatch} is:{utils_rao.best_dev_accuracy_across_folds}*********************")
+    if (comet_value_updater is not None):
+        comet_value_updater.log_metric("best_dev_accuracy_across_folds",
+                                       utils_rao.best_dev_accuracy_across_folds,
+                                       step=cvbatch)
 end = time.time()
 print(f"end of entire run")
 LOG.info(f"end of entire run")

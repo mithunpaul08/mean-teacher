@@ -11,7 +11,7 @@ import math
 import random
 
 # #### General utilities
-
+best_dev_accuracy_across_folds=0
 def set_seed_everywhere(seed, cuda):
     """
     To make the code reproducable, set the seeds manually. this has to be changed to random if you want more efficiency.

@@ -13,6 +13,7 @@ from mean_teacher.scorers.fnc_scorer import report_score
 import git
 from mean_teacher.modules.vectorizer_with_embedding import LABELS
 import json
+from mean_teacher.utils import utils_rao
 
 repo = git.Repo(search_parent_directories=True)
 sha = repo.head.object.hexsha
@@ -78,7 +79,8 @@ class Trainer():
             if acc_current_epoch <= train_state['early_stopping_best_val']:
                 # increase patience counter
                 train_state['early_stopping_step'] += 1
-                self._LOG.info(f"found that acc_current_epoch  {acc_current_epoch} is less than or equal to the best dev "
+                utils_rao.best_dev_accuracy_across_folds=train_state['early_stopping_best_val']
+                self._LOG.info(f"found that dev accuracy in current epoch  {acc_current_epoch} is less than or equal to the best dev "
                          f"accuracy value so far which is"
                          f" {train_state['early_stopping_best_val']}. "
                          f"Increasing patience total value. "
@@ -591,7 +593,7 @@ class Trainer():
                                 class_loss_delex = class_loss_func(y_pred_delex, batch_dict_delex['y_target'])
                                 loss_t_delex = class_loss_delex.item()
                                 running_loss_delex += (loss_t_delex - running_loss_delex) / (batch_index + 1)
-                                #LOG.debug(f"loss_t_delex={loss_t_delex}\trunning_loss_delex={running_loss_delex}")
+
 
                                 consistency_loss = consistency_criterion(y_pred_lex, y_pred_delex)
                                 consistency_loss_value = consistency_loss.item()
@@ -805,9 +807,12 @@ class Trainer():
                                                                               teacher_predictions_by_label_class_val_per_batch,
                                                                               indices_this_batch_of_lex_val)
                         accuracy_across_batches += (acc_t_lex_10fcv_val - accuracy_across_batches) / (index + 1)
+                        self._LOG.info(
+                            f" value of dev accuracy at the end of dev batch number {index} is:{acc_t_lex_10fcv_val}")
 
                     comet_value_updater.log_metric("acc_nfcv_dev_per_epoch_using_teacher_model", accuracy_across_batches,
                                                    step=epoch_index)
+                    self._LOG.info(f"average value of dev accuracy at the end of all individual dev batches (which will be used for early stopping is:{accuracy_across_batches}")
                     train_state_in['val_acc'].append(accuracy_across_batches)
                     train_state_in = self.update_train_state(args=args_in,
                                                              models=[classifier_teacher_lex],

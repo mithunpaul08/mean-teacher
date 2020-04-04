@@ -808,7 +808,7 @@ class Trainer():
 
                     comet_value_updater.log_metric("acc_nfcv_dev_per_epoch_using_teacher_model", accuracy_across_batches,
                                                    step=epoch_index)
-                    train_state_in['val_acc'].append(acc_t_lex_10fcv_val)
+                    train_state_in['val_acc'].append(accuracy_across_batches)
                     train_state_in = self.update_train_state(args=args_in,
                                                              models=[classifier_teacher_lex],
                                                              train_state=train_state_in)

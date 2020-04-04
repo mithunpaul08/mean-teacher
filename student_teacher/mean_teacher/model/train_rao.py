@@ -524,17 +524,21 @@ class Trainer():
 
                 assert combined_data_generators is not None
 
-                batch_dict_lex_for_10fcv_validation=None
-
+                batches_dict_lex_for_10fcv_validation=[]
+                dev_splitter=int(no_of_batches_delex / 10)
+                # update: looks like batch size neeeds to be 32 itself. The dev is not hitting the previous best accuracy of 82% otherwise
+                # but dev has to be 10%(11919 entries to be precise) entries. I.e out of the 119197/32=3724 batches, to cleave out 11,919 entries, we need to
+                # . Of which to get 11k cleaved out, we need 372 batches
+                # so fold 1: batch 0 to batch 372 for dev, then fold2=[372 to (2*372)] etc
+                start_index_dev_batches = (args_in.validation_batch_10fcv) * dev_splitter
+                end_index_dev_batches = (args_in.validation_batch_10fcv + 1) * dev_splitter
 
                 for batch_index, (batch_dict_lex,batch_dict_delex) in enumerate(tqdm(combined_data_generators,desc="training_batches",total=no_of_batches_delex)):
 
-
-                    #if using 10 fold cross validation, skip a batch and use it for dev. train on the rest
                     # this is a temporary hack when we were trying to create a trained teacher model to load inside classroom architecture
                     if(args_in.use_10fcv) :
-                        if batch_index==args_in.validation_batch_10fcv:
-                            batch_dict_lex_for_10fcv_validation = batch_dict_lex
+                        if batch_index in range(start_index_dev_batches,end_index_dev_batches):
+                            batches_dict_lex_for_10fcv_validation.append(batch_dict_lex)
                         else:
 
                             # the training routine is these 5 steps:
@@ -784,17 +788,22 @@ class Trainer():
                 list_of_datapoint_dictionaries_lex = []
                 ####use the marked out batch to run dev using lex train model- this is temporary debug/hack on april 2nd 2020
                 if(args_in.use_10fcv):
-                    y_pred_val_10fcv = classifier_teacher_lex(batch_dict_lex_for_10fcv_validation['x_claim'], batch_dict_lex_for_10fcv_validation['x_evidence'])
-                    count_of_right_predictions_teacher_lex_per_batch, acc_t_lex_10fcv_val, teacher_predictions_by_label_class_val = self.compute_accuracy(
-                        y_pred_val_10fcv, batch_dict_lex_for_10fcv_validation['y_target'])
+                    y_pred_val_10fcv=torch.Tensor(0,4)
+                    teacher_predictions_by_label_class_val=torch.LongTensor()
+                    indices_all_batches = torch.LongTensor()
+                    for batch_dict_lex_for_10fcv_validation in batches_dict_lex_for_10fcv_validation:
+                        y_pred_val_10fcv_pertbatch = classifier_teacher_lex(batch_dict_lex_for_10fcv_validation['x_claim'], batch_dict_lex_for_10fcv_validation['x_evidence'])
+                        y_pred_val_10fcv=torch.cat((y_pred_val_10fcv,y_pred_val_10fcv_pertbatch),0)
+                        count_of_right_predictions_teacher_lex_per_batch, acc_t_lex_10fcv_val, teacher_predictions_by_label_class_val_per_batch = self.compute_accuracy(y_pred_val_10fcv_pertbatch, batch_dict_lex_for_10fcv_validation['y_target'])
+                        teacher_predictions_by_label_class_val = torch.cat((teacher_predictions_by_label_class_val, teacher_predictions_by_label_class_val_per_batch), 0)
+                        indices_this_batch_of_lex_val = batch_dict_lex_for_10fcv_validation["datapoint_index"]
+                        indices_all_batches = torch.cat((indices_all_batches,indices_this_batch_of_lex_val),0)
 
-                    indices_this_batch_of_lex_val = batch_dict_lex_for_10fcv_validation["datapoint_index"]
-
-                    self.get_plain_text_given_data_point_batch_in_indices(batch_dict_lex_for_10fcv_validation, vectorizer,
+                    self.get_plain_text_given_data_point_batch_in_indices(batches_dict_lex_for_10fcv_validation, vectorizer,
                                                                           list_of_datapoint_dictionaries_lex,
                                                                           y_pred_val_10fcv,
                                                                           teacher_predictions_by_label_class_val,
-                                                                          indices_this_batch_of_lex_val)
+                                                                          indices_all_batches)
                     comet_value_updater.log_metric("acc_10fcv_dev_per_epoch_using_teacher_model", acc_t_lex_10fcv_val,
                                                    step=epoch_index)
                     train_state_in['val_acc'].append(acc_t_lex_10fcv_val)

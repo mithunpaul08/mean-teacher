@@ -182,7 +182,7 @@ create_empty_json_file(args.predictions_teacher_file)
 
 
 
-for cvbatch in range(11):
+for cvbatch in range(4,11,1):
     print(f"****************starting 10fcv with dev batch as batch:{cvbatch}*********************")
     LOG.info(f"****************starting 10fcv with dev batch as batch:{cvbatch}*********************")
     run_training_eval()

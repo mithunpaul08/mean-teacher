@@ -807,7 +807,7 @@ class Trainer():
                                                                               teacher_predictions_by_label_class_val_per_batch,
                                                                               indices_this_batch_of_lex_val)
                         accuracy_across_batches += (acc_t_lex_10fcv_val - accuracy_across_batches) / (index + 1)
-                        self._LOG.info(
+                        self._LOG.debug(
                             f" value of dev accuracy at the end of dev batch number {index} is:{acc_t_lex_10fcv_val}")
 
                     comet_value_updater.log_metric("acc_nfcv_dev_per_epoch_using_teacher_model", accuracy_across_batches,

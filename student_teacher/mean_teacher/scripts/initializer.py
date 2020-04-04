@@ -154,9 +154,8 @@ class Initializer():
                             help='')
         parser.add_argument('--use_trained_teacher_inside_student_teacher_arch', default="False", type=self.str2bool,
                             help='when you have a trained teachear model that you want to load and train student using it')
-        parser.add_argument('--batch_size', default=130, type=int,
+        parser.add_argument('--batch_size', default=32, type=int,
                             help='number of data points per batch. 11919 makes 10 batches of fever training data')
-
         parser.add_argument('--use_10fcv', default="False", type=self.str2bool,
                             help='use 9 folds for training and 1 for dev')
 

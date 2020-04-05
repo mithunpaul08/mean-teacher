@@ -527,10 +527,14 @@ class Trainer():
                 assert combined_data_generators is not None
 
                 batches_dict_lex_for_10fcv_validation=[]
-                dev_splitter=int(no_of_batches_delex / 10)
-                # update: looks like batch size neeeds to be 32 itself. The dev is not hitting the previous best accuracy of 82% otherwise
-                # but dev has to be 10%(11919 entries to be precise) entries. I.e out of the 119197/32=3724 batches, to cleave out 11,919 entries, we need to
-                # . Of which to get 11k cleaved out, we need 372 batches
+
+                #earmark 10% of training data/batches as dev
+                dev_splitter=int(no_of_batches_lex / 10)
+
+                self._LOG.info(f"total number of batches in training are {no_of_batches_lex} and hence the number of dev batches are {dev_splitter}")
+                # update: looks like batch size neeeds to be 32 itself because dev is not hitting the previous best accuracy of 82% otherwise
+                # However a good dev partition dev has to be around 10%(11919 entries to be precise) entries. I.e out of the 119197/32=3724 batches,
+                # to cleave out 11,919 entries we need 372 batches
                 # so fold 1: batch 0 to batch 372 for dev, then fold2=[372 to (2*372)] etc
                 start_index_dev_batches = (args_in.validation_batch_10fcv) * dev_splitter
                 end_index_dev_batches = (args_in.validation_batch_10fcv + 1) * dev_splitter

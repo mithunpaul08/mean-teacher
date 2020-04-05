@@ -426,9 +426,18 @@ class Trainer():
         return
 
 
-    def convert_predicted_logits_into_batch_prediction_format(logits_vertical):
-        for row in logits_vertical:
-            
+    def convert_predicted_logits_into_batch_prediction_format(self,logits_vertical):
+        all_rows_in_batch=[]
+        for column in range(len(logits_vertical[0])):
+            one_data_point_predictions=[]
+            for row in range(4):
+                one_data_point_predictions.append(logits_vertical[row][column])
+            all_rows_in_batch.append(one_data_point_predictions)
+        return torch.FloatTensor(all_rows_in_batch)
+
+
+
+
 
 
     def train(self, args_in, classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer):
@@ -451,11 +460,11 @@ class Trainer():
                 [classifier_teacher_lex], args_in)
 
         train_state_in = self.make_train_state(args_in)
-        prev_rng_state = torch.get_rng_state()
+
         try:
             # Iterate over training dataset
             for epoch_index in range(args_in.num_epochs):
-                torch.set_rng_state(prev_rng_state)
+
                 train_state_in['epoch_index'] = epoch_index
 
                 #empty out the predictions file at the beginning of each epoch
@@ -479,7 +488,7 @@ class Trainer():
                 else:
                     batch_generator_lex_data = generate_batches_with_return_not_yield(dataset_lex, workers=args_in.workers, batch_size=args_in.batch_size,device=args_in.device,shuffle=args_in.shuffle_data)
 
-                prev_rng_state = torch.get_rng_state()  # save rng state
+
                 no_of_batches_lex = int(len(dataset)/args_in.batch_size)
 
                 assert batch_generator_lex_data is not None
@@ -553,7 +562,8 @@ class Trainer():
                     #if you want to load the teacher which was already trained in a previous phase.
                     if(args_in.use_trained_teacher_inside_student_teacher_arch):
                         #directly use the logits of the prediction
-                        y_pred_lex = torch.tensor(batch_dict_lex['predicted_logits'])
+                        y_pred_lex=self.convert_predicted_logits_into_batch_prediction_format(batch_dict_lex['predicted_logits'])
+
 
                     else:
 
@@ -579,6 +589,9 @@ class Trainer():
                     self._LOG.debug(f"loss_t_lex={loss_t_lex}\trunning_loss_lex={running_loss_lex}")
 
                     combined_class_loss = class_loss_lex
+                    if (args_in.use_trained_teacher_inside_student_teacher_arch):
+                        combined_class_loss = 0
+
                     consistency_loss=0
                     class_loss_delex=None
 

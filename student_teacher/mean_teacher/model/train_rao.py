@@ -426,6 +426,10 @@ class Trainer():
         return
 
 
+    def convert_predicted_logits_into_batch_prediction_format(logits_vertical):
+        for row in logits_vertical:
+            
+
 
     def train(self, args_in, classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer):
 
@@ -507,6 +511,7 @@ class Trainer():
                 running_acc_lex = 0.0
                 running_loss_delex = 0.0
                 running_acc_delex = 0.0
+                #when you are loading the model you don't need backpropagation
                 if (args_in.use_trained_teacher_inside_student_teacher_arch):
                     classifier_teacher_lex.eval()
                 else:
@@ -544,12 +549,20 @@ class Trainer():
 
                     # step 2. compute the output
                     y_pred_lex=None
-                    #when in ema mode, make the teacher also make its  prediction over delex data .
-                    #  In ema mode, this wont be back propagated, so wouldn't really matter.
-                    if (args_in.use_ema):
-                        y_pred_lex = classifier_teacher_lex(batch_dict_delex['x_claim'], batch_dict_delex['x_evidence'])
+
+                    #if you want to load the teacher which was already trained in a previous phase.
+                    if(args_in.use_trained_teacher_inside_student_teacher_arch):
+                        #directly use the logits of the prediction
+                        y_pred_lex = torch.tensor(batch_dict_lex['predicted_logits'])
+
                     else:
-                        y_pred_lex = classifier_teacher_lex(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
+
+                        if (args_in.use_ema):
+                            # when in ema mode, make the teacher also make its  prediction over delex data .
+                            #  In ema mode, this wont be back propagated, so wouldn't really matter.
+                            y_pred_lex = classifier_teacher_lex(batch_dict_delex['x_claim'], batch_dict_delex['x_evidence'])
+                        else:
+                            y_pred_lex = classifier_teacher_lex(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
 
 
                     assert y_pred_lex is not None

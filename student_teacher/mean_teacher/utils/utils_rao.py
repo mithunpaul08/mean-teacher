@@ -48,7 +48,7 @@ def create_empty_json_file(out_path):
             outfile.close()
 
 def generate_batches_without_sampler(dataset, workers, batch_size, device, shuffle=False,
-                                     drop_last=True):
+                                     drop_last=False):
     """
     A generator function which wraps the PyTorch DataLoader. It will
       ensure each tensor is on the write device location.
@@ -68,7 +68,7 @@ def generate_batches_without_sampler(dataset, workers, batch_size, device, shuff
 
 
 def generate_batches_with_sampler(dataset, workers, batch_size, device, shuffle=False,
-                                  drop_last=True):
+                                  drop_last=False):
     """
     A generator function which wraps the PyTorch DataLoader. It will
       ensure each tensor is on the write device location.

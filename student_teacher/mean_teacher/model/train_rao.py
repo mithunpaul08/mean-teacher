@@ -576,7 +576,6 @@ class Trainer():
                     #if you want to load the teacher which was already trained in a previous phase.
                     if(args_in.use_trained_teacher_inside_student_teacher_arch):
                         #directly use the logits of the prediction from phase1
-                        #y_pred_lex=self.convert_predicted_logits_into_batch_prediction_format(batch_dict_lex['predicted_logits'])
                         y_pred_lex =  batch_dict_lex['predicted_logits']
 
 
@@ -670,19 +669,6 @@ class Trainer():
                     count_of_right_predictions_teacher_lex_per_batch, acc_t_lex,teacher_predictions_by_label_class = self.compute_accuracy(y_pred_labels_lex_sf, batch_dict_lex['y_target'])
                     total_right_predictions_teacher_lex=total_right_predictions_teacher_lex+count_of_right_predictions_teacher_lex_per_batch
                     running_acc_lex += (acc_t_lex - running_acc_lex) / (batch_index + 1)
-
-                    # store all the data and predictions to disk for debug purposes
-                    # indices_this_batch_of_lex = batch_dict_lex["datapoint_index"]
-                    #
-                    #
-                    #
-                    # list_of_datapoint_dictionaries_lex = []
-                    # self.get_plain_text_given_data_point_batch_in_indices(batch_dict_lex, vectorizer,
-                    #                                                       list_of_datapoint_dictionaries_lex, y_pred_lex,teacher_predictions_by_label_class,indices_this_batch_of_lex)
-                    #
-                    #
-                    #
-                    # self.write_dict_as_json(args_in.predictions_teacher, list_of_datapoint_dictionaries_lex)
 
 
 
@@ -811,8 +797,7 @@ class Trainer():
 
                         comet_value_updater.log_metric("training accuracy of student model per epoch", running_acc_delex,
                                                    step=epoch_index)
-                    else:
-                        comet_value_updater.log_metric("training accuracy of teacher model per epoch", running_acc_lex,
+                    comet_value_updater.log_metric("training accuracy of teacher model per epoch", running_acc_lex,
                                                    step=epoch_index)
 
                 if (args_in.add_student == True):

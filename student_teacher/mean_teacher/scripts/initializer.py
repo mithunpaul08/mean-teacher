@@ -35,8 +35,10 @@ class Initializer():
 
             data_dir='data/rte',
             logs_dir='log_dir/',
-            predictions_teacher='log_dir/predictions_teacher.jsonl',
-            predictions_student="log_dir/predictions_student.jsonl",
+            predictions_teacher_dev_file='log_dir/predictions_teacher_dev.jsonl',
+            predictions_student_dev_file="log_dir/predictions_student_dev.jsonl",
+            predictions_teacher_test_file='log_dir/predictions_teacher_test.jsonl',
+            predictions_student_test_file="log_dir/predictions_student_test.jsonl",
 
 
 
@@ -48,7 +50,7 @@ class Initializer():
 
 
             # Training hyper parameters
-            batch_size=32,
+            batch_size=8,
             early_stopping_criteria=5,
             learning_rate=0.005,
             num_epochs=10000,

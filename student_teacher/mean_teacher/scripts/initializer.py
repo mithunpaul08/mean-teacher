@@ -50,7 +50,7 @@ class Initializer():
 
 
             # Training hyper parameters
-            batch_size=8,
+            batch_size=32,
             early_stopping_criteria=5,
             learning_rate=0.005,
             num_epochs=10000,
@@ -153,8 +153,8 @@ class Initializer():
                             help='')
         parser.add_argument('--use_trained_teacher_inside_student_teacher_arch', default="False", type=self.str2bool,
                             help='when you have a trained teachear model that you want to load and train student using it')
-
-
+        parser.add_argument('--batch_size', default=32, type=int,
+                            help='number of data points per batch. 11919 makes 10 batches of fever training data')
 
 
 

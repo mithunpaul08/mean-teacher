@@ -841,12 +841,23 @@ class Trainer():
                     comet_value_updater.log_metric("acc_dev_per_epoch_using_student_model", running_acc_val_student, step=epoch_index)
                 comet_value_updater.log_metric("acc_dev_per_epoch_using_teacher_model", running_acc_val_teacher, step=epoch_index)
 
-                train_state_in['val_loss'].append(running_loss_val_teacher)
-                train_state_in['val_acc'].append(running_acc_val_teacher)
-                train_state_in = self.update_train_state(args=args_in,
+
+
+                # Do early stopping based on when the dev accuracy drops from its best for patience=5
+                # update: the code here does early stopping based on cross domain dev(which is being fed as a test partition)
+                # . i.e not based on in-domain dev anymore.
+                if (args_in.add_student == True):
+                    train_state_in['val_loss'].append(running_loss_val_student)
+                    train_state_in['val_acc'].append(running_acc_val_student)
+                    train_state_in = self.update_train_state(args=args_in,
+                                                             models=[classifier_student_delex, classifier_teacher_lex],
+                                                             train_state=train_state_in)
+                else:
+                    train_state_in['val_loss'].append(running_loss_val_teacher)
+                    train_state_in['val_acc'].append(running_acc_val_teacher)
+                    train_state_in = self.update_train_state(args=args_in,
                                                          models=[classifier_student_delex, classifier_teacher_lex],
                                                          train_state=train_state_in)
-
 
 
                 # also test it on a third dataset which is usually cross domain on fnc
@@ -872,13 +883,7 @@ class Trainer():
                 comet_value_updater.log_metric("running_acc_test_teacher", running_acc_test_teacher,
                                                step=epoch_index)
 
-                # Do early stopping based on when the dev accuracy drops from its best for patience=5
-                # update: the code here does early stopping based on cross domain dev(which is being fed as a test partition)
-                # . i.e not based on in-domain dev anymore.
-                if (args_in.add_student == True):
-                    train_state_in['val_loss'].append(running_loss_test_student)
-                    train_state_in['val_acc'].append(running_acc_test_student)
-                    train_state_in = self.update_train_state(args=args_in, models=[classifier_student_delex,classifier_teacher_lex],train_state=train_state_in)
+
 
                 #resetting args_in.database_to_test_with to make sure the values don't persist across epochs
                 args_in.database_to_test_with = "dummy"

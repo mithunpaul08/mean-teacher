@@ -44,20 +44,21 @@ def preprocess_text(text):
 
 
 
-def generate_batches_with_return_not_yield(dataset,workers,batch_size,device ,shuffle=False,
+def generate_batches_without_sampler(dataset,workers,batch_size,device ,shuffle=False,
                      drop_last=True ):
     """
     A generator function which wraps the PyTorch DataLoader. It will
       ensure each tensor is on the write device location.
     """
-
     if(shuffle==True):
         dataloader=DataLoader(dataset,batch_size=batch_size,shuffle=True,drop_last=True,num_workers=workers)
-
     else:
         dataloader = DataLoader(dataset,batch_size=batch_size,shuffle=False,drop_last=True,num_workers=workers)
-
-    return dataloader
+    for data_dict in dataloader:
+        out_data_dict = {}
+        for name, tensor in data_dict.items():
+            out_data_dict[name] = data_dict[name].to(device)
+        yield out_data_dict
 
 
 def generate_batches(dataset,workers,batch_size,device ,shuffle=False,

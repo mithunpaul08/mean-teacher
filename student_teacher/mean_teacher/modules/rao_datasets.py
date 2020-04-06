@@ -252,7 +252,7 @@ class RTEDataset(Dataset):
                 'x_evidence': evidence_vector,
                 'y_target': label_index,
                 'datapoint_index':index,
-                "predicted_logits":predicted_logits}
+                "predicted_logits":torch.tensor(predicted_logits)}
 
     def get_num_batches(self, batch_size):
         """Given a batch size, return the number of batches in the dataset

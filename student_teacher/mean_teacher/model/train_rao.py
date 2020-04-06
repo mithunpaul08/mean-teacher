@@ -1,4 +1,4 @@
-from mean_teacher.utils.utils_rao import generate_batches,initialize_optimizers,update_optimizer_state,generate_batches_for_semi_supervised,generate_batches_with_return_not_yield
+from mean_teacher.utils.utils_rao import generate_batches,initialize_optimizers,update_optimizer_state,generate_batches_for_semi_supervised,generate_batches_without_sampler
 from mean_teacher.utils import losses
 import time
 import torch
@@ -327,7 +327,7 @@ class Trainer():
         return running_acc_val,running_loss_val
 
     def eval(self,classifier,args_in,dataset,epoch_index,vectorizer):
-        batch_generator_val = generate_batches_with_return_not_yield(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
+        batch_generator_val = generate_batches_without_sampler(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
                                                device=args_in.device, shuffle=False)
         running_loss_val = 0.
         running_acc_val = 0.
@@ -486,7 +486,7 @@ class Trainer():
                     batch_generator_lex_data = generate_batches_for_semi_supervised(dataset_lex, args_in.percentage_labels_for_semi_supervised, workers=args_in.workers, batch_size=args_in.batch_size,
                                                         device=args_in.device,mask_value=args_in.NO_LABEL )
                 else:
-                    batch_generator_lex_data = generate_batches_with_return_not_yield(dataset_lex, workers=args_in.workers, batch_size=args_in.batch_size,device=args_in.device,shuffle=args_in.shuffle_data)
+                    batch_generator_lex_data = generate_batches_without_sampler(dataset_lex, workers=args_in.workers, batch_size=args_in.batch_size,device=args_in.device,shuffle=args_in.shuffle_data)
 
 
                 no_of_batches_lex = int(len(dataset)/args_in.batch_size)
@@ -506,7 +506,7 @@ class Trainer():
                                                                             device=args_in.device,mask_value=args_in.NO_LABEL  )
 
                 else:
-                    batch_generator_delex_data = generate_batches_with_return_not_yield(dataset_delex, workers=args_in.workers, batch_size=args_in.batch_size,
+                    batch_generator_delex_data = generate_batches_without_sampler(dataset_delex, workers=args_in.workers, batch_size=args_in.batch_size,
                                                         device=args_in.device,shuffle=args_in.shuffle_data)
 
                 assert batch_generator_delex_data is not None
@@ -561,8 +561,9 @@ class Trainer():
 
                     #if you want to load the teacher which was already trained in a previous phase.
                     if(args_in.use_trained_teacher_inside_student_teacher_arch):
-                        #directly use the logits of the prediction
-                        y_pred_lex=self.convert_predicted_logits_into_batch_prediction_format(batch_dict_lex['predicted_logits'])
+                        #directly use the logits of the prediction from phase1
+                        #y_pred_lex=self.convert_predicted_logits_into_batch_prediction_format(batch_dict_lex['predicted_logits'])
+                        y_pred_lex =  batch_dict_lex['predicted_logits']
 
 
                     else:
@@ -657,17 +658,17 @@ class Trainer():
                     running_acc_lex += (acc_t_lex - running_acc_lex) / (batch_index + 1)
 
                     # store all the data and predictions to disk for debug purposes
-                    indices_this_batch_of_lex = batch_dict_lex["datapoint_index"]
-
-
-
-                    list_of_datapoint_dictionaries_lex = []
-                    self.get_plain_text_given_data_point_batch_in_indices(batch_dict_lex, vectorizer,
-                                                                          list_of_datapoint_dictionaries_lex, y_pred_lex,teacher_predictions_by_label_class,indices_this_batch_of_lex)
-
-
-
-                    self.write_dict_as_json(args_in.predictions_teacher, list_of_datapoint_dictionaries_lex)
+                    # indices_this_batch_of_lex = batch_dict_lex["datapoint_index"]
+                    #
+                    #
+                    #
+                    # list_of_datapoint_dictionaries_lex = []
+                    # self.get_plain_text_given_data_point_batch_in_indices(batch_dict_lex, vectorizer,
+                    #                                                       list_of_datapoint_dictionaries_lex, y_pred_lex,teacher_predictions_by_label_class,indices_this_batch_of_lex)
+                    #
+                    #
+                    #
+                    # self.write_dict_as_json(args_in.predictions_teacher, list_of_datapoint_dictionaries_lex)
 
 
 

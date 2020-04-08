@@ -110,36 +110,8 @@ num_features=len(vectorizer.claim_ev_vocab)
 
 classifier_teacher_lex=None
 
-# trial on march 2020 to 1) train a teacher model offline then 2) load that trained model as teacher (which doesn't have a backprop)
-# and then try training student.
-# if(args.use_trained_teacher_inside_student_teacher_arch):
-#     # when you are using a trained model, you should really be using the same vectorizer. Else embedding mismatch will happen
-#     vectorizer_loaded= RTEDataset.load_vectorizer_only(args.vectorizer_file)
-#
-#     LOG.info(f"num_classes_in={len(vectorizer_loaded.label_vocab)}")
-#     LOG.info(f"word_vocab_size={len(vectorizer_loaded.claim_ev_vocab)}")
-#
-#
-#
-#     words = vectorizer_loaded.claim_ev_vocab._token_to_idx.keys()
-#     labels = vectorizer_loaded.label_vocab._token_to_idx.keys()
-#     embeddings_loaded, embedding_size_loaded = make_embedding_matrix(glove_filepath_in, words)
-#
-#     LOG.info(f"wordemb_size_in={(embedding_size_loaded)}")
-#     LOG.info(f"len word_vocab_embed={len(embeddings_loaded)}")
-#     classifier_teacher_lex = create_model(logger_object=LOG, args_in=args,
-#                                           num_classes_in=len(vectorizer_loaded.label_vocab)
-#                                           , word_vocab_embed=embeddings_loaded,
-#                                           word_vocab_size=len(vectorizer_loaded.claim_ev_vocab),
-#                                           wordemb_size_in=embedding_size_loaded)
-#
-#     assert os.path.exists(args.trained_model_path) is True
-#     assert os.path.isfile(args.trained_model_path) is True
-#     if os.path.getsize(args.trained_model_path) > 0:
-#         classifier_teacher_lex.load_state_dict(
-#             torch.load(args.trained_model_path, map_location=torch.device(args.device)))
-# else:
-    #when the teacher is used in ema mode, no backpropagation will occur in teacher.
+
+
 if(args.use_ema):
     classifier_teacher_lex = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
                                       , word_vocab_embed=embeddings, word_vocab_size=num_features, wordemb_size_in=embedding_size,ema=True)
@@ -170,3 +142,36 @@ if(args.load_model_from_disk_and_test):
 train_rte.train(args, classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer)
 end = time.time()
 LOG.info(f"time taken= {end-start}seconds.")
+
+
+def load_vectorizer_and_model():
+    '''
+    This entire function is vestigial. Just keeping it around so as to resuse the vectorizer loading and other code in it
+    :return:
+    '''
+    # trial on march 2020 to 1) train a teacher model offline then 2) load that trained model as teacher (which doesn't have a backprop)
+    # and then try training student.
+    if (args.use_trained_teacher_inside_student_teacher_arch):
+        # when you are using a trained model, you should really be using the same vectorizer. Else embedding mismatch will happen
+        vectorizer_loaded = RTEDataset.load_vectorizer_only(args.vectorizer_file)
+
+        LOG.info(f"num_classes_in={len(vectorizer_loaded.label_vocab)}")
+        LOG.info(f"word_vocab_size={len(vectorizer_loaded.claim_ev_vocab)}")
+
+        words = vectorizer_loaded.claim_ev_vocab._token_to_idx.keys()
+        labels = vectorizer_loaded.label_vocab._token_to_idx.keys()
+        embeddings_loaded, embedding_size_loaded = make_embedding_matrix(glove_filepath_in, words)
+
+        LOG.info(f"wordemb_size_in={(embedding_size_loaded)}")
+        LOG.info(f"len word_vocab_embed={len(embeddings_loaded)}")
+        classifier_teacher_lex = create_model(logger_object=LOG, args_in=args,
+                                              num_classes_in=len(vectorizer_loaded.label_vocab)
+                                              , word_vocab_embed=embeddings_loaded,
+                                              word_vocab_size=len(vectorizer_loaded.claim_ev_vocab),
+                                              wordemb_size_in=embedding_size_loaded)
+
+        assert os.path.exists(args.trained_model_path) is True
+        assert os.path.isfile(args.trained_model_path) is True
+        if os.path.getsize(args.trained_model_path) > 0:
+            classifier_teacher_lex.load_state_dict(
+                torch.load(args.trained_model_path, map_location=torch.device(args.device)))

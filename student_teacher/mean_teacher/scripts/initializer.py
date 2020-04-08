@@ -209,3 +209,7 @@ class Initializer():
 
         return glove_filepath_in, lex_train_full_path, lex_dev_full_path, lex_test_full_path,delex_train_full_path, delex_dev_full_path, delex_test_full_path
 
+
+
+
+

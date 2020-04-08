@@ -56,14 +56,15 @@ class RTEDataset(Dataset):
         self._labels = self.train_lex_df.label
 
     @classmethod
-    def truncate_words(cls,sent, tr_len):
+    def truncate_words(cls,sent, tr_len,truncate_counter):
         sent_split = sent.split(" ")
         if (len(sent_split) > tr_len):
+            truncate_counter+=1
             sent_tr = sent_split[:1000]
             sent_output = " ".join(sent_tr)
-            return sent_output
-        else:
-            return sent
+            sent= sent_output
+
+        return sent,truncate_counter
 
     @classmethod
     def truncate_data(cls,data_dataframe, tr_len):
@@ -74,9 +75,11 @@ class RTEDataset(Dataset):
         :param args:
         :return: modified pandas dataframe
         '''
+        truncate_counter_claim=0
+        truncate_counter_evidence = 0
         for i, row in data_dataframe.iterrows():
-            row.claim= cls.truncate_words(row.claim, tr_len)
-            row.evidence = cls.truncate_words(row.evidence, tr_len)
+            row.claim,truncate_counter_claim= cls.truncate_words(row.claim, tr_len,truncate_counter_claim)
+            row.evidence,truncate_counter_evidence = cls.truncate_words(row.evidence, tr_len,truncate_counter_evidence)
         return data_dataframe
 
 
@@ -117,8 +120,7 @@ class RTEDataset(Dataset):
         combined_train_dev_test_with_split_column_df = pd.concat(frames)
 
         # todo: uncomment/call and check the function replace_if_PERSON_C1_format has any effect on claims and evidence sentences-mainpulate dataframe
-        return cls(combined_train_dev_test_with_split_column_df,
-                   VectorizerWithEmbedding.create_vocabulary(fever_lex_train_df,fever_delex_train_df, args))
+        return cls(combined_train_dev_test_with_split_column_df,VectorizerWithEmbedding.create_vocabulary(fever_lex_train_df, fever_delex_train_df, args))
 
     @classmethod
     def load_dataset_and_load_vectorizer(cls, train_lex_file, dev_lex_file, train_delex_file, dev_delex_file, test_delex_input_file,test_lex_input_file,args,vectorizer_filepath):

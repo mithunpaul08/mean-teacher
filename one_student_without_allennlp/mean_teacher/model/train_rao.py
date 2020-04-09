@@ -95,7 +95,7 @@ class Trainer():
         labeled_minibatch_size = max(gold_labels.ne(NO_LABEL).sum(), 1e-8)
         _, pred = output_sftmax.topk(1, 1, True, True)
 
-        # gold labels and predictions are in transposes (eg:1x15 vs 15x1). so take a transpose to correct it.
+        # gold LABELS and predictions are in transposes (eg:1x15 vs 15x1). so take a transpose to correct it.
         pred_t = pred.t()
         correct = pred_t.eq(gold_labels.view(1, -1).expand_as(pred_t))
 

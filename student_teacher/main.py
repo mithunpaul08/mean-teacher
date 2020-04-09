@@ -13,6 +13,10 @@ import time
 import random
 import numpy as np
 import sys
+import git
+
+repo = git.Repo(search_parent_directories=True)
+sha = repo.head.object.hexsha
 
 
 
@@ -25,7 +29,7 @@ def initialize_comet(args):
         if(args.create_new_comet_graph==True):
             comet_value_updater = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", project_name="rte-decomp-attention")
         else:
-            comet_value_updater = ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", previous_experiment="74cf9e3531814abcb8733a5973f3413a")
+            comet_value_updater = ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", previous_experiment="8ee6669d2b854eaf834f8a56eaa9f235")
 
     return comet_value_updater
 
@@ -73,6 +77,10 @@ glove_filepath_in, lex_train_input_file, lex_dev_input_file, lex_test_input_file
 
 
 LOG.info(f"{current_time:}Going to read data")
+
+
+
+
 if args.reload_data_from_files:
     # training from a checkpoint
     dataset = RTEDataset.load_dataset_and_load_vectorizer(args.fever_lex_train,
@@ -80,7 +88,8 @@ if args.reload_data_from_files:
 else:
     # create dataset and vectorizer
     dataset = RTEDataset.load_dataset_and_create_vocabulary_for_combined_lex_delex(lex_train_input_file, lex_dev_input_file, delex_train_input_file, delex_dev_input_file, delex_test_input_file, lex_test_input_file,args)
-    dataset.save_vectorizer(args.vectorizer_file)
+    vectorizer_name=os.path.join(args.save_dir,"vectorizer_"+sha+".json")
+    dataset.save_vectorizer(vectorizer_name)
 vectorizer = dataset.get_vectorizer()
 
 # taking embedding size from user initially, but will get replaced by original embedding size if its loaded
@@ -97,12 +106,17 @@ else:
     embeddings = None
 
 num_features=len(vectorizer.claim_ev_vocab)
+
+
 classifier_teacher_lex=None
-#when the teacher is used in ema mode, no backpropagation will occur in teacher.
+
+
+
 if(args.use_ema):
     classifier_teacher_lex = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
                                       , word_vocab_embed=embeddings, word_vocab_size=num_features, wordemb_size_in=embedding_size,ema=True)
 else:
+
     classifier_teacher_lex = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
                                           , word_vocab_embed=embeddings, word_vocab_size=num_features,
                                           wordemb_size_in=embedding_size)
@@ -113,8 +127,9 @@ classifier_student_delex = create_model(logger_object=LOG, args_in=args, num_cla
 
 train_rte=Trainer(LOG)
 
+#load a model that was trained on in-domain fever to test on fnc-test partition. this should be ideally done only once
+# since we are looking at the test-partition.
 if(args.load_model_from_disk_and_test):
-    #to use the fnc-test partition as this run's test partition. this is for when we are loading a trained model to test on fnc-test partition
     LOG.info(f"{current_time:} Found that need to load model and test using it.")
     partition_to_evaluate_on="test_delex"
     #if you are loading a teacher model trained on lexicalized data, evaluate on the lexical version of fnc-test
@@ -127,3 +142,36 @@ if(args.load_model_from_disk_and_test):
 train_rte.train(args, classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer)
 end = time.time()
 LOG.info(f"time taken= {end-start}seconds.")
+
+
+def load_vectorizer_and_model():
+    '''
+    This entire function is vestigial. Just keeping it around so as to resuse the vectorizer loading and other code in it
+    :return:
+    '''
+    # trial on march 2020 to 1) train a teacher model offline then 2) load that trained model as teacher (which doesn't have a backprop)
+    # and then try training student.
+    if (args.use_trained_teacher_inside_student_teacher_arch):
+        # when you are using a trained model, you should really be using the same vectorizer. Else embedding mismatch will happen
+        vectorizer_loaded = RTEDataset.load_vectorizer_only(args.vectorizer_file)
+
+        LOG.info(f"num_classes_in={len(vectorizer_loaded.label_vocab)}")
+        LOG.info(f"word_vocab_size={len(vectorizer_loaded.claim_ev_vocab)}")
+
+        words = vectorizer_loaded.claim_ev_vocab._token_to_idx.keys()
+        labels = vectorizer_loaded.label_vocab._token_to_idx.keys()
+        embeddings_loaded, embedding_size_loaded = make_embedding_matrix(glove_filepath_in, words)
+
+        LOG.info(f"wordemb_size_in={(embedding_size_loaded)}")
+        LOG.info(f"len word_vocab_embed={len(embeddings_loaded)}")
+        classifier_teacher_lex = create_model(logger_object=LOG, args_in=args,
+                                              num_classes_in=len(vectorizer_loaded.label_vocab)
+                                              , word_vocab_embed=embeddings_loaded,
+                                              word_vocab_size=len(vectorizer_loaded.claim_ev_vocab),
+                                              wordemb_size_in=embedding_size_loaded)
+
+        assert os.path.exists(args.trained_model_path) is True
+        assert os.path.isfile(args.trained_model_path) is True
+        if os.path.getsize(args.trained_model_path) > 0:
+            classifier_teacher_lex.load_state_dict(
+                torch.load(args.trained_model_path, map_location=torch.device(args.device)))

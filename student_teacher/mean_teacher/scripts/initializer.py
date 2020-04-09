@@ -35,19 +35,25 @@ class Initializer():
 
             data_dir='data/rte',
             logs_dir='log_dir/',
+            predictions_teacher_dev_file='log_dir/predictions_teacher_dev.jsonl',
+            predictions_student_dev_file="log_dir/predictions_student_dev.jsonl",
+            predictions_teacher_test_file='log_dir/predictions_teacher_test.jsonl',
+            predictions_student_test_file="log_dir/predictions_student_test.jsonl",
+
 
 
             save_dir='model_storage/',
-            vectorizer_file='vectorizer.json',
+            vectorizer_file='best_vectorizer.json',
             glove_filepath_local='data/glove/glove.840B.300d.txt',
             glove_filepath_server='/work/mithunpaul/glove/glove.840B.300d.txt',
+            shuffle_data=False,
 
 
             # Training hyper parameters
             batch_size=32,
             early_stopping_criteria=5,
             learning_rate=0.005,
-            num_epochs=500,
+            num_epochs=10000,
             random_seed=676786,
 
             weight_decay=5e-5,
@@ -77,13 +83,17 @@ class Initializer():
             use_gpu=True,
             consistency_type="mse",
             NO_LABEL=-1,
-            type_of_trained_model="teacher"
+            #this is used during loading a trained model and testing with it. you can choose between teacher and student.
+            type_of_trained_model="teacher",
 
             #will print top 10  percentage of [oanerTag, label] combination.
-            #Eg:(('PERSON-c1', 'AGREE'), 51):5.57%This was needed to show in LREC2020 that
+            #Eg:(('PERSON-c1', 'AGREE'), 51):5.57% and exit
+            # This was needed to show in LREC2020 that
             #even though we overcame one bias (ben stiller effect like) we created
             #new ones based on oaner tags
-            print_oaner_label_frequency=True
+            print_oaner_label_frequency=False,
+
+
         )
         args.use_glove = True
         if args.expand_filepaths_to_save_dir:
@@ -120,13 +130,13 @@ class Initializer():
         parser.add_argument('--run_type', default="train", type=str,
                             help='type of run. options are: train (which includes val validation also),val, test')
         parser.add_argument('--add_student', default="False", type=self.str2bool,
-                            help='for experiments. eg:running one student at a time')
+                            help='for experiments like eg:running teacher only ')
         parser.add_argument('--consistency_weight', default=1, type=int,
                             help='for weighted average in the loss function')
         parser.add_argument('--use_semi_supervised', default="False", type=self.str2bool,
-                            help='make a certain percentage of gold labels as -1')
+                            help='make a certain percentage of gold LABELS as -1')
         parser.add_argument('--percentage_labels_for_semi_supervised', default=0, type=int,
-                            help='what percentage of gold labels do you want to hide for semi supervised learning')
+                            help='what percentage of gold LABELS do you want to hide for semi supervised learning')
         parser.add_argument('--which_gpu_to_use', default=0, type=int,
                             help='if you have more than 1 gpus and you know which one you want to run this code on Eg:2')
         parser.add_argument('--log_level', default='INFO', type=str,
@@ -141,9 +151,10 @@ class Initializer():
                             help='when you have a trained model that you want to load and test using it')
         parser.add_argument('--trained_model_path', default="model_storage/best_model.pth", type=str,
                             help='')
-
-
-
+        parser.add_argument('--use_trained_teacher_inside_student_teacher_arch', default="False", type=self.str2bool,
+                            help='when you have a trained teachear model that you want to load and train student using it')
+        parser.add_argument('--batch_size', default=32, type=int,
+                            help='number of data points per batch. 11919 makes 10 batches of fever training data')
 
 
 
@@ -197,4 +208,8 @@ class Initializer():
 
 
         return glove_filepath_in, lex_train_full_path, lex_dev_full_path, lex_test_full_path,delex_train_full_path, delex_dev_full_path, delex_test_full_path
+
+
+
+
 

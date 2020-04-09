@@ -5,7 +5,7 @@ import string
 import re
 
 # ### The Vectorizer
-
+LABELS=["AGREE", "DISAGREE", "DISCUSS", "UNRELATED"]
 
 class VectorizerWithEmbedding(object):
     """ The Vectorizer which coordinates the Vocabularies and puts them to use"""
@@ -112,8 +112,8 @@ class VectorizerWithEmbedding(object):
 
     @classmethod
     def from_serializable(cls, contents):
-        claim_ev_vocab_ser = SequenceVocabulary.from_serializable(contents['claim_ev_vocab_ser'])
-        label_vocab_ser = SequenceVocabulary.from_serializable(contents['label_vocab_ser'])
+        claim_ev_vocab_ser = SequenceVocabulary.from_serializable(contents['claim_ev_vocab'])
+        label_vocab_ser = Vocabulary.from_serializable(contents['label_vocab'])
         return cls(claim_ev_vocab=claim_ev_vocab_ser, labels_vocab=label_vocab_ser)
 
     def to_serializable(self):

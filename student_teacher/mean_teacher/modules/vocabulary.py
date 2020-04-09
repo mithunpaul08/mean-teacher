@@ -16,18 +16,10 @@ class Vocabulary(object):
         self._idx_to_token = {idx: token
                               for token, idx in self._token_to_idx.items()}
 
-        self._add_unk = add_unk
-        self._unk_token = unk_token
-
-        self.unk_index = -1
-        if add_unk:
-            self.unk_index = self.add_token(unk_token)
 
     def to_serializable(self):
         """ returns a dictionary that can be serialized """
-        return {'token_to_idx': self._token_to_idx,
-                'add_unk': self._add_unk,
-                'unk_token': self._unk_token}
+        return {'token_to_idx': self._token_to_idx}
 
     @classmethod
     def from_serializable(cls, contents):
@@ -72,10 +64,8 @@ class Vocabulary(object):
             `unk_index` needs to be >=0 (having been added into the Vocabulary) 
               for the UNK functionality 
         """
-        if self.unk_index >= 0:
-            return self._token_to_idx.get(token, self.unk_index)
-        else:
-            return self._token_to_idx[token]
+
+        return self._token_to_idx[token]
 
     def lookup_index(self, index):
         """Return the token associated with the index
@@ -101,7 +91,7 @@ class Vocabulary(object):
 class SequenceVocabulary(Vocabulary):
     def __init__(self, token_to_idx=None, unk_token="<UNK>",
                  mask_token="<MASK>", begin_seq_token="<BEGIN>",
-                 end_seq_token="<END>"):
+                 end_seq_token="<END>",add_unk=True):
 
         super(SequenceVocabulary, self).__init__(token_to_idx)
 

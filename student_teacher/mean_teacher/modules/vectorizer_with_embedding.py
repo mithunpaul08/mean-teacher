@@ -78,7 +78,7 @@ class VectorizerWithEmbedding(object):
         """Instantiate the vectorizer from the dataset dataframe
         Args:
             claim_ev_lex (pandas.DataFrame): the review dataset
-            cutoff (int): the parameter for frequency-based filtering
+            cutoff (int): the parameter for frequency-based filteringgenerate_batches_without_sampler
         Returns:
             an instance of the ReviewVectorizer
         """

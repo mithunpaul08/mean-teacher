@@ -92,6 +92,7 @@ class Initializer():
             #even though we overcame one bias (ben stiller effect like) we created
             #new ones based on oaner tags
             print_oaner_label_frequency=False,
+            test_in_cross_domain_dataset=True
 
 
         )

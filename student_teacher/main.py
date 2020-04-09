@@ -100,6 +100,13 @@ LOG.info(f"{current_time} going to load glove from path:{glove_filepath_in}")
 if args.use_glove:
     words = vectorizer.claim_ev_vocab._token_to_idx.keys()
     embeddings,embedding_size = make_embedding_matrix(glove_filepath_in,words)
+
+    # Create a vocabulary dictionary for the cross domain dataset and load its embeddings also in memory.
+    # Reason: it was noticed that when we were testing on the cross domain dataset, there were way too many
+    # unknown <UNK> tokens. So now, if a word is new in the cross domain, don't call it UNK just because it was not
+    # there in in-domain vocabulary.  check if it exists in crossdomain vocab. if yes, load its glove
+    # make_embedding_matrix()
+
     LOG.info(f"{current_time:} Using pre-trained embeddings")
 else:
     LOG.info(f"{current_time:} Not using pre-trained embeddings")

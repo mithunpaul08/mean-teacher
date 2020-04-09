@@ -1,4 +1,5 @@
-from mean_teacher.utils.utils_rao import generate_batches,initialize_optimizers,update_optimizer_state,generate_batches_for_semi_supervised,generate_batches_without_sampler
+from mean_teacher.modules.rao_datasets import RTEDataset
+from mean_teacher.utils.utils_rao import generate_batches,initialize_optimizers,update_optimizer_state,generate_batches_for_semi_supervised,generate_batches_without_sampler,make_embedding_matrix
 from mean_teacher.utils import losses
 import time
 import torch
@@ -846,27 +847,35 @@ class Trainer():
 
 
                 # also test it on a third dataset which is usually cross domain on fnc
-                args_in.database_to_test_with="fnc"
+                if(args_in.test_in_cross_domain_dataset):
+                    args_in.database_to_test_with="fnc"
 
-                if (args_in.add_student == True):
-                    dataset.set_split('test_delex')
-                    predictions_by_student_model_on_test_partition = []
-                    classifier_student_delex.eval()
-                    running_acc_test_student, running_loss_test_student = self.eval(classifier_student_delex, args_in,
-                                                                                dataset, epoch_index,vectorizer,predictions_by_student_model_on_test_partition)
+                    if (args_in.add_student == True):
+                        dataset.set_split('test_delex')
+                        predictions_by_student_model_on_test_partition = []
+                        classifier_student_delex.eval()
+                        running_acc_test_student, running_loss_test_student = self.eval(classifier_student_delex, args_in,
+                                                                                    dataset, epoch_index,vectorizer,predictions_by_student_model_on_test_partition)
 
-                dataset.set_split('test_lex')
-                classifier_teacher_lex.eval()
-                predictions_by_teacher_model_on_test_partition=[]
-                running_acc_test_teacher, running_loss_test_teacher = self.eval(classifier_teacher_lex, args_in,
-                                                                                dataset,
-                                                                                epoch_index,vectorizer,predictions_by_teacher_model_on_test_partition)
+                    dataset.set_split('test_lex')
+                    classifier_teacher_lex.eval()
+                    predictions_by_teacher_model_on_test_partition=[]
 
-                if (args_in.add_student == True):
-                    comet_value_updater.log_metric("running_acc_test_student", running_acc_test_student,
-                                               step=epoch_index)
-                comet_value_updater.log_metric("running_acc_test_teacher", running_acc_test_teacher,
-                                               step=epoch_index)
+                    #on april 2020 it was noticed that when we were vectorizing the cross domain dataset, there were way too many
+                    #unknown <UNK> tokens. So if a word is new in the cross domain, don't call it UNK just because it was not
+                    # there in in-domain.  check if it exists in glove itself
+                    #make_embedding_matrix()
+                    #todo, before going into testing: combine both in-domain and out of domain vocabulary
+                    #todo make sure the glove embeddings are loaded for words in out of domain vocab also
+                    running_acc_test_teacher, running_loss_test_teacher = self.eval(classifier_teacher_lex, args_in,
+                                                                                    dataset,
+                                                                                    epoch_index,vectorizer,predictions_by_teacher_model_on_test_partition)
+
+                    if (args_in.add_student == True):
+                        comet_value_updater.log_metric("running_acc_test_student", running_acc_test_student,
+                                                   step=epoch_index)
+                    comet_value_updater.log_metric("running_acc_test_teacher", running_acc_test_teacher,
+                                                   step=epoch_index)
 
 
 
@@ -912,3 +921,23 @@ class Trainer():
 
 
 
+def create_vocabulary_for_cross_domain_dataset():
+    dataset_cross_domain = RTEDataset.load_dataset_and_create_vocabulary_for_combined_lex_delex(lex_train_input_file,
+                                                                                   lex_dev_input_file,
+                                                                                   delex_train_input_file,
+                                                                                   delex_dev_input_file,
+                                                                                   delex_test_input_file,
+                                                                                   lex_test_input_file, args)
+
+
+
+    vectorizer = dataset_cross_domain.get_vectorizer()
+
+    # taking embedding size from user initially, but will get replaced by original embedding size if its loaded
+    embedding_size = args_in.embedding_size
+
+    # Use GloVe or randomly initialized embeddings
+    LOG.info(f"{current_time} going to load glove from path:{glove_filepath_in}")
+    if args.use_glove:
+        words = vectorizer.claim_ev_vocab._token_to_idx.keys()
+        embeddings, embedding_size = make_embedding_matrix(glove_filepath_in, words)

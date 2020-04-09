@@ -165,6 +165,41 @@ class RTEDataset(Dataset):
         vectorizer = cls.load_vectorizer_only(vectorizer_filepath)
         return cls(combined_train_dev_test_with_split_column_df, vectorizer)
 
+
+    @classmethod
+    def load_dataset_given_path_split_name(cls, file_to_read, args, splitname):
+        """Load dataset and make a new vectorizer from scratch
+
+        Args:
+            args (str): all arguments which were create initially.
+        Returns:
+            an instance of ReviewDataset
+        """
+        dataset_df = pd.read_json(file_to_read, lines=True)
+        dataset_df=cls.truncate_data(dataset_df, args.truncate_words_length)
+        dataset_df['split'] = splitname
+        return dataset_df
+
+    @classmethod
+    def create_vocab_given_lex_delex_file_paths(cls, test_delex_input_file,
+                                                                  test_lex_input_file, args):
+        """Load dataset and make a new vectorizer from scratch
+
+        Args:
+            args (str): all arguments which were create initially.
+        Returns:
+            an instance of ReviewDataset
+        """
+
+        lex_train_df= cls.load_dataset_given_path_split_name(cls, test_delex_input_file, args, "lex")
+        delex_train_df = cls.load_dataset_given_path_split_name(cls, test_lex_input_file, args, "delex")
+
+        frames = [lex_train_df, delex_train_df]
+        combined = pd.concat(frames)
+
+        return cls(combined,
+                   VectorizerWithEmbedding.create_vocabulary(lex_train_df, delex_train_df, args))
+
     @staticmethod
     def load_vectorizer_only(vectorizer_filepath):
         """a static method for loading the vectorizer from file

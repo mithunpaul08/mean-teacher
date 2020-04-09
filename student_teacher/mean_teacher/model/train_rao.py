@@ -1,3 +1,4 @@
+from student_teacher import main
 from mean_teacher.modules.rao_datasets import RTEDataset
 from mean_teacher.utils.utils_rao import generate_batches,initialize_optimizers,update_optimizer_state,generate_batches_for_semi_supervised,generate_batches_without_sampler,make_embedding_matrix
 from mean_teacher.utils import losses
@@ -867,6 +868,8 @@ class Trainer():
                     #make_embedding_matrix()
                     #todo, before going into testing: combine both in-domain and out of domain vocabulary
                     #todo make sure the glove embeddings are loaded for words in out of domain vocab also
+                    # glove_filepath_in, lex_train_input_file, lex_dev_input_file, lex_test_input_file , delex_train_input_file, delex_dev_input_file, delex_test_input_file \
+                    dataset_crossdomain, vectorizer_crossdomain=self.create_vocabulary_for_cross_domain_dataset(main.lex_test_input_file,main.delex_test_input_file,args_in)
                     running_acc_test_teacher, running_loss_test_teacher = self.eval(classifier_teacher_lex, args_in,
                                                                                     dataset,
                                                                                     epoch_index,vectorizer,predictions_by_teacher_model_on_test_partition)
@@ -921,23 +924,14 @@ class Trainer():
 
 
 
-def create_vocabulary_for_cross_domain_dataset():
-    dataset_cross_domain = RTEDataset.load_dataset_and_create_vocabulary_for_combined_lex_delex(lex_train_input_file,
-                                                                                   lex_dev_input_file,
-                                                                                   delex_train_input_file,
-                                                                                   delex_dev_input_file,
-                                                                                   delex_test_input_file,
-                                                                                   lex_test_input_file, args)
-
-
-
-    vectorizer = dataset_cross_domain.get_vectorizer()
-
-    # taking embedding size from user initially, but will get replaced by original embedding size if its loaded
-    embedding_size = args_in.embedding_size
-
-    # Use GloVe or randomly initialized embeddings
-    LOG.info(f"{current_time} going to load glove from path:{glove_filepath_in}")
-    if args.use_glove:
-        words = vectorizer.claim_ev_vocab._token_to_idx.keys()
-        embeddings, embedding_size = make_embedding_matrix(glove_filepath_in, words)
+    def create_vocabulary_for_cross_domain_dataset(self,lex_input_file,delex_input_file,args):
+        dataset_cross_domain = RTEDataset.create_vocab_given_lex_delex_file_paths(lex_input_file,delex_input_file,args)
+        vectorizer_cross_domain = dataset_cross_domain.get_vectorizer()
+        # taking embedding size from user initially, but will get replaced by original embedding size if its loaded
+        embedding_size = args.embedding_size
+        # Use GloVe or randomly initialized embeddings
+        self._LOG.info(f"{current_time} going to load glove from path:{glove_filepath_in}")
+        if args.use_glove:
+            words = vectorizer_cross_domain.claim_ev_vocab._token_to_idx.keys()
+            embeddings, embedding_size = make_embedding_matrix(main.glove_filepath_in, words)
+        return dataset_cross_domain, vectorizer_cross_domain

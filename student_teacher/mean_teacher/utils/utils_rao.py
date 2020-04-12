@@ -9,8 +9,24 @@ from mean_teacher.model import architectures
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
 import math
 import random
-
+import os
 # #### General utilities
+
+def read_gigaword_freq_file(filepath,gw_minfreq):
+        word_and_freq = {}
+        total_lines = get_num_lines(filepath)
+        with open(filepath, "r") as fp:
+            for index, line in tqdm(enumerate(fp), total=total_lines, desc="gigaword"):
+                line = line.split("\t")  # each line: word num1
+                assert line[0] is not None
+                assert line[1] is not None
+                word=line[0]
+                freq = int(line[1].strip())
+                #keep loading everything from sorted gigaword-freq file until you hit the minfreq you specify
+                if(freq < gw_minfreq):
+                    break
+                word_and_freq[word] = freq  # word = line[0] ;freq=line[1]
+        return word_and_freq
 
 def set_seed_everywhere(seed, cuda):
     """

@@ -1,4 +1,3 @@
-from student_teacher import main
 from mean_teacher.modules.rao_datasets import RTEDataset
 from mean_teacher.utils.utils_rao import generate_batches,initialize_optimizers,update_optimizer_state,generate_batches_for_semi_supervised,generate_batches_without_sampler,make_embedding_matrix
 from mean_teacher.utils import losses
@@ -869,10 +868,10 @@ class Trainer():
                     #todo, before going into testing: combine both in-domain and out of domain vocabulary
                     #todo make sure the glove embeddings are loaded for words in out of domain vocab also
                     # glove_filepath_in, lex_train_input_file, lex_dev_input_file, lex_test_input_file , delex_train_input_file, delex_dev_input_file, delex_test_input_file \
-                    dataset_crossdomain, vectorizer_crossdomain=self.create_vocabulary_for_cross_domain_dataset(main.lex_test_input_file,main.delex_test_input_file,args_in)
-                    running_acc_test_teacher, running_loss_test_teacher = self.eval(classifier_teacher_lex, args_in,
-                                                                                    dataset,
-                                                                                    epoch_index,vectorizer,predictions_by_teacher_model_on_test_partition)
+                    #dataset_crossdomain, vectorizer_crossdomain=self.create_vocabulary_for_cross_domain_dataset(main.lex_test_input_file,main.delex_test_input_file,args_in)
+                    #running_acc_test_teacher, running_loss_test_teacher = self.eval(classifier_teacher_lex, args_in,
+                     #                                                               dataset,
+                      #                                                              epoch_index,vectorizer,predictions_by_teacher_model_on_test_partition)
 
                     if (args_in.add_student == True):
                         comet_value_updater.log_metric("running_acc_test_student", running_acc_test_student,

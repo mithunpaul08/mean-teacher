@@ -26,11 +26,12 @@ class Initializer():
             #we are loading fnc dev as the test partitions now.
             # This is so that we can conduct simultaneous tests on fnc
             lex_test='fnc/dev/fnc_dev_lex.jsonl',
-
-
             delex_train= 'fever/train/fever_train_delex.jsonl',
             delex_dev='fever/dev/fever_dev_delex.jsonl',
             delex_test='fnc/dev/fnc_dev_delex.jsonl',
+
+
+
 
 
             data_dir='data/rte',
@@ -44,8 +45,10 @@ class Initializer():
 
             save_dir='model_storage/',
             vectorizer_file='best_vectorizer.json',
-            glove_filepath_local='data/glove/glove.840B.300d.txt',
-            glove_filepath_server='/work/mithunpaul/glove/glove.840B.300d.txt',
+            glove_filepath='data/glove/glove.840B.300d.txt',
+            gigaword_file_path='data/gigaword/gigawordDocFreq.sorted.freq.txt',
+            #pick only words from gigaward corpora which have  frequency above this value
+            gw_minfreq=100,
             shuffle_data=False,
 
 
@@ -174,7 +177,9 @@ class Initializer():
 
     #todo get all input file paths from command line or a shell script
     def get_file_paths(self,LOG):
-        glove_filepath_in = self._args.glove_filepath_local
+        glove_filepath = self._args.glove_filepath
+        gigaword_full_path = self._args.gigaword_file_path
+
 
         lex_train_full_path = os.path.join(os.getcwd(), self._args.data_dir,self._args.lex_train_full_path)
         lex_dev_full_path = os.path.join(os.getcwd(), self._args.data_dir, self._args.lex_dev)
@@ -182,6 +187,10 @@ class Initializer():
 
         delex_train_full_path = os.path.join(os.getcwd(), self._args.data_dir, self._args.delex_train)
         delex_dev_full_path = os.path.join(os.getcwd(), self._args.data_dir, self._args.delex_dev)
+
+
+
+
         delex_test_full_path = os.path.join(os.getcwd(), self._args.data_dir, self._args.delex_test)
 
         LOG.info(f" lex_train_full_path:{lex_train_full_path} ")
@@ -191,7 +200,8 @@ class Initializer():
         LOG.info(f" delex_dev_full_path:{delex_dev_full_path} ")
         LOG.info(f" delex_test_full_path:{delex_test_full_path} ")
 
-        assert glove_filepath_in is not None
+
+        assert glove_filepath is not None
         assert lex_train_full_path is not None
         assert lex_dev_full_path is not None
         assert lex_test_full_path is not None
@@ -208,7 +218,7 @@ class Initializer():
         assert os.path.exists(delex_test_full_path) is True
 
 
-        return glove_filepath_in, lex_train_full_path, lex_dev_full_path, lex_test_full_path,delex_train_full_path, delex_dev_full_path, delex_test_full_path
+        return glove_filepath, lex_train_full_path, lex_dev_full_path, lex_test_full_path,delex_train_full_path, delex_dev_full_path, delex_test_full_path,gigaword_full_path
 
 
 

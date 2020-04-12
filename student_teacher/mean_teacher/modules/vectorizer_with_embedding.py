@@ -6,7 +6,7 @@ import re
 
 # ### The Vectorizer
 LABELS=["AGREE", "DISAGREE", "DISCUSS", "UNRELATED"]
-
+gigaword_freq={}
 class VectorizerWithEmbedding(object):
     """ The Vectorizer which coordinates the Vocabularies and puts them to use"""
 
@@ -83,7 +83,9 @@ class VectorizerWithEmbedding(object):
             an instance of the ReviewVectorizer
         """
 
+
         claim_ev_vocab = SequenceVocabulary()
+
         word_counts = Counter()
         for claim in (claim_ev_lex.claim):
             word_counts=cls.update_word_count(cls,claim,word_counts)
@@ -97,6 +99,12 @@ class VectorizerWithEmbedding(object):
             word_counts=cls.update_word_count(cls,claim,word_counts)
         for ev in (claim_ev_delex.evidence):
             word_counts=cls.update_word_count(cls, ev,word_counts)
+
+        # update@april 11th 2020: mihai said create a vocabulary which is a union of training data and  top n freq words from gigaword.
+        #  as per mihai this enhances/is usefull to reduce
+        # the number of uNK words in dev/test partitions- especially when either of those tend to be cross-domain.
+        #  though i still think its cheating- mithun
+        assert len(gigaword_freq.items()) > 0
 
 
         for word, count in word_counts.items():

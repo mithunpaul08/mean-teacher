@@ -218,7 +218,8 @@ class Trainer():
         m = nn.Softmax()
         output_sftmax = m(predicted_labels)
         _, pred = output_sftmax.topk(1, 1, True, True)
-        return pred.t()
+        prediction_transpose=pred.t()
+        return prediction_transpose[0]
 
     def look_up_plain_text_datapoint_using_vectorizer(self, datapoint_indices,vectorizer):
         '''
@@ -237,7 +238,7 @@ class Trainer():
 
     def get_label_strings_given_vectorizer(self, vectorizer, predictions_index_labels):
         labels_str=[]
-        for e in predictions_index_labels[0]:
+        for e in predictions_index_labels:
             labels_str.append(vectorizer.label_vocab.lookup_index(e.item()).lower())
         return labels_str
 
@@ -341,7 +342,7 @@ class Trainer():
         batch_generator_val = generate_batches_without_sampler(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
                                                device=args_in.device, shuffle=False,drop_last=False)
         running_loss_val = 0.
-        running_acc_val = 0.
+        plain_accuracy = 0.
 
         total_predictions = []
         total_gold = []
@@ -373,42 +374,41 @@ class Trainer():
             all_gold_labels.extend(batch_dict['y_target'].tolist())
             #all_predictions= torch.cat((all_predictions, y_pred_val), 0)
 
-
-            predictions_by_label_class=[]
+            predictions_by_label_class_from_fnc=[]
             acc_t = 0
             # fnc alone has a different kind of scoring. we are using the official scoring function. Note that the
             # command line argument 'database_to_test_with' is used only for deciding the scoring function. it has nothing
             # to do with which test file to load.
             if (args_in.database_to_test_with == "fnc"):
-                predictions_by_label_class = self.get_argmax(y_pred_val.float())
-                predictions_str_labels = self.get_label_strings_given_vectorizer(vectorizer, predictions_by_label_class)
+                predictions_by_label_class_from_fnc = self.get_argmax(y_pred_val.float())
+                predictions_str_labels = self.get_label_strings_given_vectorizer(vectorizer, predictions_by_label_class_from_fnc)
                 gold_str = self.get_label_strings_given_list(batch_dict['y_target'])
                 for e in gold_str:
                     total_gold.append(e)
                 for e in predictions_str_labels:
                     total_predictions.append(e)
-
-                all_predictions.extend(predictions_by_label_class[0].tolist())
-                predictions_by_label_class=predictions_by_label_class[0]
-
-            else:
-                # compute the accuracy
-                y_pred_labels_val_sf = F.softmax(y_pred_val, dim=1)
-                right_predictions, acc_t, predictions_by_label_class = self.compute_accuracy(y_pred_labels_val_sf,
-                                                                                             batch_dict['y_target'])
+            #all_predictions.extend(predictions_by_label_class.tolist())
+            #predictions_by_label_class=predictions_by_label_class[0]
 
 
-                running_acc_val += (acc_t - running_acc_val) / (batch_index + 1)
+            # compute the plain/classic accuracy
+            y_pred_labels_val_sf = F.softmax(y_pred_val, dim=1)
+            right_predictions, acc_t, predictions_by_label_class_from_accuracy = self.compute_accuracy(y_pred_labels_val_sf,
+                                                                                         batch_dict['y_target'])
+            plain_accuracy += (acc_t - plain_accuracy) / (batch_index + 1)
 
+            #if fnc_prediction does exist- both should ideally be the same
+            if (len(predictions_by_label_class_from_fnc)>0):
+                for x,y in zip(predictions_by_label_class_from_fnc,predictions_by_label_class_from_accuracy):
+                    assert x==y
 
-
-                all_predictions.extend(predictions_by_label_class.tolist())
+            all_predictions.extend(predictions_by_label_class_from_accuracy.tolist())
 
 
 
 
             self._LOG.debug(
-                f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches} \t per_batch_accuracy_dev_set:{round(acc_t,4)} \t moving_avg_val_accuracy:{round(running_acc_val,4)} ")
+                f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches} \t per_batch_accuracy_dev_set:{round(acc_t,4)} \t moving_avg_val_accuracy:{round(plain_accuracy,4)} ")
 
 
 
@@ -419,15 +419,16 @@ class Trainer():
             self.get_plain_text_given_data_point_batch_in_indices(batch_dict, vectorizer,
                                                                   predictions_within_batch,
                                                                   y_pred_val,
-                                                                  predictions_by_label_class,
+                                                                  predictions_by_label_class_from_accuracy,
                                                                   indices_this_batch_of_delex)
             list_of_datapoint_dictionaries.extend(predictions_within_batch)
+        fnc_score=0.00
         if (args_in.database_to_test_with == "fnc"):
-            running_acc_val = report_score(total_gold, total_predictions)
+            fnc_score = report_score(total_gold, total_predictions)
 
         microf1 = self.calculate_micro_f1(all_predictions, all_gold_labels)
-  
-        return running_acc_val,running_loss_val,microf1
+
+        return plain_accuracy,running_loss_val,microf1,fnc_score
 
 
     def write_dict_as_json(self,out_path,list_of_dictionaries):
@@ -867,7 +868,8 @@ class Trainer():
                     dataset.set_split('val_delex')
                     classifier_student_delex.eval()
                     predictions_by_student_model_on_dev=[]
-                    running_acc_val_student,running_loss_val_student,microf1_student_dev= self.eval(classifier_student_delex, args_in, dataset,epoch_index,vectorizer,predictions_by_student_model_on_dev,"student_delex_on_dev")
+
+                    running_acc_val_student,running_loss_val_student,microf1_student_dev,fnc_score_student_dev= self.eval(classifier_student_delex, args_in, dataset,epoch_index,vectorizer,predictions_by_student_model_on_dev,"student_delex_on_dev")
 
 
 
@@ -881,7 +883,7 @@ class Trainer():
                 #eval on the lex dev dataset
                 classifier_teacher_lex.eval()
                 predictions_by_teacher_model_on_dev = []
-                running_acc_val_teacher,running_loss_val_teacher,microf1_teacher_dev = self.eval(classifier_teacher_lex, args_in, dataset,epoch_index,vectorizer,predictions_by_teacher_model_on_dev,"teacher_lex_on_dev")
+                running_acc_val_teacher,running_loss_val_teacher,microf1_teacher_dev,fnc_score_teacher_dev = self.eval(classifier_teacher_lex, args_in, dataset,epoch_index,vectorizer,predictions_by_teacher_model_on_dev,"teacher_lex_on_dev")
 
 
 
@@ -929,7 +931,8 @@ class Trainer():
                         dataset.set_split('test_delex')
                         predictions_by_student_model_on_test_partition = []
                         classifier_student_delex.eval()
-                        running_acc_test_student, running_loss_test_student,microf1_student_test = self.eval(classifier_student_delex, args_in,
+                        running_acc_test_student, running_loss_test_student,microf1_student_test, \
+                        fnc_score_student_test= self.eval(classifier_student_delex, args_in,
                                                                                     dataset, epoch_index,vectorizer,predictions_by_student_model_on_test_partition,"student_delex_on_test")
 
                     dataset.set_split('test_lex')
@@ -939,19 +942,25 @@ class Trainer():
 
 
 
-                    running_acc_test_teacher, running_loss_test_teacher,microf1_teacher_test = self.eval(classifier_teacher_lex, args_in,
+                    running_acc_test_teacher, running_loss_test_teacher,microf1_teacher_test\
+                        ,fnc_score_teacher_test= self.eval(classifier_teacher_lex, args_in,
                                                                                    dataset,
                                                                                    epoch_index,vectorizer,predictions_by_teacher_model_on_test_partition,"teacher_lex_on_test")
 
                     if (args_in.add_student == True):
-                        comet_value_updater.log_metric("running_acc_test_student", running_acc_test_student,
+                        comet_value_updater.log_metric("plain_acc_test_student", running_acc_test_student,
                                                    step=epoch_index)
-                    comet_value_updater.log_metric("running_acc_test_teacher", running_acc_test_teacher,
-                                                   step=epoch_index)
+                        comet_value_updater.log_metric("microf1_test_student", microf1_student_test,
+                                                       step=epoch_index)
+                        comet_value_updater.log_metric("fnc_score_student_on_test_partition", fnc_score_student_test,
+                                                       step=epoch_index)
 
-                comet_value_updater.log_metric("microf1_test_student", microf1_student_test,
-                                               step=epoch_index)
+
+                comet_value_updater.log_metric("plain_acc_test_teacher", running_acc_test_teacher,
+                                                   step=epoch_index)
                 comet_value_updater.log_metric("microf1_test_teacher", microf1_teacher_test,
+                                               step=epoch_index)
+                comet_value_updater.log_metric("fnc_score_teacher_on_test_partition", fnc_score_teacher_test,
                                                step=epoch_index)
 
 

@@ -51,7 +51,7 @@ class AcademicPaperClassifier(Model):
         super(AcademicPaperClassifier, self).__init__(vocab, regularizer)
 
         self.text_field_embedder = text_field_embedder
-        self.num_classes = self.vocab.get_vocab_size("labels")
+        self.num_classes = self.vocab.get_vocab_size("LABELS")
         self.title_encoder = title_encoder
         self.abstract_encoder = abstract_encoder
         self.classifier_feedforward = classifier_feedforward
@@ -120,7 +120,7 @@ class AcademicPaperClassifier(Model):
     @overrides
     def decode(self, output_dict: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         """
-        Does a simple argmax over the class probabilities, converts indices to string labels, and
+        Does a simple argmax over the class probabilities, converts indices to string LABELS, and
         adds a ``"label"`` key to the dictionary with the result.
         """
         class_probabilities = F.softmax(output_dict['logits'], dim=-1)
@@ -128,7 +128,7 @@ class AcademicPaperClassifier(Model):
 
         predictions = class_probabilities.cpu().data.numpy()
         argmax_indices = numpy.argmax(predictions, axis=-1)
-        labels = [self.vocab.get_token_from_index(x, namespace="labels")
+        labels = [self.vocab.get_token_from_index(x, namespace="LABELS")
                   for x in argmax_indices]
         output_dict['label'] = labels
         return output_dict

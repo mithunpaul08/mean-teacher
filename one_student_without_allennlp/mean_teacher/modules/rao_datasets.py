@@ -80,7 +80,7 @@ class RTEDataset(Dataset):
     @classmethod
     def remove_mnli_dash_labels(self,args,df):
         """
-        #in mnli some labels are tagged as -. drop them.
+        #in mnli some LABELS are tagged as -. drop them.
         Note that the
             #command line argument database_to_test_with is used only for very dataset specific things. it has nothing
             # to do with which test file to load.
@@ -270,10 +270,10 @@ class RTEDataset(Dataset):
 
     def get_all_label_indices(self,dataset):
 
-        #this command returns all the labels and its corresponding indices eg:[198,2]
+        #this command returns all the LABELS and its corresponding indices eg:[198,2]
         all_labels = list(enumerate(dataset.get_labels()))
 
-        #note that even though the labels are shuffled up, we are keeping track/returning only the shuffled indices. so it all works out fine.
+        #note that even though the LABELS are shuffled up, we are keeping track/returning only the shuffled indices. so it all works out fine.
         random.shuffle(all_labels)
 
         #get all the indices alone

@@ -12,6 +12,13 @@ else
     wget https://storage.googleapis.com/fact_verification_mithun_files/fever_train_lex_4labels.jsonl -O $FILE
 fi
 
+#this is for the experiment of trying train a teacher model first, and then load a trained teacher model inside student
+# teacher architecture
+#delete or comment this after training teacher independently is done @ march 25th 20202
+#head -59599 $FILE > temp
+#mv temp $FILE
+
+
 FILE=data/rte/fever/train/fever_train_delex.jsonl
 if test -f "$FILE";then
     echo "$FILE exists"
@@ -28,6 +35,12 @@ if test -f "$FILE";then
 else
     wget https://storage.googleapis.com/fact_verification_mithun_files/fever_dev_lex_4labels.jsonl -O $FILE
 fi
+
+#this is for the experiment of trying train a teacher model first, and then load a trained teacher model inside student teacher architecture
+#delete or comment this after training teacher independently is done @ march 25th 20202
+#head -13126 $FILE > temp
+#mv temp $FILE
+
 
 FILE=data/rte/fever/dev/fever_dev_delex.jsonl
 if test -f "$FILE";then
@@ -85,6 +98,8 @@ mkdir -p log_dir/
 
 
 
-python main.py --add_student True  --use_ema False \
+
+python main.py --add_student True --which_gpu_to_use 0  --use_ema False \
 --load_model_from_disk_and_test False \
---lex_train_full_path fever/train/fever_train_lex.jsonl
+--lex_train_full_path fever/train/fever_train_lex.jsonl \
+--use_trained_teacher_inside_student_teacher_arch True

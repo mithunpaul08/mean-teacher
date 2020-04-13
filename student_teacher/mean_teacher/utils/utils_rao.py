@@ -24,9 +24,12 @@ def set_seed_everywhere(seed, cuda):
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
     #for CuDnn- a nvidia library
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
+    os.environ['PYTHONHASHSEED'] = str(seed)
 
 
 def handle_dirs(dirpath):
@@ -39,6 +42,23 @@ def preprocess_text(text):
     text = re.sub(r"[^a-zA-Z.,!?]+", r" ", text)
     return text
 
+
+
+def generate_batches_without_sampler(dataset,workers,batch_size,device ,shuffle=False,
+                     drop_last=True ):
+    """
+    A generator function which wraps the PyTorch DataLoader. It will
+      ensure each tensor is on the write device location.
+    """
+    if(shuffle==True):
+        dataloader=DataLoader(dataset,batch_size=batch_size,shuffle=True,drop_last=True,num_workers=workers)
+    else:
+        dataloader = DataLoader(dataset,batch_size=batch_size,shuffle=False,drop_last=True,num_workers=workers)
+    for data_dict in dataloader:
+        out_data_dict = {}
+        for name, tensor in data_dict.items():
+            out_data_dict[name] = data_dict[name].to(device)
+        yield out_data_dict
 
 
 def generate_batches(dataset,workers,batch_size,device ,shuffle=False,
@@ -61,12 +81,13 @@ def generate_batches(dataset,workers,batch_size,device ,shuffle=False,
         out_data_dict = {}
         for name, tensor in data_dict.items():
             out_data_dict[name] = data_dict[name].to(device)
-        yield out_data_dict
+        #yield out_data_dict
+        return out_data_dict
 
 def generate_batches_for_semi_supervised(dataset,percentage_labels_for_semi_supervised,workers,batch_size,device,shuffle=False,
                      drop_last=True,mask_value=-1 ):
     '''
-    similar to generate_batches but will mask/replace the labels of certain certain percentage of indices with -1. a
+    similar to generate_batches but will mask/replace the LABELS of certain certain percentage of indices with -1. a
     :param dataset:
     :param workers:
     :param batch_size:

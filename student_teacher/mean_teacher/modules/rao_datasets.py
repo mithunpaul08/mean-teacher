@@ -280,16 +280,13 @@ class RTEDataset(Dataset):
         label_index = \
             self._vectorizer.label_vocab.lookup_token(row.label)
 
-        if(row.prediction_logit) is not None:
-            predicted_logits = row.prediction_logit
-        else:
-            print("found the row had no predicted logits")
+
 
         return {'x_claim': claim_vector,
                 'x_evidence': evidence_vector,
                 'y_target': label_index,
-                'datapoint_index':index,
-                "predicted_logits":torch.tensor(predicted_logits)}
+                'datapoint_index':index
+                }
 
     def get_num_batches(self, batch_size):
         """Given a batch size, return the number of batches in the dataset

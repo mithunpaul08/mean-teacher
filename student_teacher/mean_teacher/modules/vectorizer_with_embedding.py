@@ -3,7 +3,7 @@ from .vocabulary import Vocabulary,SequenceVocabulary
 import numpy as np
 import string
 import re
-from student_teacher.mean_teacher.utils.logger import Logger
+from mean_teacher.utils.logger import Logger
 
 
 # ### The Vectorizer

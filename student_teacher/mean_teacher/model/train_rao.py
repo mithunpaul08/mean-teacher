@@ -472,21 +472,22 @@ class Trainer():
 
         train_state_in = self.make_train_state(args_in)
 
+        # empty out the predictions file at the beginning of each epoch
+        with open(args_in.predictions_teacher_dev_file, 'w') as outfile:
+            outfile.write("")
+        with open(args_in.predictions_student_dev_file, 'w') as outfile:
+            outfile.write("")
+        with open(args_in.predictions_teacher_test_file, 'w') as outfile:
+            outfile.write("")
+        with open(args_in.predictions_student_test_file, 'w') as outfile:
+            outfile.write("")
+
         try:
             # Iterate over training dataset
             for epoch_index in range(args_in.num_epochs):
 
                 train_state_in['epoch_index'] = epoch_index
 
-                #empty out the predictions file at the beginning of each epoch
-                with open(args_in.predictions_teacher_dev_file, 'w') as outfile:
-                    outfile.write("")
-                with open(args_in.predictions_student_dev_file, 'w') as outfile:
-                        outfile.write("")
-                with open(args_in.predictions_teacher_test_file, 'w') as outfile:
-                        outfile.write("")
-                with open(args_in.predictions_student_test_file, 'w') as outfile:
-                        outfile.write("")
 
                 # setup: batch generator, set class_loss_lex and acc to 0, set train mode on
                 dataset.set_split('train_lex')

@@ -426,7 +426,7 @@ class Trainer():
             running_acc_val = report_score(total_gold, total_predictions)
 
         microf1 = self.calculate_micro_f1(all_predictions, all_gold_labels)
-
+  
         return running_acc_val,running_loss_val,microf1
 
 

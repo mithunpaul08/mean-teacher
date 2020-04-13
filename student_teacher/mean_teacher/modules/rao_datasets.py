@@ -282,7 +282,6 @@ class RTEDataset(Dataset):
             self._vectorizer.label_vocab.lookup_token(row.label)
 
 
-
         return {'x_claim': claim_vector,
                 'x_evidence': evidence_vector,
                 'y_target': label_index,

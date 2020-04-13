@@ -124,10 +124,13 @@ class Trainer():
 
         return result2
 
+    #calculate microf1 of all classes othern than UNRELATED so as to understand how the classes change/confusion matrix like vision across epochs
     def calculate_micro_f1(self,y_pred, y_target):
         assert len(y_pred) == len(y_target), "lengths are different {len(y_pred)}"
         labels_to_include =[]
         for index,l in enumerate(y_target):
+            #calculate microf1 for all classes except UNRELATED
+            #this was done because in fake news world, we really don't care much about it when two documents are unrelated, except for an initial filtering out process
             if not (l==3):
                 labels_to_include.append(index)
         mf1=metrics.f1_score(y_target,y_pred, average='micro', labels=labels_to_include)
@@ -351,13 +354,7 @@ class Trainer():
         #this is for calculating microf1 score
         all_predictions = []
         all_gold_labels = []
-        #
-        # if torch.cuda.is_available():
-        #     all_predictions = torch.cuda.FloatTensor(all_predictions)
-        #     all_gold_labels_tensor = torch.cuda.LongTensor(all_gold_labels_tensor)
-        # else:
-        # all_predictions = torch.tensor(all_predictions)
-        # all_gold_labels_tensor = torch.LongTensor(all_gold_labels_tensor)
+
 
 
         no_of_batches= int(len(dataset) / args_in.batch_size)
@@ -372,10 +369,8 @@ class Trainer():
 
             # compute the accuracy
             all_gold_labels.extend(batch_dict['y_target'].tolist())
-            #all_predictions= torch.cat((all_predictions, y_pred_val), 0)
 
             predictions_by_label_class_from_fnc=[]
-            acc_t = 0
             # fnc alone has a different kind of scoring. we are using the official scoring function. Note that the
             # command line argument 'database_to_test_with' is used only for deciding the scoring function. it has nothing
             # to do with which test file to load.
@@ -387,8 +382,6 @@ class Trainer():
                     total_gold.append(e)
                 for e in predictions_str_labels:
                     total_predictions.append(e)
-            #all_predictions.extend(predictions_by_label_class.tolist())
-            #predictions_by_label_class=predictions_by_label_class[0]
 
 
             # compute the plain/classic accuracy

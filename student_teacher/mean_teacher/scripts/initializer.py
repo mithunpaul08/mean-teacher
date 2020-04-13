@@ -84,16 +84,13 @@ class Initializer():
             consistency_type="mse",
             NO_LABEL=-1,
             #this is used during loading a trained model and testing with it. you can choose between teacher and student.
-            type_of_trained_model="teacher",
 
             #will print top 10  percentage of [oanerTag, label] combination.
             #Eg:(('PERSON-c1', 'AGREE'), 51):5.57% and exit
             # This was needed to show in LREC2020 that
             #even though we overcame one bias (ben stiller effect like) we created
             #new ones based on oaner tags
-            print_oaner_label_frequency=False,
-
-
+            print_oaner_label_frequency=False
         )
         args.use_glove = True
         if args.expand_filepaths_to_save_dir:
@@ -139,6 +136,7 @@ class Initializer():
                             help='what percentage of gold LABELS do you want to hide for semi supervised learning')
         parser.add_argument('--which_gpu_to_use', default=0, type=int,
                             help='if you have more than 1 gpus and you know which one you want to run this code on Eg:2')
+
         parser.add_argument('--log_level', default='INFO', type=str,
                             help='choice between DEBUG, INFO ,ERROR ,WARNING')
         parser.add_argument('--consistency_type', default='mse', type=str,

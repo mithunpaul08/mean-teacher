@@ -246,9 +246,8 @@ def create_model(logger_object, args_in,  num_classes_in, word_vocab_embed, word
     args_in.device=None
     if(args_in.use_gpu) and torch.cuda.is_available():
         logger_object.info("found that GPU is available")
-        torch.cuda.set_device(args_in.which_gpu_to_use)
+        #torch.cuda.set_device(args_in.which_gpu_to_use)
         args_in.device = torch.device('cuda')
-        logger_object.info(f"will be using gpu number{args_in.which_gpu_to_use}")
     else:
         args_in.device = torch.device('cpu')
 

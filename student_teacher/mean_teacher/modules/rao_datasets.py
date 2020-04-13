@@ -8,7 +8,7 @@ import pandas as pd
 import random
 from mean_teacher.utils.utils_valpola import export
 import os
-
+from tqdm import tqdm
 
 class RTEDataset(Dataset):
     def __init__(self, combined_train_dev_test_with_split_column_df, vectorizer):
@@ -60,7 +60,7 @@ class RTEDataset(Dataset):
         sent_split = sent.split(" ")
         if (len(sent_split) > tr_len):
             truncate_counter+=1
-            sent_tr = sent_split[:1000]
+            sent_tr = sent_split[:tr_len]
             sent_output = " ".join(sent_tr)
             sent= sent_output
 
@@ -77,7 +77,7 @@ class RTEDataset(Dataset):
         '''
         truncate_counter_claim=0
         truncate_counter_evidence = 0
-        for i, row in data_dataframe.iterrows():
+        for i, row in tqdm(data_dataframe.iterrows(),total=data_dataframe.shape[0],desc="truncate"):
             row.claim,truncate_counter_claim= cls.truncate_words(row.claim, tr_len,truncate_counter_claim)
             row.evidence,truncate_counter_evidence = cls.truncate_words(row.evidence, tr_len,truncate_counter_evidence)
         return data_dataframe
@@ -122,6 +122,7 @@ class RTEDataset(Dataset):
         # todo: uncomment/call and check the function replace_if_PERSON_C1_format has any effect on claims and evidence sentences-mainpulate dataframe
         return cls(combined_train_dev_test_with_split_column_df,VectorizerWithEmbedding.create_vocabulary(fever_lex_train_df, fever_delex_train_df, args))
 
+
     @classmethod
     def load_dataset_and_load_vectorizer(cls, train_lex_file, dev_lex_file, train_delex_file, dev_delex_file, test_delex_input_file,test_lex_input_file,args,vectorizer_filepath):
         """Load dataset and the corresponding vectorizer.
@@ -164,6 +165,41 @@ class RTEDataset(Dataset):
 
         vectorizer = cls.load_vectorizer_only(vectorizer_filepath)
         return cls(combined_train_dev_test_with_split_column_df, vectorizer)
+
+
+    @classmethod
+    def load_dataset_given_path_split_name(cls, file_to_read, args, splitname):
+        """Load dataset and make a new vectorizer from scratch
+
+        Args:
+            args (str): all arguments which were create initially.
+        Returns:
+            an instance of ReviewDataset
+        """
+        dataset_df = pd.read_json(file_to_read, lines=True)
+        dataset_df=cls.truncate_data(dataset_df, args.truncate_words_length)
+        dataset_df['split'] = splitname
+        return dataset_df
+
+    @classmethod
+    def create_vocab_given_lex_delex_file_paths(cls, test_delex_input_file,
+                                                                  test_lex_input_file, args):
+        """Load dataset and make a new vectorizer from scratch
+
+        Args:
+            args (str): all arguments which were create initially.
+        Returns:
+            an instance of ReviewDataset
+        """
+
+        lex_train_df= cls.load_dataset_given_path_split_name(cls, test_delex_input_file, args, "lex")
+        delex_train_df = cls.load_dataset_given_path_split_name(cls, test_lex_input_file, args, "delex")
+
+        frames = [lex_train_df, delex_train_df]
+        combined = pd.concat(frames)
+
+        return cls(combined,
+                   VectorizerWithEmbedding.create_vocabulary(lex_train_df, delex_train_df, args))
 
     @staticmethod
     def load_vectorizer_only(vectorizer_filepath):
@@ -249,7 +285,7 @@ class RTEDataset(Dataset):
         return {'x_claim': claim_vector,
                 'x_evidence': evidence_vector,
                 'y_target': label_index,
-                'datapoint_index':index,
+                'datapoint_index':index
                 }
 
     def get_num_batches(self, batch_size):

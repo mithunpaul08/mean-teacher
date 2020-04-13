@@ -1,4 +1,5 @@
-from mean_teacher.utils.utils_rao import generate_batches,initialize_optimizers,update_optimizer_state,generate_batches_for_semi_supervised,generate_batches_without_sampler
+from mean_teacher.modules.rao_datasets import RTEDataset
+from mean_teacher.utils.utils_rao import generate_batches,initialize_optimizers,update_optimizer_state,generate_batches_for_semi_supervised,generate_batches_without_sampler,make_embedding_matrix
 from mean_teacher.utils import losses
 import time
 import torch
@@ -336,7 +337,7 @@ class Trainer():
 
         return running_acc_val,running_loss_val
 
-    def eval(self, classifier, args_in, dataset, epoch_index, vectorizer, list_of_datapoint_dictionaries):
+    def eval(self, classifier, args_in, dataset, epoch_index, vectorizer, list_of_datapoint_dictionaries,desc_in):
         batch_generator_val = generate_batches_without_sampler(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
                                                device=args_in.device, shuffle=False,drop_last=False)
         running_loss_val = 0.
@@ -359,7 +360,7 @@ class Trainer():
 
 
         no_of_batches= int(len(dataset) / args_in.batch_size)
-        for batch_index, batch_dict in enumerate(tqdm(batch_generator_val, desc="dev_batches", total=no_of_batches)):
+        for batch_index, batch_dict in enumerate(tqdm(batch_generator_val, desc=desc_in, total=no_of_batches)):
             # compute the output
             y_pred_val = classifier(batch_dict['x_claim'], batch_dict['x_evidence'])
 
@@ -396,12 +397,15 @@ class Trainer():
                 right_predictions, acc_t, predictions_by_label_class = self.compute_accuracy(y_pred_labels_val_sf,
                                                                                              batch_dict['y_target'])
 
+
+                running_acc_val += (acc_t - running_acc_val) / (batch_index + 1)
+
+
+
                 all_predictions.extend(predictions_by_label_class.tolist())
 
-            running_acc_val += (acc_t - running_acc_val) / (batch_index + 1)
 
-            if (args_in.database_to_test_with == "fnc"):
-                running_acc_val = report_score(total_gold, total_predictions)
+
 
             self._LOG.debug(
                 f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches} \t per_batch_accuracy_dev_set:{round(acc_t,4)} \t moving_avg_val_accuracy:{round(running_acc_val,4)} ")
@@ -418,6 +422,8 @@ class Trainer():
                                                                   predictions_by_label_class,
                                                                   indices_this_batch_of_delex)
             list_of_datapoint_dictionaries.extend(predictions_within_batch)
+        if (args_in.database_to_test_with == "fnc"):
+            running_acc_val = report_score(total_gold, total_predictions)
 
         microf1 = self.calculate_micro_f1(all_predictions, all_gold_labels)
 
@@ -506,21 +512,14 @@ class Trainer():
 
         train_state_in = self.make_train_state(args_in)
 
+
+
         try:
             # Iterate over training dataset
             for epoch_index in range(args_in.num_epochs):
 
                 train_state_in['epoch_index'] = epoch_index
 
-                #empty out the predictions file at the beginning of each epoch
-                with open(args_in.predictions_teacher_dev_file, 'w') as outfile:
-                    outfile.write("")
-                with open(args_in.predictions_student_dev_file, 'w') as outfile:
-                        outfile.write("")
-                with open(args_in.predictions_teacher_test_file, 'w') as outfile:
-                        outfile.write("")
-                with open(args_in.predictions_student_test_file, 'w') as outfile:
-                        outfile.write("")
 
                 # setup: batch generator, set class_loss_lex and acc to 0, set train mode on
                 dataset.set_split('train_lex')
@@ -569,7 +568,8 @@ class Trainer():
                 running_acc_lex = 0.0
                 running_loss_delex = 0.0
                 running_acc_delex = 0.0
-                #when you are loading the model you don't need backpropagation
+
+                #when you are loading a trained teachremodel you don't need backpropagation
                 if (args_in.use_trained_teacher_inside_student_teacher_arch):
                     classifier_teacher_lex.eval()
                 else:
@@ -867,7 +867,7 @@ class Trainer():
                     dataset.set_split('val_delex')
                     classifier_student_delex.eval()
                     predictions_by_student_model_on_dev=[]
-                    running_acc_val_student,running_loss_val_student,microf1_student_dev= self.eval(classifier_student_delex, args_in, dataset,epoch_index,vectorizer,predictions_by_student_model_on_dev)
+                    running_acc_val_student,running_loss_val_student,microf1_student_dev= self.eval(classifier_student_delex, args_in, dataset,epoch_index,vectorizer,predictions_by_student_model_on_dev,"student_delex_on_dev")
 
 
 
@@ -881,7 +881,7 @@ class Trainer():
                 #eval on the lex dev dataset
                 classifier_teacher_lex.eval()
                 predictions_by_teacher_model_on_dev = []
-                running_acc_val_teacher,running_loss_val_teacher,microf1_teacher_dev = self.eval(classifier_teacher_lex, args_in, dataset,epoch_index,vectorizer,predictions_by_teacher_model_on_dev)
+                running_acc_val_teacher,running_loss_val_teacher,microf1_teacher_dev = self.eval(classifier_teacher_lex, args_in, dataset,epoch_index,vectorizer,predictions_by_teacher_model_on_dev,"teacher_lex_on_dev")
 
 
 
@@ -922,29 +922,32 @@ class Trainer():
 
 
                 # also test it on a third dataset which is usually cross domain on fnc
-                args_in.database_to_test_with="fnc"
+                if(args_in.test_in_cross_domain_dataset):
+                    args_in.database_to_test_with="fnc"
+
+                    if (args_in.add_student == True):
+                        dataset.set_split('test_delex')
+                        predictions_by_student_model_on_test_partition = []
+                        classifier_student_delex.eval()
+                        running_acc_test_student, running_loss_test_student,microf1_student_test = self.eval(classifier_student_delex, args_in,
+                                                                                    dataset, epoch_index,vectorizer,predictions_by_student_model_on_test_partition,"student_delex_on_test")
+
+                    dataset.set_split('test_lex')
+                    classifier_teacher_lex.eval()
+                    predictions_by_teacher_model_on_test_partition=[]
 
 
 
-                if (args_in.add_student == True):
-                    dataset.set_split('test_delex')
-                    predictions_by_student_model_on_test_partition = []
-                    classifier_student_delex.eval()
-                    running_acc_test_student, running_loss_test_student,microf1_student_test = self.eval(classifier_student_delex, args_in,
-                                                                                dataset, epoch_index,vectorizer,predictions_by_student_model_on_test_partition)
 
-                dataset.set_split('test_lex')
-                classifier_teacher_lex.eval()
-                predictions_by_teacher_model_on_test_partition=[]
-                running_acc_test_teacher, running_loss_test_teacher,microf1_teacher_test = self.eval(classifier_teacher_lex, args_in,
-                                                                                dataset,
-                                                                                epoch_index,vectorizer,predictions_by_teacher_model_on_test_partition)
+                    running_acc_test_teacher, running_loss_test_teacher,microf1_teacher_test = self.eval(classifier_teacher_lex, args_in,
+                                                                                   dataset,
+                                                                                   epoch_index,vectorizer,predictions_by_teacher_model_on_test_partition,"teacher_lex_on_test")
 
-                if (args_in.add_student == True):
-                    comet_value_updater.log_metric("running_acc_test_student", running_acc_test_student,
-                                               step=epoch_index)
-                comet_value_updater.log_metric("running_acc_test_teacher", running_acc_test_teacher,
-                                               step=epoch_index)
+                    if (args_in.add_student == True):
+                        comet_value_updater.log_metric("running_acc_test_student", running_acc_test_student,
+                                                   step=epoch_index)
+                    comet_value_updater.log_metric("running_acc_test_teacher", running_acc_test_teacher,
+                                                   step=epoch_index)
 
                 comet_value_updater.log_metric("microf1_test_student", microf1_student_test,
                                                step=epoch_index)
@@ -956,6 +959,28 @@ class Trainer():
                 args_in.database_to_test_with = "dummy"
                 dataset.set_split('val_lex')
 
+                # empty out the predictions file and write into it at the end of every epoch
+                #note: this is for debug purposes on april 12th. ideally the emptying out shoudl happen before all epochs and
+                #writing out should happen only at early stopping
+                with open(args_in.predictions_teacher_dev_file, 'w') as outfile:
+                    outfile.write("")
+                with open(args_in.predictions_student_dev_file, 'w') as outfile:
+                    outfile.write("")
+                with open(args_in.predictions_teacher_test_file, 'w') as outfile:
+                    outfile.write("")
+                with open(args_in.predictions_student_test_file, 'w') as outfile:
+                    outfile.write("")
+                assert len(predictions_by_student_model_on_dev) > 0
+                assert len(predictions_by_teacher_model_on_dev) > 0
+                assert len(predictions_by_student_model_on_test_partition) > 0
+                assert len(predictions_by_teacher_model_on_test_partition) > 0
+
+                self.write_dict_as_json(args_in.predictions_student_dev_file, predictions_by_student_model_on_dev)
+                self.write_dict_as_json(args_in.predictions_teacher_dev_file, predictions_by_teacher_model_on_dev)
+                self.write_dict_as_json(args_in.predictions_student_test_file,
+                                        predictions_by_student_model_on_test_partition)
+                self.write_dict_as_json(args_in.predictions_teacher_test_file,
+                                        predictions_by_teacher_model_on_test_partition)
 
                 if train_state_in['stop_early']:
                     ## whenever you hit early stopping just store all the data and predictions at that point to disk for debug purposes
@@ -1003,3 +1028,14 @@ class Trainer():
 
 
 
+    def create_vocabulary_for_cross_domain_dataset(self,lex_input_file,delex_input_file,args):
+        dataset_cross_domain = RTEDataset.create_vocab_given_lex_delex_file_paths(lex_input_file,delex_input_file,args)
+        vectorizer_cross_domain = dataset_cross_domain.get_vectorizer()
+        # taking embedding size from user initially, but will get replaced by original embedding size if its loaded
+        embedding_size = args.embedding_size
+        # Use GloVe or randomly initialized embeddings
+        self._LOG.info(f"{current_time} going to load glove from path:{glove_filepath_in}")
+        if args.use_glove:
+            words = vectorizer_cross_domain.claim_ev_vocab._token_to_idx.keys()
+            embeddings, embedding_size = make_embedding_matrix(main.glove_filepath_in, words)
+        return dataset_cross_domain, vectorizer_cross_domain

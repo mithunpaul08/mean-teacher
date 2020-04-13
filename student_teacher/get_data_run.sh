@@ -1,5 +1,7 @@
 #!/bin/bash
 
+./get_glove.sh
+./get_gigaword.sh
 #pick according to which kind of dataset you want to use for  train, dev, test on. Eg: train on fever, test on fnc
 
 #######train
@@ -101,5 +103,4 @@ mkdir -p log_dir/
 
 python main.py --add_student True --which_gpu_to_use 0  --use_ema False \
 --load_model_from_disk_and_test False \
---lex_train_full_path fever/train/fever_train_lex.jsonl \
---use_trained_teacher_inside_student_teacher_arch True
+--lex_train_full_path fever/train/fever_train_lex.jsonl

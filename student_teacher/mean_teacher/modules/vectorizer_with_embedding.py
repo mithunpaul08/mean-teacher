@@ -3,9 +3,14 @@ from .vocabulary import Vocabulary,SequenceVocabulary
 import numpy as np
 import string
 import re
+from mean_teacher.utils.logger import Logger
+
 
 # ### The Vectorizer
 LABELS=["AGREE", "DISAGREE", "DISCUSS", "UNRELATED"]
+gigaword_freq={}
+logger_client=Logger()
+LOG=logger_client.initialize_logger()
 
 class VectorizerWithEmbedding(object):
     """ The Vectorizer which coordinates the Vocabularies and puts them to use"""
@@ -78,12 +83,14 @@ class VectorizerWithEmbedding(object):
         """Instantiate the vectorizer from the dataset dataframe
         Args:
             claim_ev_lex (pandas.DataFrame): the review dataset
-            cutoff (int): the parameter for frequency-based filtering
+            cutoff (int): the parameter for frequency-based filteringgenerate_batches_without_sampler
         Returns:
             an instance of the ReviewVectorizer
         """
 
+
         claim_ev_vocab = SequenceVocabulary()
+
         word_counts = Counter()
         for claim in (claim_ev_lex.claim):
             word_counts=cls.update_word_count(cls,claim,word_counts)
@@ -98,12 +105,18 @@ class VectorizerWithEmbedding(object):
         for ev in (claim_ev_delex.evidence):
             word_counts=cls.update_word_count(cls, ev,word_counts)
 
-
+        # update@april 11th 2020: mihai said create a vocabulary which is a union of training data and  top n freq words from gigaword.
+        #  as per mihai this enhances/is usefull to reduce
+        # the number of uNK words in dev/test partitions- especially when either of those tend to be cross-domain.
+        #  though i still think its cheating- mithun
+        assert len(gigaword_freq.items()) > 0
+        LOG.info(f"going to merge gigaword vocabulary with training vocabulary. length of training vocab now  is {len(word_counts)}")
+        for word, count in gigaword_freq.items():
+            if(word not in word_counts):
+                word_counts[word]=1
+        LOG.info(f"after merging gigaword vocabulary with training vocabulary. length of training vocab now   is {len(word_counts)}")
         for word, count in word_counts.items():
-            # removing cutoff for the time being- to check if it increases accuracy
-            # if count > cutoff:
                 claim_ev_vocab.add_token(word)
-
         labels_vocab = Vocabulary(add_unk=False)
         for label in sorted(set(claim_ev_lex.label)):
             labels_vocab.add_token(label)

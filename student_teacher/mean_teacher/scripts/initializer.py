@@ -7,7 +7,7 @@ from mean_teacher.utils.utils_rao import handle_dirs
 from mean_teacher.modules.rao_datasets import RTEDataset
 import torch
 
-
+logs_dir='log_dir/',
 
 class Initializer():
     def __init__(self):

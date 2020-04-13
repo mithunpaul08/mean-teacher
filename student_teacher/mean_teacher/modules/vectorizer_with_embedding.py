@@ -3,10 +3,15 @@ from .vocabulary import Vocabulary,SequenceVocabulary
 import numpy as np
 import string
 import re
+from student_teacher.mean_teacher.utils.logger import Logger
+
 
 # ### The Vectorizer
 LABELS=["AGREE", "DISAGREE", "DISCUSS", "UNRELATED"]
 gigaword_freq={}
+logger_client=Logger()
+LOG=logger_client.initialize_logger()
+
 class VectorizerWithEmbedding(object):
     """ The Vectorizer which coordinates the Vocabularies and puts them to use"""
 
@@ -105,13 +110,13 @@ class VectorizerWithEmbedding(object):
         # the number of uNK words in dev/test partitions- especially when either of those tend to be cross-domain.
         #  though i still think its cheating- mithun
         assert len(gigaword_freq.items()) > 0
-
-
+        LOG.info(f"going to merge gigaword vocabulary with training vocabulary. length of training vocab now  is {len(word_counts)}")
+        for word, count in gigaword_freq.items():
+            if(word not in word_counts):
+                word_counts[word]=1
+        LOG.info(f"after merging gigaword vocabulary with training vocabulary. length of training vocab now   is {len(word_counts)}")
         for word, count in word_counts.items():
-            # removing cutoff for the time being- to check if it increases accuracy
-            # if count > cutoff:
                 claim_ev_vocab.add_token(word)
-
         labels_vocab = Vocabulary(add_unk=False)
         for label in sorted(set(claim_ev_lex.label)):
             labels_vocab.add_token(label)

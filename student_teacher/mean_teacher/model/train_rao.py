@@ -861,17 +861,9 @@ class Trainer():
                     classifier_teacher_lex.eval()
                     predictions_by_teacher_model_on_test_partition=[]
 
-                    #on april 2020 it was noticed that when we were vectorizing the cross domain dataset, there were way too many
-                    #unknown <UNK> tokens. So if a word is new in the cross domain, don't call it UNK just because it was not
-                    # there in in-domain.  check if it exists in glove itself
-                    #make_embedding_matrix()
-                    #todo, before going into testing: combine both in-domain and out of domain vocabulary
-                    #todo make sure the glove embeddings are loaded for words in out of domain vocab also
-                    # glove_filepath_in, lex_train_input_file, lex_dev_input_file, lex_test_input_file , delex_train_input_file, delex_dev_input_file, delex_test_input_file \
-                    #dataset_crossdomain, vectorizer_crossdomain=self.create_vocabulary_for_cross_domain_dataset(main.lex_test_input_file,main.delex_test_input_file,args_in)
-                    #running_acc_test_teacher, running_loss_test_teacher = self.eval(classifier_teacher_lex, args_in,
-                     #                                                               dataset,
-                      #                                                              epoch_index,vectorizer,predictions_by_teacher_model_on_test_partition)
+                    running_acc_test_teacher, running_loss_test_teacher = self.eval(classifier_teacher_lex, args_in,
+                                                                                   dataset,
+                                                                                   epoch_index,vectorizer,predictions_by_teacher_model_on_test_partition)
 
                     if (args_in.add_student == True):
                         comet_value_updater.log_metric("running_acc_test_student", running_acc_test_student,
@@ -885,6 +877,18 @@ class Trainer():
                 args_in.database_to_test_with = "dummy"
                 dataset.set_split('val_lex')
 
+                ##  store all the data and predictions at that point to disk for debug purposes
+                assert len(predictions_by_student_model_on_dev) > 0
+                assert len(predictions_by_teacher_model_on_dev) > 0
+                assert len(predictions_by_student_model_on_test_partition) > 0
+                assert len(predictions_by_teacher_model_on_test_partition) > 0
+
+                self.write_dict_as_json(args_in.predictions_student_dev_file, predictions_by_student_model_on_dev)
+                self.write_dict_as_json(args_in.predictions_teacher_dev_file, predictions_by_teacher_model_on_dev)
+                self.write_dict_as_json(args_in.predictions_student_test_file,
+                                        predictions_by_student_model_on_test_partition)
+                self.write_dict_as_json(args_in.predictions_teacher_test_file,
+                                        predictions_by_teacher_model_on_test_partition)
 
                 if train_state_in['stop_early']:
                     ## whenever you hit early stopping just store all the data and predictions at that point to disk for debug purposes

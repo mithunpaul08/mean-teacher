@@ -6,9 +6,7 @@ from mean_teacher.model import architectures
 from mean_teacher.model.train_rao import Trainer
 from mean_teacher.scripts.initializer import Initializer
 from mean_teacher.modules import vectorizer_with_embedding
-
 from mean_teacher.utils.logger import Logger
-
 import os
 import logging
 import time
@@ -45,7 +43,7 @@ if(args.load_model_from_disk_and_test):
 
 current_time={time.strftime("%c")}
 logger_client=Logger()
-LOG=logger_client.initialize_logger(args)
+LOG=logger_client.initialize_logger()
 
 LOG.info(f"starting the run at {current_time}.")
 

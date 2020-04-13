@@ -327,7 +327,7 @@ class Trainer():
 
         return running_acc_val,running_loss_val
 
-    def eval(self, classifier, args_in, dataset, epoch_index, vectorizer, list_of_datapoint_dictionaries,desc="dev_batches"):
+    def eval(self, classifier, args_in, dataset, epoch_index, vectorizer, list_of_datapoint_dictionaries,desc_in):
         batch_generator_val = generate_batches_without_sampler(dataset, workers=args_in.workers, batch_size=args_in.batch_size,
                                                device=args_in.device, shuffle=False,drop_last=False)
         running_loss_val = 0.
@@ -337,7 +337,7 @@ class Trainer():
         total_gold = []
 
         no_of_batches= int(len(dataset) / args_in.batch_size)
-        for batch_index, batch_dict in enumerate(tqdm(batch_generator_val, desc="dev_batches", total=no_of_batches)):
+        for batch_index, batch_dict in enumerate(tqdm(batch_generator_val, desc=desc_in, total=no_of_batches)):
             # compute the output
             y_pred_val = classifier(batch_dict['x_claim'], batch_dict['x_evidence'])
 
@@ -800,7 +800,7 @@ class Trainer():
                     dataset.set_split('val_delex')
                     classifier_student_delex.eval()
                     predictions_by_student_model_on_dev=[]
-                    running_acc_val_student,running_loss_val_student= self.eval(classifier_student_delex, args_in, dataset,epoch_index,vectorizer,predictions_by_student_model_on_dev,desc="student_delex_on_dev")
+                    running_acc_val_student,running_loss_val_student= self.eval(classifier_student_delex, args_in, dataset,epoch_index,vectorizer,predictions_by_student_model_on_dev,"student_delex_on_dev")
 
 
 
@@ -812,7 +812,7 @@ class Trainer():
                 #eval on the lex dev dataset
                 classifier_teacher_lex.eval()
                 predictions_by_teacher_model_on_dev = []
-                running_acc_val_teacher,running_loss_val_teacher = self.eval(classifier_teacher_lex, args_in, dataset,epoch_index,vectorizer,predictions_by_teacher_model_on_dev,desc="teacher_lex_on_dev")
+                running_acc_val_teacher,running_loss_val_teacher = self.eval(classifier_teacher_lex, args_in, dataset,epoch_index,vectorizer,predictions_by_teacher_model_on_dev,"teacher_lex_on_dev")
 
 
 
@@ -849,7 +849,7 @@ class Trainer():
                         predictions_by_student_model_on_test_partition = []
                         classifier_student_delex.eval()
                         running_acc_test_student, running_loss_test_student = self.eval(classifier_student_delex, args_in,
-                                                                                    dataset, epoch_index,vectorizer,predictions_by_student_model_on_test_partition,desc="student_delex_on_test")
+                                                                                    dataset, epoch_index,vectorizer,predictions_by_student_model_on_test_partition,"student_delex_on_test")
 
                     dataset.set_split('test_lex')
                     classifier_teacher_lex.eval()
@@ -857,7 +857,7 @@ class Trainer():
 
                     running_acc_test_teacher, running_loss_test_teacher = self.eval(classifier_teacher_lex, args_in,
                                                                                    dataset,
-                                                                                   epoch_index,vectorizer,predictions_by_teacher_model_on_test_partition,desc="teacher_lex_on_test")
+                                                                                   epoch_index,vectorizer,predictions_by_teacher_model_on_test_partition,"teacher_lex_on_test")
 
                     if (args_in.add_student == True):
                         comet_value_updater.log_metric("running_acc_test_student", running_acc_test_student,

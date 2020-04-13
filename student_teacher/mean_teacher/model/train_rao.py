@@ -746,12 +746,7 @@ class Trainer():
                         assert len(student_predictions_by_label_class) > 0
 
 
-                        comet_value_updater.log_metric("student_delex_same_as_gold_but_teacher_is_different_percent  per batch",
-                                                       student_delex_same_as_gold_but_teacher_is_different_percent,
-                                                       step=batch_index)
-                        comet_value_updater.log_metric("teacher_lex_same_as_gold_but_student_is_different_percent  per batch",
-                                                       teacher_lex_same_as_gold_but_student_is_different_percent,
-                                                       step=batch_index)
+
                         comet_value_updater.log_metric(
                             "training accuracy of lex teacher  across batches",
                             running_acc_lex,
@@ -872,14 +867,10 @@ class Trainer():
                     dataset.set_split('val_delex')
                     classifier_student_delex.eval()
                     predictions_by_student_model_on_dev=[]
-                    running_acc_val_student,running_loss_val_student= self.eval(classifier_student_delex, args_in, dataset,epoch_index,vectorizer,predictions_by_student_model_on_dev)
+                    running_acc_val_student,running_loss_val_student,microf1_student_dev= self.eval(classifier_student_delex, args_in, dataset,epoch_index,vectorizer,predictions_by_student_model_on_dev)
 
 
 
-                # Iterate over val dataset and check on dev using the intended trained model, which usually is the student delex model
-                dataset.set_split('val_delex')
-                classifier_student_delex.eval()
-                running_acc_val_student,running_loss_val_student,microf1_student_dev= self.eval(classifier_student_delex, args_in, dataset,epoch_index,vectorizer)
 
 
                 #when in ema mode, teacher is same as student pretty much. so test on delex partition of dev.
@@ -933,9 +924,6 @@ class Trainer():
                 # also test it on a third dataset which is usually cross domain on fnc
                 args_in.database_to_test_with="fnc"
 
-                running_acc_test_student, running_loss_test_student,microf1_student_test = self.eval(classifier_student_delex, args_in,
-                                                                                dataset, epoch_index,vectorizer)
-
 
 
                 if (args_in.add_student == True):
@@ -948,7 +936,7 @@ class Trainer():
                 dataset.set_split('test_lex')
                 classifier_teacher_lex.eval()
                 predictions_by_teacher_model_on_test_partition=[]
-                running_acc_test_teacher, running_loss_test_teacher = self.eval(classifier_teacher_lex, args_in,
+                running_acc_test_teacher, running_loss_test_teacher,microf1_teacher_test = self.eval(classifier_teacher_lex, args_in,
                                                                                 dataset,
                                                                                 epoch_index,vectorizer,predictions_by_teacher_model_on_test_partition)
 

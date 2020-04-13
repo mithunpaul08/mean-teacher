@@ -367,12 +367,11 @@ class Trainer():
                 right_predictions, acc_t, predictions_by_label_class = self.compute_accuracy(y_pred_labels_val_sf,
                                                                                              batch_dict['y_target'])
 
+                running_acc_val += (acc_t - running_acc_val) / (batch_index + 1)
 
 
-            running_acc_val += (acc_t - running_acc_val) / (batch_index + 1)
 
-            if (args_in.database_to_test_with == "fnc"):
-                running_acc_val = report_score(total_gold, total_predictions)
+
 
             self._LOG.debug(
                 f"epoch:{epoch_index} \t batch:{batch_index}/{no_of_batches} \t per_batch_accuracy_dev_set:{round(acc_t,4)} \t moving_avg_val_accuracy:{round(running_acc_val,4)} ")
@@ -386,6 +385,8 @@ class Trainer():
                                                                   predictions_by_label_class,
                                                                   indices_this_batch_of_delex)
             list_of_datapoint_dictionaries.extend(predictions_within_batch)
+        if (args_in.database_to_test_with == "fnc"):
+            running_acc_val = report_score(total_gold, total_predictions)
 
         return running_acc_val,running_loss_val
 

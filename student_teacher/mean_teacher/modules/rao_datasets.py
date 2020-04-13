@@ -77,7 +77,7 @@ class RTEDataset(Dataset):
         '''
         truncate_counter_claim=0
         truncate_counter_evidence = 0
-        for i, row in tqdm(data_dataframe.iterrows(),total=data_dataframe.size,desc="truncate"):
+        for i, row in tqdm(data_dataframe.iterrows(),total=data_dataframe.shape[0],desc="truncate"):
             row.claim,truncate_counter_claim= cls.truncate_words(row.claim, tr_len,truncate_counter_claim)
             row.evidence,truncate_counter_evidence = cls.truncate_words(row.evidence, tr_len,truncate_counter_evidence)
         return data_dataframe

@@ -185,7 +185,7 @@ def make_embedding_matrix(glove_filepath, words):
 
     final_embeddings = np.zeros((len(words), embedding_size))
 
-    for i, word in enumerate(words):
+    for i, word in tqdm(enumerate(words),total=len(words),desc="make_embedding_matrix"):
         if word in word_to_idx:
             final_embeddings[i, :] = glove_embeddings[word_to_idx[word]]
         else:

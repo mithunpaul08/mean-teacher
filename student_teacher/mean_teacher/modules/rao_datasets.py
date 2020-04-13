@@ -8,7 +8,7 @@ import pandas as pd
 import random
 from mean_teacher.utils.utils_valpola import export
 import os
-
+from tqdm import tqdm
 
 class RTEDataset(Dataset):
     def __init__(self, combined_train_dev_test_with_split_column_df, vectorizer):
@@ -60,7 +60,7 @@ class RTEDataset(Dataset):
         sent_split = sent.split(" ")
         if (len(sent_split) > tr_len):
             truncate_counter+=1
-            sent_tr = sent_split[:1000]
+            sent_tr = sent_split[:tr_len]
             sent_output = " ".join(sent_tr)
             sent= sent_output
 
@@ -77,7 +77,7 @@ class RTEDataset(Dataset):
         '''
         truncate_counter_claim=0
         truncate_counter_evidence = 0
-        for i, row in data_dataframe.iterrows():
+        for i, row in tqdm(data_dataframe.iterrows(),total=data_dataframe.size,desc="truncate"):
             row.claim,truncate_counter_claim= cls.truncate_words(row.claim, tr_len,truncate_counter_claim)
             row.evidence,truncate_counter_evidence = cls.truncate_words(row.evidence, tr_len,truncate_counter_evidence)
         return data_dataframe
@@ -121,6 +121,7 @@ class RTEDataset(Dataset):
 
         # todo: uncomment/call and check the function replace_if_PERSON_C1_format has any effect on claims and evidence sentences-mainpulate dataframe
         return cls(combined_train_dev_test_with_split_column_df,VectorizerWithEmbedding.create_vocabulary(fever_lex_train_df, fever_delex_train_df, args))
+
 
     @classmethod
     def load_dataset_and_load_vectorizer(cls, train_lex_file, dev_lex_file, train_delex_file, dev_delex_file, test_delex_input_file,test_lex_input_file,args,vectorizer_filepath):

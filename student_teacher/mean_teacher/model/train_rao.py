@@ -472,15 +472,7 @@ class Trainer():
 
         train_state_in = self.make_train_state(args_in)
 
-        # empty out the predictions file at the beginning of each epoch
-        with open(args_in.predictions_teacher_dev_file, 'w') as outfile:
-            outfile.write("")
-        with open(args_in.predictions_student_dev_file, 'w') as outfile:
-            outfile.write("")
-        with open(args_in.predictions_teacher_test_file, 'w') as outfile:
-            outfile.write("")
-        with open(args_in.predictions_student_test_file, 'w') as outfile:
-            outfile.write("")
+
 
         try:
             # Iterate over training dataset
@@ -878,7 +870,28 @@ class Trainer():
                 args_in.database_to_test_with = "dummy"
                 dataset.set_split('val_lex')
 
+                # empty out the predictions file and write into it at the end of every epoch
+                #note: this is for debug purposes on april 12th. ideally the emptying out shoudl happen before all epochs and
+                #writing out should happen only at early stopping
+                with open(args_in.predictions_teacher_dev_file, 'w') as outfile:
+                    outfile.write("")
+                with open(args_in.predictions_student_dev_file, 'w') as outfile:
+                    outfile.write("")
+                with open(args_in.predictions_teacher_test_file, 'w') as outfile:
+                    outfile.write("")
+                with open(args_in.predictions_student_test_file, 'w') as outfile:
+                    outfile.write("")
+                assert len(predictions_by_student_model_on_dev) > 0
+                assert len(predictions_by_teacher_model_on_dev) > 0
+                assert len(predictions_by_student_model_on_test_partition) > 0
+                assert len(predictions_by_teacher_model_on_test_partition) > 0
 
+                self.write_dict_as_json(args_in.predictions_student_dev_file, predictions_by_student_model_on_dev)
+                self.write_dict_as_json(args_in.predictions_teacher_dev_file, predictions_by_teacher_model_on_dev)
+                self.write_dict_as_json(args_in.predictions_student_test_file,
+                                        predictions_by_student_model_on_test_partition)
+                self.write_dict_as_json(args_in.predictions_teacher_test_file,
+                                        predictions_by_teacher_model_on_test_partition)
 
                 if train_state_in['stop_early']:
                     ## whenever you hit early stopping just store all the data and predictions at that point to disk for debug purposes

@@ -878,18 +878,7 @@ class Trainer():
                 args_in.database_to_test_with = "dummy"
                 dataset.set_split('val_lex')
 
-                ##  store all the data and predictions at that point to disk for debug purposes
-                assert len(predictions_by_student_model_on_dev) > 0
-                assert len(predictions_by_teacher_model_on_dev) > 0
-                assert len(predictions_by_student_model_on_test_partition) > 0
-                assert len(predictions_by_teacher_model_on_test_partition) > 0
 
-                self.write_dict_as_json(args_in.predictions_student_dev_file, predictions_by_student_model_on_dev)
-                self.write_dict_as_json(args_in.predictions_teacher_dev_file, predictions_by_teacher_model_on_dev)
-                self.write_dict_as_json(args_in.predictions_student_test_file,
-                                        predictions_by_student_model_on_test_partition)
-                self.write_dict_as_json(args_in.predictions_teacher_test_file,
-                                        predictions_by_teacher_model_on_test_partition)
 
                 if train_state_in['stop_early']:
                     ## whenever you hit early stopping just store all the data and predictions at that point to disk for debug purposes

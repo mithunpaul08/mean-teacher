@@ -125,13 +125,13 @@ class Trainer():
         return result2
 
     #calculate microf1 of all classes othern than UNRELATED so as to understand how the classes change/confusion matrix like vision across epochs
-    def calculate_micro_f1(self,y_pred, y_target):
+    def calculate_micro_f1(self,y_pred, y_target,class_to_ignore):
         assert len(y_pred) == len(y_target), "lengths are different {len(y_pred)}"
         labels_to_include =[]
         for index,l in enumerate(y_target):
             #calculate microf1 for all classes except UNRELATED
             #this was done because in fake news world, we really don't care much about it when two documents are unrelated, except for an initial filtering out process
-            if not (l==3):
+            if not (l==class_to_ignore):
                 labels_to_include.append(index)
         mf1=metrics.f1_score(y_target,y_pred, average='micro', labels=labels_to_include)
         return mf1
@@ -418,14 +418,11 @@ class Trainer():
         fnc_score=0.00
         if (args_in.database_to_test_with == "fnc"):
             fnc_score = report_score(total_gold, total_predictions)
-
-        microf1 = self.calculate_micro_f1(all_predictions, all_gold_labels)
-
+        microf1 = self.calculate_micro_f1(all_predictions, all_gold_labels,3)
         return plain_accuracy,running_loss_val,microf1,fnc_score
 
 
     def write_dict_as_json(self,out_path,list_of_dictionaries):
-
         for d in list_of_dictionaries:
             with open(out_path, 'a+') as outfile:
                 json.dump(d, outfile)
@@ -900,8 +897,7 @@ class Trainer():
 
 
                 # Do early stopping based on when the dev accuracy drops from its best for patience=5
-                # update: the code here does early stopping based on cross domain dev(which is being fed as a test partition)
-                # . i.e not based on in-domain dev anymore.
+
                 if (args_in.add_student == True):
                     train_state_in['val_loss'].append(running_loss_val_student)
                     train_state_in['val_acc'].append(running_acc_val_student)
@@ -916,7 +912,7 @@ class Trainer():
                                                          train_state=train_state_in)
 
 
-                # also test it on a third dataset which is usually cross domain on fnc
+                # also test the models on a third dataset which is usually cross domain on fnc
                 if(args_in.test_in_cross_domain_dataset):
                     args_in.database_to_test_with="fnc"
 
@@ -986,6 +982,15 @@ class Trainer():
 
                 if train_state_in['stop_early']:
                     ## whenever you hit early stopping just store all the data and predictions at that point to disk for debug purposes
+
+                    with open(args_in.predictions_teacher_dev_file, 'w') as outfile:
+                        outfile.write("")
+                    with open(args_in.predictions_student_dev_file, 'w') as outfile:
+                        outfile.write("")
+                    with open(args_in.predictions_teacher_test_file, 'w') as outfile:
+                        outfile.write("")
+                    with open(args_in.predictions_student_test_file, 'w') as outfile:
+                        outfile.write("")
 
                     assert len(predictions_by_student_model_on_dev) > 0
                     assert len(predictions_by_teacher_model_on_dev) > 0

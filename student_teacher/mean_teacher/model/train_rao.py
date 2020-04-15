@@ -1038,7 +1038,7 @@ class Trainer():
                 self._LOG.info(
                     f" accuracy on test partition by teacher:{round(running_acc_test_teacher,2)} ")
 
-                
+
                 self._LOG.info(
                     f"****************end of epoch {epoch_index}*********************")
             print("****************end of all epochs*********************")

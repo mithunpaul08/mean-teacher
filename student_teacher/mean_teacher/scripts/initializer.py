@@ -77,7 +77,7 @@ class Initializer():
             hidden_sz=200,
             arch='decomp_attention',
             pretrained="false",
-            update_pretrained_wordemb=True,
+            update_pretrained_wordemb=False,
             cuda=True,
             workers=0,
             ema_decay=0.99,

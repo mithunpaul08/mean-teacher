@@ -117,6 +117,8 @@ class VectorizerWithEmbedding(object):
         LOG.info(f"after merging gigaword vocabulary with training vocabulary. length of training vocab now   is {len(word_counts)}")
         for word, count in word_counts.items():
                 claim_ev_vocab.add_token(word)
+
+        claim_ev_vocab.add_word_frequency(word_counts)
         labels_vocab = Vocabulary(add_unk=False)
         for label in sorted(set(claim_ev_lex.label)):
             labels_vocab.add_token(label)

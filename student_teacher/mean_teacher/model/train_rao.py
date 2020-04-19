@@ -908,14 +908,7 @@ class Trainer():
                 comet_value_updater.log_metric("microf1_teacher_dev_with_only_unrelated_class", microf1_teacher_dev_with_only_unrelated_class,
                                                step=epoch_index)
  
-                # Do early stopping based on when the dev accuracy drops from its best for patience=5
-                train_state_in['val_loss'].append(running_loss_val_student)
-                train_state_in['val_acc'].append(running_acc_val_student)
-                train_state_in = self.update_train_state(args=args_in,
-                                                         models=[classifier_student_delex, classifier_teacher_lex],
-                                                         train_state=train_state_in)
-
-
+               
 
 
                 # Do early stopping based on when the dev accuracy drops from its best for patience=5

@@ -1,3 +1,5 @@
+from collections import Counter
+
 class Vocabulary(object):
     """Class to process text and extract vocabulary for mapping"""
 
@@ -16,6 +18,8 @@ class Vocabulary(object):
         self._idx_to_token = {idx: token
                               for token, idx in self._token_to_idx.items()}
 
+        self._word_frequency=Counter()
+
 
     def to_serializable(self):
         """ returns a dictionary that can be serialized """
@@ -25,6 +29,9 @@ class Vocabulary(object):
     def from_serializable(cls, contents):
         """ instantiates the Vocabulary from a serialized dictionary """
         return cls(**contents)
+
+    def add_word_frequency(self,word_freq):
+        self._word_frequency=word_freq
 
     def add_token(self, token):
         """Update mapping dicts based on the token.
@@ -51,6 +58,10 @@ class Vocabulary(object):
             indices (list): a list of indices corresponding to the tokens
         """
         return [self.add_token(token) for token in tokens]
+
+    def lookup_word_freq(self, word):
+        freq = self._word_frequency[word]
+        return freq
 
     def lookup_token(self, token):
         """Retrieve the index associated with the token 
@@ -126,6 +137,17 @@ class SequenceVocabulary(Vocabulary):
               for the UNK functionality
         """
         if self.unk_index >= 0:
-            return self._token_to_idx.get(token, self.unk_index)
+
+            '''
+            If the token/word occurs only once, redirect it to UNK . Theory: Each of this singleton/words which occur only once
+            will get only one back propagation.  However, if we can redirect all the calls on such words to UNK , 
+            UNK itself will have some kinda known knowledge than just being randomly initialized
+            '''
+            freq=self.lookup_word_freq(token)
+            if(freq==1):
+                return  self.unk_index
+            else:
+                return self._token_to_idx.get(token, self.unk_index)
+
         else:
             return self._token_to_idx[token]

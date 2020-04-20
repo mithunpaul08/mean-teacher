@@ -118,6 +118,9 @@ class VectorizerWithEmbedding(object):
         for word, count in word_counts.items():
                 claim_ev_vocab.add_token(word)
 
+        #this word frequency will be used to extract out singletons. On april 14th mihai suggested that we should
+        # redirect the embeddings of all words with freq=1 to update embedding of UNK instead. that exact code is in
+        # a function called lookup_token in vocabulary.py
         claim_ev_vocab.add_word_frequency(word_counts)
         labels_vocab = Vocabulary(add_unk=False)
         for label in sorted(set(claim_ev_lex.label)):

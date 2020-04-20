@@ -4,7 +4,7 @@ import os
 import argparse
 from mean_teacher.utils.utils_rao import set_seed_everywhere,make_embedding_matrix
 from mean_teacher.utils.utils_rao import handle_dirs
-from mean_teacher.modules.rao_datasets import RTEDataset
+
 import torch
 
 logs_dir='log_dir/',
@@ -26,6 +26,10 @@ class Initializer():
             #we are loading fnc dev as the test partitions now.
             # This is so that we can conduct simultaneous tests on fnc
             lex_test='fnc/dev/fnc_dev_lex.jsonl',
+
+            #to be used when you are loading the predictions of a trained model that was trained in a previous phase
+            lex_trained_predictions='fever/train/trained_teacher_logits.jsonl',
+
             delex_train= 'fever/train/fever_train_delex.jsonl',
             delex_dev='fever/dev/fever_dev_delex.jsonl',
             delex_test='fnc/dev/fnc_dev_delex.jsonl',
@@ -188,7 +192,7 @@ class Initializer():
         delex_train_full_path = os.path.join(os.getcwd(), self._args.data_dir, self._args.delex_train)
         delex_dev_full_path = os.path.join(os.getcwd(), self._args.data_dir, self._args.delex_dev)
 
-
+        fever_trained_lex_logits = os.path.join(os.getcwd(), self._args.data_dir,self._args.lex_trained_predictions)
 
 
         delex_test_full_path = os.path.join(os.getcwd(), self._args.data_dir, self._args.delex_test)
@@ -218,7 +222,7 @@ class Initializer():
         assert os.path.exists(delex_test_full_path) is True
 
 
-        return glove_filepath, lex_train_full_path, lex_dev_full_path, lex_test_full_path,delex_train_full_path, delex_dev_full_path, delex_test_full_path,gigaword_full_path
+        return glove_filepath, lex_train_full_path, lex_dev_full_path, lex_test_full_path,delex_train_full_path, delex_dev_full_path, delex_test_full_path,gigaword_full_path,fever_trained_lex_logits
 
 
 

@@ -73,22 +73,14 @@ LOG.setLevel(args.log_level)
 current_time={time.strftime("%c")}
 
 glove_filepath_in, lex_train_input_file, lex_dev_input_file, lex_test_input_file , delex_train_input_file, \
-delex_dev_input_file, delex_test_input_file,gigaword_full_path=initializer.get_file_paths(LOG)
+delex_dev_input_file, delex_test_input_file,gigaword_full_path,fever_trained_lex_logits=initializer.get_file_paths(LOG)
 
 
 LOG.info(f"{current_time:}Going to read data")
 
 
-#create a vocabulary which is a union of training data and  top n freq words from gigaword. as per mihai this enhances/is usefull to reduce
+#create a vocabulary which is a union of training data and  top n freq words from gigaword. this enhances/is usefull to reduce
 #the number of uNK words in dev/test partitions- especially when either of those tend to be cross-domain. though i still think its cheating- mithun
-#steps:
-# - define min frequency
-# - load list of words from gigaword - only words which have a minimum frequencey
-# - get list of all words in training.
-# - take each of training word and convert to lowercase
-# - merge them- set{trainwords,gigawords}
-# - for each word load its glove embedding
-#
 vectorizer_with_embedding.gigaword_freq=read_gigaword_freq_file(gigaword_full_path,args.gw_minfreq)
 
 
@@ -98,7 +90,7 @@ if args.reload_data_from_files:
                                                               args.vectorizer_file)
 else:
     # create dataset and vectorizer
-    dataset = RTEDataset.load_dataset_and_create_vocabulary_for_combined_lex_delex(lex_train_input_file, lex_dev_input_file, delex_train_input_file, delex_dev_input_file, delex_test_input_file, lex_test_input_file,args)
+    dataset = RTEDataset.load_dataset_and_create_vocabulary_for_combined_lex_delex(lex_train_input_file, lex_dev_input_file, delex_train_input_file, delex_dev_input_file, delex_test_input_file, lex_test_input_file,args,fever_trained_lex_logits)
     vectorizer_name=os.path.join(args.save_dir,"vectorizer_"+sha+".json")
     dataset.save_vectorizer(vectorizer_name)
 vectorizer = dataset.get_vectorizer()
@@ -162,7 +154,7 @@ end = time.time()
 LOG.info(f"time taken= {end-start}seconds.")
 
 
-def load_vectorizer_and_model():
+def load_trained_teacher_and_model():
     '''
     This entire function is vestigial. Just keeping it around so as to resuse the vectorizer loading and other code in it
     :return:

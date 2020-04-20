@@ -9,7 +9,10 @@ import random
 from mean_teacher.utils.utils_valpola import export
 import os
 from tqdm import tqdm
+from mean_teacher.scripts.initializer import Initializer
 
+initializer=Initializer()
+args = initializer.parse_commandline_args()
 class RTEDataset(Dataset):
     def __init__(self, combined_train_dev_test_with_split_column_df, vectorizer):
         """
@@ -84,7 +87,7 @@ class RTEDataset(Dataset):
 
 
     @classmethod
-    def load_dataset_and_create_vocabulary_for_combined_lex_delex(cls, train_lex_file, dev_lex_file, train_delex_file, dev_delex_file, test_delex_input_file,test_lex_input_file,args):
+    def load_dataset_and_create_vocabulary_for_combined_lex_delex(cls, train_lex_file, dev_lex_file, train_delex_file, dev_delex_file, test_delex_input_file,test_lex_input_file,args,fever_trained_logits):
         """Load dataset and make a new vectorizer from scratch
 
         Args:
@@ -92,9 +95,17 @@ class RTEDataset(Dataset):
         Returns:
             an instance of ReviewDataset
         """
-        fever_lex_train_df = pd.read_json(train_lex_file, lines=True)
-        fever_lex_train_df=cls.truncate_data(fever_lex_train_df, args.truncate_words_length)
-        fever_lex_train_df['split'] = "train_lex"
+
+
+        #used when you will train a teacher in phase 1 and load its prediction logits in phase 2
+        if (args.use_trained_teacher_inside_student_teacher_arch):
+            fever_lex_train_df = pd.read_json(fever_trained_logits, lines=True)
+            fever_lex_train_df = cls.truncate_data(fever_lex_train_df, args.truncate_words_length)
+            fever_lex_train_df['split'] = "train_lex"
+        else:
+            fever_lex_train_df = pd.read_json(train_lex_file, lines=True)
+            fever_lex_train_df=cls.truncate_data(fever_lex_train_df, args.truncate_words_length)
+            fever_lex_train_df['split'] = "train_lex"
 
         fever_lex_dev_df = pd.read_json(dev_lex_file, lines=True)
         fever_lex_dev_df = cls.truncate_data(fever_lex_dev_df, args.truncate_words_length)
@@ -281,13 +292,20 @@ class RTEDataset(Dataset):
         label_index = \
             self._vectorizer.label_vocab.lookup_token(row.label)
 
-
-        return {'x_claim': claim_vector,
-                'x_evidence': evidence_vector,
-                'y_target': label_index,
-                'datapoint_index':index
-                }
-
+        if (args.use_trained_teacher_inside_student_teacher_arch):
+            predicted_logits=row['prediction_logit']
+            return {'x_claim': claim_vector,
+                    'x_evidence': evidence_vector,
+                    'y_target': label_index,
+                    'datapoint_index':index,
+                    'predicted_logits':torch.tensor(predicted_logits)
+                    }
+        else:
+                return {'x_claim': claim_vector,
+                    'x_evidence': evidence_vector,
+                    'y_target': label_index,
+                    'datapoint_index':index
+                    }
     def get_num_batches(self, batch_size):
         """Given a batch size, return the number of batches in the dataset
 

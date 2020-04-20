@@ -6,6 +6,12 @@ head -100 data/rte/fever/train/fever_train_lex.jsonl > temp
 mv temp data/rte/fever/train/fever_train_lex.jsonl
 
 
+head -100 data/rte/fever/train/trained_teacher_logits.jsonl > temp
+mv temp data/rte/fever/train/trained_teacher_logits.jsonl
+
+
+
+
 head -20 data/rte/fever/dev/fever_dev_delex.jsonl > temp
 mv temp data/rte/fever/dev/fever_dev_delex.jsonl
 
@@ -28,4 +34,5 @@ mv temp data/rte/fnc/dev/fnc_dev_lex.jsonl
 
 head -20 data/rte/fnc/dev/fnc_dev_delex.jsonl > temp
 mv temp data/rte/fnc/dev/fnc_dev_delex.jsonl
+
 

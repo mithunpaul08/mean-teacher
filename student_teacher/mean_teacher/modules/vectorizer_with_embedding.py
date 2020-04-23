@@ -112,9 +112,12 @@ class VectorizerWithEmbedding(object):
         assert len(gigaword_freq.items()) > 0
 
         singletons=0
+        singletons_list=[]
         for word,count in word_counts.items():
             if count==1:
                 singletons+=1
+                singletons_list.append(word)
+
 
         LOG.info(
             f"total number of singletons in Training alone before merging with gigaword is {(singletons)}")
@@ -137,13 +140,24 @@ class VectorizerWithEmbedding(object):
             if count == 1:
                 singletons += 1
         LOG.info(
-            f"total number of singletons in Training after merging with gigaword is {(singletons)}")
+            f"total number of singletons in both gigaword and training data together is {(singletons)}")
 
-        import sys
-        sys.exit()
 
         for word, count in word_counts.items():
                 claim_ev_vocab.add_token(word)
+
+
+        singletons=0
+        for singleton in singletons_list:
+
+            if (word_counts[singleton])==1:
+                singletons += 1
+
+        LOG.info(
+            f"total number of singletons that are only Training after merging with gigaword is {(singletons)}")
+
+        import sys
+        sys.exit(1)
 
         claim_ev_vocab.add_word_frequency(word_counts)
         labels_vocab = Vocabulary(add_unk=False)

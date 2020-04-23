@@ -150,7 +150,6 @@ class SequenceVocabulary(Vocabulary):
             '''
             freq=self.lookup_word_freq(token)
             if(freq==1):
-                LOG.info(f"found a singleton word: {token}.")
                 return  self.unk_index
             else:
                 return self._token_to_idx.get(token, self.unk_index)

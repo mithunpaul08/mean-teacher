@@ -1,4 +1,9 @@
 from collections import Counter
+from mean_teacher.utils.logger import Logger
+
+
+logger_client=Logger()
+LOG=logger_client.initialize_logger()
 
 class Vocabulary(object):
     """Class to process text and extract vocabulary for mapping"""
@@ -145,6 +150,7 @@ class SequenceVocabulary(Vocabulary):
             '''
             freq=self.lookup_word_freq(token)
             if(freq==1):
+                LOG.info(f"found a singleton word: {token}.")
                 return  self.unk_index
             else:
                 return self._token_to_idx.get(token, self.unk_index)

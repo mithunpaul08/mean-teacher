@@ -110,11 +110,38 @@ class VectorizerWithEmbedding(object):
         # the number of uNK words in dev/test partitions- especially when either of those tend to be cross-domain.
         #  though i still think its cheating- mithun
         assert len(gigaword_freq.items()) > 0
+
+        singletons=0
+        for word,count in word_counts.items():
+            if count==1:
+                singletons+=1
+
+        LOG.info(
+            f"total number of singletons in Training alone before merging with gigaword is {(singletons)}")
+
         LOG.info(f"going to merge gigaword vocabulary with training vocabulary. length of training vocab now  is {len(word_counts)}")
         for word, count in gigaword_freq.items():
+            #if the word exists in gigaword, replace the frequency with that in gigaword, not in training data. This is useful when we have to pick singleton words
+            #i.e words that occur only once in training data (either has freq =1 in gigaword, or doesn't exist in gigaword)
             if(word not in word_counts):
                 word_counts[word]=1
+            else:
+                word_counts[word] = count
         LOG.info(f"after merging gigaword vocabulary with training vocabulary. length of training vocab now   is {len(word_counts)}")
+        LOG.info(f"frequency of the word 'the'  is {word_counts['the']}. note: must be 9615720 since that is the freq in gigaword")
+        LOG.info(
+            f"frequency of the word 'Roman'  is {word_counts['Roman']}. note: must be 1.")
+
+        singletons = 0
+        for word, count in word_counts.items():
+            if count == 1:
+                singletons += 1
+        LOG.info(
+            f"total number of singletons in Training after merging with gigaword is {(singletons)}")
+
+        import sys
+        sys.exit()
+
         for word, count in word_counts.items():
                 claim_ev_vocab.add_token(word)
 

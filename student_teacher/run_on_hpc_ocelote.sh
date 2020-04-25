@@ -1,8 +1,7 @@
 #!/bin/bash
 # Your job will use 1 node, 28 cores, and 168gb of memory total.
 #PBS -q windfall
-#PBS -l select=1:ncpus=28:mem=168gb:pcmem=6gb:ngpus=1
-
+#PBS -l select=1:ncpus=28:mem=224gb:np100s=1:os7=True
 ### Specify a name for the job
 #PBS -N mithuns_meanteacher
 ### Optional. Request email when job begins and ends - commented out in this case
@@ -15,9 +14,9 @@
 #PBS -l place=pack:exclhost
 ### CPUtime required in hhh:mm:ss.
 ### Leading 0's can be omitted e.g 48:0:0 sets 48 hours
-#PBS -l cput=255:44:00
+#PBS -l cput=48:00:00
 ### Walltime is how long your job will run
-#PBS -l walltime=9:8:00
+#PBS -l walltime=48:00:00
 #PBS -e /extra/mithunpaul/error/
 #PBS -o /extra/mithunpaul/output/
 
@@ -36,4 +35,3 @@ pip install torch torchvision
 
 
 bash get_data_run.sh
-bash run_main.sh

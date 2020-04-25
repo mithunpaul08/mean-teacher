@@ -176,7 +176,7 @@ else:
     train_rte.load_model_and_eval(args,classifier_student_delex, dataset, partition_to_evaluate_on,vectorizer)
     end = time.time()
     LOG.info(f"time taken= {end-start}seconds.")
-    sys.exit(1)
+
 train_rte.train(args, classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer)
 end = time.time()
 LOG.info(f"time taken= {end-start}seconds.")

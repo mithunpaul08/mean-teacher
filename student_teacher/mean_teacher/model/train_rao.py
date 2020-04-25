@@ -738,7 +738,7 @@ class Trainer():
 
 
                     #Accuracy calculation for student model
-                    
+
                     total_right_predictions_student_delex=total_right_predictions_student_delex+count_of_right_predictions_student_delex_per_batch
                     running_acc_delex += (acc_t_delex - running_acc_delex) / (batch_index + 1)
                     self._LOG.debug(

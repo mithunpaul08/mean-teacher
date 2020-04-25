@@ -1,4 +1,9 @@
 from collections import Counter
+from mean_teacher.utils.logger import Logger
+
+
+logger_client=Logger()
+LOG=logger_client.initialize_logger()
 
 class Vocabulary(object):
     """Class to process text and extract vocabulary for mapping"""

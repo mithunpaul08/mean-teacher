@@ -11,12 +11,12 @@
 ### Specify the group name
 #PBS -W group_list=msurdeanu
 ### Used if job requires partial node only
-#PBS -l place=pack:exclhost
-### CPUtime required in hhh:mm:ss.
+#PBS -l place=free:shared
+# ## CPUtime required in hhh:mm:ss.
 ### Leading 0's can be omitted e.g 48:0:0 sets 48 hours
-#PBS -l cput=48:00:00
+#PBS -l cput=8:00:00
 ### Walltime is how long your job will run
-#PBS -l walltime=48:00:00
+#PBS -l walltime=8:00:00
 #PBS -e /extra/mithunpaul/error/
 #PBS -o /extra/mithunpaul/output/
 

@@ -66,12 +66,13 @@ def generate_batches(dataset,workers,batch_size,device ,shuffle=True,
         out_data_dict = {}
         for name, tensor in data_dict.items():
             out_data_dict[name] = data_dict[name].to(device)
-        yield out_data_dict
+        #yield out_data_dict
+        return out_data_dict
 
 def generate_batches_for_semi_supervised(dataset,percentage_labels_for_semi_supervised,workers,batch_size,device,shuffle=True,
                      drop_last=True,mask_value=-1 ):
     '''
-    similar to generate_batches but will mask/replace the labels of certain certain percentage of indices with -1. a
+    similar to generate_batches but will mask/replace the LABELS of certain certain percentage of indices with -1. a
     :param dataset:
     :param workers:
     :param batch_size:
@@ -258,9 +259,9 @@ def create_model(logger_object, args_in,  num_classes_in, word_vocab_embed, word
     args_in.device=None
     if(args_in.use_gpu) and torch.cuda.is_available():
         logger_object.info("found that GPU is available")
-        torch.cuda.set_device(args_in.which_gpu_to_use)
+
         args_in.device = torch.device('cuda')
-        logger_object.info(f"will be using gpu number{args_in.which_gpu_to_use}")
+
     else:
         args_in.device = torch.device('cpu')
 

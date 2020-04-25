@@ -33,6 +33,6 @@ echo $PWD
 pip install numpy scipy pandas nltk tqdm sklearn comet_ml gitpython
 pip install torch torchvision
 
-bash get_glove.sh
+
 bash get_data_run.sh
 bash run_main.sh

@@ -1,3 +1,10 @@
+from collections import Counter
+from mean_teacher.utils.logger import Logger
+
+
+logger_client=Logger()
+LOG=logger_client.initialize_logger()
+
 class Vocabulary(object):
     """Class to process text and extract vocabulary for mapping"""
 
@@ -16,23 +23,20 @@ class Vocabulary(object):
         self._idx_to_token = {idx: token
                               for token, idx in self._token_to_idx.items()}
 
-        self._add_unk = add_unk
-        self._unk_token = unk_token
+        self._word_frequency=Counter()
 
-        self.unk_index = -1
-        if add_unk:
-            self.unk_index = self.add_token(unk_token)
 
     def to_serializable(self):
         """ returns a dictionary that can be serialized """
-        return {'token_to_idx': self._token_to_idx,
-                'add_unk': self._add_unk,
-                'unk_token': self._unk_token}
+        return {'token_to_idx': self._token_to_idx}
 
     @classmethod
     def from_serializable(cls, contents):
         """ instantiates the Vocabulary from a serialized dictionary """
         return cls(**contents)
+
+    def add_word_frequency(self,word_freq):
+        self._word_frequency=word_freq
 
     def add_token(self, token):
         """Update mapping dicts based on the token.
@@ -60,6 +64,10 @@ class Vocabulary(object):
         """
         return [self.add_token(token) for token in tokens]
 
+    def lookup_word_freq(self, word):
+        freq = self._word_frequency[word]
+        return freq
+
     def lookup_token(self, token):
         """Retrieve the index associated with the token 
           or the UNK index if token isn't present.
@@ -72,10 +80,8 @@ class Vocabulary(object):
             `unk_index` needs to be >=0 (having been added into the Vocabulary) 
               for the UNK functionality 
         """
-        if self.unk_index >= 0:
-            return self._token_to_idx.get(token, self.unk_index)
-        else:
-            return self._token_to_idx[token]
+
+        return self._token_to_idx[token]
 
     def lookup_index(self, index):
         """Return the token associated with the index
@@ -101,7 +107,7 @@ class Vocabulary(object):
 class SequenceVocabulary(Vocabulary):
     def __init__(self, token_to_idx=None, unk_token="<UNK>",
                  mask_token="<MASK>", begin_seq_token="<BEGIN>",
-                 end_seq_token="<END>"):
+                 end_seq_token="<END>",add_unk=True):
 
         super(SequenceVocabulary, self).__init__(token_to_idx)
 
@@ -136,6 +142,17 @@ class SequenceVocabulary(Vocabulary):
               for the UNK functionality
         """
         if self.unk_index >= 0:
-            return self._token_to_idx.get(token, self.unk_index)
+
+            '''
+            If the token/word occurs only once, redirect it to UNK . Theory: Each of this singleton/words which occur only once
+            will get only one back propagation.  However, if we can redirect all the calls on such words to UNK , 
+            UNK itself will have some kinda known knowledge than just being randomly initialized
+            '''
+            freq=self.lookup_word_freq(token)
+            if(freq==1):
+                return  self.unk_index
+            else:
+                return self._token_to_idx.get(token, self.unk_index)
+
         else:
             return self._token_to_idx[token]

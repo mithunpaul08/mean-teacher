@@ -17,7 +17,7 @@
 # wrong_file= "../../12_Apr_Model-FN-10-Apr-Data-fever-wrong-predictions.jsonl"
 # with open(wrong_file, 'r+') as wrongfile:
 #     # We need lines which are in both files not just one of them
-#     # This intersection is limited to claim and evidence not the labels etc.
+#     # This intersection is limited to claim and evidence not the LABELS etc.
 #     i=0
 #
 #     for w_line in wrongfile:

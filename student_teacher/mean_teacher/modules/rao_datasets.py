@@ -8,7 +8,7 @@ import pandas as pd
 import random
 from mean_teacher.utils.utils_valpola import export
 import os
-
+from tqdm import tqdm
 
 class RTEDataset(Dataset):
     def __init__(self, combined_train_dev_test_with_split_column_df, vectorizer):
@@ -56,14 +56,15 @@ class RTEDataset(Dataset):
         self._labels = self.train_lex_df.label
 
     @classmethod
-    def truncate_words(cls,sent, tr_len):
+    def truncate_words(cls,sent, tr_len,truncate_counter):
         sent_split = sent.split(" ")
         if (len(sent_split) > tr_len):
-            sent_tr = sent_split[:1000]
+            truncate_counter+=1
+            sent_tr = sent_split[:tr_len]
             sent_output = " ".join(sent_tr)
-            return sent_output
-        else:
-            return sent
+            sent= sent_output
+
+        return sent,truncate_counter
 
     @classmethod
     def truncate_data(cls,data_dataframe, tr_len):
@@ -74,9 +75,11 @@ class RTEDataset(Dataset):
         :param args:
         :return: modified pandas dataframe
         '''
-        for i, row in data_dataframe.iterrows():
-            row.claim= cls.truncate_words(row.claim, tr_len)
-            row.evidence = cls.truncate_words(row.evidence, tr_len)
+        truncate_counter_claim=0
+        truncate_counter_evidence = 0
+        for i, row in tqdm(data_dataframe.iterrows(),total=data_dataframe.shape[0],desc="truncate"):
+            row.claim,truncate_counter_claim= cls.truncate_words(row.claim, tr_len,truncate_counter_claim)
+            row.evidence,truncate_counter_evidence = cls.truncate_words(row.evidence, tr_len,truncate_counter_evidence)
         return data_dataframe
 
 
@@ -117,10 +120,11 @@ class RTEDataset(Dataset):
         combined_train_dev_test_with_split_column_df = pd.concat(frames)
 
         # todo: uncomment/call and check the function replace_if_PERSON_C1_format has any effect on claims and evidence sentences-mainpulate dataframe
-        return cls(combined_train_dev_test_with_split_column_df, VectorizerWithEmbedding.create_vocabulary(fever_lex_train_df,fever_delex_train_df, args.frequency_cutoff))
+        return cls(combined_train_dev_test_with_split_column_df,VectorizerWithEmbedding.create_vocabulary(fever_lex_train_df, fever_delex_train_df, args))
+
 
     @classmethod
-    def load_dataset_and_load_vectorizer(cls, input_file, vectorizer_filepath):
+    def load_dataset_and_load_vectorizer(cls, train_lex_file, dev_lex_file, train_delex_file, dev_delex_file, test_delex_input_file,test_lex_input_file,args,vectorizer_filepath):
         """Load dataset and the corresponding vectorizer.
         Used in the case in the vectorizer has been cached for re-use
 
@@ -130,11 +134,72 @@ class RTEDataset(Dataset):
         Returns:
             an instance of ReviewDataset
         """
-        print(f"just before reading file {input_file}")
-        review_df = cls.read_rte_data(input_file)
+
+        fever_lex_train_df = pd.read_json(train_lex_file, lines=True)
+        fever_lex_train_df = cls.truncate_data(fever_lex_train_df, args.truncate_words_length)
+        fever_lex_train_df['split'] = "train_lex"
+
+        fever_lex_dev_df = pd.read_json(dev_lex_file, lines=True)
+        fever_lex_dev_df = cls.truncate_data(fever_lex_dev_df, args.truncate_words_length)
+        fever_lex_dev_df['split'] = "val_lex"
+
+        fever_delex_train_df = pd.read_json(train_delex_file, lines=True)
+        fever_delex_train_df = cls.truncate_data(fever_delex_train_df, args.truncate_words_length)
+        fever_delex_train_df['split'] = "train_delex"
+
+        fever_delex_dev_df = pd.read_json(dev_delex_file, lines=True)
+        fever_delex_dev_df = cls.truncate_data(fever_delex_dev_df, args.truncate_words_length)
+        fever_delex_dev_df['split'] = "val_delex"
+
+        delex_test_df = pd.read_json(test_delex_input_file, lines=True)
+        delex_test_df = cls.truncate_data(delex_test_df, args.truncate_words_length)
+        delex_test_df['split'] = "test_delex"
+
+        lex_test_df = pd.read_json(test_lex_input_file, lines=True)
+        lex_test_df = cls.truncate_data(lex_test_df, args.truncate_words_length)
+        lex_test_df['split'] = "test_lex"
+
+        frames = [fever_lex_train_df, fever_lex_dev_df, fever_delex_train_df, fever_delex_dev_df, delex_test_df,
+                  lex_test_df]
+        combined_train_dev_test_with_split_column_df = pd.concat(frames)
 
         vectorizer = cls.load_vectorizer_only(vectorizer_filepath)
-        return cls(review_df, vectorizer)
+        return cls(combined_train_dev_test_with_split_column_df, vectorizer)
+
+
+    @classmethod
+    def load_dataset_given_path_split_name(cls, file_to_read, args, splitname):
+        """Load dataset and make a new vectorizer from scratch
+
+        Args:
+            args (str): all arguments which were create initially.
+        Returns:
+            an instance of ReviewDataset
+        """
+        dataset_df = pd.read_json(file_to_read, lines=True)
+        dataset_df=cls.truncate_data(dataset_df, args.truncate_words_length)
+        dataset_df['split'] = splitname
+        return dataset_df
+
+    @classmethod
+    def create_vocab_given_lex_delex_file_paths(cls, test_delex_input_file,
+                                                                  test_lex_input_file, args):
+        """Load dataset and make a new vectorizer from scratch
+
+        Args:
+            args (str): all arguments which were create initially.
+        Returns:
+            an instance of ReviewDataset
+        """
+
+        lex_train_df= cls.load_dataset_given_path_split_name(cls, test_delex_input_file, args, "lex")
+        delex_train_df = cls.load_dataset_given_path_split_name(cls, test_lex_input_file, args, "delex")
+
+        frames = [lex_train_df, delex_train_df]
+        combined = pd.concat(frames)
+
+        return cls(combined,
+                   VectorizerWithEmbedding.create_vocabulary(lex_train_df, delex_train_df, args))
 
     @staticmethod
     def load_vectorizer_only(vectorizer_filepath):
@@ -216,9 +281,12 @@ class RTEDataset(Dataset):
         label_index = \
             self._vectorizer.label_vocab.lookup_token(row.label)
 
+
         return {'x_claim': claim_vector,
                 'x_evidence': evidence_vector,
-                'y_target': label_index}
+                'y_target': label_index,
+                'datapoint_index':index
+                }
 
     def get_num_batches(self, batch_size):
         """Given a batch size, return the number of batches in the dataset
@@ -234,13 +302,13 @@ class RTEDataset(Dataset):
 
     def get_all_label_indices(self,dataset):
 
-        #this command returns all the labels and its corresponding indices eg:[198,2]
+        #this command returns all the LABELS and its corresponding indices eg:[198,2]
         all_labels = list(enumerate(dataset.get_labels()))
 
-        #note that even though the labels are shuffled up, we are keeping track/returning only the shuffled indices. so it all works out fine.
+        #note that even though the LABELS are shuffled up, we are keeping track/returning only the shuffled indices. so it all works out fine.
         random.shuffle(all_labels)
 
-        #get the indices alone and not the labels
+        #get the indices alone and not the LABELS
         all_indices=[]
         for idx,_  in all_labels:
             all_indices.append(idx)

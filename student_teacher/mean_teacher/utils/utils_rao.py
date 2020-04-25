@@ -9,8 +9,24 @@ from mean_teacher.model import architectures
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
 import math
 import random
-
+import os
 # #### General utilities
+
+def read_gigaword_freq_file(filepath,gw_minfreq):
+        word_and_freq = {}
+        total_lines = get_num_lines(filepath)
+        with open(filepath, "r") as fp:
+            for index, line in tqdm(enumerate(fp), total=total_lines, desc="gigaword"):
+                line = line.split("\t")  # each line: word num1
+                assert line[0] is not None
+                assert line[1] is not None
+                word=line[0]
+                freq = int(line[1].strip())
+                #keep loading everything from sorted gigaword-freq file until you hit the minfreq you specify
+                if(freq < gw_minfreq):
+                    break
+                word_and_freq[word] = freq  # word = line[0] ;freq=line[1]
+        return word_and_freq
 
 def set_seed_everywhere(seed, cuda):
     """
@@ -24,9 +40,12 @@ def set_seed_everywhere(seed, cuda):
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
     #for CuDnn- a nvidia library
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
+    os.environ['PYTHONHASHSEED'] = str(seed)
 
 
 def handle_dirs(dirpath):
@@ -39,6 +58,23 @@ def preprocess_text(text):
     text = re.sub(r"[^a-zA-Z.,!?]+", r" ", text)
     return text
 
+
+
+def generate_batches_without_sampler(dataset,workers,batch_size,device ,shuffle=False,
+                     drop_last=True ):
+    """
+    A generator function which wraps the PyTorch DataLoader. It will
+      ensure each tensor is on the write device location.
+    """
+    if(shuffle==True):
+        dataloader=DataLoader(dataset,batch_size=batch_size,shuffle=True,drop_last=True,num_workers=workers)
+    else:
+        dataloader = DataLoader(dataset,batch_size=batch_size,shuffle=False,drop_last=True,num_workers=workers)
+    for data_dict in dataloader:
+        out_data_dict = {}
+        for name, tensor in data_dict.items():
+            out_data_dict[name] = data_dict[name].to(device)
+        yield out_data_dict
 
 
 def generate_batches(dataset,workers,batch_size,device ,shuffle=False,
@@ -61,12 +97,13 @@ def generate_batches(dataset,workers,batch_size,device ,shuffle=False,
         out_data_dict = {}
         for name, tensor in data_dict.items():
             out_data_dict[name] = data_dict[name].to(device)
-        yield out_data_dict
+        #yield out_data_dict
+        return out_data_dict
 
 def generate_batches_for_semi_supervised(dataset,percentage_labels_for_semi_supervised,workers,batch_size,device,shuffle=False,
                      drop_last=True,mask_value=-1 ):
     '''
-    similar to generate_batches but will mask/replace the labels of certain certain percentage of indices with -1. a
+    similar to generate_batches but will mask/replace the LABELS of certain certain percentage of indices with -1. a
     :param dataset:
     :param workers:
     :param batch_size:
@@ -148,7 +185,7 @@ def make_embedding_matrix(glove_filepath, words):
 
     final_embeddings = np.zeros((len(words), embedding_size))
 
-    for i, word in enumerate(words):
+    for i, word in tqdm(enumerate(words),total=len(words),desc="make_embedding_matrix"):
         if word in word_to_idx:
             final_embeddings[i, :] = glove_embeddings[word_to_idx[word]]
         else:
@@ -226,9 +263,8 @@ def create_model(logger_object, args_in,  num_classes_in, word_vocab_embed, word
     args_in.device=None
     if(args_in.use_gpu) and torch.cuda.is_available():
         logger_object.info("found that GPU is available")
-        torch.cuda.set_device(args_in.which_gpu_to_use)
+        #torch.cuda.set_device(args_in.which_gpu_to_use)
         args_in.device = torch.device('cuda')
-        logger_object.info(f"will be using gpu number{args_in.which_gpu_to_use}")
     else:
         args_in.device = torch.device('cpu')
 

@@ -608,11 +608,12 @@ class Trainer():
 
                     # step 2. compute the output
 
-                    #when in ema mode, since the teacher is a ema of student itself,  make the teacher  make its  prediction over delex data .
+
                     y_pred_lex = classifier_teacher_lex(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
                     y_pred_lex_ema = classifier_teacher_lex_ema(batch_dict_lex['x_claim'], batch_dict_lex['x_evidence'])
-                    y_pred_delex_ema = classifier_teacher_lex_ema(batch_dict_delex['x_claim'],
-                                                                batch_dict_delex['x_evidence'])
+
+
+
 
 
                     assert y_pred_lex is not None
@@ -644,6 +645,8 @@ class Trainer():
                     loss_t_delex = class_loss_delex.item()
                     running_loss_delex += (loss_t_delex - running_loss_delex) / (batch_index + 1)
 
+                    y_pred_delex_ema = classifier_student_delex_ema(batch_dict_delex['x_claim'],
+                                                                  batch_dict_delex['x_evidence'])
 
                     consistency_loss_delexstudent_lexteacher = consistency_criterion(y_pred_lex, y_pred_delex)
                     consistency_loss_delexstudent_lexTeacherEma = consistency_criterion(y_pred_lex_ema, y_pred_delex)
@@ -693,10 +696,18 @@ class Trainer():
                     total_right_predictions_teacher_lex = total_right_predictions_teacher_lex + count_of_right_predictions_teacher_lex_per_batch
                     running_acc_lex += (acc_t_lex - running_acc_lex) / (batch_index + 1)
 
+                    # compute the accuracy for teacher-lex-ema
+                    y_pred_labels_lex_ema_sf = F.softmax(y_pred_lex_ema, dim=1)
+                    count_of_right_predictions_teacher_lex_ema_per_batch, acc_t_lex_ema, teacher_ema_predictions_by_label_class = self.compute_accuracy(
+                        y_pred_labels_lex_ema_sf, batch_dict_lex['y_target'])
+                    total_right_predictions_teacher_lex_ema = total_right_predictions_teacher_lex_ema + count_of_right_predictions_teacher_lex_ema_per_batch
+                    running_acc_lex_ema += (acc_t_lex_ema - running_acc_lex_ema) / (batch_index + 1)
+
+
                     # compute the accuracy for student-delex
                     y_pred_labels_delex_sf = F.softmax(y_pred_delex, dim=1)
                     count_of_right_predictions_student_delex_per_batch, acc_t_delex, student_predictions_by_label_class = self.compute_accuracy(
-                        y_pred_labels_delex_sf, batch_dict_lex['y_target'])
+                        y_pred_labels_delex_sf,batch_dict_delex['y_target'])
                     total_right_predictions_student_delex = total_right_predictions_student_delex + count_of_right_predictions_student_delex_per_batch
                     running_acc_delex += (acc_t_delex - running_acc_delex) / (batch_index + 1)
 
@@ -705,17 +716,11 @@ class Trainer():
                     # compute the accuracy for student-delex-ema
                     y_pred_labels_delex_ema_sf = F.softmax(y_pred_delex_ema, dim=1)
                     count_of_right_predictions_student_delex_ema_per_batch, acc_t_delex_ema, student_ema_predictions_by_label_class = self.compute_accuracy(
-                        y_pred_labels_delex_ema_sf, batch_dict_lex['y_target'])
+                        y_pred_labels_delex_ema_sf, batch_dict_delex['y_target'])
                     total_right_predictions_student_delex_ema = total_right_predictions_student_delex_ema + count_of_right_predictions_student_delex_ema_per_batch
                     running_acc_delex_ema += (acc_t_delex_ema - running_acc_delex_ema) / (batch_index + 1)
 
 
-                    # compute the accuracy for teacher-lex-ema
-                    y_pred_labels_lex_ema_sf = F.softmax(y_pred_lex_ema, dim=1)
-                    count_of_right_predictions_teacher_lex_ema_per_batch, acc_t_lex_ema, teacher_ema_predictions_by_label_class = self.compute_accuracy(
-                        y_pred_labels_lex_ema_sf, batch_dict_lex['y_target'])
-                    total_right_predictions_teacher_lex_ema = total_right_predictions_teacher_lex_ema + count_of_right_predictions_teacher_lex_ema_per_batch
-                    running_acc_lex_ema += (acc_t_lex_ema - running_acc_lex_ema) / (batch_index + 1)
 
 
 
@@ -733,9 +738,7 @@ class Trainer():
 
 
                     #Accuracy calculation for student model
-                    #y_pred_labels_delex_sf = F.softmax(y_pred_delex, dim=1)
-                    #count_of_right_predictions_student_delex_per_batch,acc_t_delex,student_predictions_by_label_class = self.compute_accuracy(y_pred_labels_delex_sf, batch_dict_lex['y_target'])
-
+                    
                     total_right_predictions_student_delex=total_right_predictions_student_delex+count_of_right_predictions_student_delex_per_batch
                     running_acc_delex += (acc_t_delex - running_acc_delex) / (batch_index + 1)
                     self._LOG.debug(

@@ -78,7 +78,7 @@ class Initializer():
             arch='decomp_attention',
             pretrained="false",
             update_pretrained_wordemb=True,
-            cuda=True,
+
             workers=0,
             ema_decay=0.99,
             database_to_test_with='fever',
@@ -112,15 +112,14 @@ class Initializer():
 
 
         # Set seed for reproducibility
-        set_seed_everywhere(args.random_seed, args.cuda)
+        set_seed_everywhere(args.random_seed)
         handle_dirs(args.save_dir)
         self._args=args
 
         # Check CUDA
-        if not torch.cuda.is_available():
-            args.cuda = False
-        print("Using CUDA: {}".format(args.cuda))
-        args.device = torch.device("cuda" if args.cuda else "cpu")
+        if  torch.cuda.is_available():
+            print("torch.cuda is available")
+        args.device = torch.device("cuda" if args.use_gpu else "cpu")
 
 
         return args

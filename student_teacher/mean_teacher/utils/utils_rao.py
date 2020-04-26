@@ -28,7 +28,7 @@ def read_gigaword_freq_file(filepath,gw_minfreq):
                 word_and_freq[word] = freq  # word = line[0] ;freq=line[1]
         return word_and_freq
 
-def set_seed_everywhere(seed, cuda):
+def set_seed_everywhere(seed):
     """
     To make the code reproducable, set the seeds manually. this has to be changed to random if you want more efficiency.
     numpy seeds will be used during shuffling of data rows.

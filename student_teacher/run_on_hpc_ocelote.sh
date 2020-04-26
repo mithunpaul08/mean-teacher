@@ -1,11 +1,11 @@
 #!/bin/bash
 ### Your job will use 1 node, 28 cores, and 168gb of memory total.
-#PBS -q windfall
+#PBS -q standard
 #PBS -l select=1:ncpus=28:mem=168gb:pcmem=6gb
 ### Specify a name for the job
 #PBS -N d
 ### Specify the group name
-#PBS -W group_list=msurdeanu
+#PBS -W group_list=dkp
 ### Used if job requires partial node only
 #PBS -l place=pack:shared
 ### CPUtime required in hhh:mm:ss.

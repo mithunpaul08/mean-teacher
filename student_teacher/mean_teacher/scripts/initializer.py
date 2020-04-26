@@ -83,7 +83,7 @@ class Initializer():
             ema_decay=0.99,
             database_to_test_with='fever',
 
-            use_gpu=True,
+            use_gpu=False,
             consistency_type="mse",
             NO_LABEL=-1,
             #this is used during loading a trained model and testing with it. you can choose between teacher and student.

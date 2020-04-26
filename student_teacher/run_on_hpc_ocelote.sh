@@ -9,7 +9,7 @@
 ### Optional. Specify email address to use for notification - commented out in this case
 ### PBS -M mithunpaul@email.arizona.edu
 ### Specify the group name
-#PBS -W group_list=msurdeanu
+#PBS -W group_list=dkp
 ### Used if job requires partial node only
 #PBS -l place=pack:exclhost
 ### CPUtime required in hhh:mm:ss.

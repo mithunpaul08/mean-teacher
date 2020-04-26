@@ -1,15 +1,15 @@
 #!/bin/bash
 # Your job will use 1 node, 28 cores, and 168gb of memory total.
 #PBS -q standard
-#PBS -l select=2:ncpus=16:mem=64gb:ngpus=1
+
+#PBS -l select=1:ncpus=16:mem=250gb:ngpus=1:pcmem=16gb
 
 
 ### Specify a name for the job
 #PBS -N job_name
 ### Specify the group name
 #PBS -W group_list=group_name
-### Used if job requires partial node only
-#PBS -l place=pack:shared
+#PBS -l place=free:shared
 ### CPUtime required in hhh:mm:ss.
 ### Leading 0's can be omitted e.g 48:0:0 sets 48 hours
 #PBS -l cput=1344:00:00

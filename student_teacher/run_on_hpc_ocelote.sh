@@ -1,7 +1,7 @@
 #!/bin/bash
 # Your job will use 1 node, 28 cores, and 168gb of memory total.
-#PBS -q windfall
-#PBS -l select=1:ncpus=28:mem=168gb:np100s=1:os7=True
+#PBS -q standard
+#PBS -l select=1:ncpus=28:mem=224gb:np100s=1:os7=True
 ### Specify a name for the job
 #PBS -N mithuns_meanteacher
 ### Optional. Request email when job begins and ends - commented out in this case
@@ -9,7 +9,7 @@
 ### Optional. Specify email address to use for notification - commented out in this case
 ### PBS -M mithunpaul@email.arizona.edu
 ### Specify the group name
-#PBS -W group_list=msurdeanu
+#PBS -W group_list=dkp
 ### Used if job requires partial node only
 #PBS -l place=pack:exclhost
 ### CPUtime required in hhh:mm:ss.

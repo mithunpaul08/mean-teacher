@@ -31,7 +31,7 @@ date
 echo $PWD
 
 pip install numpy scipy pandas nltk tqdm sklearn comet_ml gitpython
-pip install torch torchvision
+pip install torch==1.5.0+cu92 torchvision==0.6.0+cu92 -f https://download.pytorch.org/whl/torch_stable.html
 
 bash get_glove.sh
 bash get_data_run.sh

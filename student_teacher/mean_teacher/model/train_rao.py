@@ -900,10 +900,10 @@ class Trainer():
                 dataset.set_split('val_delex')
                 classifier_student_delex_ema.eval()
 
-                running_acc_val_student_ema, running_loss_val_teacher_ema, \
+                running_acc_val_student_ema, running_loss_val_student_ema, \
                 microf1_student_dev_ema_without_unrelated_class, microf1_student_dev_ema_with_only_unrelated_class, fnc_score_student_dev_ema \
                     = self.eval(
-                    classifier_student_delex, args_in, dataset, epoch_index, vectorizer,
+                    classifier_student_delex_ema, args_in, dataset, epoch_index, vectorizer,
                     predictions_by_student_ema_model_on_dev, "student_delex_ema_on_dev")
 
 
@@ -963,7 +963,7 @@ class Trainer():
                 ,predictions_by_student_model_on_test_partition,"student_delex_on_test")
 
                 dataset.set_split('test_delex')
-                classifier_student_delex.eval()
+                classifier_student_delex_ema.eval()
                 running_acc_test_student_ema, running_loss_test_student_ema, microf1_student_ema_test_without_unrelated_class, \
                 microf1_student_ema_test_with_only_unrelated_class, fnc_score_student_ema_test = self.eval(
                     classifier_student_delex_ema, args_in,
@@ -991,8 +991,8 @@ class Trainer():
 
                 comet_value_updater.log_metric("plain_acc_test_student_ema", running_acc_test_student_ema, step=epoch_index)
                 comet_value_updater.log_metric("microf1_student_test_ema_without_unrelated_class",microf1_student_ema_test_without_unrelated_class, step=epoch_index)
-                comet_value_updater.log_metric("microf1_student_test_with_only_unrelated_class",microf1_student_ema_test_with_only_unrelated_class, step=epoch_index)
-                comet_value_updater.log_metric("fnc_score_student_on_test_partition", fnc_score_student_test,step=epoch_index)
+                comet_value_updater.log_metric("microf1_student_test_ema_with_only_unrelated_class",microf1_student_ema_test_with_only_unrelated_class, step=epoch_index)
+                comet_value_updater.log_metric("fnc_score_student_ema_on_test_partition", fnc_score_student_ema_test,step=epoch_index)
 
 
                 comet_value_updater.log_metric("plain_acc_test_teacher", running_acc_test_teacher,step=epoch_index)
@@ -1004,7 +1004,7 @@ class Trainer():
                 comet_value_updater.log_metric("plain_acc_test_teacher_ema", running_acc_test_teacher_ema, step=epoch_index)
                 comet_value_updater.log_metric("fnc_score_teacher_on_test_partition_ema", fnc_score_teacher_test_ema, step=epoch_index)
                 comet_value_updater.log_metric("microf1_teacher_test_ema_with_only_unrelated_class",microf1_teacher_test_ema_with_only_unrelated_class , step=epoch_index)
-                comet_value_updater.log_metric("microf1_teacher_test_without_unrelated_class", microf1_teacher_test_ema_without_unrelated_class , step=epoch_index)
+                comet_value_updater.log_metric("microf1_teacher_test_ema_without_unrelated_class", microf1_teacher_test_ema_without_unrelated_class , step=epoch_index)
 
 
 

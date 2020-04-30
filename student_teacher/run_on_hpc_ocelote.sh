@@ -9,7 +9,7 @@
 ### Optional. Specify email address to use for notification - commented out in this case
 ### PBS -M mithunpaul@email.arizona.edu
 ### Specify the group name
-#PBS -W group_list=dkp
+#PBS -W group_list=msurdeanu
 ### Used if job requires partial node only
 #PBS -l place=free:shared
 ### CPUtime required in hhh:mm:ss.
@@ -17,8 +17,8 @@
 #PBS -l cput=10:00:00
 ### Walltime is how long your job will run
 #PBS -l walltime=10:00:00
-#PBS -e /extra/mithunpaul/error/
-#PBS -o /extra/mithunpaul/output/
+#PBS -e /error/
+#PBS -o /output/
 
 #####module load cuda80/neuralnet/6/6.0
 #####module load cuda80/toolkit/8.0.61

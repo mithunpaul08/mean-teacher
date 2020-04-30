@@ -5,9 +5,9 @@
 ### Specify a name for the job
 #PBS -N mithuns_meanteacher
 ### Optional. Request email when job begins and ends - commented out in this case
-### PBS -m bea
+# PBS -m bea
 ### Optional. Specify email address to use for notification - commented out in this case
-### PBS -M mithunpaul@email.arizona.edu
+# PBS -M mithunpaul@email.arizona.edu
 ### Specify the group name
 #PBS -W group_list=dkp
 ### Used if job requires partial node only

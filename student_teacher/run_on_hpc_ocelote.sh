@@ -1,5 +1,4 @@
 #!/bin/bash
-#!/bin/bash
 # Your job will use 1 node, 28 cores, and 168gb of memory total.
 #PBS -q standard
 #PBS -l select=1:ncpus=28:mem=224gb:np100s=1:os7=True
@@ -18,9 +17,6 @@
 #PBS -l cput=48:00:00
 ### Walltime is how long your job will run
 #PBS -l walltime=48:00:00
-
-#PBS -e mithunpaul/output/
-#PBS -o mithunpaul/output/
 
 #####module load cuda80/neuralnet/6/6.0
 #####module load cuda80/toolkit/8.0.61

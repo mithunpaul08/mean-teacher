@@ -1,7 +1,7 @@
 #!/bin/bash
 # Your job will use 1 node, 28 cores, and 168gb of memory total.
 #PBS -q standard
-#PBS -l select=1:ncpus=28:mem=168gb:pcmem=6gb:ngpus=1
+#PBS -l select=1:ncpus=28:mem=168gb:pcmem=6gb:ngpus=1:np100s=1:os7=True
 ### Specify a name for the job
 #PBS -N mithun_unk_gw50
 ### Specify the group name
@@ -19,7 +19,7 @@
 
 ### Optional. Request email when job begins and ends
 # PBS -m bea
-### Optional. Specify email address to use for notification 
+### Optional. Specify email address to use for notification
 # PBS -M mithunpaul@email.arizona.edu
 
 

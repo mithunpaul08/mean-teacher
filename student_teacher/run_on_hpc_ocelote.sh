@@ -11,7 +11,7 @@
 ### Specify the group name
 #PBS -W group_list=dkp
 ### Used if job requires partial node only
-#PBS -l place=pack:exclhost
+#PBS -l place=pack:shared
 ### CPUtime required in hhh:mm:ss.
 ### Leading 0's can be omitted e.g 48:0:0 sets 48 hours
 #PBS -l cput=48:00:00

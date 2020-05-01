@@ -7,7 +7,7 @@
 ### Specify the group name
 #PBS -W group_list=dkp
 ### Used if job requires partial node only
-#PBS -l place=pack:shared
+#PBS -l place=pack:exclhost
 ### CPUtime required in hhh:mm:ss.
 ### Leading 0's can be omitted e.g 48:0:0 sets 48 hours
 #PBS -l cput=247:20:00
@@ -15,10 +15,13 @@
 #PBS -l walltime=8:50:00
 ### Joins standard error and standard out
 #PBS -j oe
-### Optional. Request email when job begins and ends - commented out in this case
+
+
+### Optional. Request email when job begins and ends
 # PBS -m bea
-### Optional. Specify email address to use for notification - commented out in this case
+### Optional. Specify email address to use for notification 
 # PBS -M mithunpaul@email.arizona.edu
+
 
 #####module load cuda80/neuralnet/6/6.0
 #####module load cuda80/toolkit/8.0.61

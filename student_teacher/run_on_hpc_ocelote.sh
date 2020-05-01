@@ -5,7 +5,7 @@
 
 
 ### Specify a name for the job
-#PBS -N gw_minfreq_20
+#PBS -N gw_minfreq_30
 ### Specify the group name
 #PBS -W group_list=msurdeanu
 ### Used if job requires partial node only

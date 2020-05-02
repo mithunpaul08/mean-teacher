@@ -6,6 +6,8 @@
 #PBS -N job_name
 ### Specify the group name
 #PBS -W group_list=40_gw_minfreq
+### Specify the group name
+#PBS -W group_list=msurdeanu
 ### Used if job requires partial node only
 #PBS -l place=pack:exclhost
 ### CPUtime required in hhh:mm:ss.

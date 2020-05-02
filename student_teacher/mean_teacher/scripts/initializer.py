@@ -48,7 +48,7 @@ class Initializer():
             glove_filepath='data/glove/glove.840B.300d.txt',
             gigaword_file_path='data/gigaword/gigawordDocFreq.sorted.freq.txt',
             #pick only words from gigaward corpora which have  frequency above this value
-            gw_minfreq=40,
+            gw_minfreq=2000,
             shuffle_data=False,
 
 

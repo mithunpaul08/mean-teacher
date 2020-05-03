@@ -139,9 +139,25 @@ else:
                                           , word_vocab_embed=embeddings, word_vocab_size=num_features,
                                           wordemb_size_in=embedding_size)
 
-assert classifier_teacher_lex is not None
+
+classifier_student_delex_ema = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
+                                            , word_vocab_embed=embeddings, word_vocab_size=num_features,
+                                            wordemb_size_in=embedding_size, ema=True)
+
+classifier_teacher_lex_ema = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
+                                            , word_vocab_embed=embeddings, word_vocab_size=num_features,
+                                            wordemb_size_in=embedding_size, ema=True)
+
+
 classifier_student_delex = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
                                         , word_vocab_embed=embeddings, word_vocab_size=num_features, wordemb_size_in=embedding_size)
+
+
+
+assert classifier_student_delex_ema is not None
+assert classifier_teacher_lex is not None
+assert classifier_student_delex is not None
+
 
 train_rte=Trainer(LOG)
 
@@ -149,6 +165,10 @@ train_rte=Trainer(LOG)
 # since we are looking at the test-partition.
 if(args.load_model_from_disk_and_test):
     LOG.info(f"{current_time:} Found that need to load model and test using it.")
+    train_rte.load_model_and_eval(args,classifier_student_delex, dataset, "test_delex",vectorizer)
+else:
+    train_rte.train(args, classifier_student_delex_ema, classifier_teacher_lex_ema,classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer)
+
     partition_to_evaluate_on="test_delex"
     #if you are loading a teacher model trained on lexicalized data, evaluate on the lexical version of fnc-test
     if(args.type_of_trained_model=="teacher"):
@@ -156,7 +176,7 @@ if(args.load_model_from_disk_and_test):
     train_rte.load_model_and_eval(args,classifier_student_delex, dataset, partition_to_evaluate_on,vectorizer)
     end = time.time()
     LOG.info(f"time taken= {end-start}seconds.")
-    sys.exit(1)
+
 train_rte.train(args, classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer)
 end = time.time()
 LOG.info(f"time taken= {end-start}seconds.")
@@ -193,3 +213,4 @@ def load_vectorizer_and_model():
         if os.path.getsize(args.trained_model_path) > 0:
             classifier_teacher_lex.load_state_dict(
                 torch.load(args.trained_model_path, map_location=torch.device(args.device)))
+

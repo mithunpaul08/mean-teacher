@@ -61,6 +61,7 @@ class Initializer():
 
             weight_decay=5e-5,
             Adagrad_init=0,
+            type_of_trained_model="teacher",
 
             # Runtime options
             expand_filepaths_to_save_dir=True,
@@ -134,7 +135,7 @@ class Initializer():
                             help='type of run. options are: train (which includes val validation also),val, test')
         parser.add_argument('--add_student', default="False", type=self.str2bool,
                             help='for experiments like eg:running teacher only ')
-        parser.add_argument('--consistency_weight', default=2000, type=int,
+        parser.add_argument('--consistency_weight', default=20, type=int,
                             help='for weighted average in the loss function')
         parser.add_argument('--use_semi_supervised', default="False", type=self.str2bool,
                             help='make a certain percentage of gold LABELS as -1')

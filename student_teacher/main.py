@@ -166,20 +166,22 @@ train_rte=Trainer(LOG)
 if(args.load_model_from_disk_and_test):
     LOG.info(f"{current_time:} Found that need to load model and test using it.")
     train_rte.load_model_and_eval(args,classifier_student_delex, dataset, "test_delex",vectorizer)
+
+
+    # # if you are loading a teacher model trained on lexicalized data, evaluate on the lexical version of fnc-test
+    # if (args.type_of_trained_model == "teacher"):
+    #     partition_to_evaluate_on = "test_lex"
+    # train_rte.load_model_and_eval(args, classifier_student_delex, dataset, partition_to_evaluate_on, vectorizer)
+    # train_rte.train(args, classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer)
+    # end = time.time()
+    # LOG.info(f"time taken= {end-start}seconds.")
+
 else:
+    #this is plain training and will do eval on dev and test at the end of training.
     train_rte.train(args, classifier_student_delex_ema, classifier_teacher_lex_ema,classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer)
 
-    partition_to_evaluate_on="test_delex"
-    #if you are loading a teacher model trained on lexicalized data, evaluate on the lexical version of fnc-test
-    if(args.type_of_trained_model=="teacher"):
-        partition_to_evaluate_on = "test_lex"
-    train_rte.load_model_and_eval(args,classifier_student_delex, dataset, partition_to_evaluate_on,vectorizer)
-    end = time.time()
-    LOG.info(f"time taken= {end-start}seconds.")
 
-train_rte.train(args, classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer)
-end = time.time()
-LOG.info(f"time taken= {end-start}seconds.")
+
 
 
 def load_vectorizer_and_model():

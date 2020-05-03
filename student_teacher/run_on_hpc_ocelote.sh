@@ -29,7 +29,7 @@ module load singularity/2/2.6.1
 
 echo $PWD
 date
-cd ~/mean_teacher/student_teacher
+cd ~/mean-teacher/student_teacher
 date
 echo $PWD
 

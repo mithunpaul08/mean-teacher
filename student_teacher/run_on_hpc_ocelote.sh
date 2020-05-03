@@ -8,7 +8,6 @@
 #PBS -W group_list=2000_gw_minfreq
 ### Specify the group name
 #PBS -W group_list=msurdeanu
-
 ### Used if job requires partial node only
 #PBS -l place=pack:shared
 ### CPUtime required in hhh:mm:ss.

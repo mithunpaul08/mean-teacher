@@ -3,7 +3,7 @@
 #PBS -q standard
 #PBS -l select=1:ncpus=28:mem=168gb:pcmem=6gb:ngpus=1
 ### Specify a name for the job
-#PBS -N 1s_1t_random_seed=32
+#PBS -N 1s_1t_random_seed_32
 ### Specify the group name
 #PBS -W group_list=msurdeanu
 ### Used if job requires partial node only

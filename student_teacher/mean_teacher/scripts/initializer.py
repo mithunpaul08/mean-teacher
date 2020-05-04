@@ -41,9 +41,7 @@ class Initializer():
             predictions_teacher_test_file='log_dir/predictions_teacher_test.jsonl',
             predictions_student_test_file="log_dir/predictions_student_test.jsonl",
 
-
-
-            save_dir='model_storage/',
+            save_dir='/xdisk/msurdeanu/mithunpaul/model_storage/',
             vectorizer_file='best_vectorizer.json',
             glove_filepath='data/glove/glove.840B.300d.txt',
             gigaword_file_path='data/gigaword/gigawordDocFreq.sorted.freq.txt',
@@ -57,7 +55,7 @@ class Initializer():
             early_stopping_criteria=5,
             learning_rate=0.005,
             num_epochs=10000,
-            random_seed=676786,
+            random_seed=32,
 
             weight_decay=5e-5,
             Adagrad_init=0,

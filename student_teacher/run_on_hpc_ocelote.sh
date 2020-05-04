@@ -1,15 +1,15 @@
 #!/bin/bash
 # Your job will use 1 node, 28 cores, and 168gb of memory total.
-#PBS -q windfall
+#PBS -q standard
 #PBS -l select=1:ncpus=28:mem=168gb:pcmem=6gb:ngpus=1:os7=True
 ### Specify a name for the job
 #PBS -N job_name
 ### Specify the group name
-#PBS -W group_list=2000_gw_minfreq
+#PBS -W group_list=1s_1t_random_seed=32
 ### Specify the group name
 #PBS -W group_list=msurdeanu
 ### Used if job requires partial node only
-#PBS -l place=pack:exclhost
+#PBS -l place=pack:shared
 ### CPUtime required in hhh:mm:ss.
 ### Leading 0's can be omitted e.g 48:0:0 sets 48 hours
 #PBS -l cput=224:00:00
@@ -22,6 +22,9 @@
 # PBS -m bea
 ### Optional. Specify email address to use for notification
 # PBS -M mithunpaul@email.arizona.edu
+#####module load cuda80/neuralnet/6/6.0
+#####module load cuda80/toolkit/8.0.61
+module load singularity/2/2.6.1
 
 
 #####module load cuda80/neuralnet/6/6.0

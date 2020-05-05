@@ -57,7 +57,7 @@ class Initializer():
             early_stopping_criteria=5,
             learning_rate=0.005,
             num_epochs=10000,
-            random_seed=32,
+            random_seed=8,
 
             weight_decay=5e-5,
             Adagrad_init=0,
@@ -160,6 +160,7 @@ class Initializer():
                             help='when you have a trained teachear model that you want to load and train student using it')
         parser.add_argument('--batch_size', default=32, type=int,
                             help='number of data points per batch. 11919 makes 10 batches of fever training data')
+        parser.add_argument('--random_seed', default=32, type=int,help='random seed for all random functions')
 
 
 

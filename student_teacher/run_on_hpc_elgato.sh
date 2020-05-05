@@ -30,8 +30,10 @@ cd ~/mean_teacher/student_teacher
 date
 echo $PWD
 
+
 pip install numpy scipy pandas nltk tqdm sklearn comet_ml gitpython
-pip install torch torchvision
+conda install numpy ninja pyyaml mkl mkl-include setuptools cmake cffi
+
 
 bash get_glove.sh
 bash get_data_run.sh

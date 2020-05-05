@@ -3,18 +3,16 @@
 #PBS -q standard
 #PBS -l select=1:ncpus=28:mem=168gb:pcmem=6gb:ngpus=1:os7=True
 ### Specify a name for the job
-#PBS -N job_name
-### Specify the group name
-#PBS -W group_list=2000_gw_minfreq
+#PBS -N 1s_3t_random_seed_32
 ### Specify the group name
 #PBS -W group_list=msurdeanu
 ### Used if job requires partial node only
 #PBS -l place=pack:shared
 ### CPUtime required in hhh:mm:ss.
 ### Leading 0's can be omitted e.g 48:0:0 sets 48 hours
-#PBS -l cput=224:00:00
+#PBS -l cput=672:00:00
 ### Walltime is how long your job will run
-#PBS -l walltime=8:00:00
+#PBS -l walltime=24:00:00
 ### Joins standard error and standard out
 #PBS -j oe
 

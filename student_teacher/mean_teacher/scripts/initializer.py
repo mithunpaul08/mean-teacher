@@ -43,7 +43,7 @@ class Initializer():
 
 
 
-            save_dir='/xdisk/msurdeanu/mithunpaul/model_storage/',
+            save_dir='model_storage/',
             vectorizer_file='best_vectorizer.json',
             glove_filepath='data/glove/glove.840B.300d.txt',
             gigaword_file_path='data/gigaword/gigawordDocFreq.sorted.freq.txt',
@@ -161,6 +161,10 @@ class Initializer():
         parser.add_argument('--batch_size', default=32, type=int,
                             help='number of data points per batch. 11919 makes 10 batches of fever training data')
         parser.add_argument('--random_seed', default=32, type=int,help='random seed for all random functions')
+
+        parser.add_argument('--save_dir', default="model_storage'", type=str,
+                            help='location to store the trained models. In server, this path will be different')
+
 
 
 

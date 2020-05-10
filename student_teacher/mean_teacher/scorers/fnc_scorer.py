@@ -1,5 +1,10 @@
 #Adapted from https://github.com/FakeNewsChallenge/fnc-1/blob/master/scorer.py
 #Original credit - @bgalbraith
+from mean_teacher.utils.logger import Logger
+
+logger_client=Logger()
+LOG=logger_client.initialize_logger()
+
 
 LABELS = ['agree', 'disagree', 'discuss', 'unrelated']
 LABELS_RELATED = ['unrelated','related']
@@ -42,14 +47,15 @@ def print_confusion_matrix(cm):
         lines.append("|{:^11}|{:^11}|{:^11}|{:^11}|{:^11}|".format(LABELS[i],
                                                                    *row))
         lines.append("-"*line_len)
-    print('\n'.join(lines))
+    #print('\n'.join(lines))
+    LOG.info('\n'.join(lines))
 
 
 def report_score(actual,predicted):
     score,cm = score_submission(actual,predicted)
     best_score, _ = score_submission(actual,actual)
 
-    #print_confusion_matrix(cm)
+    print_confusion_matrix(cm)
     #print("Score: " +str(score) + " out of " + str(best_score) + "\t("+str(score*100/best_score) + "%)")
     return score*100/best_score
 

@@ -650,11 +650,11 @@ class Trainer():
 
                     consistency_loss_delexstudent_lexteacher = consistency_criterion(y_pred_lex, y_pred_delex)
                     consistency_loss_delexstudent_lexTeacherEma = consistency_criterion(y_pred_lex_ema, y_pred_delex)
-                    consistency_loss_delexstudent_lexStudentEma = consistency_criterion(y_pred_delex_ema, y_pred_delex)
+                    consistency_loss_delexstudent_delexStudentEma = consistency_criterion(y_pred_delex_ema, y_pred_delex)
 
                     consistency_loss=(0.5)*consistency_loss_delexstudent_lexteacher+\
                                        (0.5)*consistency_loss_delexstudent_lexTeacherEma+\
-                                         (3)*consistency_loss_delexstudent_lexStudentEma
+                                         (5)*consistency_loss_delexstudent_delexStudentEma
                     consistency_loss_value = consistency_loss.item()
                     running_consistency_loss += (consistency_loss_value - running_consistency_loss) / (batch_index + 1)
 

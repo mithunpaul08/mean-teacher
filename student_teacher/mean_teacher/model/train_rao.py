@@ -710,7 +710,7 @@ class Trainer():
                         y_pred_labels_delex_sf,batch_dict_delex['y_target'])
                     total_right_predictions_student_delex = total_right_predictions_student_delex + count_of_right_predictions_student_delex_per_batch
                     running_acc_delex += (acc_t_delex - running_acc_delex) / (batch_index + 1)
-
+                    #comet_value_updater.log_confusion_matrix(batch_dict_delex['y_target'],student_predictions_by_label_class)
 
 
                     # compute the accuracy for student-delex-ema
@@ -889,6 +889,7 @@ class Trainer():
                 # Evaluate on dev patition using the intended trained model
 
                 #evaluate using student-delex
+
                 dataset.set_split('val_delex')
                 classifier_student_delex.eval()
                 running_acc_val_student, running_loss_val_student, microf1_student_dev_without_unrelated_class, \
@@ -957,12 +958,14 @@ class Trainer():
                 predictions_by_teacher_ema_model_on_test_partition = []
 
                 classifier_student_delex.eval()
+                self._LOG.info("classifier_student_delex model on test_delex")
                 running_acc_test_student, running_loss_test_student,microf1_student_test_without_unrelated_class,\
                 microf1_student_test_with_only_unrelated_class, fnc_score_student_test= self.eval(classifier_student_delex, args_in,
                 dataset, epoch_index,vectorizer
                 ,predictions_by_student_model_on_test_partition,"student_delex_on_test")
 
                 dataset.set_split('test_delex')
+                self._LOG.info("classifier_student_delex_ema model on test_delex")
                 classifier_student_delex_ema.eval()
                 running_acc_test_student_ema, running_loss_test_student_ema, microf1_student_ema_test_without_unrelated_class, \
                 microf1_student_ema_test_with_only_unrelated_class, fnc_score_student_ema_test = self.eval(
@@ -972,12 +975,14 @@ class Trainer():
 
                 dataset.set_split('test_lex')
                 classifier_teacher_lex.eval()
+                self._LOG.info("classifier_teacher_lex model on test_lex")
                 running_acc_test_teacher, running_loss_test_teacher,microf1_teacher_test_without_unrelated_class, \
                 microf1_teacher_test_with_only_unrelated_class, fnc_score_teacher_test = self.eval(classifier_teacher_lex, args_in,
                                                                                 dataset, epoch_index, vectorizer,
                                                                                                    predictions_by_teacher_model_on_test_partition,"teacher_lex_on_test")
 
                 dataset.set_split('test_lex')
+                self._LOG.info("microf1_teacher_test_ema_without_unrelated_class model on test_lex")
                 running_acc_test_teacher_ema, running_loss_test_teacher_ema, microf1_teacher_test_ema_without_unrelated_class, \
                 microf1_teacher_test_ema_with_only_unrelated_class, fnc_score_teacher_test_ema = self.eval(
                     classifier_teacher_lex_ema, args_in,

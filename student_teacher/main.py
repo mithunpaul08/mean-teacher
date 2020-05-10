@@ -24,14 +24,14 @@ sha = repo.head.object.hexsha
 start=time.time()
 def initialize_comet(args):
     # for drawing graphs on comet:
-    comet_value_updater=None
+    comet_Expt_object=None
     if(args.run_type=="train"):
         if(args.create_new_comet_graph==True):
-            comet_value_updater = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", project_name="rte-decomp-attention")
+            comet_Expt_object = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", project_name="rte-decomp-attention")
         else:
-            comet_value_updater = ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", previous_experiment="8ee6669d2b854eaf834f8a56eaa9f235")
+            comet_Expt_object = ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", previous_experiment="8ee6669d2b854eaf834f8a56eaa9f235")
 
-    return comet_value_updater
+    return comet_Expt_object
 
 initializer=Initializer()
 initializer.set_default_parameters()

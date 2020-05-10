@@ -12,7 +12,7 @@
 ### Leading 0's can be omitted e.g 48:0:0 sets 48 hours
 #PBS -l cput=336:00:00
 ### Walltime is how long your job will run
-#PBS -l walltime=48:00:00
+#PBS -l walltime=24:00:00
 ### Joins standard error and standard out
 #PBS -j oe
 

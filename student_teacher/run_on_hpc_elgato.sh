@@ -32,7 +32,8 @@ echo $PWD
 
 
 pip install numpy scipy pandas nltk tqdm sklearn comet_ml gitpython
-conda install numpy ninja pyyaml mkl mkl-include setuptools cmake cffi
+conda install ninja pyyaml mkl mkl-include setuptools cmake cffi
+pip install torch==1.5.0+cpu torchvision==0.6.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
 
 
 bash get_glove.sh

@@ -16,7 +16,11 @@
 ### Joins standard error and standard out
 #PBS -j oe
 
-
+module load cuda10
+module load python/3.8
+mkdir my_virtual_env
+python3 -m venv my_virtual_env/
+source my_virtual_env/bin/activate
 #####module load cuda80/neuralnet/6/6.0
 #####module load cuda80/toolkit/8.0.61
 module load singularity/3.2.1

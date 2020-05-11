@@ -1,7 +1,10 @@
 #!/bin/bash
 # Your job will use 1 node, 28 cores, and 168gb of memory total.
 #PBS -q standard
-#PBS -l select=1:ncpus=16:mem=62gb:pcmem=4gb
+### with gpu:
+# PBS -l select=1:ncpus=16:mem=250gb:ngpus=1:pcmem=16gb
+###comment this/use this when without gpu
+####PBS -l select=1:ncpus=16:mem=62gb:pcmem=4gb
 ### Specify a name for the job
 #PBS -N elgato_
 ### Specify the group name
@@ -30,8 +33,7 @@ echo $PWD
 
 pip install numpy scipy pandas nltk tqdm sklearn comet_ml gitpython
 conda install ninja pyyaml mkl mkl-include setuptools cmake cffi
-pip install torch==1.5.0+cpu torchvision==0.6.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
-
+pip install torch torchvision
 
 bash get_glove.sh
 bash get_data_run.sh

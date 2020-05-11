@@ -1,7 +1,7 @@
 #!/bin/bash
 # Your job will use 1 node, 28 cores, and 168gb of memory total.
 #PBS -q standard
-#PBS -l select=1:ncpus=28:mem=168gb:pcmem=6gb:ngpus=1
+#PBS -l select=1:ncpus=28:mem=168gb:pcmem=6gb:ngpus=1:os7=True
 ### Specify a name for the job
 #PBS -N 3t_0.5_0.5_7_weights
 ### Specify the group name

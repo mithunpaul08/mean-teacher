@@ -14,7 +14,7 @@
 ### Walltime is how long your job will run
 #PBS -l walltime=24:00:00
 ### Joins standard error and standard out
-#PBS -j o
+#PBS -j oe
 
 ### Optional. Request email when job begins and ends
 # PBS -m bea

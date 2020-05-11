@@ -1,10 +1,7 @@
 #!/bin/bash
 # Your job will use 1 node, 28 cores, and 168gb of memory total.
 #PBS -q standard
-### with gpu:
-# PBS -l select=1:ncpus=16:mem=250gb:ngpus=1:pcmem=16gb
-###comment this/use this when without gpu
-####PBS -l select=1:ncpus=16:mem=62gb:pcmem=4gb
+#PBS -l select=1:ncpus=16:mem=250gb:ngpus=1:pcmem=16gb
 ### Specify a name for the job
 #PBS -N elgato_
 ### Specify the group name

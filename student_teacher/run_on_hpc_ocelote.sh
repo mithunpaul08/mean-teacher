@@ -20,10 +20,12 @@
 # PBS -m bea
 ### Optional. Specify email address to use for notification
 # PBS -M mithunpaul@email.arizona.edu
-#module load cuda80/neuralnet/6/6.0
-#module load cuda80/toolkit/8.0.61
 
-module load singularity/2/2.6.1
+module load cuda10
+module load python/3.8
+mkdir my_virtual_env
+python3 -m venv my_virtual_env/
+source my_virtual_env/bin/activate
 
 echo $PWD
 date

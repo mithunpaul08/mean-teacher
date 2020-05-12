@@ -3,7 +3,7 @@
 #PBS -q standard
 #PBS -l select=1:ncpus=28:mem=168gb:pcmem=6gb:ngpus=1:os7=True
 ### Specify a name for the job
-#PBS -N 3t_0.5_0.5_7_weights
+#PBS -N 3t
 ### Specify the group name
 #PBS -W group_list=msurdeanu
 ### Used if job requires partial node only
@@ -20,9 +20,9 @@
 # PBS -m bea
 ### Optional. Specify email address to use for notification
 # PBS -M mithunpaul@email.arizona.edu
-#####module load cuda80/neuralnet/6/6.0
-#####module load cuda80/toolkit/8.0.61
-module load cuda10
+#module load cuda80/neuralnet/6/6.0
+#module load cuda80/toolkit/8.0.61
+
 module load singularity/2/2.6.1
 
 echo $PWD

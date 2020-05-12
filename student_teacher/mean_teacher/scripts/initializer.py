@@ -6,8 +6,12 @@ from mean_teacher.utils.utils_rao import set_seed_everywhere,make_embedding_matr
 from mean_teacher.utils.utils_rao import handle_dirs
 from mean_teacher.modules.rao_datasets import RTEDataset
 import torch
+from mean_teacher.utils.logger import Logger
 
 logs_dir='log_dir/',
+logger_client=Logger()
+LOG=logger_client.initialize_logger()
+
 
 class Initializer():
     def __init__(self):
@@ -121,6 +125,7 @@ class Initializer():
         if not torch.cuda.is_available():
             args.cuda = False
         print("Using CUDA: {}".format(args.cuda))
+        LOG.info("cuda available:{torch.cuda.is_available()}")
         args.device = torch.device("cuda" if args.cuda else "cpu")
 
 

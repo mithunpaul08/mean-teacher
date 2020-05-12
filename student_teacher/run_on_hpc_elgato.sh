@@ -1,7 +1,6 @@
 #!/bin/bash
-# Your job will use 1 node, 28 cores, and 168gb of memory total.
 #PBS -q standard
-#PBS -l select=1:ncpus=16:mem=250gb:ngpus=1:pcmem=16gb
+#PBS -l select=1:ncpus=16:mem=62gb:pcmem=4gb
 ### Specify a name for the job
 #PBS -N elgato_
 ### Specify the group name
@@ -16,12 +15,9 @@
 ### Joins standard error and standard out
 #PBS -j oe
 
-module load python/3.8
-mkdir my_virtual_env
-python3 -m venv my_virtual_env/
-source my_virtual_env/bin/activate
+
 module load singularity/3.2.1
-module load cuda10
+
 
 echo $PWD
 date
@@ -36,3 +32,4 @@ pip install torch torchvision
 
 bash get_glove.sh
 bash get_data_run.sh
+

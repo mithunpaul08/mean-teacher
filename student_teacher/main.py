@@ -48,7 +48,6 @@ LOG=logger_client.initialize_logger()
 LOG.info(f"starting the run at {current_time}.")
 
 
-
 comet_value_updater=initialize_comet(args)
 import torch
 
@@ -78,6 +77,10 @@ delex_dev_input_file, delex_test_input_file,gigaword_full_path=initializer.get_f
 
 LOG.info(f"{current_time:}Going to read data")
 
+avail=False
+if torch.cuda.is_available():
+    avail=True
+LOG.info(f"cuda available:{avail}")
 
 #create a vocabulary which is a union of training data and  top n freq words from gigaword. as per mihai this enhances/is usefull to reduce
 #the number of uNK words in dev/test partitions- especially when either of those tend to be cross-domain. though i still think its cheating- mithun

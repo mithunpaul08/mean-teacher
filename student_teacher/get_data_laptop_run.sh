@@ -1,7 +1,7 @@
 #!/bin/bash
 
-./get_glove.sh
-./get_gigaword.sh
+./get_glove_small.sh
+#./get_gigaword.sh
 #pick according to which kind of dataset you want to use for  train, dev, test on. Eg: train on fever, test on fnc
 
 #######train

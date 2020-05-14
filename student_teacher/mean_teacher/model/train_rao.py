@@ -519,6 +519,22 @@ class Trainer():
 
         train_state_in = self.make_train_state(args_in)
 
+        # empty out the predictions files once before all epochs . writing of predictions to disk will happen at early stopping
+        repo = git.Repo(search_parent_directories=True)
+        sha = repo.head.object.hexsha
+        predictions_teacher_dev_file_full_path = (args_in.predictions_teacher_dev_file+ '_' + sha + '.jsonl')
+
+
+        with open(predictions_teacher_dev_file_full_path, 'w') as outfile:
+            outfile.write("")
+        with open(args_in.predictions_student_dev_file, 'w') as outfile:
+            outfile.write("")
+        with open(args_in.predictions_teacher_test_file, 'w') as outfile:
+            outfile.write("")
+        with open(args_in.predictions_student_test_file, 'w') as outfile:
+            outfile.write("")
+
+
         try:
             # Iterate over training dataset
             for epoch_index in range(args_in.num_epochs):
@@ -650,11 +666,11 @@ class Trainer():
 
                     consistency_loss_delexstudent_lexteacher = consistency_criterion(y_pred_lex, y_pred_delex)
                     consistency_loss_delexstudent_lexTeacherEma = consistency_criterion(y_pred_lex_ema, y_pred_delex)
-                    consistency_loss_delexstudent_lexStudentEma = consistency_criterion(y_pred_delex_ema, y_pred_delex)
+                    consistency_loss_delexstudent_delexStudentEma = consistency_criterion(y_pred_delex_ema, y_pred_delex)
 
-                    consistency_loss=consistency_loss_delexstudent_lexteacher+\
-                                     consistency_loss_delexstudent_lexTeacherEma+\
-                                     consistency_loss_delexstudent_lexStudentEma
+                    consistency_loss=(5)*consistency_loss_delexstudent_lexteacher+\
+                                       (0.5)*consistency_loss_delexstudent_lexTeacherEma+\
+                                         (0.5)*consistency_loss_delexstudent_delexStudentEma
                     consistency_loss_value = consistency_loss.item()
                     running_consistency_loss += (consistency_loss_value - running_consistency_loss) / (batch_index + 1)
 
@@ -710,7 +726,7 @@ class Trainer():
                         y_pred_labels_delex_sf,batch_dict_delex['y_target'])
                     total_right_predictions_student_delex = total_right_predictions_student_delex + count_of_right_predictions_student_delex_per_batch
                     running_acc_delex += (acc_t_delex - running_acc_delex) / (batch_index + 1)
-
+                    #comet_value_updater.log_confusion_matrix(batch_dict_delex['y_target'],student_predictions_by_label_class)
 
 
                     # compute the accuracy for student-delex-ema
@@ -889,6 +905,7 @@ class Trainer():
                 # Evaluate on dev patition using the intended trained model
 
                 #evaluate using student-delex
+
                 dataset.set_split('val_delex')
                 classifier_student_delex.eval()
                 running_acc_val_student, running_loss_val_student, microf1_student_dev_without_unrelated_class, \
@@ -957,12 +974,14 @@ class Trainer():
                 predictions_by_teacher_ema_model_on_test_partition = []
 
                 classifier_student_delex.eval()
+                self._LOG.info("classifier_student_delex model on test_delex")
                 running_acc_test_student, running_loss_test_student,microf1_student_test_without_unrelated_class,\
                 microf1_student_test_with_only_unrelated_class, fnc_score_student_test= self.eval(classifier_student_delex, args_in,
                 dataset, epoch_index,vectorizer
                 ,predictions_by_student_model_on_test_partition,"student_delex_on_test")
 
                 dataset.set_split('test_delex')
+                self._LOG.info("classifier_student_delex_ema model on test_delex")
                 classifier_student_delex_ema.eval()
                 running_acc_test_student_ema, running_loss_test_student_ema, microf1_student_ema_test_without_unrelated_class, \
                 microf1_student_ema_test_with_only_unrelated_class, fnc_score_student_ema_test = self.eval(
@@ -972,12 +991,14 @@ class Trainer():
 
                 dataset.set_split('test_lex')
                 classifier_teacher_lex.eval()
+                self._LOG.info("classifier_teacher_lex model on test_lex")
                 running_acc_test_teacher, running_loss_test_teacher,microf1_teacher_test_without_unrelated_class, \
                 microf1_teacher_test_with_only_unrelated_class, fnc_score_teacher_test = self.eval(classifier_teacher_lex, args_in,
                                                                                 dataset, epoch_index, vectorizer,
                                                                                                    predictions_by_teacher_model_on_test_partition,"teacher_lex_on_test")
 
                 dataset.set_split('test_lex')
+                self._LOG.info("microf1_teacher_test_ema_without_unrelated_class model on test_lex")
                 running_acc_test_teacher_ema, running_loss_test_teacher_ema, microf1_teacher_test_ema_without_unrelated_class, \
                 microf1_teacher_test_ema_with_only_unrelated_class, fnc_score_teacher_test_ema = self.eval(
                     classifier_teacher_lex_ema, args_in,
@@ -1012,33 +1033,10 @@ class Trainer():
                 args_in.database_to_test_with = "dummy"
                 dataset.set_split('val_lex')
 
-                # empty out the predictions file and write into it at the end of every epoch
-                #note: this is for debug purposes on april 12th. ideally the emptying out shoudl happen before all epochs and
-                #writing out should happen only at early stopping
-                with open(args_in.predictions_teacher_dev_file, 'w') as outfile:
-                    outfile.write("")
-                with open(args_in.predictions_student_dev_file, 'w') as outfile:
-                    outfile.write("")
-                with open(args_in.predictions_teacher_test_file, 'w') as outfile:
-                    outfile.write("")
-                with open(args_in.predictions_student_test_file, 'w') as outfile:
-                    outfile.write("")
-                assert len(predictions_by_student_model_on_dev) > 0
-                assert len(predictions_by_teacher_model_on_dev) > 0
-                assert len(predictions_by_student_model_on_test_partition) > 0
-                assert len(predictions_by_teacher_model_on_test_partition) > 0
-
-                self.write_dict_as_json(args_in.predictions_student_dev_file, predictions_by_student_model_on_dev)
-                self.write_dict_as_json(args_in.predictions_teacher_dev_file, predictions_by_teacher_model_on_dev)
-                self.write_dict_as_json(args_in.predictions_student_test_file,
-                                        predictions_by_student_model_on_test_partition)
-                self.write_dict_as_json(args_in.predictions_teacher_test_file,
-                                        predictions_by_teacher_model_on_test_partition)
-
                 if train_state_in['stop_early']:
                     ## whenever you hit early stopping just store all the data and predictions at that point to disk for debug purposes
 
-                    with open(args_in.predictions_teacher_dev_file, 'w') as outfile:
+                    with open(predictions_teacher_dev_file_full_path, 'w') as outfile:
                         outfile.write("")
                     with open(args_in.predictions_student_dev_file, 'w') as outfile:
                         outfile.write("")
@@ -1053,7 +1051,7 @@ class Trainer():
                     assert len(predictions_by_teacher_model_on_test_partition) > 0
 
                     self.write_dict_as_json(args_in.predictions_student_dev_file, predictions_by_student_model_on_dev)
-                    self.write_dict_as_json(args_in.predictions_teacher_dev_file, predictions_by_teacher_model_on_dev)
+                    self.write_dict_as_json(predictions_teacher_dev_file_full_path, predictions_by_teacher_model_on_dev)
                     self.write_dict_as_json(args_in.predictions_student_test_file, predictions_by_student_model_on_test_partition)
                     self.write_dict_as_json(args_in.predictions_teacher_test_file, predictions_by_teacher_model_on_test_partition)
 

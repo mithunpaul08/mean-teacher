@@ -1,6 +1,8 @@
 #Adapted from https://github.com/FakeNewsChallenge/fnc-1/blob/master/scorer.py
 #Original credit - @bgalbraith
 from mean_teacher.utils.logger import Logger
+logger_client=Logger()
+LOG=logger_client.initialize_logger()
 
 LABELS = ['agree', 'disagree', 'discuss', 'unrelated']
 LABELS_RELATED = ['unrelated','related']

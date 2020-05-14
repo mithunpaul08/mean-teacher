@@ -45,9 +45,7 @@ class Initializer():
             predictions_teacher_test_file='log_dir/predictions_teacher_test.jsonl',
             predictions_student_test_file="log_dir/predictions_student_test.jsonl",
 
-
-
-            save_dir='model_storage/',
+            save_dir='/xdisk/msurdeanu/mithunpaul/model_storage/',
             vectorizer_file='best_vectorizer.json',
             glove_filepath='data/glove/glove.840B.300d.txt',
             gigaword_file_path='data/gigaword/gigawordDocFreq.sorted.freq.txt',
@@ -83,7 +81,7 @@ class Initializer():
             arch='decomp_attention',
             pretrained="false",
             update_pretrained_wordemb=True,
-            cuda=True,
+
             workers=0,
             ema_decay=0.99,
             database_to_test_with='fever',
@@ -117,7 +115,7 @@ class Initializer():
 
 
         # Set seed for reproducibility
-        set_seed_everywhere(args.random_seed, args.cuda)
+        set_seed_everywhere(args.random_seed)
         handle_dirs(args.save_dir)
         self._args=args
 

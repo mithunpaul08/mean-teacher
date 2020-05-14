@@ -24,14 +24,14 @@ sha = repo.head.object.hexsha
 start=time.time()
 def initialize_comet(args):
     # for drawing graphs on comet:
-    comet_value_updater=None
+    comet_Expt_object=None
     if(args.run_type=="train"):
         if(args.create_new_comet_graph==True):
-            comet_value_updater = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", project_name="rte-decomp-attention")
+            comet_Expt_object = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", project_name="rte-decomp-attention")
         else:
-            comet_value_updater = ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", previous_experiment="8ee6669d2b854eaf834f8a56eaa9f235")
+            comet_Expt_object = ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", previous_experiment="8ee6669d2b854eaf834f8a56eaa9f235")
 
-    return comet_value_updater
+    return comet_Expt_object
 
 initializer=Initializer()
 initializer.set_default_parameters()
@@ -46,7 +46,6 @@ logger_client=Logger()
 LOG=logger_client.initialize_logger()
 
 LOG.info(f"starting the run at {current_time}.")
-
 
 
 comet_value_updater=initialize_comet(args)
@@ -78,6 +77,10 @@ delex_dev_input_file, delex_test_input_file,gigaword_full_path=initializer.get_f
 
 LOG.info(f"{current_time:}Going to read data")
 
+avail=False
+if torch.cuda.is_available():
+    avail=True
+LOG.info(f"cuda available:{avail}")
 
 #create a vocabulary which is a union of training data and  top n freq words from gigaword. as per mihai this enhances/is usefull to reduce
 #the number of uNK words in dev/test partitions- especially when either of those tend to be cross-domain. though i still think its cheating- mithun
@@ -139,9 +142,25 @@ else:
                                           , word_vocab_embed=embeddings, word_vocab_size=num_features,
                                           wordemb_size_in=embedding_size)
 
-assert classifier_teacher_lex is not None
+
+classifier_student_delex_ema = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
+                                            , word_vocab_embed=embeddings, word_vocab_size=num_features,
+                                            wordemb_size_in=embedding_size, ema=True)
+
+classifier_teacher_lex_ema = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
+                                            , word_vocab_embed=embeddings, word_vocab_size=num_features,
+                                            wordemb_size_in=embedding_size, ema=True)
+
+
 classifier_student_delex = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
                                         , word_vocab_embed=embeddings, word_vocab_size=num_features, wordemb_size_in=embedding_size)
+
+
+
+assert classifier_student_delex_ema is not None
+assert classifier_teacher_lex is not None
+assert classifier_student_delex is not None
+
 
 train_rte=Trainer(LOG)
 
@@ -149,17 +168,23 @@ train_rte=Trainer(LOG)
 # since we are looking at the test-partition.
 if(args.load_model_from_disk_and_test):
     LOG.info(f"{current_time:} Found that need to load model and test using it.")
-    partition_to_evaluate_on="test_delex"
-    #if you are loading a teacher model trained on lexicalized data, evaluate on the lexical version of fnc-test
-    if(args.type_of_trained_model=="teacher"):
-        partition_to_evaluate_on = "test_lex"
-    train_rte.load_model_and_eval(args,classifier_student_delex, dataset, partition_to_evaluate_on,vectorizer)
-    end = time.time()
-    LOG.info(f"time taken= {end-start}seconds.")
-    sys.exit(1)
-train_rte.train(args, classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer)
-end = time.time()
-LOG.info(f"time taken= {end-start}seconds.")
+    train_rte.load_model_and_eval(args,classifier_student_delex, dataset, "test_delex",vectorizer)
+
+
+    # # if you are loading a teacher model trained on lexicalized data, evaluate on the lexical version of fnc-test
+    # if (args.type_of_trained_model == "teacher"):
+    #     partition_to_evaluate_on = "test_lex"
+    # train_rte.load_model_and_eval(args, classifier_student_delex, dataset, partition_to_evaluate_on, vectorizer)
+    # train_rte.train(args, classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer)
+    # end = time.time()
+    # LOG.info(f"time taken= {end-start}seconds.")
+
+else:
+    #this is plain training and will do eval on dev and test at the end of training.
+    train_rte.train(args, classifier_student_delex_ema, classifier_teacher_lex_ema,classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer)
+
+
+
 
 
 def load_vectorizer_and_model():
@@ -193,3 +218,4 @@ def load_vectorizer_and_model():
         if os.path.getsize(args.trained_model_path) > 0:
             classifier_teacher_lex.load_state_dict(
                 torch.load(args.trained_model_path, map_location=torch.device(args.device)))
+

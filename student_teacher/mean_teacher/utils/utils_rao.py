@@ -198,7 +198,8 @@ def make_embedding_matrix(glove_filepath, words):
 def initialize_optimizers(list_models, args):
 
     '''
-        The code for decomposable attention we use , utilizes two different optimizers
+        The code for decomposable attention we use , internally utilizes two different optimizers
+        In this function we combine the parameters of all the models and create a common optimizer (or 2 of them in this case) for them
     :param model:
     :param args:
     :return:
@@ -262,7 +263,7 @@ def create_model(logger_object, args_in,  num_classes_in, word_vocab_embed, word
     args_in.device=None
     if(args_in.use_gpu) and torch.cuda.is_available():
         logger_object.info("found that GPU is available")
-        #torch.cuda.set_device(args_in.which_gpu_to_use)
+        torch.cuda.set_device(args_in.which_gpu_to_use)
         args_in.device = torch.device('cuda')
     else:
         args_in.device = torch.device('cpu')

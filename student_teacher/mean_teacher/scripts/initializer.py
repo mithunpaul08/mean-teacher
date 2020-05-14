@@ -6,8 +6,12 @@ from mean_teacher.utils.utils_rao import set_seed_everywhere,make_embedding_matr
 from mean_teacher.utils.utils_rao import handle_dirs
 from mean_teacher.modules.rao_datasets import RTEDataset
 import torch
+from mean_teacher.utils.logger import Logger
 
 logs_dir='log_dir/',
+logger_client=Logger()
+LOG=logger_client.initialize_logger()
+
 
 class Initializer():
     def __init__(self):
@@ -36,7 +40,7 @@ class Initializer():
 
             data_dir='data/rte',
             logs_dir='log_dir/',
-            predictions_teacher_dev_file='log_dir/predictions_teacher_dev.jsonl',
+            predictions_teacher_dev_file='log_dir/predictions_teacher_dev',
             predictions_student_dev_file="log_dir/predictions_student_dev.jsonl",
             predictions_teacher_test_file='log_dir/predictions_teacher_test.jsonl',
             predictions_student_test_file="log_dir/predictions_student_test.jsonl",
@@ -55,10 +59,11 @@ class Initializer():
             early_stopping_criteria=5,
             learning_rate=0.005,
             num_epochs=10000,
-            random_seed=579854,
+            random_seed=254,
 
             weight_decay=5e-5,
             Adagrad_init=0,
+            type_of_trained_model="teacher",
 
             # Runtime options
             expand_filepaths_to_save_dir=True,
@@ -115,9 +120,11 @@ class Initializer():
         self._args=args
 
         # Check CUDA
-        if  torch.cuda.is_available():
-            print("torch.cuda is available")
-        args.device = torch.device("cuda" if args.use_gpu else "cpu")
+        if not torch.cuda.is_available():
+            args.cuda = False
+        print("Using CUDA: {}".format(args.cuda))
+        LOG.info(f"from initializer cuda available:{torch.cuda.is_available()}")
+        args.device = torch.device("cuda" if args.cuda else "cpu")
 
 
         return args
@@ -131,7 +138,7 @@ class Initializer():
                             help='type of run. options are: train (which includes val validation also),val, test')
         parser.add_argument('--add_student', default="False", type=self.str2bool,
                             help='for experiments like eg:running teacher only ')
-        parser.add_argument('--consistency_weight', default=1, type=int,
+        parser.add_argument('--consistency_weight', default=2.5, type=float,
                             help='for weighted average in the loss function')
         parser.add_argument('--use_semi_supervised', default="False", type=self.str2bool,
                             help='make a certain percentage of gold LABELS as -1')
@@ -156,6 +163,11 @@ class Initializer():
                             help='when you have a trained teachear model that you want to load and train student using it')
         parser.add_argument('--batch_size', default=32, type=int,
                             help='number of data points per batch. 11919 makes 10 batches of fever training data')
+        parser.add_argument('--random_seed', default=32, type=int,help='random seed for all random functions')
+
+        parser.add_argument('--save_dir', default="model_storage'", type=str,
+                            help='location to store the trained models. In server, this path will be different')
+
 
 
 

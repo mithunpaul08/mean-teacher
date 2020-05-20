@@ -45,7 +45,7 @@ class Initializer():
             predictions_teacher_test_file='log_dir/predictions_teacher_test.jsonl',
             predictions_student_test_file="log_dir/predictions_student_test.jsonl",
 
-            save_dir='/xdisk/msurdeanu/mithunpaul/model_storage/',
+            #save_dir='/xdisk/msurdeanu/mithunpaul/model_storage/',
             vectorizer_file='best_vectorizer.json',
             glove_filepath='data/glove/glove.840B.300d.txt',
             gigaword_file_path='data/gigaword/gigawordDocFreq.sorted.freq.txt',
@@ -101,6 +101,14 @@ class Initializer():
 
 
         )
+
+        self._args = args
+
+
+
+    def set_default_parameters2(self,args):
+
+
         args.use_glove = True
         if args.expand_filepaths_to_save_dir:
             args.vectorizer_file = os.path.join(args.save_dir,

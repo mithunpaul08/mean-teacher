@@ -15,6 +15,18 @@ import numpy as np
 import sys
 import git
 
+
+from torch.utils.data import DataLoader
+from sentence_transformers import models, losses
+from sentence_transformers import SentencesDataset, LoggingHandler, SentenceTransformer
+from sentence_transformers.evaluation import LabelAccuracyEvaluator
+from sentence_transformers.readers import *
+import logging
+from datetime import datetime
+import sys
+from sentence_transformers.readers import NLIDataReader
+import os
+
 repo = git.Repo(search_parent_directories=True)
 sha = repo.head.object.hexsha
 
@@ -27,15 +39,18 @@ def initialize_comet(args):
     comet_Expt_object=None
     if(args.run_type=="train"):
         if(args.create_new_comet_graph==True):
-            comet_Expt_object = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", project_name="rte-decomp-attention")
+            comet_Expt_object = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", project_name="rte-decomp-attention",disabled=True)
         else:
-            comet_Expt_object = ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", previous_experiment="8ee6669d2b854eaf834f8a56eaa9f235")
+            comet_Expt_object = ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", previous_experiment="8ee6669d2b854eaf834f8a56eaa9f235",disabled=True)
 
     return comet_Expt_object
 
 initializer=Initializer()
 initializer.set_default_parameters()
 args = initializer.parse_commandline_args()
+args=initializer.set_default_parameters2(args)
+
+
 
 if(args.load_model_from_disk_and_test):
     args.lex_test='fnc/test/fnc_test_lex.jsonl'
@@ -129,18 +144,25 @@ else:
 num_features=len(vectorizer.claim_ev_vocab)
 
 
+#You can specify any huggingface/transformers pre-trained model here, for example, bert-base-uncased, roberta-base, xlm-roberta-base
+model_name = 'bert-base-uncased'
+# Read the dataset
+batch_size = 32
+abs=os.path.abspath(os.path.dirname(__file__))
+os.chdir(abs)
+nli_reader_fever = NLIDataReader('data/rte/fever/allnli')
+nli_reader_fnc = NLIDataReader('data/rte/fnc/allnli')
+train_num_labels = nli_reader_fever.get_num_labels()
+model_save_path = 'output/training_nli_'+model_name.replace("/", "-")+'-'+datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+
 classifier_teacher_lex=None
-
-
-
 if(args.use_ema):
     classifier_teacher_lex = create_model_bert(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
                                       , word_vocab_embed=embeddings, word_vocab_size=num_features, wordemb_size_in=embedding_size,ema=True)
 else:
 
-    classifier_teacher_lex = create_model_bert(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
-                                          , word_vocab_embed=embeddings, word_vocab_size=num_features,
-                                          wordemb_size_in=embedding_size)
+    classifier_teacher_lex = create_model_bert()
 
 
 # classifier_student_delex_ema = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
@@ -152,14 +174,22 @@ else:
 #                                             wordemb_size_in=embedding_size, ema=True)
 
 
-classifier_student_delex = create_model_bert(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
-                                        , word_vocab_embed=embeddings, word_vocab_size=num_features, wordemb_size_in=embedding_size)
+# classifier_student_delex = create_model_bert(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
+#                                         , word_vocab_embed=embeddings, word_vocab_size=num_features, wordemb_size_in=embedding_size)
 
 
 
-assert classifier_student_delex_ema is not None
+#assert classifier_student_delex_ema is not None
 assert classifier_teacher_lex is not None
-assert classifier_student_delex is not None
+#assert classifier_student_delex is not None
+
+
+# Convert the dataset to a DataLoader ready for training
+logging.error("Read fever train dataset")
+
+train_data = SentencesDataset(nli_reader_fever.get_examples('train.gz'), model=classifier_teacher_lex)
+train_dataloader = DataLoader(train_data, shuffle=True, batch_size=batch_size)
+train_loss = losses.SoftmaxLoss(model=classifier_teacher_lex, sentence_embedding_dimension=classifier_teacher_lex.get_sentence_embedding_dimension(), num_labels=train_num_labels)
 
 
 train_rte=Trainer(LOG)
@@ -168,20 +198,15 @@ train_rte=Trainer(LOG)
 # since we are looking at the test-partition.
 if(args.load_model_from_disk_and_test):
     LOG.info(f"{current_time:} Found that need to load model and test using it.")
-    train_rte.load_model_and_eval(args,classifier_student_delex, dataset, "test_delex",vectorizer)
-
-
-    # # if you are loading a teacher model trained on lexicalized data, evaluate on the lexical version of fnc-test
-    # if (args.type_of_trained_model == "teacher"):
-    #     partition_to_evaluate_on = "test_lex"
-    # train_rte.load_model_and_eval(args, classifier_student_delex, dataset, partition_to_evaluate_on, vectorizer)
-    # train_rte.train(args, classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer)
-    # end = time.time()
-    # LOG.info(f"time taken= {end-start}seconds.")
+    #train_rte.load_model_and_eval(args,classifier_student_delex, dataset, "test_delex",vectorizer)
 
 else:
     #this is plain training and will do eval on dev and test at the end of training.
-    train_rte.train(args, classifier_student_delex_ema, classifier_teacher_lex_ema,classifier_teacher_lex, classifier_student_delex, dataset, comet_value_updater, vectorizer)
+    #1 teacher-1 student
+    train_rte.train_1teacher(args, classifier_teacher_lex, dataset, comet_value_updater, vectorizer,train_objectives=[(train_dataloader, train_loss)])
+    #3teacher -1 student
+    #train_rte.train(args, classifier_student_delex_ema, classifier_teacher_lex_ema, classifier_teacher_lex,
+     #               classifier_student_delex, dataset, comet_value_updater, vectorizer)
 
 
 

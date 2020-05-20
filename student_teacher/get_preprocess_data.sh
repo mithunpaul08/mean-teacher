@@ -103,9 +103,19 @@ mkdir -p log_dir/
 
 
 
+mkdir -p data/rte/fever/allnli/
+mkdir -p data/rte/fnc/allnli/
+
+python mean_teacher/utils/convert_to_allnli_format.py
+rm -rf data/rte/fever/allnli/*.gz
+rm -rf data/rte/fnc/allnli/*.gz
+for each in data/rte/fever/allnli/*;
+do
+gzip  $each
+done
+for each in data/rte/fnc/allnli/*;
+do
+gzip  $each
+done
 
 
-
-python main.py --add_student True  --use_ema False \
---load_model_from_disk_and_test False \
---lex_train_full_path fever/train/fever_train_lex.jsonl --save_dir '/xdisk/msurdeanu/mithunpaul/model_storage/'

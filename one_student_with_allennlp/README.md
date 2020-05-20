@@ -1,1 +1,0 @@
-read the readme under one_student_without_allennlp folder

@@ -10,6 +10,10 @@ from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
 import math
 import random
 import os
+from sentence_transformers import models, losses
+from sentence_transformers import SentencesDataset, LoggingHandler, SentenceTransformer
+
+
 # #### General utilities
 
 def read_gigaword_freq_file(filepath,gw_minfreq):
@@ -239,6 +243,21 @@ def update_optimizer_state(input_optimizer, inter_atten_optimizer,args):
             state['sum'] += args.Adagrad_init
     return input_optimizer, inter_atten_optimizer
 
+def create_model_bert():
+    # You can specify any huggingface/transformers pre-trained model here, for example, bert-base-uncased, roberta-base, xlm-roberta-base
+    model_name = 'bert-base-uncased'
+
+    # Use Huggingface/transformers model (like BERT, RoBERTa, XLNet, XLM-R) for mapping tokens to embeddings
+    word_embedding_model = models.Transformer(model_name)
+
+    # Apply mean pooling to get one fixed sized sentence vector
+    pooling_model = models.Pooling(word_embedding_model.get_word_embedding_dimension(),
+                                   pooling_mode_mean_tokens=True,
+                                   pooling_mode_cls_token=False,
+                                   pooling_mode_max_tokens=False)
+
+    model = SentenceTransformer(modules=[word_embedding_model, pooling_model])
+    return model
 
 def create_model(logger_object, args_in,  num_classes_in, word_vocab_embed, word_vocab_size, wordemb_size_in,ema=False,):
     logger_object.info("=> creating {pretrained}{ema}model '{arch}'".format(

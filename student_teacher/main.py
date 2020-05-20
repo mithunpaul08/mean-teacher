@@ -1,7 +1,7 @@
 from comet_ml import Experiment,ExistingExperiment
 import torch
 from mean_teacher.modules.rao_datasets import RTEDataset
-from mean_teacher.utils.utils_rao import make_embedding_matrix,create_model,set_seed_everywhere,read_gigaword_freq_file
+from mean_teacher.utils.utils_rao import make_embedding_matrix,create_model,set_seed_everywhere,read_gigaword_freq_file,create_model_bert
 from mean_teacher.model import architectures
 from mean_teacher.model.train_rao import Trainer
 from mean_teacher.scripts.initializer import Initializer
@@ -134,25 +134,25 @@ classifier_teacher_lex=None
 
 
 if(args.use_ema):
-    classifier_teacher_lex = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
+    classifier_teacher_lex = create_model_bert(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
                                       , word_vocab_embed=embeddings, word_vocab_size=num_features, wordemb_size_in=embedding_size,ema=True)
 else:
 
-    classifier_teacher_lex = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
+    classifier_teacher_lex = create_model_bert(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
                                           , word_vocab_embed=embeddings, word_vocab_size=num_features,
                                           wordemb_size_in=embedding_size)
 
 
-classifier_student_delex_ema = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
-                                            , word_vocab_embed=embeddings, word_vocab_size=num_features,
-                                            wordemb_size_in=embedding_size, ema=True)
+# classifier_student_delex_ema = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
+#                                             , word_vocab_embed=embeddings, word_vocab_size=num_features,
+#                                             wordemb_size_in=embedding_size, ema=True)
+#
+# classifier_teacher_lex_ema = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
+#                                             , word_vocab_embed=embeddings, word_vocab_size=num_features,
+#                                             wordemb_size_in=embedding_size, ema=True)
 
-classifier_teacher_lex_ema = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
-                                            , word_vocab_embed=embeddings, word_vocab_size=num_features,
-                                            wordemb_size_in=embedding_size, ema=True)
 
-
-classifier_student_delex = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
+classifier_student_delex = create_model_bert(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
                                         , word_vocab_embed=embeddings, word_vocab_size=num_features, wordemb_size_in=embedding_size)
 
 

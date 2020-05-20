@@ -47,10 +47,12 @@ class SoftmaxLoss(nn.Module):
         features = torch.cat(vectors_concat, 1)
 
         output = self.classifier(features)
-        loss_fct = nn.CrossEntropyLoss()
+        return output
 
-        if labels is not None:
-            loss = loss_fct(output, labels.view(-1))
-            return loss
-        else:
-            return reps, output
+        ##making it to return the logit since the loss functions are custom made in student-teacher architecture
+        # loss_fct = nn.CrossEntropyLoss()
+        # if labels is not None:
+        #     loss = loss_fct(output, labels.view(-1))
+        #     return loss
+        # else:
+        #     return reps, output

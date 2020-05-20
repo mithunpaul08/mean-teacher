@@ -192,8 +192,6 @@ train_dataloader = DataLoader(train_data, shuffle=True, batch_size=batch_size)
 train_loss = losses.SoftmaxLoss(model=classifier_teacher_lex, sentence_embedding_dimension=classifier_teacher_lex.get_sentence_embedding_dimension(), num_labels=train_num_labels)
 
 
-train_rte=Trainer(LOG)
-
 #load a model that was trained on in-domain fever to test on fnc-test partition. this should be ideally done only once
 # since we are looking at the test-partition.
 if(args.load_model_from_disk_and_test):
@@ -203,7 +201,7 @@ if(args.load_model_from_disk_and_test):
 else:
     #this is plain training and will do eval on dev and test at the end of training.
     #1 teacher-1 student
-    train_rte.train_1teacher(args, classifier_teacher_lex, dataset, comet_value_updater, vectorizer,train_objectives=[(train_dataloader, train_loss)])
+    classifier_teacher_lex.train_1teacher(args, dataset, comet_value_updater, vectorizer,train_objectives=[(train_dataloader, train_loss)])
     #3teacher -1 student
     #train_rte.train(args, classifier_student_delex_ema, classifier_teacher_lex_ema, classifier_teacher_lex,
      #               classifier_student_delex, dataset, comet_value_updater, vectorizer)

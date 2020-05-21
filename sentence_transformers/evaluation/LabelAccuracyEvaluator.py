@@ -7,6 +7,7 @@ from ..util import batch_to_device
 import os
 import csv
 
+
 class LabelAccuracyEvaluator(SentenceEvaluator):
     """
     Evaluate a model based on its accuracy on a labeled dataset
@@ -16,7 +17,7 @@ class LabelAccuracyEvaluator(SentenceEvaluator):
     The results are written in a CSV. If a CSV already exists, then values are appended.
     """
 
-    def __init__(self, dataloader: DataLoader, name: str = "", softmax_model = None,grapher=None):
+    def __init__(self, dataloader: DataLoader, name: str = "", softmax_model = None,grapher=None,logger=None):
         """
         Constructs an evaluator for the given dataset
 
@@ -29,6 +30,7 @@ class LabelAccuracyEvaluator(SentenceEvaluator):
         self.softmax_model = softmax_model
         self.softmax_model.to(self.device)
         self.draw_graphs=grapher
+        self.logging=logger
 
         if name:
             name = "_"+name
@@ -49,7 +51,7 @@ class LabelAccuracyEvaluator(SentenceEvaluator):
         else:
             out_txt = ":"
 
-        logging.info("Evaluation on the "+self.name+" dataset"+out_txt)
+        self.logging.info("Evaluation on the "+self.name+" dataset"+out_txt)
         self.dataloader.collate_fn = model.smart_batching_collate
         for step, batch in enumerate(tqdm(self.dataloader, desc="dev batches")):
             features, label_ids = batch_to_device(batch, self.device)
@@ -61,12 +63,11 @@ class LabelAccuracyEvaluator(SentenceEvaluator):
             batch_accuracy = correct / total
 
         accuracy = correct/total
-        self.draw_graphs.log_metric("dev accuracy per epoch",accuracy ,
+        graph_name=self.name+"accuracy per epoch"
+        self.draw_graphs.log_metric(graph_name,accuracy ,
                                     step=epoch,include_context=False)
 
-
-
-        logging.info("Accuracy: {:.4f} ({}/{})\n".format(accuracy, correct, total))
+        self.logging.info("Accuracy on : {:.4f} ({}/{}) correct\n".format(accuracy, correct, total))
 
         if output_path is not None:
             csv_path = os.path.join(output_path, self.csv_file)

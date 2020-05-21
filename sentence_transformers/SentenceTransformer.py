@@ -465,7 +465,7 @@ class SentenceTransformer(nn.Sequential):
     # code used in uofa student teacher architecture
     def train_1teacher(self, args_in,
                        train_objectives: Iterable[Tuple[DataLoader, nn.Module]],
-                       evaluator: SentenceEvaluator,
+                       evaluators: Iterable[SentenceEvaluator],
                        epochs: int = 1,
                        steps_per_epoch=None,
                        scheduler: str = 'WarmupLinear',
@@ -630,16 +630,12 @@ class SentenceTransformer(nn.Sequential):
                     #     for loss_model in loss_models:
                     #         loss_model.zero_grad()
                     #         loss_model.train()
+                for evaluator in evaluators:
+                    self._eval_during_training(evaluator, output_path, save_best_model, epoch, -1)
 
-                self._eval_during_training(evaluator, output_path, save_best_model, epoch, -1)
 
 
 
-                self._LOG.info(
-                    f"****************end of epoch {epoch_index}*********************")
-            print("****************end of all epochs*********************")
-            self._LOG.info(
-            f"****************end of all epochs*********************")
 
         except KeyboardInterrupt:
             print("Exiting loop")

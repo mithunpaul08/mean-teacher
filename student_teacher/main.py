@@ -40,9 +40,9 @@ def initialize_comet(args):
     comet_Expt_object=None
     if(args.run_type=="train"):
         if(args.create_new_comet_graph==True):
-            comet_Expt_object = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", project_name="rte-decomp-attention",auto_output_logging=False)
+            comet_Expt_object = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", project_name="rte-decomp-attention")
         else:
-            comet_Expt_object = ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", previous_experiment="8ee6669d2b854eaf834f8a56eaa9f235",auto_output_logging=False)
+            comet_Expt_object = ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", previous_experiment="8ee6669d2b854eaf834f8a56eaa9f235")
 
     return comet_Expt_object
 
@@ -85,57 +85,10 @@ if torch.cuda.is_available():
     avail=True
 LOG.info(f"cuda available:{avail}")
 
-#create a vocabulary which is a union of training data and  top n freq words from gigaword. as per mihai this enhances/is usefull to reduce
-#the number of uNK words in dev/test partitions- especially when either of those tend to be cross-domain. though i still think its cheating- mithun
-#steps:
-# - define min frequency
-# - load list of words from gigaword - only words which have a minimum frequencey
-# - get list of all words in training.
-# - take each of training word and convert to lowercase
-# - merge them- set{trainwords,gigawords}
-# - for each word load its glove embedding
-#
-#vectorizer_with_embedding.gigaword_freq=read_gigaword_freq_file(gigaword_full_path,args.gw_minfreq)
-
-#
-# if args.reload_data_from_files:
-#     # training from a checkpoint
-#     dataset = RTEDataset.load_dataset_and_load_vectorizer(args.fever_lex_train,
-#                                                               args.vectorizer_file)
-# else:
-#     # create dataset and vectorizer
-#     dataset = RTEDataset.load_dataset_and_create_vocabulary_for_combined_lex_delex(lex_train_input_file, lex_dev_input_file, delex_train_input_file, delex_dev_input_file, delex_test_input_file, lex_test_input_file,args)
-#     vectorizer_name=os.path.join(args.save_dir,"vectorizer_"+sha+".json")
-#     dataset.save_vectorizer(vectorizer_name)
-# vectorizer = dataset.get_vectorizer()
-
-# taking embedding size from user initially, but will get replaced by original embedding size if its loaded
-# embedding_size=args.embedding_size
-#
-# # Use GloVe or randomly initialized embeddings
-# LOG.info(f"{current_time} going to load glove from path:{glove_filepath_in}")
-# if args.use_glove:
-#     words = vectorizer.claim_ev_vocab._token_to_idx.keys()
-#     embeddings,embedding_size = make_embedding_matrix(glove_filepath_in,words)
-#
-#     # Create a vocabulary dictionary for the cross domain dataset and load its embeddings also in memory.
-#     # Reason: it was noticed that when we were testing on the cross domain dataset, there were way too many
-#     # unknown <UNK> tokens. So now, if a word is new in the cross domain, don't call it UNK just because it was not
-#     # there in in-domain vocabulary.  check if it exists in crossdomain vocab. if yes, load its glove
-#     # make_embedding_matrix()
-#
-#     LOG.info(f"{current_time:} Using pre-trained embeddings")
-# else:
-#     LOG.info(f"{current_time:} Not using pre-trained embeddings")
-#     embeddings = None
-#
-# num_features=len(vectorizer.claim_ev_vocab)
-
-
 #You can specify any huggingface/transformers pre-trained model here, for example, bert-base-uncased, roberta-base, xlm-roberta-base
 model_name = 'bert-base-uncased'
 # Read the dataset
-batch_size = 10
+batch_size = 20
 abs=os.path.abspath(os.path.dirname(__file__))
 os.chdir(abs)
 nli_reader_fever = NLIDataReader('data/rte/fever/allnli')
@@ -146,19 +99,6 @@ model_save_path = 'output/training_nli_'+model_name.replace("/", "-")+'-'+dateti
 
 
 classifier_teacher_lex = create_model_bert()
-
-
-# classifier_student_delex_ema = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
-#                                             , word_vocab_embed=embeddings, word_vocab_size=num_features,
-#                                             wordemb_size_in=embedding_size, ema=True)
-#
-# classifier_teacher_lex_ema = create_model(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
-#                                             , word_vocab_embed=embeddings, word_vocab_size=num_features,
-#                                             wordemb_size_in=embedding_size, ema=True)
-
-
-# classifier_student_delex = create_model_bert(logger_object=LOG, args_in=args, num_classes_in=len(vectorizer.label_vocab)
-#                                         , word_vocab_embed=embeddings, word_vocab_size=num_features, wordemb_size_in=embedding_size)
 
 
 
@@ -177,9 +117,13 @@ train_loss = losses.SoftmaxLoss(model=classifier_teacher_lex, sentence_embedding
 
 logging.error("Read fever dev dataset")
 dev_data = SentencesDataset(nli_reader_fever.get_examples('dev.gz'), model=classifier_teacher_lex)
-#dev_data = SentencesDataset(nli_reader_fnc.get_examples('dev.gz'), model=classifier_teacher_lex)
 dev_dataloader = DataLoader(dev_data, shuffle=False, batch_size=batch_size)
-evaluator = LabelAccuracyEvaluator(dev_dataloader,softmax_model = train_loss,grapher=comet_value_updater)
+evaluator_fever = LabelAccuracyEvaluator(dev_dataloader,softmax_model = train_loss,grapher=comet_value_updater,logger=LOG,name="fever-dev")
+
+dev_data = SentencesDataset(nli_reader_fnc.get_examples('dev.gz'), model=classifier_teacher_lex)
+dev_dataloader = DataLoader(dev_data, shuffle=False, batch_size=batch_size)
+evaluator_fnc = LabelAccuracyEvaluator(dev_dataloader,softmax_model = train_loss,grapher=comet_value_updater,logger=LOG,name="fnc-dev")
+
 
 if torch.cuda.is_available():
     torch.cuda.set_device(0)
@@ -194,7 +138,7 @@ logging.info("Warmup-steps: {}".format(warmup_steps))
 
 
 classifier_teacher_lex.train_1teacher(args,train_objectives=[(train_dataloader, train_loss)],
-                                      evaluator = evaluator,
+                                      evaluators = [evaluator_fever,evaluator_fnc],
                                       epochs = num_epochs,
                                       evaluation_steps = 1,
                                       warmup_steps = warmup_steps,

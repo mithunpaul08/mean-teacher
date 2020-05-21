@@ -129,7 +129,7 @@ if torch.cuda.is_available():
     torch.cuda.set_device(0)
 
 # Configure the training
-num_epochs = 10
+num_epochs = 25
 
 warmup_steps = math.ceil(len(train_dataloader) * num_epochs / batch_size * 0.1) #10% of train data for warm-up
 logging.info("Warmup-steps: {}".format(warmup_steps))

@@ -500,7 +500,7 @@ class SentenceTransformer(nn.Sequential):
 
         loss_models = [loss for _, loss in train_objectives]
         device = self.device
-
+        self.best_score = -9999999
         for loss_model in loss_models:
             loss_model.to(device)
         if steps_per_epoch is None or steps_per_epoch == 0:

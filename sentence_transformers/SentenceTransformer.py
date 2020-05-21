@@ -381,7 +381,7 @@ class SentenceTransformer(nn.Sequential):
                 loss_model.zero_grad()
                 loss_model.train()
 
-            for _ in trange(steps_per_epoch, desc="Iteration", smoothing=0.05):
+            for _ in trange(steps_per_epoch, desc="batches", smoothing=0.05):
                 for train_idx in range(num_train_objectives):
                     loss_model = loss_models[train_idx]
                     optimizer = optimizers[train_idx]
@@ -577,7 +577,7 @@ class SentenceTransformer(nn.Sequential):
                     loss_model.zero_grad()
                     loss_model.train()
                 running_loss_lex = 0.0
-                for _ in trange(steps_per_epoch, desc="Iteration", smoothing=0.05):
+                for _ in trange(steps_per_epoch, desc="training_batches", smoothing=0.05):
                     for train_idx in range(num_train_objectives):
                         loss_model = loss_models[train_idx]
                         optimizer = optimizers[train_idx]
@@ -625,11 +625,11 @@ class SentenceTransformer(nn.Sequential):
                     training_steps += 1
                     global_step += 1
 
-                    if evaluation_steps > 0 and training_steps % evaluation_steps == 0:
-                        self._eval_during_training(evaluator, output_path, save_best_model, epoch, training_steps)
-                        for loss_model in loss_models:
-                            loss_model.zero_grad()
-                            loss_model.train()
+                    # if evaluation_steps > 0 and training_steps % evaluation_steps == 0:
+                    #     self._eval_during_training(evaluator, output_path, save_best_model, epoch, training_steps)
+                    #     for loss_model in loss_models:
+                    #         loss_model.zero_grad()
+                    #         loss_model.train()
 
                 self._eval_during_training(evaluator, output_path, save_best_model, epoch, -1)
 

@@ -40,9 +40,9 @@ def initialize_comet(args):
     comet_Expt_object=None
     if(args.run_type=="train"):
         if(args.create_new_comet_graph==True):
-            comet_Expt_object = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", project_name="rte-decomp-attention")
+            comet_Expt_object = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", project_name="rte-decomp-attention",auto_output_logging=False)
         else:
-            comet_Expt_object = ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", previous_experiment="8ee6669d2b854eaf834f8a56eaa9f235")
+            comet_Expt_object = ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", previous_experiment="8ee6669d2b854eaf834f8a56eaa9f235",auto_output_logging=False)
 
     return comet_Expt_object
 
@@ -135,7 +135,7 @@ LOG.info(f"cuda available:{avail}")
 #You can specify any huggingface/transformers pre-trained model here, for example, bert-base-uncased, roberta-base, xlm-roberta-base
 model_name = 'bert-base-uncased'
 # Read the dataset
-batch_size = 32
+batch_size = 10
 abs=os.path.abspath(os.path.dirname(__file__))
 os.chdir(abs)
 nli_reader_fever = NLIDataReader('data/rte/fever/allnli')
@@ -185,7 +185,7 @@ if torch.cuda.is_available():
     torch.cuda.set_device(0)
 
 # Configure the training
-num_epochs = 1
+num_epochs = 2
 
 warmup_steps = math.ceil(len(train_dataloader) * num_epochs / batch_size * 0.1) #10% of train data for warm-up
 logging.info("Warmup-steps: {}".format(warmup_steps))

@@ -51,7 +51,7 @@ class LabelAccuracyEvaluator(SentenceEvaluator):
 
         logging.info("Evaluation on the "+self.name+" dataset"+out_txt)
         self.dataloader.collate_fn = model.smart_batching_collate
-        for step, batch in enumerate(tqdm(self.dataloader, desc="Evaluating")):
+        for step, batch in enumerate(tqdm(self.dataloader, desc="dev batches")):
             features, label_ids = batch_to_device(batch, self.device)
             with torch.no_grad():
                 prediction = self.softmax_model(features,labels=None)
@@ -59,12 +59,10 @@ class LabelAccuracyEvaluator(SentenceEvaluator):
             total += prediction.size(0)
             correct += torch.argmax(prediction, dim=1).eq(label_ids).sum().item()
             batch_accuracy = correct / total
-            self.draw_graphs.log_metric("dev accuracy per batch", batch_accuracy,
-                                        step=batch)
 
         accuracy = correct/total
         self.draw_graphs.log_metric("dev accuracy per epoch",accuracy ,
-                                    step=epoch)
+                                    step=epoch,include_context=False)
 
 
 

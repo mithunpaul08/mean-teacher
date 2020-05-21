@@ -9,7 +9,7 @@ mkdir -p model_storage
 #######train
 mkdir -p datasets/rte/fever/train/
 
-FILE=datasets/rte/fever/train/fever_train_lex.jsonl
+FILE=data/rte/fever/train/fever_train_lex.jsonl
 if test -f "$FILE";then
     echo "$FILE exists"
 else
@@ -18,7 +18,7 @@ else
 fi
 
 
-FILE=datasets/rte/fever/train/fever_train_delex.jsonl
+FILE=data/rte/fever/train/fever_train_delex.jsonl
 if test -f "$FILE";then
     echo "$FILE exists"
 else
@@ -32,7 +32,7 @@ fi
 
 
 ##########dev
-mkdir -p datasets/rte/fever/dev/
+mkdir -p data/rte/fever/dev/
 FILE=datasets/rte/fever/dev/fever_dev_lex.jsonl
 if test -f "$FILE";then
     echo "$FILE exists"
@@ -42,7 +42,7 @@ else
 fi
 
 
-FILE=datasets/rte/fever/dev/fever_dev_delex.jsonl
+FILE=data/rte/fever/dev/fever_dev_delex.jsonl
 if test -f "$FILE";then
     echo "$FILE exists"
 else
@@ -54,7 +54,7 @@ fi
 
 
 #######test partition#########which usually is the fnc-dev loaded so that we can test on it while training itself.
-mkdir -p datasets/rte/fnc/dev/
+mkdir -p data/rte/fnc/dev/
 
 FILE=datasets/rte/fnc/dev/fnc_dev_lex.jsonl
 if test -f "$FILE";then
@@ -64,7 +64,7 @@ else
 fi
 
 
-FILE=datasets/rte/fnc/dev/fnc_dev_delex.jsonl
+FILE=data/rte/fnc/dev/fnc_dev_delex.jsonl
 if test -f "$FILE";then
     echo "$FILE exists"
 else
@@ -79,7 +79,7 @@ fi
 #wget https://storage.googleapis.com/fact_verification_mithun_files/fnc_delexicalized/person-c1/fnc_train_delex_4labels.jsonl -O datasets/rte/fnc/train/fnc_train_delex.jsonl
 
 
-mkdir -p datasets/rte/fnc/test/
+mkdir -p data/rte/fnc/test/
 FILE=datasets/rte/fnc/test/fnc_test_delex.jsonl
 if test -f "$FILE";then
     echo "$FILE exists"
@@ -87,7 +87,7 @@ else
     wget https://storage.googleapis.com/fact_verification_mithun_files/fnc_delexicalized/person-c1/fnc_delexicalized_person-c1_actual_fnc_test.jsonl  -O $FILE
 fi
 
-mkdir -p datasets/rte/fnc/test/
+mkdir -p data/rte/fnc/test/
 FILE=datasets/rte/fnc/test/fnc_test_lex.jsonl
 if test -f "$FILE";then
     echo "$FILE exists"

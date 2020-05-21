@@ -31,5 +31,6 @@ cd /home/u11/mithunpaul/sentence-transformers/examples
 
 
 
-bash get_preprocess_data.sh
+bash get_data.sh
+bash convert_allnli_format_gzip.sh
 bash run_main.sh

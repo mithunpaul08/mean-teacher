@@ -100,19 +100,5 @@ mkdir -p log_dir/
 
 
 
-mkdir -p data/rte/fever/allnli/
-mkdir -p data/rte/fnc/allnli/
-
-python mean_teacher/utils/convert_to_allnli_format.py
-rm -rf data/rte/fever/allnli/*.gz
-rm -rf data/rte/fnc/allnli/*.gz
-for each in data/rte/fever/allnli/*;
-do
-gzip  $each
-done
-for each in data/rte/fnc/allnli/*;
-do
-gzip  $each
-done
 
 

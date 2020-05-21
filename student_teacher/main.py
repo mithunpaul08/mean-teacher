@@ -196,7 +196,7 @@ logging.info("Warmup-steps: {}".format(warmup_steps))
 classifier_teacher_lex.train_1teacher(args,train_objectives=[(train_dataloader, train_loss)],
                                       evaluator = evaluator,
                                       epochs = num_epochs,
-                                      evaluation_steps = 1000,
+                                      evaluation_steps = 1,
                                       warmup_steps = warmup_steps,
                                       output_path = model_save_path
                                       )

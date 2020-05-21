@@ -1,42 +1,35 @@
 #!/bin/bash
-# Your job will use 1 node, 28 cores, and 168gb of memory total.
-#PBS -q standard
+#PBS -q windfall
 #PBS -l select=1:ncpus=28:mem=168gb:pcmem=6gb:ngpus=1:os7=True
-### Specify a name for the job
-#PBS -N 3t
-### Specify the group name
 #PBS -W group_list=msurdeanu
-### Used if job requires partial node only
-#PBS -l place=pack:shared
-### CPUtime required in hhh:mm:ss.
-### Leading 0's can be omitted e.g 48:0:0 sets 48 hours
-
-#PBS -l cput=420:00:00
-### Walltime is how long your job will run
-#PBS -l walltime=15:00:00
-### Joins standard error and standard out
+#PBS -l walltime=24:00:00
 #PBS -j oe
 
 
-### Optional. Request email when job begins and ends
-# PBS -m bea
-### Optional. Specify email address to use for notification
-# PBS -M mithunpaul@email.arizona.edu
+cd /home/u11/mithunpaul/
+module load cuda90/neuralnet/7/7.3.1.20
+module load python/3.6/3.6.5
 
-module load cuda10
-module load python/3.8
-mkdir my_virtual_env
-python3 -m venv my_virtual_env/
+#uncomment this if you don't want to reinstall venv
+#rm -rf my_virtual_env
+#mkdir my_virtual_env
+#python3 -m venv my_virtual_env
+#pip install torch==1.5.0+cu92 torchvision==0.6.0+cu92 -f https://download.pytorch.org/whl/torch_stable.html
+
 source my_virtual_env/bin/activate
 
-echo $PWD
-date
-cd ~/mean-teacher/student_teacher
-date
-echo $PWD
 
-pip install numpy scipy pandas nltk tqdm sklearn comet_ml gitpython
-pip install torch torchvision
+#####my code part
+export PYTHONPATH="/home/u11/mithunpaul/sentence-transformers/"
+cd /home/u11/mithunpaul/sentence-transformers
+#pip install -r requirements.txt
+cd /home/u11/mithunpaul/sentence-transformers/examples
+
+#remove these two lines if you want to run on full data
+#bash get_fact_verification_files.sh
+#bash reduce_size_fact_verification_files.sh
 
 
-bash get_data_run.sh
+
+bash get_preprocess_data.sh
+bash run_main.sh

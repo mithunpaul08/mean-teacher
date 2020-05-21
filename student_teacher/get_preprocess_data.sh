@@ -1,8 +1,5 @@
 #!/bin/bash
 
-./get_glove.sh
-./get_gigaword.sh
-
 mkdir -p log_dir
 mkdir -p model_storage
 

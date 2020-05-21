@@ -21,7 +21,7 @@ source my_virtual_env/bin/activate
 
 #####my code part
 export PYTHONPATH="/home/u11/mithunpaul/sentence-transformers/"
-#cd /home/u11/mithunpaul/sentence-transformers
+cd /home/u11/mithunpaul/mean-teacher/student_teacher
 #pip install -r requirements.txt
 #cd /home/u11/mithunpaul/sentence-transformers/examples
 

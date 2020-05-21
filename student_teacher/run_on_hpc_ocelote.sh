@@ -21,9 +21,9 @@ source my_virtual_env/bin/activate
 
 #####my code part
 export PYTHONPATH="/home/u11/mithunpaul/sentence-transformers/"
-cd /home/u11/mithunpaul/sentence-transformers
+#cd /home/u11/mithunpaul/sentence-transformers
 #pip install -r requirements.txt
-cd /home/u11/mithunpaul/sentence-transformers/examples
+#cd /home/u11/mithunpaul/sentence-transformers/examples
 
 #remove these two lines if you want to run on full data
 #bash get_fact_verification_files.sh

@@ -10,7 +10,7 @@ cd /home/u11/mithunpaul/
 module load cuda90/neuralnet/7/7.3.1.20
 module load python/3.6/3.6.5
 
-#uncomment this if you don't want to reinstall venv
+#uncomment this if you don't want to reinstall venv- usually you just have to do this only once ever
 rm -rf my_virtual_env
 mkdir my_virtual_env
 python3 -m venv my_virtual_env
@@ -22,7 +22,7 @@ source my_virtual_env/bin/activate
 #####my code part
 export PYTHONPATH="/home/u11/mithunpaul/sentence-transformers/"
 cd /home/u11/mithunpaul/mean-teacher/student_teacher
-#pip install -r requirements.txt
+pip install -r requirements.txt
 #cd /home/u11/mithunpaul/sentence-transformers/examples
 
 #remove these two lines if you want to run on full data

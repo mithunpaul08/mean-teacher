@@ -1,0 +1,8 @@
+comet_ml
+transformers>=2.8.0
+tqdm
+numpy
+scikit-learn
+scipy
+nltk
+pandas

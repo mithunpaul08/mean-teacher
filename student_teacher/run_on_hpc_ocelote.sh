@@ -21,7 +21,6 @@ source my_virtual_env/bin/activate
 
 #pip install --upgrade pip
 #pip install torch==1.5.0+cu92 torchvision==0.6.0+cu92 -f https://download.pytorch.org/whl/torch_stable.html
-#cd /home/u11/mithunpaul/mean-teacher/student_teacher
 #pip install -r requirements.txt
 
 
@@ -29,8 +28,8 @@ source my_virtual_env/bin/activate
 
 #####my code part
 export PYTHONPATH="/home/u11/mithunpaul/mean-teacher/"
+cd /home/u11/mithunpaul/mean-teacher/student_teacher
 
-#cd /home/u11/mithunpaul/sentence-transformers/examples
 
 #remove these two lines if you want to run on full data
 #bash get_fact_verification_files.sh

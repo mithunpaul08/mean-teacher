@@ -176,8 +176,8 @@ train_loss = losses.SoftmaxLoss(model=classifier_teacher_lex, sentence_embedding
 
 
 logging.error("Read fever dev dataset")
-#dev_data = SentencesDataset(nli_reader_fever.get_examples('dev.gz'), model=model)
-dev_data = SentencesDataset(nli_reader_fnc.get_examples('dev.gz'), model=classifier_teacher_lex)
+dev_data = SentencesDataset(nli_reader_fever.get_examples('dev.gz'), model=classifier_teacher_lex)
+#dev_data = SentencesDataset(nli_reader_fnc.get_examples('dev.gz'), model=classifier_teacher_lex)
 dev_dataloader = DataLoader(dev_data, shuffle=False, batch_size=batch_size)
 evaluator = LabelAccuracyEvaluator(dev_dataloader,softmax_model = train_loss,grapher=comet_value_updater)
 

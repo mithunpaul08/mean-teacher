@@ -63,7 +63,7 @@ class LabelAccuracyEvaluator(SentenceEvaluator):
             batch_accuracy = correct / total
 
         accuracy = correct/total
-        graph_name=self.name+"accuracy per epoch"
+        graph_name=self.name+" accuracy per epoch"
         self.draw_graphs.log_metric(graph_name,accuracy ,
                                     step=epoch,include_context=False)
 

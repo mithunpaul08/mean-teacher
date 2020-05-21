@@ -481,7 +481,11 @@ class SentenceTransformer(nn.Sequential):
                        fp16_opt_level: str = 'O1',
                        local_rank: int = -1
                        ):
-
+        if output_path is not None:
+            os.makedirs(output_path, exist_ok=True)
+            if os.listdir(output_path):
+                raise ValueError("Output directory ({}) already exists and is not empty.".format(
+                    output_path))
         #the loss function to be used in consistency loss
         if args_in.consistency_type == 'mse':
             consistency_criterion = losses.softmax_mse_loss

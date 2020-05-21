@@ -54,7 +54,7 @@ class LabelAccuracyEvaluator(SentenceEvaluator):
         for step, batch in enumerate(tqdm(self.dataloader, desc="Evaluating")):
             features, label_ids = batch_to_device(batch, self.device)
             with torch.no_grad():
-                _, prediction = self.softmax_model(features,labels=None)
+                prediction = self.softmax_model(features,labels=None)
 
             total += prediction.size(0)
             correct += torch.argmax(prediction, dim=1).eq(label_ids).sum().item()

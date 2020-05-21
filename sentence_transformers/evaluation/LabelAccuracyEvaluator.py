@@ -17,7 +17,7 @@ class LabelAccuracyEvaluator(SentenceEvaluator):
     """
 
     def __init__(self, dataloader: DataLoader, name: str = "", softmax_model = None,grapher=None):
-        """
+        """  
         Constructs an evaluator for the given dataset
 
         :param dataloader:

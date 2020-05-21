@@ -128,7 +128,9 @@ class Initializer():
         self._args=args
 
         # Check CUDA
-        if not torch.cuda.is_available():
+        if torch.cuda.is_available():
+            args.cuda = True
+        else:
             args.cuda = False
         print("Using CUDA: {}".format(args.cuda))
         LOG.info(f"from initializer cuda available:{torch.cuda.is_available()}")

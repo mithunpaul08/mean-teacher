@@ -14,6 +14,7 @@ import random
 import numpy as np
 import sys
 import git
+import math
 
 
 from torch.utils.data import DataLoader
@@ -192,53 +193,30 @@ train_dataloader = DataLoader(train_data, shuffle=True, batch_size=batch_size)
 train_loss = losses.SoftmaxLoss(model=classifier_teacher_lex, sentence_embedding_dimension=classifier_teacher_lex.get_sentence_embedding_dimension(), num_labels=train_num_labels)
 
 
-#load a model that was trained on in-domain fever to test on fnc-test partition. this should be ideally done only once
-# since we are looking at the test-partition.
-if(args.load_model_from_disk_and_test):
-    LOG.info(f"{current_time:} Found that need to load model and test using it.")
-    #train_rte.load_model_and_eval(args,classifier_student_delex, dataset, "test_delex",vectorizer)
+logging.error("Read fever dev dataset")
+#dev_data = SentencesDataset(nli_reader_fever.get_examples('dev.gz'), model=model)
+dev_data = SentencesDataset(nli_reader_fnc.get_examples('dev.gz'), model=classifier_teacher_lex)
+dev_dataloader = DataLoader(dev_data, shuffle=False, batch_size=batch_size)
+evaluator = LabelAccuracyEvaluator(dev_dataloader,softmax_model = train_loss,grapher=comet_value_updater)
 
-else:
-    #this is plain training and will do eval on dev and test at the end of training.
-    #1 teacher-1 student
-    classifier_teacher_lex.train_1teacher(args, dataset, comet_value_updater, vectorizer,train_objectives=[(train_dataloader, train_loss)])
-    #3teacher -1 student
-    #train_rte.train(args, classifier_student_delex_ema, classifier_teacher_lex_ema, classifier_teacher_lex,
-     #               classifier_student_delex, dataset, comet_value_updater, vectorizer)
+if torch.cuda.is_available():
+    torch.cuda.set_device(0)
 
+# Configure the training
+num_epochs = 1
 
-
+warmup_steps = math.ceil(len(train_dataloader) * num_epochs / batch_size * 0.1) #10% of train data for warm-up
+logging.info("Warmup-steps: {}".format(warmup_steps))
 
 
-def load_vectorizer_and_model():
-    '''
-    This entire function is vestigial. Just keeping it around so as to resuse the vectorizer loading and other code in it
-    :return:
-    '''
-    # trial on march 2020 to 1) train a teacher model offline then 2) load that trained model as teacher (which doesn't have a backprop)
-    # and then try training student.
-    if (args.use_trained_teacher_inside_student_teacher_arch):
-        # when you are using a trained model, you should really be using the same vectorizer. Else embedding mismatch will happen
-        vectorizer_loaded = RTEDataset.load_vectorizer_only(args.vectorizer_file)
 
-        LOG.info(f"num_classes_in={len(vectorizer_loaded.label_vocab)}")
-        LOG.info(f"word_vocab_size={len(vectorizer_loaded.claim_ev_vocab)}")
 
-        words = vectorizer_loaded.claim_ev_vocab._token_to_idx.keys()
-        labels = vectorizer_loaded.label_vocab._token_to_idx.keys()
-        embeddings_loaded, embedding_size_loaded = make_embedding_matrix(glove_filepath_in, words)
+classifier_teacher_lex.train_1teacher(args,train_objectives=[(train_dataloader, train_loss)],
+                                      evaluator = evaluator,
+                                      epochs = num_epochs,
+                                      evaluation_steps = 1000,
+                                      warmup_steps = warmup_steps,
+                                      output_path = model_save_path
+                                      )
 
-        LOG.info(f"wordemb_size_in={(embedding_size_loaded)}")
-        LOG.info(f"len word_vocab_embed={len(embeddings_loaded)}")
-        classifier_teacher_lex = create_model(logger_object=LOG, args_in=args,
-                                              num_classes_in=len(vectorizer_loaded.label_vocab)
-                                              , word_vocab_embed=embeddings_loaded,
-                                              word_vocab_size=len(vectorizer_loaded.claim_ev_vocab),
-                                              wordemb_size_in=embedding_size_loaded)
-
-        assert os.path.exists(args.trained_model_path) is True
-        assert os.path.isfile(args.trained_model_path) is True
-        if os.path.getsize(args.trained_model_path) > 0:
-            classifier_teacher_lex.load_state_dict(
-                torch.load(args.trained_model_path, map_location=torch.device(args.device)))
 

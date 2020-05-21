@@ -1,8 +1,9 @@
  
 #bert + mean teacher
+@May19th 2020
 
 Do this in a virtual environment (eg:conda or venvn)
-- pip install torch==1.5.0+cu92 torchvision==0.6.0+cu92 -f https://download.pytorch.org/whl/torch_stable.html
+- pip install torch==1.5.0+cu92 torchvision==0.6.0+cu92 -f https://download.pytorch.org/whl/torch_stable.html (do the corresponding pytorch command for your os+cuda+language)
 - cd mean-teacher/student_teacher
 - pip install -r requirements.txt
 - export PYTHONPATH="/mean-teacher/sentence-transformers/"

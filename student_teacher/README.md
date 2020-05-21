@@ -1,4 +1,19 @@
  
+#bert + mean teacher
+
+Do this in a virtual environment (eg:conda or venvn)
+- pip install torch==1.5.0+cu92 torchvision==0.6.0+cu92 -f https://download.pytorch.org/whl/torch_stable.html
+- cd mean-teacher/student_teacher
+- pip install -r requirements.txt
+- export PYTHONPATH="/mean-teacher/sentence-transformers/"
+- bash get_data.sh
+- bash convert_allnli_format_gzip.sh
+- bash run_main.sh
+
+
+for hpc
+qsub< run_on_hpc_ocelote.sh
+
 # Fact Verification using Mean Teacher in PyTorch
 
 In this fork of the original mean teacher code, we replace the feed forward networks in a mean teacher setup with 

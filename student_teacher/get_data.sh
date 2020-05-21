@@ -7,7 +7,7 @@ mkdir -p model_storage
 #pick according to which kind of dataset you want to use for  train, dev, test on. Eg: train on fever, test on fnc
 
 #######train
-mkdir -p datasets/rte/fever/train/
+mkdir -p data/rte/fever/train/
 
 FILE=data/rte/fever/train/fever_train_lex.jsonl
 if test -f "$FILE";then
@@ -33,7 +33,7 @@ fi
 
 ##########dev
 mkdir -p data/rte/fever/dev/
-FILE=datasets/rte/fever/dev/fever_dev_lex.jsonl
+FILE=data/rte/fever/dev/fever_dev_lex.jsonl
 if test -f "$FILE";then
     echo "$FILE exists"
 else
@@ -56,7 +56,7 @@ fi
 #######test partition#########which usually is the fnc-dev loaded so that we can test on it while training itself.
 mkdir -p data/rte/fnc/dev/
 
-FILE=datasets/rte/fnc/dev/fnc_dev_lex.jsonl
+FILE=data/rte/fnc/dev/fnc_dev_lex.jsonl
 if test -f "$FILE";then
     echo "$FILE exists"
 else
@@ -75,12 +75,12 @@ fi
 #below are the corresponding code/paths for fnc test and  train partitions- uncomment if and when needed
 
 
-#mkdir -p datasets/rte/fnc/train/
-#wget https://storage.googleapis.com/fact_verification_mithun_files/fnc_delexicalized/person-c1/fnc_train_delex_4labels.jsonl -O datasets/rte/fnc/train/fnc_train_delex.jsonl
+#mkdir -p data/rte/fnc/train/
+#wget https://storage.googleapis.com/fact_verification_mithun_files/fnc_delexicalized/person-c1/fnc_train_delex_4labels.jsonl -O data/rte/fnc/train/fnc_train_delex.jsonl
 
 
 mkdir -p data/rte/fnc/test/
-FILE=datasets/rte/fnc/test/fnc_test_delex.jsonl
+FILE=data/rte/fnc/test/fnc_test_delex.jsonl
 if test -f "$FILE";then
     echo "$FILE exists"
 else
@@ -88,7 +88,7 @@ else
 fi
 
 mkdir -p data/rte/fnc/test/
-FILE=datasets/rte/fnc/test/fnc_test_lex.jsonl
+FILE=data/rte/fnc/test/fnc_test_lex.jsonl
 if test -f "$FILE";then
     echo "$FILE exists"
 else

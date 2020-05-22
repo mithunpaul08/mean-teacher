@@ -4,6 +4,30 @@ from typing import Tuple, List
 from tqdm import tqdm
 import sys
 import importlib
+from sklearn import metrics
+
+def calculate_micro_f1(y_pred, y_target,label,accept=False):
+        '''
+            #calculate per class microf1
+            use label=Unrelated is needed for measurements in fake news datasets, because in fake news RTE world,
+            we really don't care much about it when two documents are unrelated, except for an initial filtering out process
+        :param y_pred:
+        :param y_target:
+        :param labels:
+        :param accept: if True, include only labels in labels for microf1. if False included everything except these labels
+        :return:
+        '''
+        assert len(y_pred) == len(y_target), "lengths are different {len(y_pred)}"
+        labels_to_include =[]
+        for index,l in enumerate(y_target):
+            if (accept==False):
+                if not (l==label):
+                    labels_to_include.append(index)
+            else:
+                if (l==label):
+                    labels_to_include.append(index)
+        mf1=metrics.f1_score(y_target,y_pred, average='micro', labels=labels_to_include)
+        return mf1
 
 
 def batch_to_device(batch, target_device: device):

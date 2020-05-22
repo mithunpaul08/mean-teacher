@@ -108,14 +108,14 @@ assert classifier_teacher_lex is not None
 
 
 # Convert the dataset to a DataLoader ready for training
-logging.error("Read fever train dataset")
+logging.info("Reading fever train dataset")
 
 train_data = SentencesDataset(nli_reader_fever.get_examples('train.gz'), model=classifier_teacher_lex)
 train_dataloader = DataLoader(train_data, shuffle=True, batch_size=batch_size)
 train_loss = losses.SoftmaxLoss(model=classifier_teacher_lex, sentence_embedding_dimension=classifier_teacher_lex.get_sentence_embedding_dimension(), num_labels=train_num_labels)
 
 
-logging.error("Read fever dev dataset")
+logging.info("Reading fever dev dataset")
 dev_data = SentencesDataset(nli_reader_fever.get_examples('dev.gz'), model=classifier_teacher_lex)
 dev_dataloader = DataLoader(dev_data, shuffle=False, batch_size=batch_size)
 evaluator_fever = LabelAccuracyEvaluator(dev_dataloader,softmax_model = train_loss,grapher=comet_value_updater,logger=LOG,name="fever-dev")

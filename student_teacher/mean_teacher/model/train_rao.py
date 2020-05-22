@@ -172,14 +172,12 @@ class Trainer():
         assert len(y_pred) == len(y_target), "lengths are different {len(y_pred)}"
         labels_to_include =[]
         for index,l in enumerate(y_target):
-
             if (accept==False):
                 if not (l==label):
                     labels_to_include.append(index)
             else:
                 if (l==label):
                     labels_to_include.append(index)
-
         mf1=metrics.f1_score(y_target,y_pred, average='micro', labels=labels_to_include)
         return mf1
 

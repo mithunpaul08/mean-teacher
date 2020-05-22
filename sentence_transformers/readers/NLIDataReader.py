@@ -51,7 +51,7 @@ class NLIDataReader(object):
     def get_label_given_index(self, labels_tensor):
         indices=self.get_indices()
         labels_str=[]
-        for e in labels_tensor[0]:
+        for e in labels_tensor:
             labels_str.append(indices[e.item()].lower())
         return labels_str
 

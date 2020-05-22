@@ -243,6 +243,7 @@ def update_optimizer_state(input_optimizer, inter_atten_optimizer,args):
             state['sum'] += args.Adagrad_init
     return input_optimizer, inter_atten_optimizer
 
+
 def create_model_bert():
     # You can specify any huggingface/transformers pre-trained model here, for example, bert-base-uncased, roberta-base, xlm-roberta-base
     model_name = 'bert-base-uncased'

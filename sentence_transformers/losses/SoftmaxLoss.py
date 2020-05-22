@@ -1,7 +1,7 @@
 import torch
 from torch import nn, Tensor
 from typing import Union, Tuple, List, Iterable, Dict
-from ..SentenceTransformer import SentenceTransformer
+from sentence_transformers import SentenceTransformer
 import logging
 
 class SoftmaxLoss(nn.Module):

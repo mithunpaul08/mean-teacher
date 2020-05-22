@@ -7,7 +7,7 @@ from ..util import batch_to_device
 import os
 import csv
 from student_teacher.mean_teacher.scorers.fnc_scorer import report_score
-
+from sentence_transformers.util import calculate_micro_f1
 from sentence_transformers.readers import NLIDataReader
 
 class LabelAccuracyEvaluator(SentenceEvaluator):
@@ -67,8 +67,8 @@ class LabelAccuracyEvaluator(SentenceEvaluator):
             correct += torch.argmax(prediction, dim=1).eq(label_ids).sum().item()
 
             predictions_classes=torch.argmax(prediction, dim=1)
-            total_gold.append(label_ids)
-            total_predictions.append(predictions_classes)
+            total_gold.extend(label_ids)
+            total_predictions.extend(predictions_classes)
 
         accuracy = correct / total
         accuracy_graph_name=self.name+" accuracy per epoch"
@@ -78,7 +78,7 @@ class LabelAccuracyEvaluator(SentenceEvaluator):
         self.logging.info("Accuracy on : {:.4f} ({}/{}) correct\n".format(accuracy, correct, total))
 
         fnc_score = 0.00
-        
+
         if ("fnc" in self.name):
             predictions_str_labels = NLIDataReader.get_label_given_index(NLIDataReader, total_predictions)
             gold_str_labels = NLIDataReader.get_label_given_index(NLIDataReader, total_predictions)
@@ -88,13 +88,18 @@ class LabelAccuracyEvaluator(SentenceEvaluator):
                                     step=epoch, include_context=False)
             self.logging.info("FNC score on : {:.4f} \n".format(fnc_score))
 
+        microf1_without_unrelated_class = calculate_micro_f1(total_predictions, total_gold, 3)
+        microf1_with_only_unrelated_class = calculate_micro_f1(total_predictions, total_gold, 3, True)
+        self.logging.info(f"microf1_without_unrelated_class:{microf1_without_unrelated_class}")
+        self.logging.info(f"microf1_with_only_unrelated_class:{microf1_with_only_unrelated_class}")
 
+        mf1_without_unrelated_graph_name = self.name + " microf1_without_unrelated"
+        self.draw_graphs.log_metric(mf1_without_unrelated_graph_name, microf1_without_unrelated_class,
+                                    step=epoch, include_context=False)
 
-
-        # microf1_without_unrelated_class = self.calculate_micro_f1(all_predictions, all_gold_labels, 3)
-        # microf1_with_only_unrelated_class = self.calculate_micro_f1(all_predictions, all_gold_labels, 3, True)
-        # return plain_accuracy, running_loss_val, microf1_without_unrelated_class, microf1_with_only_unrelated_class, fnc_score
-
+        mf1_only_unrelated_graph_name = self.name + " microf1_only_unrelated"
+        self.draw_graphs.log_metric(mf1_only_unrelated_graph_name, microf1_with_only_unrelated_class,
+                                    step=epoch, include_context=False)
 
         if output_path is not None:
             csv_path = os.path.join(output_path, self.csv_file)

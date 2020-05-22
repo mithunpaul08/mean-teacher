@@ -78,7 +78,7 @@ class LabelAccuracyEvaluator(SentenceEvaluator):
         self.logging.info("Accuracy on : {:.4f} ({}/{}) correct\n".format(accuracy, correct, total))
 
         fnc_score = 0.00
-        print(total_predictions)
+        
         if ("fnc" in self.name):
             predictions_str_labels = NLIDataReader.get_label_given_index(NLIDataReader, total_predictions)
             gold_str_labels = NLIDataReader.get_label_given_index(NLIDataReader, total_predictions)
@@ -86,7 +86,7 @@ class LabelAccuracyEvaluator(SentenceEvaluator):
             fnc_score_graph_name = self.name + " fnc_score per epoch"
             self.draw_graphs.log_metric(fnc_score_graph_name, fnc_score,
                                     step=epoch, include_context=False)
-            self.logging.info("FNC score on : {:.4f} ({}/{}) \n".format(fnc_score))
+            self.logging.info("FNC score on : {:.4f} \n".format(fnc_score))
 
 
 

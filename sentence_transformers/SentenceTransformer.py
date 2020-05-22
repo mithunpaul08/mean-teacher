@@ -578,14 +578,16 @@ class SentenceTransformer(nn.Sequential):
                     loss_model.train()
                 running_loss_lex = 0.0
 
-
+                #for each batch
                 for _ in trange(steps_per_epoch, desc="training_batches", smoothing=0.05):
 
                     combined_class_loss = 0
                     combined_consistency_loss = 0
 
+
                     for train_idx in range(num_train_objectives):
                         loss_model = loss_models[train_idx]
+
                         optimizer = optimizers[train_idx]
                         scheduler = schedulers[train_idx]
                         data_iterator = data_iterators[train_idx]
@@ -593,7 +595,7 @@ class SentenceTransformer(nn.Sequential):
                         try:
                             data = next(data_iterator)
                         except StopIteration:
-                            # logging.info("Restart data_iterator")
+                            logging.info("Restart data_iterator")
                             data_iterator = iter(dataloaders[train_idx])
                             data_iterators[train_idx] = data_iterator
                             data = next(data_iterator)
@@ -601,39 +603,51 @@ class SentenceTransformer(nn.Sequential):
                         features, labels = batch_to_device(data, self.device)
                         predictions = loss_model(features, labels)
 
+                        if(train_idx==0):
+                            predictions_lex_teacher=predictions
+
+                        if (train_idx == 1):
+                            predictions_delex_student = predictions
+
+
+
                         class_loss_lex = class_loss_func(predictions, labels)
                         combined_class_loss = combined_class_loss + class_loss_lex
                         loss_t_lex = class_loss_lex.item()
 
-                        consistency_loss = 0
-                        class_loss_delex = None
-
-                        #add up all the combined losses and class losses and get out of train_idx for loop because all models need to backpropagate together, not one after the other.
 
 
+                    consistency_loss_lex_delex = 0
+                    class_loss_delex = None
+                    consistency_loss_delexstudent_lexteacher = consistency_criterion(predictions_lex_teacher, predictions_delex_student)
+                    #add up all the combined losses and class losses and get out of train_idx for loop because all models need to backpropagate together, not one after the other.
 
 
 
-                        if fp16:
-                            with amp.scale_loss(combined_class_loss, optimizer) as scaled_loss:
-                                scaled_loss.backward()
-                            torch.nn.utils.clip_grad_norm_(amp.master_params(optimizer), max_grad_norm)
-                        else:
-                            combined_class_loss.backward()
-                            torch.nn.utils.clip_grad_norm_(loss_model.parameters(), max_grad_norm)
+                    # combined loss is the sum of  classification losses and  consistency losses
+                    combined_loss = (args_in.consistency_weight * consistency_loss_delexstudent_lexteacher) + (combined_class_loss)
+                    if fp16:
+                        with amp.scale_loss(combined_loss, optimizer) as scaled_loss:
+                            scaled_loss.backward()
+                        torch.nn.utils.clip_grad_norm_(amp.master_params(optimizer), max_grad_norm)
+                    else:
+                        combined_loss.backward()
+                        torch.nn.utils.clip_grad_norm_(loss_model.parameters(), max_grad_norm)
 
-                        optimizer.step()
-                        scheduler.step()
-                        optimizer.zero_grad()
+                    #note: will have to combine the optimizers and do one single step
+                    optimizer.step()
+                    scheduler.step()
+                    optimizer.zero_grad()
 
                     training_steps += 1
                     global_step += 1
 
-                    # if evaluation_steps > 0 and training_steps % evaluation_steps == 0:
-                    #     self._eval_during_training(evaluator, output_path, save_best_model, epoch, training_steps)
-                    #     for loss_model in loss_models:
-                    #         loss_model.zero_grad()
-                    #         loss_model.train()
+                # for printing training accuracy etc
+                # if evaluation_steps > 0 and training_steps % evaluation_steps == 0:
+                #     self._eval_during_training(evaluator, output_path, save_best_model, epoch, training_steps)
+                #     for loss_model in loss_models:
+                #         loss_model.zero_grad()
+                #         loss_model.train()
                 for evaluator in evaluators:
                     self._eval_during_training(evaluator, output_path, save_best_model, epoch, -1)
 

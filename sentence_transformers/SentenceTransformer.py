@@ -577,7 +577,13 @@ class SentenceTransformer(nn.Sequential):
                     loss_model.zero_grad()
                     loss_model.train()
                 running_loss_lex = 0.0
+
+
                 for _ in trange(steps_per_epoch, desc="training_batches", smoothing=0.05):
+
+                    combined_class_loss = 0
+                    combined_consistency_loss = 0
+
                     for train_idx in range(num_train_objectives):
                         loss_model = loss_models[train_idx]
                         optimizer = optimizers[train_idx]
@@ -595,20 +601,18 @@ class SentenceTransformer(nn.Sequential):
                         features, labels = batch_to_device(data, self.device)
                         predictions = loss_model(features, labels)
 
-
                         class_loss_lex = class_loss_func(predictions, labels)
-
+                        combined_class_loss = combined_class_loss + class_loss_lex
                         loss_t_lex = class_loss_lex.item()
 
+                        consistency_loss = 0
+                        class_loss_delex = None
 
-                        #running_loss_lex += (loss_t_lex - running_loss_lex) / (batch_index + 1)
-                        #self._LOG.debug(f"loss_t_lex={loss_t_lex}\trunning_loss_lex={running_loss_lex}")
+                        #add up all the combined losses and class losses and get out of train_idx for loop because all models need to backpropagate together, not one after the other.
 
 
-                        combined_class_loss = class_loss_lex
 
-                        consistency_loss=0
-                        class_loss_delex=None
+
 
                         if fp16:
                             with amp.scale_loss(combined_class_loss, optimizer) as scaled_loss:
@@ -647,7 +651,7 @@ class SentenceTransformer(nn.Sequential):
                 'early_stopping_best_val': 1e8,
                 'learning_rate': args.learning_rate,
                 'epoch_index': 0,
-                'train_loss': [],
+                'train_loss_lex': [],
                 'train_acc': [],
                 'val_loss': [],
                 'val_acc': [],

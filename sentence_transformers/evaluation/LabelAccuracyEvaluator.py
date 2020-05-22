@@ -81,7 +81,7 @@ class LabelAccuracyEvaluator(SentenceEvaluator):
 
         if ("fnc" in self.name):
             predictions_str_labels = NLIDataReader.get_label_given_index(NLIDataReader, total_predictions)
-            gold_str_labels = NLIDataReader.get_label_given_index(NLIDataReader, total_predictions)
+            gold_str_labels = NLIDataReader.get_label_given_index(NLIDataReader, total_gold)
             fnc_score = report_score(gold_str_labels, predictions_str_labels)
             fnc_score_graph_name = self.name + " fnc_score per epoch"
             self.draw_graphs.log_metric(fnc_score_graph_name, fnc_score,

@@ -88,18 +88,18 @@ class LabelAccuracyEvaluator(SentenceEvaluator):
                                     step=epoch, include_context=False)
             self.logging.info("FNC score on : {:.4f} \n".format(fnc_score))
 
-        microf1_without_unrelated_class = calculate_micro_f1(total_predictions, total_gold, 3)
-        microf1_with_only_unrelated_class = calculate_micro_f1(total_predictions, total_gold, 3, True)
-        self.logging.info(f"microf1_without_unrelated_class:{microf1_without_unrelated_class}")
-        self.logging.info(f"microf1_with_only_unrelated_class:{microf1_with_only_unrelated_class}")
-
-        mf1_without_unrelated_graph_name = self.name + " microf1_without_unrelated"
-        self.draw_graphs.log_metric(mf1_without_unrelated_graph_name, microf1_without_unrelated_class,
-                                    step=epoch, include_context=False)
-
-        mf1_only_unrelated_graph_name = self.name + " microf1_only_unrelated"
-        self.draw_graphs.log_metric(mf1_only_unrelated_graph_name, microf1_with_only_unrelated_class,
-                                    step=epoch, include_context=False)
+        # microf1_without_unrelated_class = calculate_micro_f1(total_predictions, total_gold, 3)
+        # microf1_with_only_unrelated_class = calculate_micro_f1(total_predictions, total_gold, 3, True)
+        # self.logging.info(f"microf1_without_unrelated_class:{microf1_without_unrelated_class}")
+        # self.logging.info(f"microf1_with_only_unrelated_class:{microf1_with_only_unrelated_class}")
+        #
+        # mf1_without_unrelated_graph_name = self.name + " microf1_without_unrelated"
+        # self.draw_graphs.log_metric(mf1_without_unrelated_graph_name, microf1_without_unrelated_class,
+        #                             step=epoch, include_context=False)
+        #
+        # mf1_only_unrelated_graph_name = self.name + " microf1_only_unrelated"
+        # self.draw_graphs.log_metric(mf1_only_unrelated_graph_name, microf1_with_only_unrelated_class,
+        #                             step=epoch, include_context=False)
 
         if output_path is not None:
             csv_path = os.path.join(output_path, self.csv_file)

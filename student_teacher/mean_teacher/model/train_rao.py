@@ -297,7 +297,6 @@ class Trainer():
 
 
     def get_label_strings_given_list(self, labels_tensor):
-
         labels_str=[]
         for e in labels_tensor:
             labels_str.append(LABELS[e.item()].lower())

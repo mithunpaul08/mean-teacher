@@ -43,6 +43,19 @@ class NLIDataReader(object):
     def get_labels():
         return {"agree": 0, "disagree": 1, "discuss": 2, "unrelated": 3}
 
+    @staticmethod
+    def get_indices():
+        return {0:"agree", 1:"disagree",2:"discuss", 3:"unrelated"}
+
+    @staticmethod
+    def get_label_given_index(self, labels_tensor):
+        indices=self.get_indices()
+        labels_str=[]
+        for e in labels_tensor[0]:
+            labels_str.append(indices[e.item()].lower())
+        return labels_str
+
+
     def get_num_labels(self):
         return len(self.get_labels())
 

@@ -6,7 +6,9 @@ from tqdm import tqdm
 from ..util import batch_to_device
 import os
 import csv
+from student_teacher.mean_teacher.scorers.fnc_scorer import report_score
 
+from sentence_transformers.readers import NLIDataReader
 
 class LabelAccuracyEvaluator(SentenceEvaluator):
     """
@@ -17,7 +19,7 @@ class LabelAccuracyEvaluator(SentenceEvaluator):
     The results are written in a CSV. If a CSV already exists, then values are appended.
     """
 
-    def __init__(self, dataloader: DataLoader, name: str = "", softmax_model = None,grapher=None,logger=None):
+    def __init__(self, dataloader: DataLoader, name: str = "", softmax_model = None,grapher=None,logger=None,nlireader=None):
         """
         Constructs an evaluator for the given dataset
 
@@ -31,6 +33,7 @@ class LabelAccuracyEvaluator(SentenceEvaluator):
         self.softmax_model.to(self.device)
         self.draw_graphs=grapher
         self.logging=logger
+        self.nlireader=nlireader
 
         if name:
             name = "_"+name
@@ -53,6 +56,8 @@ class LabelAccuracyEvaluator(SentenceEvaluator):
 
         self.logging.info("Evaluation on the "+self.name+" dataset"+out_txt)
         self.dataloader.collate_fn = model.smart_batching_collate
+        total_gold=[]
+        total_predictions=[]
         for step, batch in enumerate(tqdm(self.dataloader, desc="dev batches")):
             features, label_ids = batch_to_device(batch, self.device)
             with torch.no_grad():
@@ -60,14 +65,36 @@ class LabelAccuracyEvaluator(SentenceEvaluator):
 
             total += prediction.size(0)
             correct += torch.argmax(prediction, dim=1).eq(label_ids).sum().item()
-            batch_accuracy = correct / total
 
-        accuracy = correct/total
-        graph_name=self.name+" accuracy per epoch"
-        self.draw_graphs.log_metric(graph_name,accuracy ,
+            predictions_classes=torch.argmax(prediction, dim=1)
+            total_gold.append(label_ids)
+            total_predictions.append(predictions_classes)
+
+        accuracy = correct / total
+        accuracy_graph_name=self.name+" accuracy per epoch"
+        self.draw_graphs.log_metric(accuracy_graph_name,accuracy ,
                                     step=epoch,include_context=False)
 
         self.logging.info("Accuracy on : {:.4f} ({}/{}) correct\n".format(accuracy, correct, total))
+
+        fnc_score = 0.00
+        print(total_predictions)
+        if ("fnc" in self.name):
+            predictions_str_labels = NLIDataReader.get_label_given_index(NLIDataReader, total_predictions)
+            gold_str_labels = NLIDataReader.get_label_given_index(NLIDataReader, total_predictions)
+            fnc_score = report_score(gold_str_labels, predictions_str_labels)
+            fnc_score_graph_name = self.name + " fnc_score per epoch"
+            self.draw_graphs.log_metric(fnc_score_graph_name, fnc_score,
+                                    step=epoch, include_context=False)
+            self.logging.info("FNC score on : {:.4f} ({}/{}) \n".format(fnc_score))
+
+
+
+
+        # microf1_without_unrelated_class = self.calculate_micro_f1(all_predictions, all_gold_labels, 3)
+        # microf1_with_only_unrelated_class = self.calculate_micro_f1(all_predictions, all_gold_labels, 3, True)
+        # return plain_accuracy, running_loss_val, microf1_without_unrelated_class, microf1_with_only_unrelated_class, fnc_score
+
 
         if output_path is not None:
             csv_path = os.path.join(output_path, self.csv_file)

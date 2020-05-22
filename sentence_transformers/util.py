@@ -26,7 +26,7 @@ def calculate_micro_f1(y_pred, y_target,label,accept=False):
             else:
                 if (l==label):
                     labels_to_include.append(index)
-        mf1=metrics.f1_score(y_target,y_pred, average='micro', labels=labels_to_include)
+        mf1=metrics.f1_score(y_target,y_pred, average='micro', labels=labels_to_include,zero_division='warn')
         return mf1
 
 

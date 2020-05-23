@@ -578,6 +578,7 @@ class SentenceTransformer(nn.Sequential):
                     loss_model.zero_grad()
                     loss_model.train()
                 running_loss = 0.0
+                running_loss_average_method=0
                 for batch_index in trange(steps_per_epoch, desc="training_batches", smoothing=0.05):
                     for train_idx in range(num_train_objectives):
                         loss_model = loss_models[train_idx]
@@ -601,6 +602,7 @@ class SentenceTransformer(nn.Sequential):
 
                         loss_t_lex = class_loss_lex.item()
                         running_loss += (loss_t_lex - running_loss) / (batch_index + 1)
+                        running_loss_average_method=running_loss_average_method+loss_t_lex
 
 
 
@@ -623,12 +625,16 @@ class SentenceTransformer(nn.Sequential):
                         optimizer.step()
                         scheduler.step()
                         optimizer.zero_grad()
-                    grapher.log_metric("training_loss", running_loss,
-                                                step=epoch, include_context=False)
                     batch_count += 1
                     global_step += 1
+                overall_loss=running_loss_average_method/steps_per_epoch
 
-                    # if evaluation_steps > 0 and batch_count % evaluation_steps == 0:
+                grapher.log_metric("training_loss", running_loss,
+                                                step=epoch, include_context=False)
+                grapher.log_metric("training_loss_using_average_method", overall_loss,
+                                   step=epoch, include_context=False)
+
+                # if evaluation_steps > 0 and batch_count % evaluation_steps == 0:
                     #     self._eval_during_training(evaluator, output_path, save_best_model, epoch, batch_count)
                     #     for loss_model in loss_models:
                     #         loss_model.zero_grad()

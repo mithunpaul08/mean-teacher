@@ -42,7 +42,7 @@ def initialize_comet(args):
         if(args.create_new_comet_graph==True):
             comet_Expt_object = Experiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", project_name="rte-decomp-attention")
         else:
-            comet_Expt_object = ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", previous_experiment="8ee6669d2b854eaf834f8a56eaa9f235")
+            comet_Expt_object = ExistingExperiment(api_key="XUbi4cShweB6drrJ5eAKMT6FT", previous_experiment="0c85d44875234ec1a7d0a45bdedb551b")
 
     return comet_Expt_object
 

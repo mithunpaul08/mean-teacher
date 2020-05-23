@@ -623,7 +623,7 @@ class SentenceTransformer(nn.Sequential):
                         optimizer.step()
                         scheduler.step()
                         optimizer.zero_grad()
-                    self.draw_graphs.log_metric("training_loss", running_loss,
+                    grapher.log_metric("training_loss", running_loss,
                                                 step=epoch, include_context=False)
                     batch_count += 1
                     global_step += 1

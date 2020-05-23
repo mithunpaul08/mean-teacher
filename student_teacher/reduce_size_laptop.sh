@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-head -100 data/rte/fever/train/fever_train_delex.jsonl > temp
+head -20 data/rte/fever/train/fever_train_delex.jsonl > temp
 mv temp data/rte/fever/train/fever_train_delex.jsonl
 
-head -100 data/rte/fever/train/fever_train_lex.jsonl > temp
+head -20 data/rte/fever/train/fever_train_lex.jsonl > temp
 mv temp data/rte/fever/train/fever_train_lex.jsonl
 
 
@@ -26,3 +26,4 @@ mv temp data/rte/fnc/dev/fnc_dev_lex.jsonl
 head -20 data/rte/fnc/dev/fnc_dev_delex.jsonl > temp
 mv temp data/rte/fnc/dev/fnc_dev_delex.jsonl
 
+pip install --no-cache-dir --upgrade comet_ml

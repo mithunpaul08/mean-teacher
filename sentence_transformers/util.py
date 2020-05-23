@@ -47,6 +47,39 @@ def batch_to_device(batch, target_device: device):
     return features, labels
 
 
+def initialize_combined_optimizers(list_models, args):
+
+    '''
+        The code for decomposable attention we use , internally utilizes two different optimizers
+        In this function we combine the parameters of all the models and create a common optimizer (or 2 of them in this case) for them
+    :param model:
+    :param args:
+    :return:
+    '''
+    combined_para1= []
+    combined_para2 = []
+    for model in list_models:
+        combined_para1  =   combined_para1  + list(model.para1)
+        combined_para2  =   combined_para2  + list(model.para2)
+
+    input_optimizer = None
+    inter_atten_optimizer = None
+
+    if args.optimizer == 'adagrad':
+        input_optimizer = torch.optim.Adagrad(combined_para1, lr=args.learning_rate, weight_decay=args.weight_decay)
+        inter_atten_optimizer = torch.optim.Adagrad(combined_para2, lr=args.learning_rate, weight_decay=args.weight_decay)
+    elif args.optimizer == 'Adadelta':
+        input_optimizer = torch.optim.Adadelta(combined_para1, lr=args.lr)
+        inter_atten_optimizer = torch.optim.Adadelta(combined_para2, lr=args.lr)
+    else:
+        print('No Optimizer.')
+        import sys
+        sys.exit()
+    assert input_optimizer != None
+    assert inter_atten_optimizer != None
+
+    return input_optimizer,inter_atten_optimizer
+
 
 def http_get(url, path):
     with open(path, "wb") as file_binary:

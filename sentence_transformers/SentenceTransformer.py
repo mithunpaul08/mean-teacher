@@ -634,10 +634,15 @@ class SentenceTransformer(nn.Sequential):
                         combined_loss.backward()
                         torch.nn.utils.clip_grad_norm_(loss_model.parameters(), max_grad_norm)
 
-                    #note: will have to combine the optimizers and do one single step
-                    optimizer.step()
-                    scheduler.step()
-                    optimizer.zero_grad()
+                    #todo: will have to combine the optimizers and do one single step
+
+                    for train_idx in range(num_train_objectives):
+                        optimizer = optimizers[train_idx]
+                        scheduler = schedulers[train_idx]
+
+                        optimizer.step()
+                        scheduler.step()
+                        optimizer.zero_grad()
 
                     training_steps += 1
                     global_step += 1

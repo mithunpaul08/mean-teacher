@@ -479,7 +479,8 @@ class SentenceTransformer(nn.Sequential):
                        max_grad_norm: float = 1,
                        fp16: bool = False,
                        fp16_opt_level: str = 'O1',
-                       local_rank: int = -1
+                       local_rank: int = -1,
+                       grapher=None
                        ):
         if output_path is not None:
             os.makedirs(output_path, exist_ok=True)
@@ -571,13 +572,13 @@ class SentenceTransformer(nn.Sequential):
             num_train_objectives = len(train_objectives)
 
             for epoch in trange(epochs, desc="Epoch"):
-                training_steps = 0
+                batch_count = 0
 
                 for loss_model in loss_models:
                     loss_model.zero_grad()
                     loss_model.train()
-                running_loss_lex = 0.0
-                for _ in trange(steps_per_epoch, desc="training_batches", smoothing=0.05):
+                running_loss = 0.0
+                for batch_index in trange(steps_per_epoch, desc="training_batches", smoothing=0.05):
                     for train_idx in range(num_train_objectives):
                         loss_model = loss_models[train_idx]
                         optimizer = optimizers[train_idx]
@@ -599,10 +600,11 @@ class SentenceTransformer(nn.Sequential):
                         class_loss_lex = class_loss_func(predictions, labels)
 
                         loss_t_lex = class_loss_lex.item()
+                        running_loss += (loss_t_lex - running_loss) / (batch_index + 1)
 
 
-                        #running_loss_lex += (loss_t_lex - running_loss_lex) / (batch_index + 1)
-                        #self._LOG.debug(f"loss_t_lex={loss_t_lex}\trunning_loss_lex={running_loss_lex}")
+
+
 
 
                         combined_class_loss = class_loss_lex
@@ -621,12 +623,13 @@ class SentenceTransformer(nn.Sequential):
                         optimizer.step()
                         scheduler.step()
                         optimizer.zero_grad()
-
-                    training_steps += 1
+                    self.draw_graphs.log_metric("training_loss", running_loss,
+                                                step=epoch, include_context=False)
+                    batch_count += 1
                     global_step += 1
 
-                    # if evaluation_steps > 0 and training_steps % evaluation_steps == 0:
-                    #     self._eval_during_training(evaluator, output_path, save_best_model, epoch, training_steps)
+                    # if evaluation_steps > 0 and batch_count % evaluation_steps == 0:
+                    #     self._eval_during_training(evaluator, output_path, save_best_model, epoch, batch_count)
                     #     for loss_model in loss_models:
                     #         loss_model.zero_grad()
                     #         loss_model.train()

@@ -142,7 +142,8 @@ classifier_teacher_lex.train_1teacher(args,train_objectives=[(train_dataloader, 
                                       epochs = num_epochs,
                                       evaluation_steps = 1,
                                       warmup_steps = warmup_steps,
-                                      output_path = model_save_path
+                                      output_path = model_save_path,
+                                      grapher=comet_value_updater
                                       )
 
 

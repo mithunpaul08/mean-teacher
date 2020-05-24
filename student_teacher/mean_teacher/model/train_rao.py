@@ -51,7 +51,7 @@ class Trainer():
                 'early_stopping_best_val': 1e8,
                 'learning_rate': args.learning_rate,
                 'epoch_index': 0,
-                'train_loss_lex': [],
+                'train_loss_teacher_lex': [],
                 'train_acc': [],
                 'val_loss': [],
                 'val_acc': [],
@@ -902,7 +902,7 @@ class Trainer():
 
 
                 train_state_in['train_acc'].append(running_acc_lex)
-                train_state_in['train_loss_lex'].append(running_loss_lex)
+                train_state_in['train_loss_teacher_lex'].append(running_loss_lex)
 
 
 
@@ -1484,7 +1484,7 @@ class Trainer():
 
 
                 train_state_in['train_acc'].append(running_acc_lex)
-                train_state_in['train_loss_lex'].append(running_loss_lex)
+                train_state_in['train_loss_teacher_lex'].append(running_loss_lex)
 
 
 

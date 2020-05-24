@@ -244,7 +244,7 @@ def update_optimizer_state(input_optimizer, inter_atten_optimizer,args):
     return input_optimizer, inter_atten_optimizer
 
 
-def create_model_bert():
+def create_model_bert(ema=False):
     # You can specify any huggingface/transformers pre-trained model here, for example, bert-base-uncased, roberta-base, xlm-roberta-base
     model_name = 'bert-base-uncased'
 
@@ -258,6 +258,11 @@ def create_model_bert():
                                    pooling_mode_max_tokens=False)
 
     model = SentenceTransformer(modules=[word_embedding_model, pooling_model])
+
+    if ema:
+        for param in model.parameters():
+            param.detach_()  ##NOTE: Detaches the variable from the gradient computation, making it a leaf .. needed from EMA model
+
     return model
 
 def create_model(logger_object, args_in,  num_classes_in, word_vocab_embed, word_vocab_size, wordemb_size_in,ema=False,):

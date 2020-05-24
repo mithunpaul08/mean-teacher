@@ -565,6 +565,7 @@ class SentenceTransformer(nn.Sequential):
 
         try:
 
+
             global_step = 0
             data_iterators = [iter(dataloader) for dataloader in dataloaders]
 
@@ -605,27 +606,36 @@ class SentenceTransformer(nn.Sequential):
 
                         if(train_idx==0):
                             predictions_lex_teacher=predictions
+                            classifier_teacher_lex=loss_model
 
                         if (train_idx == 1):
                             predictions_delex_student = predictions
+                            classifier_student_delex = loss_model
 
+                        if (train_idx == 2):
+                            predictions_lex_teacher_ema = predictions
+                            classifier_teacher_lex_ema = loss_model
 
+                        if (train_idx == 3):
+                            predictions_delex_student_ema = predictions
+                            classifier_delex_student_ema = loss_model
 
                         class_loss_lex = class_loss_func(predictions, labels)
                         combined_class_loss = combined_class_loss + class_loss_lex
                         loss_t_lex = class_loss_lex.item()
 
+                    # add up all the combined losses and class losses and get out of train_idx for loop because all models need to backpropagate together, not one after the other.
 
+                    consistency_loss_delex_student_lex_teacher = consistency_criterion(predictions_delex_student,predictions_lex_teacher )
+                    consistency_loss_delex_student_lex_teacher_ema = consistency_criterion(predictions_delex_student,predictions_lex_teacher_ema)
+                    consistency_loss_delex_student_delex_student_ema = consistency_criterion(predictions_delex_student, predictions_delex_student_ema)
+                    combined_consistency_loss=consistency_loss_delex_student_lex_teacher+consistency_loss_delex_student_lex_teacher_ema+consistency_loss_delex_student_delex_student_ema
 
-                    consistency_loss_lex_delex = 0
-                    class_loss_delex = None
-                    consistency_loss_delexstudent_lexteacher = consistency_criterion(predictions_lex_teacher, predictions_delex_student)
-                    #add up all the combined losses and class losses and get out of train_idx for loop because all models need to backpropagate together, not one after the other.
 
 
 
                     # combined loss is the sum of  classification losses and  consistency losses
-                    combined_loss = (args_in.consistency_weight * consistency_loss_delexstudent_lexteacher) + (combined_class_loss)
+                    combined_loss = (args_in.consistency_weight * combined_consistency_loss) + (combined_class_loss)
                     if fp16:
                         with amp.scale_loss(combined_loss, optimizer) as scaled_loss:
                             scaled_loss.backward()
@@ -644,8 +654,17 @@ class SentenceTransformer(nn.Sequential):
                         scheduler.step()
                         optimizer.zero_grad()
 
+
+
                     training_steps += 1
                     global_step += 1
+
+                    #  in ema mode, one model is the exponential moving average of the other. that calculation is done here
+                    # eg: classifier_student_delex_ema is the ema of classifier_student_delex
+                    self.update_ema_variables(classifier_student_delex, classifier_delex_student_ema, args_in.ema_decay,
+                                              global_step)
+                    self.update_ema_variables(classifier_teacher_lex, classifier_teacher_lex_ema, args_in.ema_decay,
+                                              global_step)
 
                 # for printing training accuracy etc
                 # if evaluation_steps > 0 and training_steps % evaluation_steps == 0:
@@ -670,10 +689,16 @@ class SentenceTransformer(nn.Sequential):
                 'early_stopping_best_val': 1e8,
                 'learning_rate': args.learning_rate,
                 'epoch_index': 0,
-                'train_loss_lex': [],
+                'train_loss_teacher_lex': [],
                 'train_acc': [],
                 'val_loss': [],
                 'val_acc': [],
                 'test_loss': -1,
                 'test_acc': -1,
                 'model_filename': args.model_state_file}
+
+    def update_ema_variables(self, model, ema_model, alpha, global_step):
+        # Use the true average until the exponential average is more correct
+        alpha = min(1 - 1 / (global_step + 1), alpha)
+        for ema_param, param in zip(ema_model.parameters(), model.parameters()):
+            ema_param.data.mul_(alpha).add_(1 - alpha, param.data)

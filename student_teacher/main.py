@@ -195,7 +195,6 @@ classifier_teacher_lex.train_1teacher(args, train_objectives=[  (train_dataloade
                                                                 (train_dataloader_student_delex_ema, train_loss_student_delex_ema),
                                                               ],
                                       evaluators = [
-                                                    evaluator_fever_dev_lex,evaluator_fever_dev_delex, evaluator_fever_dev_lex_ema, evaluator_fever_dev_delex_ema,
                                                     evaluator_fnc_dev_lex,evaluator_fnc_dev_delex, evaluator_fnc_dev_lex_ema, evaluator_fnc_dev_delex_ema,
                                                     ],
                                       epochs = num_epochs,

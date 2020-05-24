@@ -577,54 +577,64 @@ class SentenceTransformer(nn.Sequential):
                 for loss_model in loss_models:
                     loss_model.zero_grad()
                     loss_model.train()
-                running_loss_lex = 0.0
+
 
                 #for each batch
                 for _ in trange(steps_per_epoch, desc="training_batches", smoothing=0.05):
 
-                    combined_class_loss = 0
-                    combined_consistency_loss = 0
+                    classifier_teacher_lex=  loss_models[0]
+                    classifier_student_delex = loss_models[1]
+                    classifier_teacher_lex_ema = loss_models[2]
+                    classifier_student_delex_ema = loss_models[3]
+
+                    optimizer_teacher_lex = optimizers[0]
+                    optimizer_student_delex = optimizers[1]
+                    optimizer_teacher_lex_ema = optimizers[2]
+                    optimizer_student_delex_ema = optimizers[3]
+
+                    scheduler_teacher_lex = schedulers[0]
+                    scheduler_student_delex = schedulers[1]
+                    scheduler_teacher_lex_ema = schedulers[2]
+                    scheduler_student_delex_ema = schedulers[3]
 
 
-                    for train_idx in range(num_train_objectives):
-                        loss_model = loss_models[train_idx]
+                    #teacher models will have same iterator + all student models will have same iterator
+                    data_iterator_teachers_lex = data_iterators[0]
+                    data_iterator_students_delex = data_iterators[1]
 
-                        optimizer = optimizers[train_idx]
-                        scheduler = schedulers[train_idx]
-                        data_iterator = data_iterators[train_idx]
 
-                        try:
-                            data = next(data_iterator)
-                        except StopIteration:
-                            logging.info("Restart data_iterator")
-                            data_iterator = iter(dataloaders[train_idx])
-                            data_iterators[train_idx] = data_iterator
-                            data = next(data_iterator)
 
-                        features, labels = batch_to_device(data, self.device)
-                        predictions = loss_model(features, labels)
 
-                        if(train_idx==0):
-                            predictions_lex_teacher=predictions
-                            classifier_teacher_lex=loss_model
 
-                        if (train_idx == 1):
-                            predictions_delex_student = predictions
-                            classifier_student_delex = loss_model
+                    try:
+                        data_teachers_lex = next(data_iterator_teachers_lex)
+                        data_teachers_delex = next(data_iterator_students_delex)
+                    except StopIteration:
+                        logging.info("error in data_iterator")
+                        # data_iterator = iter(dataloaders[train_idx])
+                        # data_iterators[train_idx] = data_iterator
+                        # data = next(data_iterator)
 
-                        if (train_idx == 2):
-                            predictions_lex_teacher_ema = predictions
-                            classifier_teacher_lex_ema = loss_model
 
-                        if (train_idx == 3):
-                            predictions_delex_student_ema = predictions
-                            classifier_delex_student_ema = loss_model
+                    assert data_teachers_lex is not None
+                    assert data_teachers_delex is not None
+                    #predictions using all teacher models
+                    features, labels = batch_to_device(data_teachers_lex, self.device)
+                    predictions_lex_teacher = classifier_teacher_lex(features, labels)
+                    predictions_lex_teacher_ema = classifier_teacher_lex_ema(features, labels)
+                    class_loss_lex_teacher = class_loss_func(predictions_lex_teacher, labels)
+                    class_loss_lex_teacher_ema = class_loss_func(predictions_lex_teacher_ema, labels)
 
-                        class_loss_lex = class_loss_func(predictions, labels)
-                        combined_class_loss = combined_class_loss + class_loss_lex
-                        loss_t_lex = class_loss_lex.item()
+                    # predictions using all student models
+                    features, labels = batch_to_device(data_teachers_delex, self.device)
+                    predictions_delex_student = classifier_student_delex(features, labels)
+                    predictions_delex_student_ema = classifier_student_delex_ema(features, labels)
+                    class_loss_delex_student = class_loss_func(predictions_delex_student, labels)
+                    class_loss_delex_student_ema = class_loss_func(predictions_delex_student_ema, labels)
 
-                    # add up all the combined losses and class losses and get out of train_idx for loop because all models need to backpropagate together, not one after the other.
+
+                    combined_class_loss =  class_loss_lex_teacher+class_loss_lex_teacher_ema+class_loss_delex_student+class_loss_delex_student_ema
+
 
                     consistency_loss_delex_student_lex_teacher = consistency_criterion(predictions_delex_student,predictions_lex_teacher )
                     consistency_loss_delex_student_lex_teacher_ema = consistency_criterion(predictions_delex_student,predictions_lex_teacher_ema)
@@ -632,7 +642,6 @@ class SentenceTransformer(nn.Sequential):
                     combined_consistency_loss=(0.5)*consistency_loss_delex_student_lex_teacher+\
                                               (0.5)*consistency_loss_delex_student_lex_teacher_ema+\
                                               (6)*consistency_loss_delex_student_delex_student_ema
-
 
 
 
@@ -648,13 +657,20 @@ class SentenceTransformer(nn.Sequential):
 
                     #todo: will have to combine the optimizers and do one single step
 
-                    for train_idx in range(num_train_objectives):
-                        optimizer = optimizers[train_idx]
-                        scheduler = schedulers[train_idx]
+                    optimizer_teacher_lex.step()
+                    optimizer_student_delex.step()
+                    optimizer_teacher_lex_ema.step()
+                    optimizer_student_delex_ema.step()
 
-                        optimizer.step()
-                        scheduler.step()
-                        optimizer.zero_grad()
+                    scheduler_teacher_lex.step()
+                    scheduler_student_delex.step()
+                    scheduler_teacher_lex_ema.step()
+                    scheduler_student_delex_ema.step()
+
+                    optimizer_teacher_lex.zero_grad()
+                    optimizer_student_delex.zero_grad()
+                    optimizer_teacher_lex_ema.zero_grad()
+                    optimizer_student_delex_ema.zero_grad()
 
 
 
@@ -663,7 +679,7 @@ class SentenceTransformer(nn.Sequential):
 
                     #  in ema mode, one model is the exponential moving average of the other. that calculation is done here
                     # eg: classifier_student_delex_ema is the ema of classifier_student_delex
-                    self.update_ema_variables(classifier_student_delex, classifier_delex_student_ema, args_in.ema_decay,
+                    self.update_ema_variables(classifier_student_delex, classifier_student_delex_ema, args_in.ema_decay,
                                               global_step)
                     self.update_ema_variables(classifier_teacher_lex, classifier_teacher_lex_ema, args_in.ema_decay,
                                               global_step)
@@ -674,6 +690,8 @@ class SentenceTransformer(nn.Sequential):
                 #     for loss_model in loss_models:
                 #         loss_model.zero_grad()
                 #         loss_model.train()
+
+                #run evaluation on dev at the end of every epoch, not batch
                 for evaluator in evaluators:
                     self._eval_during_training(evaluator, output_path, save_best_model, epoch, -1)
 

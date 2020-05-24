@@ -110,7 +110,7 @@ LOG.info(f"cuda available:{avail}")
 #You can specify any huggingface/transformers pre-trained model here, for example, bert-base-uncased, roberta-base, xlm-roberta-base
 model_name = 'bert-base-uncased'
 # Read the dataset
-batch_size = 1
+batch_size = 2
 abs=os.path.abspath(os.path.dirname(__file__))
 os.chdir(abs)
 nli_reader_fever_lex = NLIDataReader('data/rte/fever/allnli/lex/')
@@ -145,10 +145,10 @@ train_dataloader_student_delex_ema, train_loss_student_delex_ema=get_train_datal
 
 
 #evaluate on fever-dev using 4 models
-evaluator_fever_dev_lex=create_evaluator(nli_reader_fever_lex, classifier_teacher_lex,"fever_dev_using_teacher_lex")
-evaluator_fever_dev_delex=create_evaluator(nli_reader_fever_delex, classifier_student_delex,"fever_dev_using_student_delex")
-evaluator_fever_dev_lex_ema=create_evaluator(nli_reader_fever_lex, classifier_teacher_lex_ema,"fever_dev_using_teacher_lex_ema")
-evaluator_fever_dev_delex_ema=create_evaluator(nli_reader_fever_delex, classifier_student_delex_ema,"fever_dev_using_student_delex_ema")
+# evaluator_fever_dev_lex=create_evaluator(nli_reader_fever_lex, classifier_teacher_lex,"fever_dev_using_teacher_lex")
+# evaluator_fever_dev_delex=create_evaluator(nli_reader_fever_delex, classifier_student_delex,"fever_dev_using_student_delex")
+# evaluator_fever_dev_lex_ema=create_evaluator(nli_reader_fever_lex, classifier_teacher_lex_ema,"fever_dev_using_teacher_lex_ema")
+# evaluator_fever_dev_delex_ema=create_evaluator(nli_reader_fever_delex, classifier_student_delex_ema,"fever_dev_using_student_delex_ema")
 
 
 #evaluate on fnc-dev using 4 models
@@ -158,25 +158,6 @@ evaluator_fnc_dev_lex_ema=create_evaluator(nli_reader_fnc_lex, classifier_teache
 evaluator_fnc_dev_delex_ema=create_evaluator(nli_reader_fnc_delex, classifier_student_delex_ema,"fnc_dev_using_student_delex_ema")
 
 
-# logging.info("Reading fever dev dataset")
-# dev_data_fever_lex = SentencesDataset(nli_reader_fever_lex.get_examples('dev.gz'), model=classifier_teacher_lex)
-# dev_dataloader_fever_lex = DataLoader(dev_data_fever_lex, shuffle=False, batch_size=batch_size)
-# evaluator_fever_dev_lex = LabelAccuracyEvaluator(dev_dataloader_fever_lex, softmax_model = train_loss_teacher_lex, grapher=comet_value_updater, logger=LOG, name="fever-dev-lex")
-#
-# dev_data_fever_delex = SentencesDataset(nli_reader_fever_delex.get_examples('dev.gz'), model=classifier_student_delex)
-# dev_dataloader_fever_delex = DataLoader(dev_data_fever_delex, shuffle=False, batch_size=batch_size)
-# evaluator_fever_dev_delex = LabelAccuracyEvaluator(dev_dataloader_fever_delex, softmax_model = train_loss_student_delex, grapher=comet_value_updater, logger=LOG, name="fever-dev-delex")
-#
-# #all fnc dev related data
-# dev_data_fnc_lex = SentencesDataset(nli_reader_fnc_lex.get_examples('dev.gz'), model=classifier_teacher_lex)
-# dev_dataloader_fnc_lex = DataLoader(dev_data_fnc_lex, shuffle=False, batch_size=batch_size)
-# evaluator_fnc_lex = LabelAccuracyEvaluator(dev_dataloader_fnc_lex, softmax_model = train_loss_teacher_lex, grapher=comet_value_updater, logger=LOG, name="fnc-dev-lex")
-#
-# dev_data_fnc_delex = SentencesDataset(nli_reader_fnc_delex.get_examples('dev.gz'), model=classifier_student_delex)
-# dev_dataloader_fnc_delex = DataLoader(dev_data_fnc_delex, shuffle=False, batch_size=batch_size)
-# evaluator_fnc_delex = LabelAccuracyEvaluator(dev_dataloader_fnc_delex, softmax_model = train_loss_student_delex, grapher=comet_value_updater, logger=LOG, name="fnc-dev-delex")
-
-   
 if torch.cuda.is_available():
     torch.cuda.set_device(0)
 

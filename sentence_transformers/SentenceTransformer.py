@@ -443,6 +443,11 @@ class SentenceTransformer(nn.Sequential):
                 self.save(output_path)
                 self.best_score = score
 
+    def predict(self,data,classifier):
+        features, labels = batch_to_device(data, self.device)
+        predictions = classifier(features, labels)
+        class_loss = class_loss_func(predictions, labels)
+        return predictions, class_loss
 
     def _get_scheduler(self, optimizer, scheduler: str, warmup_steps: int, t_total: int):
         """
@@ -599,16 +604,21 @@ class SentenceTransformer(nn.Sequential):
 
 
                     #teacher models will have same iterator + all student models will have same iterator
-                    data_iterator_teachers_lex = data_iterators[0]
-                    data_iterator_students_delex = data_iterators[1]
+                    data_iterator_teacher_lex = data_iterators[0]
+                    data_iterator_student_delex = data_iterators[1]
+                    data_iterator_teacher_lex_ema = data_iterators[2]
+                    data_iterator_student_delex_ema = data_iterators[2]
 
 
 
 
 
                     try:
-                        data_teachers_lex = next(data_iterator_teachers_lex)
-                        data_teachers_delex = next(data_iterator_students_delex)
+                        data_teacher_lex = next(data_iterator_teacher_lex)
+                        data_student_delex = next(data_iterator_teacher_lex_ema)
+                        data_teacher_lex_ema = next(data_iterator_student_delex)
+                        data_student_delex_ema = next(data_iterator_student_delex_ema)
+
                     except StopIteration:
                         logging.info("error in data_iterator")
                         # data_iterator = iter(dataloaders[train_idx])
@@ -616,21 +626,20 @@ class SentenceTransformer(nn.Sequential):
                         # data = next(data_iterator)
 
 
-                    assert data_teachers_lex is not None
-                    assert data_teachers_delex is not None
-                    #predictions using all teacher models
-                    features, labels = batch_to_device(data_teachers_lex, self.device)
-                    predictions_lex_teacher = classifier_teacher_lex(features, labels)
-                    predictions_lex_teacher_ema = classifier_teacher_lex_ema(features, labels)
-                    class_loss_lex_teacher = class_loss_func(predictions_lex_teacher, labels)
-                    class_loss_lex_teacher_ema = class_loss_func(predictions_lex_teacher_ema, labels)
+                    assert data_teacher_lex is not None
+                    assert data_student_delex is not None
+                    assert data_teacher_lex_ema is not None
+                    assert data_student_delex_ema is not None
 
-                    # predictions using all student models
-                    features, labels = batch_to_device(data_teachers_delex, self.device)
-                    predictions_delex_student = classifier_student_delex(features, labels)
-                    predictions_delex_student_ema = classifier_student_delex_ema(features, labels)
-                    class_loss_delex_student = class_loss_func(predictions_delex_student, labels)
-                    class_loss_delex_student_ema = class_loss_func(predictions_delex_student_ema, labels)
+                    predictions_lex_teacher,class_loss_lex_teacher=self.predict(data_teacher_lex, classifier_teacher_lex)
+                    predictions_delex_student, class_loss_delex_student = self.predict(data_student_delex,
+                                                                                       classifier_student_delex)
+                    predictions_lex_teacher_ema, class_loss_lex_teacher_ema = self.predict(data_teacher_lex_ema,
+                                                                                           classifier_teacher_lex_ema)
+                    predictions_delex_student_ema, class_loss_delex_student_ema = self.predict(data_student_delex_ema,
+                                                                                         classifier_student_delex_ema)
+
+
 
 
                     combined_class_loss =  class_loss_lex_teacher+class_loss_lex_teacher_ema+class_loss_delex_student+class_loss_delex_student_ema

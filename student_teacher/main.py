@@ -137,7 +137,7 @@ dev_data_fnc_delex = SentencesDataset(nli_reader_fnc_delex.get_examples('dev.gz'
 dev_dataloader_fnc_delex = DataLoader(dev_data_fnc_delex, shuffle=False, batch_size=batch_size)
 evaluator_fnc_delex = LabelAccuracyEvaluator(dev_dataloader_fnc_delex, softmax_model = train_loss_delex, grapher=comet_value_updater, logger=LOG, name="fnc-dev-delex")
 
-
+   
 if torch.cuda.is_available():
     torch.cuda.set_device(0)
 

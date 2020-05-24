@@ -629,7 +629,9 @@ class SentenceTransformer(nn.Sequential):
                     consistency_loss_delex_student_lex_teacher = consistency_criterion(predictions_delex_student,predictions_lex_teacher )
                     consistency_loss_delex_student_lex_teacher_ema = consistency_criterion(predictions_delex_student,predictions_lex_teacher_ema)
                     consistency_loss_delex_student_delex_student_ema = consistency_criterion(predictions_delex_student, predictions_delex_student_ema)
-                    combined_consistency_loss=consistency_loss_delex_student_lex_teacher+consistency_loss_delex_student_lex_teacher_ema+consistency_loss_delex_student_delex_student_ema
+                    combined_consistency_loss=(0.5)*consistency_loss_delex_student_lex_teacher+\
+                                              (0.5)*consistency_loss_delex_student_lex_teacher_ema+\
+                                              (6)*consistency_loss_delex_student_delex_student_ema
 
 
 

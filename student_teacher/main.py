@@ -48,7 +48,7 @@ def initialize_comet(args):
 
 
 def get_train_dataloader_loss(nli_reader, classifier):
-    return get_dataloader(nli_reader, classifier), get_train_loss(classifier)
+    return get_dataloader(nli_reader, classifier,"train.gz"), get_train_loss(classifier)
 
 
 def get_train_loss(classifier):
@@ -58,14 +58,14 @@ def get_train_loss(classifier):
     return train_loss
 
 
-def get_dataloader(nli_reader, classifier):
-    train_data = SentencesDataset(nli_reader.get_examples('train.gz'), model=classifier)
+def get_dataloader(nli_reader, classifier,partition):
+    train_data = SentencesDataset(nli_reader.get_examples(partition), model=classifier)
     train_dataloader = DataLoader(train_data, shuffle=True, batch_size=batch_size)
     return train_dataloader
 
 
 def create_evaluator(nli_reader, classifier,name):
-    dataloader =get_dataloader(nli_reader, classifier)
+    dataloader =get_dataloader(nli_reader, classifier,"dev.gz")
     loss=get_train_loss(classifier)
     evaluator = LabelAccuracyEvaluator(dataloader, softmax_model=loss,
                                                      grapher=comet_value_updater, logger=LOG, name=name)
@@ -110,7 +110,7 @@ LOG.info(f"cuda available:{avail}")
 #You can specify any huggingface/transformers pre-trained model here, for example, bert-base-uncased, roberta-base, xlm-roberta-base
 model_name = 'bert-base-uncased'
 # Read the dataset
-batch_size = 20
+batch_size = 1
 abs=os.path.abspath(os.path.dirname(__file__))
 os.chdir(abs)
 nli_reader_fever_lex = NLIDataReader('data/rte/fever/allnli/lex/')
@@ -147,7 +147,7 @@ train_dataloader_student_delex_ema, train_loss_student_delex_ema=get_train_datal
 #evaluate on fever-dev using 4 models
 evaluator_fever_dev_lex=create_evaluator(nli_reader_fever_lex, classifier_teacher_lex,"fever_dev_using_teacher_lex")
 evaluator_fever_dev_delex=create_evaluator(nli_reader_fever_delex, classifier_student_delex,"fever_dev_using_student_delex")
-evaluator_fever_dev_lex_ema=create_evaluator(nli_reader_fever_lex, classifier_teacher_lex_ema,"fnc_dev_using_teacher_lex_ema")
+evaluator_fever_dev_lex_ema=create_evaluator(nli_reader_fever_lex, classifier_teacher_lex_ema,"fever_dev_using_teacher_lex_ema")
 evaluator_fever_dev_delex_ema=create_evaluator(nli_reader_fever_delex, classifier_student_delex_ema,"fever_dev_using_student_delex_ema")
 
 
@@ -194,7 +194,10 @@ classifier_teacher_lex.train_1teacher(args, train_objectives=[  (train_dataloade
                                                                 (train_dataloader_teacher_lex_ema, train_loss_teacher_lex_ema),
                                                                 (train_dataloader_student_delex_ema, train_loss_student_delex_ema),
                                                               ],
-                                      evaluators = [evaluator_fever_dev_lex,evaluator_fever_dev_delex, evaluator_fnc_lex, evaluator_fnc_delex],
+                                      evaluators = [
+                                                    evaluator_fever_dev_lex,evaluator_fever_dev_delex, evaluator_fever_dev_lex_ema, evaluator_fever_dev_delex_ema,
+                                                    evaluator_fnc_dev_lex,evaluator_fnc_dev_delex, evaluator_fnc_dev_lex_ema, evaluator_fnc_dev_delex_ema,
+                                                    ],
                                       epochs = num_epochs,
                                       evaluation_steps = 1,
                                       warmup_steps = warmup_steps,

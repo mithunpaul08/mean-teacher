@@ -47,14 +47,30 @@ def initialize_comet(args):
     return comet_Expt_object
 
 
-def get_dataloader_loss(nli_reader,classifier):
-    # all training related data
+def get_train_dataloader_loss(nli_reader, classifier):
+    return get_dataloader(nli_reader, classifier), get_train_loss(classifier)
+
+
+def get_train_loss(classifier):
+    train_loss = losses.SoftmaxLoss(model=classifier,
+                                        sentence_embedding_dimension=classifier.get_sentence_embedding_dimension(),
+                                        num_labels=train_num_labels)
+    return train_loss
+
+
+def get_dataloader(nli_reader, classifier):
     train_data = SentencesDataset(nli_reader.get_examples('train.gz'), model=classifier)
     train_dataloader = DataLoader(train_data, shuffle=True, batch_size=batch_size)
-    train_loss = losses.SoftmaxLoss(model=classifier_teacher_lex,
-                                        sentence_embedding_dimension=classifier_teacher_lex.get_sentence_embedding_dimension(),
-                                        num_labels=train_num_labels)
-    return train_dataloader,train_loss
+    return train_dataloader
+
+
+def create_evaluator(nli_reader, classifier,name):
+    dataloader =get_dataloader(nli_reader, classifier)
+    loss=get_train_loss(classifier)
+    evaluator = LabelAccuracyEvaluator(dataloader, softmax_model=loss,
+                                                     grapher=comet_value_updater, logger=LOG, name=name)
+    return evaluator
+
 
 initializer=Initializer()
 initializer.set_default_parameters()
@@ -122,32 +138,43 @@ assert classifier_student_delex is not None
 logging.info("Reading fever train dataset")
 
 #all training related data
-train_dataloader_teacher_lex, train_loss_teacher_lex=get_dataloader_loss(nli_reader_fever_lex, classifier_teacher_lex)
-train_dataloader_student_delex, train_loss_student_delex=get_dataloader_loss(nli_reader_fever_delex, classifier_student_delex)
-train_dataloader_teacher_lex_ema, train_loss_teacher_lex_ema=get_dataloader_loss(nli_reader_fever_lex, classifier_teacher_lex_ema)
-train_dataloader_student_delex_ema, train_loss_student_delex_ema=get_dataloader_loss(nli_reader_fever_delex, classifier_student_delex_ema)
+train_dataloader_teacher_lex, train_loss_teacher_lex=get_train_dataloader_loss(nli_reader_fever_lex, classifier_teacher_lex)
+train_dataloader_student_delex, train_loss_student_delex=get_train_dataloader_loss(nli_reader_fever_delex, classifier_student_delex)
+train_dataloader_teacher_lex_ema, train_loss_teacher_lex_ema=get_train_dataloader_loss(nli_reader_fever_lex, classifier_teacher_lex_ema)
+train_dataloader_student_delex_ema, train_loss_student_delex_ema=get_train_dataloader_loss(nli_reader_fever_delex, classifier_student_delex_ema)
 
 
+#evaluate on fever-dev using 4 models
+evaluator_fever_dev_lex=create_evaluator(nli_reader_fever_lex, classifier_teacher_lex,"fever_dev_using_teacher_lex")
+evaluator_fever_dev_delex=create_evaluator(nli_reader_fever_delex, classifier_student_delex,"fever_dev_using_student_delex")
+evaluator_fever_dev_lex_ema=create_evaluator(nli_reader_fever_lex, classifier_teacher_lex_ema,"fnc_dev_using_teacher_lex_ema")
+evaluator_fever_dev_delex_ema=create_evaluator(nli_reader_fever_delex, classifier_student_delex_ema,"fever_dev_using_student_delex_ema")
 
 
-#all fever dev related data
-logging.info("Reading fever dev dataset")
-dev_data_fever_lex = SentencesDataset(nli_reader_fever_lex.get_examples('dev.gz'), model=classifier_teacher_lex)
-dev_dataloader_fever_lex = DataLoader(dev_data_fever_lex, shuffle=False, batch_size=batch_size)
-evaluator_fever_dev_lex = LabelAccuracyEvaluator(dev_dataloader_fever_lex, softmax_model = train_loss_teacher_lex, grapher=comet_value_updater, logger=LOG, name="fever-dev-lex")
+#evaluate on fnc-dev using 4 models
+evaluator_fnc_dev_lex=create_evaluator(nli_reader_fnc_lex, classifier_teacher_lex,"fnc_dev_using_teacher_lex")
+evaluator_fnc_dev_delex=create_evaluator(nli_reader_fnc_delex, classifier_student_delex,"fnc_dev_using_student_delex")
+evaluator_fnc_dev_lex_ema=create_evaluator(nli_reader_fnc_lex, classifier_teacher_lex_ema,"fnc_dev_using_teacher_lex_ema")
+evaluator_fnc_dev_delex_ema=create_evaluator(nli_reader_fnc_delex, classifier_student_delex_ema,"fnc_dev_using_student_delex_ema")
 
-dev_data_fever_delex = SentencesDataset(nli_reader_fever_delex.get_examples('dev.gz'), model=classifier_student_delex)
-dev_dataloader_fever_delex = DataLoader(dev_data_fever_delex, shuffle=False, batch_size=batch_size)
-evaluator_fever_dev_delex = LabelAccuracyEvaluator(dev_dataloader_fever_delex, softmax_model = train_loss_student_delex, grapher=comet_value_updater, logger=LOG, name="fever-dev-delex")
 
-#all fnc dev related data
-dev_data_fnc_lex = SentencesDataset(nli_reader_fnc_lex.get_examples('dev.gz'), model=classifier_teacher_lex)
-dev_dataloader_fnc_lex = DataLoader(dev_data_fnc_lex, shuffle=False, batch_size=batch_size)
-evaluator_fnc_lex = LabelAccuracyEvaluator(dev_dataloader_fnc_lex, softmax_model = train_loss_teacher_lex, grapher=comet_value_updater, logger=LOG, name="fnc-dev-lex")
-
-dev_data_fnc_delex = SentencesDataset(nli_reader_fnc_delex.get_examples('dev.gz'), model=classifier_student_delex)
-dev_dataloader_fnc_delex = DataLoader(dev_data_fnc_delex, shuffle=False, batch_size=batch_size)
-evaluator_fnc_delex = LabelAccuracyEvaluator(dev_dataloader_fnc_delex, softmax_model = train_loss_student_delex, grapher=comet_value_updater, logger=LOG, name="fnc-dev-delex")
+# logging.info("Reading fever dev dataset")
+# dev_data_fever_lex = SentencesDataset(nli_reader_fever_lex.get_examples('dev.gz'), model=classifier_teacher_lex)
+# dev_dataloader_fever_lex = DataLoader(dev_data_fever_lex, shuffle=False, batch_size=batch_size)
+# evaluator_fever_dev_lex = LabelAccuracyEvaluator(dev_dataloader_fever_lex, softmax_model = train_loss_teacher_lex, grapher=comet_value_updater, logger=LOG, name="fever-dev-lex")
+#
+# dev_data_fever_delex = SentencesDataset(nli_reader_fever_delex.get_examples('dev.gz'), model=classifier_student_delex)
+# dev_dataloader_fever_delex = DataLoader(dev_data_fever_delex, shuffle=False, batch_size=batch_size)
+# evaluator_fever_dev_delex = LabelAccuracyEvaluator(dev_dataloader_fever_delex, softmax_model = train_loss_student_delex, grapher=comet_value_updater, logger=LOG, name="fever-dev-delex")
+#
+# #all fnc dev related data
+# dev_data_fnc_lex = SentencesDataset(nli_reader_fnc_lex.get_examples('dev.gz'), model=classifier_teacher_lex)
+# dev_dataloader_fnc_lex = DataLoader(dev_data_fnc_lex, shuffle=False, batch_size=batch_size)
+# evaluator_fnc_lex = LabelAccuracyEvaluator(dev_dataloader_fnc_lex, softmax_model = train_loss_teacher_lex, grapher=comet_value_updater, logger=LOG, name="fnc-dev-lex")
+#
+# dev_data_fnc_delex = SentencesDataset(nli_reader_fnc_delex.get_examples('dev.gz'), model=classifier_student_delex)
+# dev_dataloader_fnc_delex = DataLoader(dev_data_fnc_delex, shuffle=False, batch_size=batch_size)
+# evaluator_fnc_delex = LabelAccuracyEvaluator(dev_dataloader_fnc_delex, softmax_model = train_loss_student_delex, grapher=comet_value_updater, logger=LOG, name="fnc-dev-delex")
 
    
 if torch.cuda.is_available():

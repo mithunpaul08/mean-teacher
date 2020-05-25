@@ -60,7 +60,7 @@ def get_train_loss(classifier):
 
 def get_dataloader(nli_reader, classifier,partition):
     train_data = SentencesDataset(nli_reader.get_examples(partition), model=classifier)
-    train_dataloader = DataLoader(train_data, shuffle=True, batch_size=batch_size,num_workers=4)
+    train_dataloader = DataLoader(train_data, shuffle=True, batch_size=batch_size)
     return train_dataloader
 
 

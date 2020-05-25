@@ -65,7 +65,7 @@ def get_dataloader(nli_reader, classifier,partition):
 
 
 def create_evaluator(nli_reader, classifier,name):
-    dataloader =get_dataloader(nli_reader, classifier,"dev.gz",num_workers=4)
+    dataloader =get_dataloader(nli_reader, classifier,"dev.gz")
     loss=get_train_loss(classifier)
     evaluator = LabelAccuracyEvaluator(dataloader, softmax_model=loss,
                                                      grapher=comet_value_updater, logger=LOG, name=name)

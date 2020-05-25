@@ -110,7 +110,7 @@ LOG.info(f"cuda available:{avail}")
 #You can specify any huggingface/transformers pre-trained model here, for example, bert-base-uncased, roberta-base, xlm-roberta-base
 model_name = 'bert-base-uncased'
 # Read the dataset
-batch_size = 2
+batch_size = 32
 abs=os.path.abspath(os.path.dirname(__file__))
 os.chdir(abs)
 nli_reader_fever_lex = NLIDataReader('data/rte/fever/allnli/lex/')

@@ -1,8 +1,8 @@
 #!/bin/bash
-#PBS -q standard
+#PBS -q windfall
 #PBS -l select=1:ncpus=28:mem=168gb:pcmem=6gb:ngpus=1:os7=True
 #PBS -W group_list=msurdeanu
-#PBS -l walltime=00:20:00
+#PBS -l walltime=48:20:00
 #PBS -j oe
 
 

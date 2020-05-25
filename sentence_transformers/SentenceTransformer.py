@@ -607,7 +607,7 @@ class SentenceTransformer(nn.Sequential):
                     data_iterator_teacher_lex = data_iterators[0]
                     data_iterator_student_delex = data_iterators[1]
                     data_iterator_teacher_lex_ema = data_iterators[2]
-                    data_iterator_student_delex_ema = data_iterators[2]
+                    data_iterator_student_delex_ema = data_iterators[3]
 
 
 
@@ -638,6 +638,7 @@ class SentenceTransformer(nn.Sequential):
                                                                                            classifier_teacher_lex_ema)
                     predictions_delex_student_ema, class_loss_delex_student_ema = self.predict(data_student_delex_ema,
                                                                                          classifier_student_delex_ema)
+
 
 
 

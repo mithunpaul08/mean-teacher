@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -q standard
-#PBS -l select=2:ncpus=28:mem=168gb:pcmem=6gb:ngpus=1:os7=True
+#PBS -l select=1:ncpus=28:mem=168gb:pcmem=6gb:ngpus=2:os7=True
 #PBS -W group_list=msurdeanu
 #PBS -l walltime=10:00:00
 #PBS -j oe

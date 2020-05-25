@@ -4,7 +4,7 @@
 #PBS -W group_list=msurdeanu
 #PBS -l walltime=10:00:00
 #PBS -j oe
-
+#PBS -l place=pack:exclhost
 
 cd /home/u11/mithunpaul/
 module load cuda90/neuralnet/7/7.3.1.20

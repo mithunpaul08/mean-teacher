@@ -60,12 +60,12 @@ def get_train_loss(classifier):
 
 def get_dataloader(nli_reader, classifier,partition):
     train_data = SentencesDataset(nli_reader.get_examples(partition), model=classifier)
-    train_dataloader = DataLoader(train_data, shuffle=True, batch_size=batch_size)
+    train_dataloader = DataLoader(train_data, shuffle=True, batch_size=batch_size,num_workers=4)
     return train_dataloader
 
 
 def create_evaluator(nli_reader, classifier,name):
-    dataloader =get_dataloader(nli_reader, classifier,"dev.gz")
+    dataloader =get_dataloader(nli_reader, classifier,"dev.gz",num_workers=4)
     loss=get_train_loss(classifier)
     evaluator = LabelAccuracyEvaluator(dataloader, softmax_model=loss,
                                                      grapher=comet_value_updater, logger=LOG, name=name)

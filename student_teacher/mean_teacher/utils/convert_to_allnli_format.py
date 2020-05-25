@@ -35,24 +35,23 @@ path_base= "../../data/rte/"
 
 #convert from fever format. this should be run only once ever ideally-per every type of file.
 input_file=(os.path.join(path_base,"fever/train/fever_train_lex.jsonl"))
-output_folder=(os.path.join(path_base, "fever/allnli"))
+output_folder=(os.path.join(path_base, "fever/allnli/lex/"))
 read_fever_format_write_to_allnli_format(input_file,"train",output_folder)
 
 input_file=(os.path.join(path_base,"fever/dev/fever_dev_lex.jsonl"))
 read_fever_format_write_to_allnli_format(input_file,"dev",output_folder)
 
-output_folder=(os.path.join(path_base, "fnc/allnli"))
+output_folder=(os.path.join(path_base, "fnc/allnli/lex/"))
 input_file=(os.path.join(path_base,"fnc/dev/fnc_dev_lex.jsonl"))
 read_fever_format_write_to_allnli_format(input_file,"dev",output_folder)
 
 ###---all delexicalized files
-# input_file=(os.path.join(path_base, "fever/train/fever_train_delex.jsonl"))
-# output_folder=(os.path.join(path_base, "fever/allnli"))
-# read_fever_format_write_to_allnli_format(input_file,"train",output_folder)
-# input_file=(os.path.join(path_base, "fever/dev/fever_dev_delex.jsonl"))
-# read_fever_format_write_to_allnli_format(input_file,"dev",output_folder)
-#
-# output_folder=(os.path.join(path_base, "fnc/allnli"))
-# input_file=(os.path.join(path_base, "fnc/dev/fnc_dev_delex.jsonl"))
-# read_fever_format_write_to_allnli_format(input_file,"dev",output_folder)
+input_file=(os.path.join(path_base, "fever/train/fever_train_delex.jsonl"))
+output_folder=(os.path.join(path_base, "fever/allnli/delex/"))
+read_fever_format_write_to_allnli_format(input_file,"train",output_folder)
+input_file=(os.path.join(path_base, "fever/dev/fever_dev_delex.jsonl"))
+read_fever_format_write_to_allnli_format(input_file,"dev",output_folder)
 
+output_folder=(os.path.join(path_base, "fnc/allnli/delex/"))
+input_file=(os.path.join(path_base, "fnc/dev/fnc_dev_delex.jsonl"))
+read_fever_format_write_to_allnli_format(input_file,"dev",output_folder)

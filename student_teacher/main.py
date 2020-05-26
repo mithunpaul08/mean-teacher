@@ -88,18 +88,17 @@ LOG.info(f"cuda available:{avail}")
 #You can specify any huggingface/transformers pre-trained model here, for example, bert-base-uncased, roberta-base, xlm-roberta-base
 model_name = 'bert-base-uncased'
 # Read the dataset
-batch_size = 16
+batch_size = 10
 abs=os.path.abspath(os.path.dirname(__file__))
 os.chdir(abs)
 
 #for lexicalized data
-# nli_reader_fever = NLIDataReader('data/rte/fever/allnli/lex/')
-#nli_reader_fnc = NLIDataReader('data/rte/fnc/allnli/lex/')
+nli_reader_fever = NLIDataReader('data/rte/fever/allnli/lex/')
+nli_reader_fnc = NLIDataReader('data/rte/fnc/allnli/lex/')
 
-nli_reader_fever= NLIDataReader('data/rte/fever/allnli/delex/')
-nli_reader_fnc = NLIDataReader('data/rte/fnc/allnli/delex')
+#nli_reader_fever= NLIDataReader('data/rte/fever/allnli/delex/')
+#nli_reader_fnc = NLIDataReader('data/rte/fnc/allnli/delex')
 
-train_num_labels = nli_reader_fever.get_num_labels()
 model_save_path = 'output/training_nli_'+model_name.replace("/", "-")+'-'+datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 
@@ -149,9 +148,7 @@ classifier_teacher_lex.train_1teacher(args,train_objectives=[(train_dataloader, 
                                       evaluation_steps = 1,
                                       warmup_steps = warmup_steps,
                                       output_path = model_save_path,
-                                      grapher=comet_value_updater,
-                                    optimizer_params= {'lr': args.learning_rate,'weight_decay':0.01, 'eps': 1e-6,
-                                                        'correct_bias': False},
+                                      grapher=comet_value_updater
                                       )
 
 

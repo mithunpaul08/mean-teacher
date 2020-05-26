@@ -88,17 +88,16 @@ LOG.info(f"cuda available:{avail}")
 #You can specify any huggingface/transformers pre-trained model here, for example, bert-base-uncased, roberta-base, xlm-roberta-base
 model_name = 'bert-base-uncased'
 # Read the dataset
-batch_size = 10
+batch_size = 16
 abs=os.path.abspath(os.path.dirname(__file__))
 os.chdir(abs)
-# nli_reader_fever = NLIDataReader('data/rte/fever/allnli')
-# nli_reader_fnc = NLIDataReader('data/rte/fnc/allnli')
+nli_reader_fever_lex = NLIDataReader('data/rte/fever/allnli/lex/')
+nli_reader_fnc_lex = NLIDataReader('data/rte/fnc/allnli/lex/')
 
+# nli_reader_fever_delex = NLIDataReader('data/rte/fever/allnli/delex/')
+# nli_reader_fnc_delex = NLIDataReader('data/rte/fnc/allnli/delex')
 
-nli_reader_fever_delex = NLIDataReader('data/rte/fever/allnli/delex/')
-nli_reader_fnc_delex = NLIDataReader('data/rte/fnc/allnli/delex')
-
-train_num_labels = nli_reader_fever_delex.get_num_labels()
+train_num_labels = nli_reader_fever_lex.get_num_labels()
 model_save_path = 'output/training_nli_'+model_name.replace("/", "-")+'-'+datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 
@@ -115,17 +114,17 @@ assert classifier_teacher_lex is not None
 # Convert the dataset to a DataLoader ready for training
 logging.info("Reading fever train dataset")
 
-train_data = SentencesDataset(nli_reader_fever_delex.get_examples('train.gz'), model=classifier_teacher_lex)
+train_data = SentencesDataset(nli_reader_fever_lex.get_examples('train.gz'), model=classifier_teacher_lex)
 train_dataloader = DataLoader(train_data, shuffle=True, batch_size=batch_size)
 train_loss = losses.SoftmaxLoss(model=classifier_teacher_lex, sentence_embedding_dimension=classifier_teacher_lex.get_sentence_embedding_dimension(), num_labels=train_num_labels)
 
 
 logging.info("Reading fever dev dataset")
-dev_data = SentencesDataset(nli_reader_fever_delex.get_examples('dev.gz'), model=classifier_teacher_lex)
+dev_data = SentencesDataset(nli_reader_fever_lex.get_examples('dev.gz'), model=classifier_teacher_lex)
 dev_dataloader = DataLoader(dev_data, shuffle=False, batch_size=batch_size)
 evaluator_fever = LabelAccuracyEvaluator(dev_dataloader,softmax_model = train_loss,grapher=comet_value_updater,logger=LOG,name="fever-dev")
 
-dev_data = SentencesDataset(nli_reader_fnc_delex.get_examples('dev.gz'), model=classifier_teacher_lex)
+dev_data = SentencesDataset(nli_reader_fnc_lex.get_examples('dev.gz'), model=classifier_teacher_lex)
 dev_dataloader = DataLoader(dev_data, shuffle=False, batch_size=batch_size)
 evaluator_fnc = LabelAccuracyEvaluator(dev_dataloader,softmax_model = train_loss,grapher=comet_value_updater,logger=LOG,name="fnc-dev")
 
@@ -148,7 +147,9 @@ classifier_teacher_lex.train_1teacher(args,train_objectives=[(train_dataloader, 
                                       evaluation_steps = 1,
                                       warmup_steps = warmup_steps,
                                       output_path = model_save_path,
-                                      grapher=comet_value_updater
+                                      grapher=comet_value_updater,
+                                    optimizer_params= {'lr': args.learning_rate,'weight_decay':0.01, 'eps': 1e-6,
+                                                        'correct_bias': False},
                                       )
 
 

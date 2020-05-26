@@ -91,13 +91,15 @@ model_name = 'bert-base-uncased'
 batch_size = 16
 abs=os.path.abspath(os.path.dirname(__file__))
 os.chdir(abs)
-nli_reader_fever_lex = NLIDataReader('data/rte/fever/allnli/lex/')
-nli_reader_fnc_lex = NLIDataReader('data/rte/fnc/allnli/lex/')
 
-# nli_reader_fever_delex = NLIDataReader('data/rte/fever/allnli/delex/')
-# nli_reader_fnc_delex = NLIDataReader('data/rte/fnc/allnli/delex')
+#for lexicalized data
+# nli_reader_fever = NLIDataReader('data/rte/fever/allnli/lex/')
+#nli_reader_fnc = NLIDataReader('data/rte/fnc/allnli/lex/')
 
-train_num_labels = nli_reader_fever_lex.get_num_labels()
+nli_reader_fever= NLIDataReader('data/rte/fever/allnli/delex/')
+nli_reader_fnc = NLIDataReader('data/rte/fnc/allnli/delex')
+
+train_num_labels = nli_reader_fever.get_num_labels()
 model_save_path = 'output/training_nli_'+model_name.replace("/", "-")+'-'+datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 
@@ -114,17 +116,17 @@ assert classifier_teacher_lex is not None
 # Convert the dataset to a DataLoader ready for training
 logging.info("Reading fever train dataset")
 
-train_data = SentencesDataset(nli_reader_fever_lex.get_examples('train.gz'), model=classifier_teacher_lex)
+train_data = SentencesDataset(nli_reader_fever.get_examples('train.gz'), model=classifier_teacher_lex)
 train_dataloader = DataLoader(train_data, shuffle=True, batch_size=batch_size)
 train_loss = losses.SoftmaxLoss(model=classifier_teacher_lex, sentence_embedding_dimension=classifier_teacher_lex.get_sentence_embedding_dimension(), num_labels=train_num_labels)
 
 
 logging.info("Reading fever dev dataset")
-dev_data = SentencesDataset(nli_reader_fever_lex.get_examples('dev.gz'), model=classifier_teacher_lex)
+dev_data = SentencesDataset(nli_reader_fever.get_examples('dev.gz'), model=classifier_teacher_lex)
 dev_dataloader = DataLoader(dev_data, shuffle=False, batch_size=batch_size)
 evaluator_fever = LabelAccuracyEvaluator(dev_dataloader,softmax_model = train_loss,grapher=comet_value_updater,logger=LOG,name="fever-dev")
 
-dev_data = SentencesDataset(nli_reader_fnc_lex.get_examples('dev.gz'), model=classifier_teacher_lex)
+dev_data = SentencesDataset(nli_reader_fnc.get_examples('dev.gz'), model=classifier_teacher_lex)
 dev_dataloader = DataLoader(dev_data, shuffle=False, batch_size=batch_size)
 evaluator_fnc = LabelAccuracyEvaluator(dev_dataloader,softmax_model = train_loss,grapher=comet_value_updater,logger=LOG,name="fnc-dev")
 

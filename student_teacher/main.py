@@ -94,12 +94,12 @@ abs=os.path.abspath(os.path.dirname(__file__))
 os.chdir(abs)
 
 #for lexicalized data
-# nli_reader_fever = NLIDataReader('data/rte/fever/allnli/lex/')
-# nli_reader_fnc = NLIDataReader('data/rte/fnc/allnli/lex/')
+nli_reader_fever = NLIDataReader('data/rte/fever/allnli/lex/')
+nli_reader_fnc = NLIDataReader('data/rte/fnc/allnli/lex/')
 
 # for delexicalized data
-nli_reader_fever= NLIDataReader('data/rte/fever/allnli/delex/')
-nli_reader_fnc = NLIDataReader('data/rte/fnc/allnli/delex')
+# nli_reader_fever= NLIDataReader('data/rte/fever/allnli/delex/')
+# nli_reader_fnc = NLIDataReader('data/rte/fnc/allnli/delex')
 
 train_num_labels = nli_reader_fever.get_num_labels()
 

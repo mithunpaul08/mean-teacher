@@ -54,6 +54,7 @@ args=initializer.set_default_parameters2(args)
 
 
 
+
 current_time={time.strftime("%c")}
 logger_client=Logger()
 LOG=logger_client.initialize_logger()
@@ -95,6 +96,7 @@ os.chdir(abs)
 #for lexicalized data
 nli_reader_fever = NLIDataReader('data/rte/fever/allnli/lex/')
 nli_reader_fnc = NLIDataReader('data/rte/fnc/allnli/lex/')
+train_num_labels = nli_reader_fever.get_num_labels()
 
 #nli_reader_fever= NLIDataReader('data/rte/fever/allnli/delex/')
 #nli_reader_fnc = NLIDataReader('data/rte/fnc/allnli/delex')

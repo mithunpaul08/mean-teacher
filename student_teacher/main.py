@@ -89,7 +89,7 @@ LOG.info(f"cuda available:{avail}")
 #You can specify any huggingface/transformers pre-trained model here, for example, bert-base-uncased, roberta-base, xlm-roberta-base
 model_name = 'bert-base-uncased'
 # Read the dataset
-batch_size = 10
+batch_size = args.batch_size
 abs=os.path.abspath(os.path.dirname(__file__))
 os.chdir(abs)
 

@@ -249,7 +249,7 @@ def create_model_bert():
     model_name = 'bert-base-uncased'
 
     # Use Huggingface/transformers model (like BERT, RoBERTa, XLNet, XLM-R) for mapping tokens to embeddings
-    word_embedding_model = models.Transformer(model_name)
+    word_embedding_model = models.Transformer(model_name,max_seq_length=64)
 
     # Apply mean pooling to get one fixed sized sentence vector
     pooling_model = models.Pooling(word_embedding_model.get_word_embedding_dimension(),

@@ -634,11 +634,7 @@ class SentenceTransformer(nn.Sequential):
                 grapher.log_metric("training_loss_using_average_method", overall_loss,
                                    step=epoch, include_context=False)
 
-                # if evaluation_steps > 0 and batch_count % evaluation_steps == 0:
-                    #     self._eval_during_training(evaluator, output_path, save_best_model, epoch, batch_count)
-                    #     for loss_model in loss_models:
-                    #         loss_model.zero_grad()
-                    #         loss_model.train()
+
                 for evaluator in evaluators:
                     self._eval_during_training(evaluator, output_path, save_best_model, epoch, -1)
 

@@ -124,11 +124,13 @@ train_data = SentencesDataset(nli_reader_fever.get_examples('train.gz'), model=c
 train_dataloader = DataLoader(train_data, shuffle=True, batch_size=batch_size)
 train_loss = losses.SoftmaxLoss(model=classifier_teacher_lex, sentence_embedding_dimension=classifier_teacher_lex.get_sentence_embedding_dimension(), num_labels=train_num_labels)
 
+evaluator_fever_train = LabelAccuracyEvaluator(train_dataloader, softmax_model = train_loss, grapher=comet_value_updater, logger=LOG, name="fever-train")
+
 
 logging.info("Reading fever dev dataset")
 dev_data = SentencesDataset(nli_reader_fever.get_examples('dev.gz'), model=classifier_teacher_lex)
 dev_dataloader = DataLoader(dev_data, shuffle=False, batch_size=batch_size)
-evaluator_fever = LabelAccuracyEvaluator(dev_dataloader,softmax_model = train_loss,grapher=comet_value_updater,logger=LOG,name="fever-dev")
+evaluator_fever_dev = LabelAccuracyEvaluator(dev_dataloader, softmax_model = train_loss, grapher=comet_value_updater, logger=LOG, name="fever-dev")
 
 dev_data = SentencesDataset(nli_reader_fnc.get_examples('dev.gz'), model=classifier_teacher_lex)
 dev_dataloader = DataLoader(dev_data, shuffle=False, batch_size=batch_size)
@@ -147,8 +149,8 @@ logging.info("Warmup-steps: {}".format(warmup_steps))
 
 
 
-classifier_teacher_lex.train_1teacher(args,train_objectives=[(train_dataloader, train_loss)],
-                                      evaluators = [evaluator_fever,evaluator_fnc],
+classifier_teacher_lex.train_1teacher(args, train_objectives=[(train_dataloader, train_loss)],
+                                      evaluators = [evaluator_fever_train,evaluator_fever_dev, evaluator_fnc],
                                       epochs = num_epochs,
                                       evaluation_steps = 1,
                                       warmup_steps = warmup_steps,

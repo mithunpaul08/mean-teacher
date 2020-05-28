@@ -16,7 +16,7 @@ class Pooling(nn.Module):
                  word_embedding_dimension: int,
                  pooling_mode_cls_token: bool = False,
                  pooling_mode_max_tokens: bool = False,
-                 pooling_mode_mean_tokens: bool = True,
+                 pooling_mode_mean_tokens: bool = False,
                  pooling_mode_mean_sqrt_len_tokens: bool = False,
                  ):
         super(Pooling, self).__init__()
@@ -29,7 +29,12 @@ class Pooling(nn.Module):
         self.pooling_mode_max_tokens = pooling_mode_max_tokens
         self.pooling_mode_mean_sqrt_len_tokens = pooling_mode_mean_sqrt_len_tokens
 
-        pooling_mode_multiplier = sum([pooling_mode_cls_token, pooling_mode_max_tokens, pooling_mode_mean_tokens, pooling_mode_mean_sqrt_len_tokens])
+        #if all tokens are false/to run bert only- i.e no mean pooling
+        if (pooling_mode_cls_token==False) and  (pooling_mode_max_tokens==False) and (pooling_mode_mean_tokens==False) and(pooling_mode_mean_sqrt_len_tokens==False):
+            pooling_mode_multiplier = 1
+        else:
+            pooling_mode_multiplier = sum([pooling_mode_cls_token, pooling_mode_max_tokens, pooling_mode_mean_tokens, pooling_mode_mean_sqrt_len_tokens])
+
         self.pooling_output_dimension = (pooling_mode_multiplier * word_embedding_dimension)
 
     def forward(self, features: Dict[str, Tensor]):

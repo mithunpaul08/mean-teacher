@@ -55,7 +55,10 @@ class SentencesDataset(Dataset):
                     label_type = torch.long
                 elif isinstance(example.label, float):
                     label_type = torch.float
-            tokenized_texts = [model.tokenize(text) for text in example.texts]
+            #tokenized_texts = [model.tokenize(text) for text in example.texts]
+
+            for text in example.texts :
+                tokenized_texts=model.tokenize(text)
 
             for i, token in enumerate(tokenized_texts):
                 if max_seq_length != None and max_seq_length > 0 and len(token) >= max_seq_length:

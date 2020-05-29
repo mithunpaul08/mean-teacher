@@ -244,13 +244,13 @@ def update_optimizer_state(input_optimizer, inter_atten_optimizer,args):
     return input_optimizer, inter_atten_optimizer
 
 
-def create_model_bert(args):
+def create_model_bert(args,LOG):
     # You can specify any huggingface/transformers pre-trained model here, for example, bert-base-uncased, roberta-base, xlm-roberta-base
     model_name = 'bert-base-uncased'
 
     # Use Huggingface/transformers model (like BERT, RoBERTa, XLNet, XLM-R) for mapping tokens to embeddings
-    #word_embedding_model = models.BERT(model_name,max_seq_length=64,mithunargs=args)
-    word_embedding_model = models.Transformer(model_name, max_seq_length=64)
+    word_embedding_model = models.BERT(LOG,model_name,max_seq_length=64,mithunargs=args)
+    #word_embedding_model = models.Transformer(model_name, max_seq_length=64)
 
     # Apply mean pooling to get one fixed sized sentence vector
     pooling_model = models.Pooling(word_embedding_model.get_word_embedding_dimension(),

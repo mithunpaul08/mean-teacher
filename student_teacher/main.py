@@ -102,7 +102,7 @@ model_save_path = 'output/training_nli_'+model_name.replace("/", "-")+'-'+dateti
 
 
 
-classifier_teacher_lex = create_model_bert(args)
+classifier_teacher_lex = create_model_bert(args,LOG)
 
 
 

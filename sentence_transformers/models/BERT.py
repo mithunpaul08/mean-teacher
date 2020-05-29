@@ -4,7 +4,7 @@ import json
 from typing import List, Dict, Optional
 import os
 import numpy as np
-import logging
+#import logging
 from sentence_transformers.models.tokenizer import BertTokenizerOriginal
 
 class BERT(nn.Module):
@@ -12,13 +12,14 @@ class BERT(nn.Module):
 
     Each token is mapped to an output vector from BERT.
     """
-    def __init__(self, model_name_or_path: str, max_seq_length: int = 128, do_lower_case: Optional[bool] = None, model_args: Dict = {}, tokenizer_args: Dict = {},mithunargs: Dict = {}):
+    def __init__(self, LOG,model_name_or_path: str, max_seq_length: int = 128, do_lower_case: Optional[bool] = None, model_args: Dict = {},
+    tokenizer_args: Dict = {},mithunargs: Dict = {}):
         super(BERT, self).__init__()
         self.config_keys = ['max_seq_length', 'do_lower_case']
         self.do_lower_case = do_lower_case
-
+        self.logging=LOG
         if max_seq_length > 510:
-            logging.warning("BERT only allows a max_seq_length of 510 (512 with special tokens). Value will be set to 510")
+            self.logging.warning("BERT only allows a max_seq_length of 510 (512 with special tokens). Value will be set to 510")
             max_seq_length = 510
         self.max_seq_length = max_seq_length
 
@@ -70,7 +71,7 @@ class BERT(nn.Module):
         :return: embedding ids, segment ids and mask for the sentence
         """
         pad_seq_length = min(pad_seq_length, self.max_seq_length) + 2  ##Add Space for CLS + SEP token
-        logging.info(f"will take min of pad_seq_length which is {pad_seq_length} and self.max_seq_length which is {self.max_seq_length}")
+        self.logging.info(f"will take min of pad_seq_length which is {pad_seq_length} and self.max_seq_length which is {self.max_seq_length}")
 
         return self.transformers_tokenizer.prepare_for_model(tokens, max_length=pad_seq_length, pad_to_max_length=True, return_tensors='pt')
 

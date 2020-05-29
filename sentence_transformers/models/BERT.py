@@ -32,8 +32,10 @@ class BERT(nn.Module):
             vocab_file=mithunargs.vocab_file, do_lower_case=mithunargs.do_lower_case)
 
 
+
+
         self.transformers_tokenizer= BertTokenizer.from_pretrained(model_name_or_path, **tokenizer_args)
-        #self.tokenizer = BertTokenizer.from_pretrained(model_name_or_path, **tokenizer_args)
+
 
 
     def forward(self, features):
@@ -78,7 +80,7 @@ class BERT(nn.Module):
 
     def save(self, output_path: str):
         self.bert.save_pretrained(output_path)
-        self.tokenizer.save_pretrained(output_path)
+        self.transformers_tokenizer.save_pretrained(output_path)
 
         with open(os.path.join(output_path, 'sentence_bert_config.json'), 'w') as fOut:
             json.dump(self.get_config_dict(), fOut, indent=2)

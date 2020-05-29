@@ -68,6 +68,7 @@ class BERT(nn.Module):
         :return: embedding ids, segment ids and mask for the sentence
         """
         pad_seq_length = min(pad_seq_length, self.max_seq_length) + 2  ##Add Space for CLS + SEP token
+        logging.info(f"will take min of pad_seq_length which is {pad_seq_length} and self.max_seq_length which is {self.max_seq_length}")
 
         return self.transformers_tokenizer.prepare_for_model(tokens, max_length=pad_seq_length, pad_to_max_length=True, return_tensors='pt')
 

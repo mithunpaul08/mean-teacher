@@ -9,3 +9,5 @@ sklearn
 comet_ml
 gitpython
 git+ssh://git@github.com/pytorch/vision@c31c3d7e0e68e871d2128c8b731698ed3b11b119
+tensorflow == 1.15.0   # CPU Version of TensorFlow.
+#tensorflow-gpu  == 1.15.0  # GPU version of TensorFlow.

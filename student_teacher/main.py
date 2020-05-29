@@ -102,7 +102,7 @@ model_save_path = 'output/training_nli_'+model_name.replace("/", "-")+'-'+dateti
 
 
 
-classifier_teacher_lex = create_model_bert()
+classifier_teacher_lex = create_model_bert(args)
 
 
 
@@ -114,7 +114,7 @@ assert classifier_teacher_lex is not None
 # Convert the dataset to a DataLoader ready for training
 logging.info("Reading fever train dataset")
 
-train_data = SentencesDataset(nli_reader_fever_lex.get_examples('train.gz'), model=classifier_teacher_lex)
+train_data = SentencesDataset(nli_reader_fever_lex.get_examples('train.gz'), model=classifier_teacher_lex,show_progress_bar=True)
 train_dataloader = DataLoader(train_data, shuffle=True, batch_size=batch_size)
 train_loss = losses.SoftmaxLoss(model=classifier_teacher_lex, sentence_embedding_dimension=classifier_teacher_lex.get_sentence_embedding_dimension(), num_labels=train_num_labels)
 

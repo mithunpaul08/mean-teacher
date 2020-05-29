@@ -5,13 +5,14 @@ from typing import List, Dict, Optional
 import os
 import numpy as np
 import logging
+from sentence_transformers.models.tokenizer import BertTokenizerOriginal
 
 class BERT(nn.Module):
     """BERT model to generate token embeddings.
 
     Each token is mapped to an output vector from BERT.
     """
-    def __init__(self, model_name_or_path: str, max_seq_length: int = 128, do_lower_case: Optional[bool] = None, model_args: Dict = {}, tokenizer_args: Dict = {}):
+    def __init__(self, model_name_or_path: str, max_seq_length: int = 128, do_lower_case: Optional[bool] = None, model_args: Dict = {}, tokenizer_args: Dict = {},mithunargs: Dict = {}):
         super(BERT, self).__init__()
         self.config_keys = ['max_seq_length', 'do_lower_case']
         self.do_lower_case = do_lower_case
@@ -25,7 +26,14 @@ class BERT(nn.Module):
             tokenizer_args['do_lower_case'] = do_lower_case
 
         self.bert = BertModel.from_pretrained(model_name_or_path, **model_args)
-        self.tokenizer = BertTokenizer.from_pretrained(model_name_or_path, **tokenizer_args)
+
+        #mithun change to try to match sandeeps file-doing tokenization from code and rest of the encoding using transformers.
+        self.tokenizer = BertTokenizerOriginal.FullTokenizer(
+            vocab_file=mithunargs.vocab_file, do_lower_case=mithunargs.do_lower_case)
+
+
+        self.transformers_tokenizer= BertTokenizer.from_pretrained(model_name_or_path, **tokenizer_args)
+        #self.tokenizer = BertTokenizer.from_pretrained(model_name_or_path, **tokenizer_args)
 
 
     def forward(self, features):
@@ -61,7 +69,7 @@ class BERT(nn.Module):
         """
         pad_seq_length = min(pad_seq_length, self.max_seq_length) + 2  ##Add Space for CLS + SEP token
 
-        return self.tokenizer.prepare_for_model(tokens, max_length=pad_seq_length, pad_to_max_length=True, return_tensors='pt')
+        return self.transformers_tokenizer.prepare_for_model(tokens, max_length=pad_seq_length, pad_to_max_length=True, return_tensors='pt')
 
 
     def get_config_dict(self):
